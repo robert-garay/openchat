@@ -18,6 +18,12 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertTrue(ids.isSuperset(of: ["deepseek", "qwen", "moonshot", "zhipu"]))
     }
 
+    func testOpenRouterDefaultsIncludeFreeAndOpenSourceHints() {
+        let models = ProviderTemplate.template(for: "openrouter")!.defaultModels
+        XCTAssertTrue(models.contains { $0.id.hasSuffix(":free") })
+        XCTAssertTrue(models.contains { $0.subtitle?.localizedCaseInsensitiveContains("open source") == true })
+    }
+
     func testTemplateLookupByIDSucceeds() {
         XCTAssertEqual(ProviderTemplate.template(for: "deepseek")?.name, "DeepSeek")
         XCTAssertNil(ProviderTemplate.template(for: "does-not-exist"))
