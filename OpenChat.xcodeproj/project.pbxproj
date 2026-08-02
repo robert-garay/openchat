@@ -1,0 +1,654 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */; };
+		11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */; };
+		181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3022C85CF36B100C7663857D /* AddProviderView.swift */; };
+		1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5332911ABD740626614DC38E /* Theme.swift */; };
+		1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */; };
+		1B2F7114BF34C9CD70C4DD84 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC89CCC94B4FAA05D8E5C0B /* ConversationListView.swift */; };
+		1ECC5B45B7CC4CA24787C98A /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9100221764BF1ED1D5CEFB5 /* Conversation.swift */; };
+		2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */; };
+		30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38179096B024B94EA48B03CA /* MessageBubbleView.swift */; };
+		3133335079619130518EF11E /* MessageComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA7BF3262C5159168758827 /* MessageComposerView.swift */; };
+		349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */; };
+		388E8B37683BBD3C7294F4C4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E88FA5334D59F31A5DF955 /* SettingsView.swift */; };
+		3C94E98A049ED6EF027DF53B /* ConfiguredProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */; };
+		3ED841FADCE12AE77AB278CB /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */; };
+		3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E2480EE347BF9E56152366 /* WelcomeView.swift */; };
+		416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */; };
+		48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9485D5CB91D1A9E8C7915F97 /* Haptics.swift */; };
+		4C866DDBCD5C78A83C5D6F5C /* AIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7415602CE5D47D71F672CB31 /* AIModel.swift */; };
+		50FCD98065EA6CC681F5F6E7 /* ProviderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8278B52A14134A4DE0197F82 /* ProviderStore.swift */; };
+		5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */; };
+		55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */; };
+		5649D4924D165D5D27566019 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227AEA38B8D189D59EB9E32A /* KeychainStore.swift */; };
+		5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */; };
+		5FBADBABFC44F1299042C3DC /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D868369D030010308DDCDB /* MarkdownMessageView.swift */; };
+		62AC223FF0B57BC499BE1895 /* ProviderTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F332162541FC9583006859 /* ProviderTemplate.swift */; };
+		66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */; };
+		8375DD6EB2BD80199A6BFC11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174C8A720DB382316B6679A5 /* Assets.xcassets */; };
+		8449A8CA12F11383F3D5D56E /* ProviderKeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */; };
+		8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4EA65A8E67CCE1B461F1C3E /* RootView.swift */; };
+		910D48FA64BF3E204F35685B /* CustomProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */; };
+		9C0FFAC148E41B6FE54A93FA /* APIFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */; };
+		ABDB5B2887AD8455032D41C4 /* ChatCompletionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */; };
+		ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B2B9966BEE5B326ABB3896 /* ChatView.swift */; };
+		C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CDF1813E984EAC421E082F /* ChatTurn.swift */; };
+		D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */; };
+		D323D94CBA175F7AB0248CDA /* ServerSentEventStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */; };
+		E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EFBE369A07EED25532B291 /* ProviderDetailView.swift */; };
+		F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0E30402B6CEBAF03B796D2C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9E2510678843EE04F21708CA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2B29DA223D502CCCA6C33B3E;
+			remoteInfo = OpenChat;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0DA7BF3262C5159168758827 /* MessageComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposerView.swift; sourceTree = "<group>"; };
+		12CDF1813E984EAC421E082F /* ChatTurn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTurn.swift; sourceTree = "<group>"; };
+		16E2480EE347BF9E56152366 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		16F332162541FC9583006859 /* ProviderTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderTemplate.swift; sourceTree = "<group>"; };
+		174C8A720DB382316B6679A5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		227AEA38B8D189D59EB9E32A /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		3022C85CF36B100C7663857D /* AddProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddProviderView.swift; sourceTree = "<group>"; };
+		351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIFormat.swift; sourceTree = "<group>"; };
+		38179096B024B94EA48B03CA /* MessageBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubbleView.swift; sourceTree = "<group>"; };
+		438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicClient.swift; sourceTree = "<group>"; };
+		4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredProvider.swift; sourceTree = "<group>"; };
+		5332911ABD740626614DC38E /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		60E88FA5334D59F31A5DF955 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		62EFBE369A07EED25532B291 /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
+		6BC89CCC94B4FAA05D8E5C0B /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatApp.swift; sourceTree = "<group>"; };
+		7415602CE5D47D71F672CB31 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
+		7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPickerSheet.swift; sourceTree = "<group>"; };
+		8278B52A14134A4DE0197F82 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
+		8349AA13A5CE82E605DED785 /* OpenChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OpenChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
+		9485D5CB91D1A9E8C7915F97 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderCatalogTests.swift; sourceTree = "<group>"; };
+		9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStoreTests.swift; sourceTree = "<group>"; };
+		A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStream.swift; sourceTree = "<group>"; };
+		A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		A9B2B9966BEE5B326ABB3896 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		B5D868369D030010308DDCDB /* MarkdownMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownMessageView.swift; sourceTree = "<group>"; };
+		B9100221764BF1ED1D5CEFB5 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		BF39430772B8F591B2A8AE36 /* OpenChatTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OpenChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStreamTests.swift; sourceTree = "<group>"; };
+		C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProviderView.swift; sourceTree = "<group>"; };
+		E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionClient.swift; sourceTree = "<group>"; };
+		E4EA65A8E67CCE1B461F1C3E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyEntryView.swift; sourceTree = "<group>"; };
+		EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
+		F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0C48CD963025B0023A01101B /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				E4EA65A8E67CCE1B461F1C3E /* RootView.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		1F398A8DED346337D21B5FF7 /* ChatList */ = {
+			isa = PBXGroup;
+			children = (
+				6BC89CCC94B4FAA05D8E5C0B /* ConversationListView.swift */,
+			);
+			path = ChatList;
+			sourceTree = "<group>";
+		};
+		5FBC4FCABDCF09CC2E504D85 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8349AA13A5CE82E605DED785 /* OpenChat.app */,
+				BF39430772B8F591B2A8AE36 /* OpenChatTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6C09D5202C20F6B05688B361 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				174C8A720DB382316B6679A5 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		70A21FD2C0460368F607D488 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				C6E29A03FED964E97EDDF981 /* Chat */,
+				1F398A8DED346337D21B5FF7 /* ChatList */,
+				FBFEFC9B6A4B7A62908F81C7 /* Onboarding */,
+				0C48CD963025B0023A01101B /* Root */,
+				87ABC6FB42A0C6BB748A9D62 /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		86EE89C3E3103538243E1F01 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		87ABC6FB42A0C6BB748A9D62 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				3022C85CF36B100C7663857D /* AddProviderView.swift */,
+				DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */,
+				62EFBE369A07EED25532B291 /* ProviderDetailView.swift */,
+				E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */,
+				60E88FA5334D59F31A5DF955 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		903054CE5393C7DE6CEE0F1D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */,
+				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
+				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
+				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
+				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
+				8278B52A14134A4DE0197F82 /* ProviderStore.swift */,
+				A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		9E761752745F2ADB19A0FB78 = {
+			isa = PBXGroup;
+			children = (
+				E0CBD31E1E13E54CFF644054 /* OpenChat */,
+				F4D564E07008C8BF19E4CF5C /* OpenChatTests */,
+				5FBC4FCABDCF09CC2E504D85 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C6E29A03FED964E97EDDF981 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
+				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
+				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
+				38179096B024B94EA48B03CA /* MessageBubbleView.swift */,
+				0DA7BF3262C5159168758827 /* MessageComposerView.swift */,
+				7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */,
+				86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		D07F06DCA57DBF4F51AE9C11 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				7415602CE5D47D71F672CB31 /* AIModel.swift */,
+				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
+				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
+				50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */,
+				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
+				16F332162541FC9583006859 /* ProviderTemplate.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E0CBD31E1E13E54CFF644054 /* OpenChat */ = {
+			isa = PBXGroup;
+			children = (
+				86EE89C3E3103538243E1F01 /* App */,
+				E9F6B4526D09A8121C8F45BD /* DesignSystem */,
+				70A21FD2C0460368F607D488 /* Features */,
+				D07F06DCA57DBF4F51AE9C11 /* Models */,
+				6C09D5202C20F6B05688B361 /* Resources */,
+				903054CE5393C7DE6CEE0F1D /* Services */,
+			);
+			path = OpenChat;
+			sourceTree = "<group>";
+		};
+		E9F6B4526D09A8121C8F45BD /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
+				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
+				9485D5CB91D1A9E8C7915F97 /* Haptics.swift */,
+				5332911ABD740626614DC38E /* Theme.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		F4D564E07008C8BF19E4CF5C /* OpenChatTests */ = {
+			isa = PBXGroup;
+			children = (
+				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
+				9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */,
+				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
+				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
+			);
+			path = OpenChatTests;
+			sourceTree = "<group>";
+		};
+		FBFEFC9B6A4B7A62908F81C7 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				16E2480EE347BF9E56152366 /* WelcomeView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2B29DA223D502CCCA6C33B3E /* OpenChat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3684A66EF39539A3F66840E8 /* Build configuration list for PBXNativeTarget "OpenChat" */;
+			buildPhases = (
+				2460CED63C0B483560B79348 /* Sources */,
+				A2660807540878CCB0AEFE99 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenChat;
+			packageProductDependencies = (
+			);
+			productName = OpenChat;
+			productReference = 8349AA13A5CE82E605DED785 /* OpenChat.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7688D0FED9B6CF49CFCC7605 /* OpenChatTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9A097157D55866A233ADCB62 /* Build configuration list for PBXNativeTarget "OpenChatTests" */;
+			buildPhases = (
+				34BF00CD3BE5DF944579C332 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9252924CBFED86E150F4E86 /* PBXTargetDependency */,
+			);
+			name = OpenChatTests;
+			packageProductDependencies = (
+			);
+			productName = OpenChatTests;
+			productReference = BF39430772B8F591B2A8AE36 /* OpenChatTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9E2510678843EE04F21708CA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2B29DA223D502CCCA6C33B3E = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					7688D0FED9B6CF49CFCC7605 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C69E5EEF6C7DB04255F1DBCC /* Build configuration list for PBXProject "OpenChat" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9E761752745F2ADB19A0FB78;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2B29DA223D502CCCA6C33B3E /* OpenChat */,
+				7688D0FED9B6CF49CFCC7605 /* OpenChatTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A2660807540878CCB0AEFE99 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8375DD6EB2BD80199A6BFC11 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2460CED63C0B483560B79348 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C866DDBCD5C78A83C5D6F5C /* AIModel.swift in Sources */,
+				9C0FFAC148E41B6FE54A93FA /* APIFormat.swift in Sources */,
+				181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */,
+				0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */,
+				F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */,
+				ABDB5B2887AD8455032D41C4 /* ChatCompletionClient.swift in Sources */,
+				3ED841FADCE12AE77AB278CB /* ChatMessage.swift in Sources */,
+				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
+				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
+				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
+				416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */,
+				3C94E98A049ED6EF027DF53B /* ConfiguredProvider.swift in Sources */,
+				1ECC5B45B7CC4CA24787C98A /* Conversation.swift in Sources */,
+				1B2F7114BF34C9CD70C4DD84 /* ConversationListView.swift in Sources */,
+				910D48FA64BF3E204F35685B /* CustomProviderView.swift in Sources */,
+				48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */,
+				5649D4924D165D5D27566019 /* KeychainStore.swift in Sources */,
+				5FBADBABFC44F1299042C3DC /* MarkdownMessageView.swift in Sources */,
+				30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */,
+				3133335079619130518EF11E /* MessageComposerView.swift in Sources */,
+				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
+				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
+				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
+				E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */,
+				8449A8CA12F11383F3D5D56E /* ProviderKeyEntryView.swift in Sources */,
+				50FCD98065EA6CC681F5F6E7 /* ProviderStore.swift in Sources */,
+				62AC223FF0B57BC499BE1895 /* ProviderTemplate.swift in Sources */,
+				8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */,
+				D323D94CBA175F7AB0248CDA /* ServerSentEventStream.swift in Sources */,
+				388E8B37683BBD3C7294F4C4 /* SettingsView.swift in Sources */,
+				1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */,
+				5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */,
+				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34BF00CD3BE5DF944579C332 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
+				66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */,
+				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,
+				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E9252924CBFED86E150F4E86 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2B29DA223D502CCCA6C33B3E /* OpenChat */;
+			targetProxy = 0E30402B6CEBAF03B796D2C1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		060C934DC72EEBD6245E7DC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = OpenChat/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app;
+				PRODUCT_NAME = OpenChat;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		2FCDD0E36576640495A26E57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenChat.app/OpenChat";
+			};
+			name = Debug;
+		};
+		6D018635842CB7AB37F44A09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenChat.app/OpenChat";
+			};
+			name = Release;
+		};
+		8FDF7396FFA9E28E7EA79F7B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = OpenChat/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app;
+				PRODUCT_NAME = OpenChat;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		96B09B5C00758663C042690A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		97CFF1261866080F6A548F3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3684A66EF39539A3F66840E8 /* Build configuration list for PBXNativeTarget "OpenChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8FDF7396FFA9E28E7EA79F7B /* Debug */,
+				060C934DC72EEBD6245E7DC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9A097157D55866A233ADCB62 /* Build configuration list for PBXNativeTarget "OpenChatTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2FCDD0E36576640495A26E57 /* Debug */,
+				6D018635842CB7AB37F44A09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C69E5EEF6C7DB04255F1DBCC /* Build configuration list for PBXProject "OpenChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96B09B5C00758663C042690A /* Debug */,
+				97CFF1261866080F6A548F3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9E2510678843EE04F21708CA /* Project object */;
+}

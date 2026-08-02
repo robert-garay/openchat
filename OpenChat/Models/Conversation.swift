@@ -1,0 +1,40 @@
+import Foundation
+import SwiftData
+
+@Model
+final class Conversation {
+    var id: UUID
+    var title: String
+    var createdAt: Date
+    var updatedAt: Date
+    var providerID: String
+    var modelID: String
+    var systemPrompt: String
+
+    @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
+    var messages: [ChatMessage] = []
+
+    init(
+        id: UUID = UUID(),
+        title: String = "New Chat",
+        providerID: String,
+        modelID: String,
+        systemPrompt: String = ""
+    ) {
+        self.id = id
+        self.title = title
+        self.createdAt = .now
+        self.updatedAt = .now
+        self.providerID = providerID
+        self.modelID = modelID
+        self.systemPrompt = systemPrompt
+    }
+
+    var sortedMessages: [ChatMessage] {
+        messages.sorted { $0.createdAt < $1.createdAt }
+    }
+
+    var lastMessagePreview: String {
+        sortedMessages.last(where: { !$0.content.isEmpty })?.content ?? "No messages yet"
+    }
+}
