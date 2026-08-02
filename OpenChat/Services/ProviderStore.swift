@@ -7,12 +7,26 @@ import Observation
 @Observable
 final class ProviderStore {
     private(set) var providers: [ConfiguredProvider] = []
-    private let defaultsKey = "com.openchat.configuredProviders"
-    private let defaults: UserDefaults
+    private(set) var openRouterModels: [OpenRouterCatalogModel] = []
+    private(set) var isLoadingOpenRouterModels = false
+    private(set) var openRouterModelsError: String?
 
-    init(defaults: UserDefaults = .standard) {
+    private let defaultsKey = "com.openchat.configuredProviders"
+    private let openRouterCacheKey = "com.openchat.openRouterModelsCache"
+    private let openRouterCacheDateKey = "com.openchat.openRouterModelsCacheDate"
+    private let openRouterCacheTTL: TimeInterval = 60 * 60
+    private let defaults: UserDefaults
+    private let openRouterClient: OpenRouterModelsClient
+    private var openRouterRefreshTask: Task<Void, Never>?
+
+    init(
+        defaults: UserDefaults = .standard,
+        openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient()
+    ) {
         self.defaults = defaults
+        self.openRouterClient = openRouterClient
         load()
+        loadOpenRouterCache()
     }
 
     var enabledProviders: [ConfiguredProvider] {
@@ -64,7 +78,66 @@ final class ProviderStore {
     }
 
     func model(providerID: String, modelID: String) -> AIModel? {
-        provider(withID: providerID)?.models.first { $0.id == modelID }
+        if let saved = provider(withID: providerID)?.models.first(where: { $0.id == modelID }) {
+            return saved
+        }
+        if providerID == "openrouter" {
+            return openRouterModels.first(where: { $0.id == modelID })?.asAIModel
+        }
+        return nil
+    }
+
+    /// Keeps OpenRouter selections usable after the picker closes by persisting
+    /// the chosen catalog entry onto the configured provider.
+    func rememberOpenRouterModel(_ model: OpenRouterCatalogModel) {
+        guard var provider = provider(withID: "openrouter") else { return }
+        if let index = provider.models.firstIndex(where: { $0.id == model.id }) {
+            provider.models[index] = model.asAIModel
+        } else {
+            provider.models.insert(model.asAIModel, at: 0)
+        }
+        update(provider)
+    }
+
+    func refreshOpenRouterModelsIfNeeded(force: Bool = false) {
+        guard enabledProviders.contains(where: { $0.id == "openrouter" }) else { return }
+
+        if !force,
+           !openRouterModels.isEmpty,
+           let cachedAt = defaults.object(forKey: openRouterCacheDateKey) as? Date,
+           Date().timeIntervalSince(cachedAt) < openRouterCacheTTL {
+            return
+        }
+
+        openRouterRefreshTask?.cancel()
+        openRouterRefreshTask = Task { [weak self] in
+            await self?.fetchOpenRouterModels()
+        }
+    }
+
+    private func fetchOpenRouterModels() async {
+        await MainActor.run {
+            isLoadingOpenRouterModels = true
+            openRouterModelsError = nil
+        }
+
+        do {
+            let models = try await openRouterClient.fetchModels()
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                openRouterModels = models
+                persistOpenRouterCache(models)
+                isLoadingOpenRouterModels = false
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                if openRouterModels.isEmpty {
+                    openRouterModelsError = error.localizedDescription
+                }
+                isLoadingOpenRouterModels = false
+            }
+        }
     }
 
     private func load() {
@@ -78,5 +151,19 @@ final class ProviderStore {
     private func persist() {
         guard let data = try? JSONEncoder().encode(providers) else { return }
         defaults.set(data, forKey: defaultsKey)
+    }
+
+    private func loadOpenRouterCache() {
+        guard let data = defaults.data(forKey: openRouterCacheKey),
+              let decoded = try? JSONDecoder().decode([OpenRouterCatalogModel].self, from: data) else {
+            return
+        }
+        openRouterModels = decoded
+    }
+
+    private func persistOpenRouterCache(_ models: [OpenRouterCatalogModel]) {
+        guard let data = try? JSONEncoder().encode(models) else { return }
+        defaults.set(data, forKey: openRouterCacheKey)
+        defaults.set(Date(), forKey: openRouterCacheDateKey)
     }
 }
