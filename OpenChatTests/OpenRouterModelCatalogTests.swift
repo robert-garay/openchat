@@ -232,6 +232,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertTrue(models[1].isAlias)
     }
 
+    @MainActor
     func testRememberOpenRouterModelPersistsSelection() {
         let defaults = UserDefaults(suiteName: "com.openchat.tests.openrouter.\(UUID().uuidString)")!
         let store = ProviderStore(defaults: defaults)

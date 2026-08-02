@@ -1,6 +1,7 @@
 import XCTest
 @testable import OpenChat
 
+@MainActor
 final class ProviderStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: ProviderStore!
