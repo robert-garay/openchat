@@ -10,6 +10,10 @@ configs:
   Debug: debug
   Release: release
 
+configFiles:
+  Debug: Configs/Debug.xcconfig
+  Release: Configs/Release.xcconfig
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -51,6 +55,7 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        OPENCHAT_MANAGED_OPENROUTER_API_KEY: $(OPENCHAT_MANAGED_OPENROUTER_API_KEY)
     settings:
       base:
         PRODUCT_NAME: OpenChat
@@ -60,6 +65,9 @@ targets:
         ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
         ENABLE_HARDENED_RUNTIME: YES
         SUPPORTS_MACCATALYST: NO
+    configFiles:
+      Debug: Configs/Debug.xcconfig
+      Release: Configs/Release.xcconfig
     capabilities: {}
 
   OpenChatTests:

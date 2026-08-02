@@ -22,12 +22,14 @@ final class ProviderStore {
 
     init(
         defaults: UserDefaults = .standard,
-        openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient()
+        openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient(),
+        managedOpenRouterAPIKey: String? = AppSecrets.managedOpenRouterAPIKey
     ) {
         self.defaults = defaults
         self.openRouterClient = openRouterClient
         load()
         loadOpenRouterCache()
+        bootstrapManagedFreeTierIfNeeded(apiKey: managedOpenRouterAPIKey)
     }
 
     var enabledProviders: [ConfiguredProvider] {
@@ -57,8 +59,37 @@ final class ProviderStore {
         persist()
     }
 
-    /// Grants OpenRouter free-model access for a newly signed-up user.
-    /// Adds OpenRouter if needed, seeds free starter models, and stores the key.
+    /// Installs included Qwen3.7 Flash access using the spend-limited managed key.
+    func bootstrapManagedFreeTierIfNeeded(apiKey: String?) {
+        guard let apiKey else { return }
+        grantManagedFreeTierAccess(apiKey: apiKey)
+    }
+
+    /// Grants or refreshes the included Qwen3.7 Flash provider.
+    func grantManagedFreeTierAccess(apiKey: String) {
+        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if var existing = provider(withID: ManagedFreeTier.providerID) {
+            existing.name = ManagedFreeTier.displayName
+            existing.symbolName = ManagedFreeTier.symbolName
+            existing.tint = ManagedFreeTier.tint
+            existing.baseURL = ManagedFreeTier.baseURL
+            existing.apiFormat = .openAI
+            existing.requiresAPIKey = true
+            existing.isEnabled = true
+            mergeModels([ManagedFreeTier.model], into: &existing, atFront: true)
+            update(existing)
+        } else {
+            providers.insert(ManagedFreeTier.makeProvider(), at: 0)
+            persist()
+        }
+
+        guard let managed = provider(withID: ManagedFreeTier.providerID) else { return }
+        setAPIKey(trimmed, for: managed)
+    }
+
+    /// BYOK fallback: grants OpenRouter free `:free` starter models with the user's key.
     func grantFreeModelsAccess(apiKey: String) {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }

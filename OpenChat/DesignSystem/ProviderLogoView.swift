@@ -35,7 +35,7 @@ enum ProviderLogo {
         guard let id else { return nil }
         switch id {
         case "deepseek": return "ProviderLogoDeepSeek"
-        case "qwen": return "ProviderLogoQwen"
+        case "qwen", "openchat-included": return "ProviderLogoQwen"
         case "moonshot": return "ProviderLogoMoonshot"
         case "zhipu": return "ProviderLogoZhipu"
         case "yi": return "ProviderLogoYi"

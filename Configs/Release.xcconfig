@@ -1,0 +1,2 @@
+// Optional local secrets (gitignored). Copy Secrets.xcconfig.example → Secrets.xcconfig.
+#include? "Secrets.xcconfig"

@@ -27,7 +27,11 @@ struct SettingsView: View {
                                 )
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(provider.name)
-                                    if !providerStore.hasUsableCredentials(provider) {
+                                    if provider.isManagedFreeTier {
+                                        Text("Included · Qwen3.7 Flash")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else if !providerStore.hasUsableCredentials(provider) {
                                         Text("Needs an API key")
                                             .font(.caption)
                                             .foregroundStyle(.orange)

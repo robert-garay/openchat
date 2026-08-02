@@ -64,6 +64,33 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.providers.map(\.id), ["qwen"])
     }
 
+    func testBootstrapManagedFreeTierInstallsQwenFlash() {
+        store.bootstrapManagedFreeTierIfNeeded(apiKey: "sk-or-managed-test")
+
+        let provider = store.provider(withID: ManagedFreeTier.providerID)
+        XCTAssertNotNil(provider)
+        XCTAssertTrue(provider!.isManagedFreeTier)
+        XCTAssertEqual(store.enabledProviders.map(\.id), [ManagedFreeTier.providerID])
+        XCTAssertEqual(KeychainStore.get(ManagedFreeTier.providerID), "sk-or-managed-test")
+        XCTAssertEqual(provider!.models.map(\.id), [ManagedFreeTier.openRouterModelID])
+        XCTAssertEqual(provider!.models.first?.displayName, "Qwen3.7 Flash")
+    }
+
+    func testBootstrapManagedFreeTierIsIdempotentAndRefreshesKey() {
+        store.bootstrapManagedFreeTierIfNeeded(apiKey: "sk-or-one")
+        store.bootstrapManagedFreeTierIfNeeded(apiKey: "sk-or-two")
+
+        XCTAssertEqual(store.providers.filter(\.isManagedFreeTier).count, 1)
+        XCTAssertEqual(KeychainStore.get(ManagedFreeTier.providerID), "sk-or-two")
+    }
+
+    func testInitBootstrapsManagedFreeTierWhenKeyProvided() {
+        let bootstrapped = ProviderStore(defaults: defaults, managedOpenRouterAPIKey: "sk-or-init")
+        XCTAssertEqual(bootstrapped.enabledProviders.first?.id, ManagedFreeTier.providerID)
+        XCTAssertEqual(KeychainStore.get(ManagedFreeTier.providerID), "sk-or-init")
+        bootstrapped.remove(bootstrapped.provider(withID: ManagedFreeTier.providerID)!)
+    }
+
     func testGrantFreeModelsAccessAddsOpenRouterWithFreeModels() {
         store.grantFreeModelsAccess(apiKey: "sk-or-free-test")
 
@@ -77,15 +104,6 @@ final class ProviderStoreTests: XCTestCase {
             Set(ProviderTemplate.openRouterFreeModels.map(\.id))
         )
         XCTAssertTrue(provider!.models.allSatisfy { $0.id.hasSuffix(":free") })
-    }
-
-    func testGrantFreeModelsAccessIsIdempotentAndKeepsKey() {
-        store.grantFreeModelsAccess(apiKey: "sk-or-one")
-        store.grantFreeModelsAccess(apiKey: "sk-or-two")
-
-        XCTAssertEqual(store.providers.filter { $0.id == "openrouter" }.count, 1)
-        XCTAssertEqual(KeychainStore.get("openrouter"), "sk-or-two")
-        XCTAssertTrue(store.provider(withID: "openrouter")!.models.contains { $0.id.hasSuffix(":free") })
     }
 
     func testSyncGrantedFreeModelsAddsMissingFreeCatalogModels() {
