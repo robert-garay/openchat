@@ -4,6 +4,7 @@ import Observation
 /// Owns the list of providers the user has configured and their API keys.
 /// Non-secret provider metadata is persisted as JSON in `UserDefaults`;
 /// API keys live in the Keychain via `KeychainStore`.
+@MainActor
 @Observable
 final class ProviderStore {
     private(set) var providers: [ConfiguredProvider] = []
@@ -116,27 +117,21 @@ final class ProviderStore {
     }
 
     private func fetchOpenRouterModels() async {
-        await MainActor.run {
-            isLoadingOpenRouterModels = true
-            openRouterModelsError = nil
-        }
+        isLoadingOpenRouterModels = true
+        openRouterModelsError = nil
 
         do {
             let models = try await openRouterClient.fetchModels()
             guard !Task.isCancelled else { return }
-            await MainActor.run {
-                openRouterModels = models
-                persistOpenRouterCache(models)
-                isLoadingOpenRouterModels = false
-            }
+            openRouterModels = models
+            persistOpenRouterCache(models)
+            isLoadingOpenRouterModels = false
         } catch {
             guard !Task.isCancelled else { return }
-            await MainActor.run {
-                if openRouterModels.isEmpty {
-                    openRouterModelsError = error.localizedDescription
-                }
-                isLoadingOpenRouterModels = false
+            if openRouterModels.isEmpty {
+                openRouterModelsError = error.localizedDescription
             }
+            isLoadingOpenRouterModels = false
         }
     }
 
