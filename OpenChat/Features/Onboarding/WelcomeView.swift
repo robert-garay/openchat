@@ -13,31 +13,18 @@ struct WelcomeView: View {
         VStack(spacing: 0) {
             Spacer(minLength: 24)
 
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 96, height: 96)
-                .overlay {
-                    Image(systemName: "bubble.left.and.text.bubble.right.fill")
-                        .font(.system(size: 40, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .shadow(color: Color.accentColor.opacity(0.35), radius: 20, y: 10)
+            OpenChatLogoView(size: 108)
+                .padding(.top, 8)
 
-            Text("Welcome to OpenChat")
+            Text("OpenChat")
                 .font(.largeTitle.weight(.bold))
-                .padding(.top, 24)
+                .padding(.top, 20)
 
             Text("One elegant app for every AI model you want to talk to.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.top, 6)
+                .padding(.top, 8)
                 .padding(.horizontal, 32)
 
             VStack(spacing: 20) {

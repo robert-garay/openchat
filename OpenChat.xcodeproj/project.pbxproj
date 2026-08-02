@@ -24,6 +24,7 @@
 		3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E2480EE347BF9E56152366 /* WelcomeView.swift */; };
 		416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */; };
 		4B7E2A91C0D14F6EA3B8C215 /* ProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F1C3D27A9E04B5C9D2E6F80 /* ProviderLogoView.swift */; };
+		4D8A1C02B7E35F49A0C21678 /* OpenChatLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */; };
 		48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9485D5CB91D1A9E8C7915F97 /* Haptics.swift */; };
 		4C866DDBCD5C78A83C5D6F5C /* AIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7415602CE5D47D71F672CB31 /* AIModel.swift */; };
 		50FCD98065EA6CC681F5F6E7 /* ProviderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8278B52A14134A4DE0197F82 /* ProviderStore.swift */; };
@@ -88,6 +89,7 @@
 		8349AA13A5CE82E605DED785 /* OpenChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OpenChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
 		8F1C3D27A9E04B5C9D2E6F80 /* ProviderLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderLogoView.swift; sourceTree = "<group>"; };
+		9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatLogoView.swift; sourceTree = "<group>"; };
 		9485D5CB91D1A9E8C7915F97 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderCatalogTests.swift; sourceTree = "<group>"; };
 		9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStoreTests.swift; sourceTree = "<group>"; };
@@ -245,6 +247,7 @@
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
 				9485D5CB91D1A9E8C7915F97 /* Haptics.swift */,
+				9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */,
 				8F1C3D27A9E04B5C9D2E6F80 /* ProviderLogoView.swift */,
 				5332911ABD740626614DC38E /* Theme.swift */,
 			);
@@ -389,6 +392,7 @@
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
 				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
 				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
+				4D8A1C02B7E35F49A0C21678 /* OpenChatLogoView.swift in Sources */,
 				52A91C0E8B4D71F2A06E3C15 /* OpenRouterCatalogModel.swift in Sources */,
 				58C17D9A2F6E40B1C8A9354D /* OpenRouterModelsClient.swift in Sources */,
 				E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */,
