@@ -45,7 +45,7 @@ struct MarkdownMessageView: View {
             if index % 2 == 0 {
                 result.append(.text(part))
             } else {
-                var lines = part.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+                let lines = part.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
                 let firstLine = lines.first.map(String.init) ?? ""
                 let looksLikeLanguageTag = !firstLine.isEmpty && firstLine.count < 20 && !firstLine.contains(" ")
                 let language = looksLikeLanguageTag ? firstLine : nil
