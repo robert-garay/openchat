@@ -156,12 +156,14 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "google/gemma-4-31b-it:free", displayName: "Gemma 4 31B", subtitle: "Free · Open source"),
                 AIModel(id: "nvidia/nemotron-3-nano-30b-a3b:free", displayName: "Nemotron 3 Nano", subtitle: "Free · Open source"),
-                AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
-                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source"),
-                AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
             ]
         ),
     ]
+
+    /// Free OpenRouter starter models granted to every new user on signup.
+    static var openRouterFreeModels: [AIModel] {
+        template(for: "openrouter")?.defaultModels.filter { $0.id.hasSuffix(":free") } ?? []
+    }
 
     static func template(for id: String) -> ProviderTemplate? {
         all.first { $0.id == id }
