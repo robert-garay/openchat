@@ -19,14 +19,12 @@ struct SettingsView: View {
                             ProviderDetailView(provider: provider)
                         } label: {
                             HStack {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color(hex: provider.tint).opacity(0.15))
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: provider.symbolName)
-                                            .font(.system(size: 13, weight: .semibold))
-                                            .foregroundStyle(Color(hex: provider.tint))
-                                    }
+                                ProviderLogoView(
+                                    logoAssetName: provider.logoAssetName,
+                                    symbolName: provider.symbolName,
+                                    tint: Color(hex: provider.tint),
+                                    size: 30
+                                )
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(provider.name)
                                     if !providerStore.hasUsableCredentials(provider) {

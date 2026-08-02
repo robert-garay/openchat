@@ -43,13 +43,12 @@ struct AddProviderView: View {
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color(.tertiarySystemFill))
-                                .frame(width: 32, height: 32)
-                                .overlay {
-                                    Image(systemName: "server.rack")
-                                        .foregroundStyle(.secondary)
-                                }
+                            ProviderLogoView(
+                                logoAssetName: nil,
+                                symbolName: "server.rack",
+                                tint: Color(.secondaryLabel),
+                                size: 32
+                            )
                         }
                     }
                 }
@@ -88,14 +87,12 @@ struct ProviderTemplateRow: View {
                     .foregroundStyle(.secondary)
             }
         } icon: {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(hex: template.tint).opacity(0.15))
-                .frame(width: 32, height: 32)
-                .overlay {
-                    Image(systemName: template.symbolName)
-                        .foregroundStyle(Color(hex: template.tint))
-                        .font(.system(size: 15, weight: .semibold))
-                }
+            ProviderLogoView(
+                logoAssetName: template.logoAssetName,
+                symbolName: template.symbolName,
+                tint: Color(hex: template.tint),
+                size: 32
+            )
         }
     }
 }

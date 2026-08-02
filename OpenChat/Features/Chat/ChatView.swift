@@ -67,6 +67,7 @@ struct ChatView: View {
                             message: message,
                             providerTint: viewModel.currentProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: viewModel.currentProvider?.symbolName ?? "sparkles",
+                            providerLogoAssetName: viewModel.currentProvider?.logoAssetName,
                             onRetry: viewModel.regenerateLastReply
                         )
                         .id(message.id)

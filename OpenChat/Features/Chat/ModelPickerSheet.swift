@@ -39,8 +39,18 @@ struct ModelPickerSheet: View {
                             }
                         }
                     } header: {
-                        Label(provider.name, systemImage: provider.symbolName)
-                            .foregroundStyle(Color(hex: provider.tint))
+                        HStack(spacing: 8) {
+                            ProviderLogoView(
+                                logoAssetName: provider.logoAssetName,
+                                symbolName: provider.symbolName,
+                                tint: Color(hex: provider.tint),
+                                size: 20,
+                                cornerRadius: 5
+                            )
+                            Text(provider.name)
+                        }
+                        .foregroundStyle(Color(hex: provider.tint))
+                        .textCase(nil)
                     }
                 }
             }

@@ -12,14 +12,13 @@ struct ProviderKeyEntryView: View {
         Form {
             Section {
                 VStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(hex: template.tint).opacity(0.15))
-                        .frame(width: 56, height: 56)
-                        .overlay {
-                            Image(systemName: template.symbolName)
-                                .font(.system(size: 24, weight: .semibold))
-                                .foregroundStyle(Color(hex: template.tint))
-                        }
+                    ProviderLogoView(
+                        logoAssetName: template.logoAssetName,
+                        symbolName: template.symbolName,
+                        tint: Color(hex: template.tint),
+                        size: 56,
+                        cornerRadius: 16
+                    )
                     Text(template.name)
                         .font(.title3.weight(.semibold))
                     Text("Your API key is stored securely in the iOS Keychain and never leaves your device except to call \(template.name) directly.")

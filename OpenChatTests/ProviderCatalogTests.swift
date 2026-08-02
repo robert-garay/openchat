@@ -22,4 +22,11 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(ProviderTemplate.template(for: "deepseek")?.name, "DeepSeek")
         XCTAssertNil(ProviderTemplate.template(for: "does-not-exist"))
     }
+
+    func testEveryTemplateHasAnOfficialLogoAsset() {
+        for template in ProviderTemplate.all {
+            XCTAssertNotNil(template.logoAssetName, "\(template.name) is missing a logo asset mapping")
+            XCTAssertEqual(template.logoAssetName, ProviderLogo.assetName(for: template.id))
+        }
+    }
 }

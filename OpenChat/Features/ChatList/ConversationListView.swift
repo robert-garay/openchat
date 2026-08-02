@@ -84,14 +84,13 @@ private struct ConversationRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill((provider.map { Color(hex: $0.tint) } ?? .gray).opacity(0.15))
-                .frame(width: 36, height: 36)
-                .overlay {
-                    Image(systemName: provider?.symbolName ?? "questionmark.circle")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(provider.map { Color(hex: $0.tint) } ?? .gray)
-                }
+            ProviderLogoView(
+                logoAssetName: provider?.logoAssetName,
+                symbolName: provider?.symbolName ?? "questionmark.circle",
+                tint: provider.map { Color(hex: $0.tint) } ?? .gray,
+                size: 36,
+                cornerRadius: 10
+            )
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(conversation.title)

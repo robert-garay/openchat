@@ -16,6 +16,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var defaultModels: [AIModel]
     var region: String?
 
+    /// Official brand mark in the asset catalog, when available.
+    var logoAssetName: String? {
+        ProviderLogo.assetName(for: id)
+    }
+
     static let all: [ProviderTemplate] = [
         ProviderTemplate(
             id: "deepseek",

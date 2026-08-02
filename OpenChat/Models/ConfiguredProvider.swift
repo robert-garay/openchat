@@ -22,6 +22,11 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         templateID.flatMap(ProviderTemplate.template(for:))
     }
 
+    /// Official brand mark in the asset catalog, resolved from the template or provider id.
+    var logoAssetName: String? {
+        ProviderLogo.assetName(for: templateID) ?? ProviderLogo.assetName(for: id)
+    }
+
     static func fromTemplate(_ template: ProviderTemplate) -> ConfiguredProvider {
         ConfiguredProvider(
             id: template.id,

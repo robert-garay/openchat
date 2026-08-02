@@ -4,6 +4,7 @@ struct MessageBubbleView: View {
     let message: ChatMessage
     let providerTint: Color
     let providerSymbol: String
+    var providerLogoAssetName: String? = nil
     let onRetry: () -> Void
 
     var body: some View {
@@ -29,14 +30,12 @@ struct MessageBubbleView: View {
 
     private var assistantContent: some View {
         HStack(alignment: .top, spacing: 10) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(providerTint.opacity(0.15))
-                .frame(width: 26, height: 26)
-                .overlay {
-                    Image(systemName: providerSymbol)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(providerTint)
-                }
+            ProviderLogoView(
+                logoAssetName: providerLogoAssetName,
+                symbolName: providerSymbol,
+                tint: providerTint,
+                size: 26
+            )
 
             VStack(alignment: .leading, spacing: 8) {
                 if message.content.isEmpty && message.isStreaming {
