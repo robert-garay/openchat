@@ -20,7 +20,7 @@ struct WelcomeView: View {
                 .font(.largeTitle.weight(.bold))
                 .padding(.top, 20)
 
-            Text("One elegant app for every AI model you want to talk to.")
+            Text("One app for every AI model you want to talk to.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
