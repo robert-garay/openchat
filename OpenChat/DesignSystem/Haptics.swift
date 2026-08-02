@@ -2,6 +2,7 @@ import UIKit
 
 /// Small centralized helper so haptic usage stays consistent and easy to
 /// tune from one place.
+@MainActor
 enum Haptics {
     static func light() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
