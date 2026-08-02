@@ -21,7 +21,11 @@ struct WelcomeView: View {
                 .font(.largeTitle.weight(.bold))
                 .padding(.top, 20)
 
+<<<<<<< HEAD
             Text("Free models for every new user — plus any provider you connect.")
+=======
+            Text("One app for every AI model you want to talk to.")
+>>>>>>> origin/main
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
