@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @State private var showingFreeModelsSignup = false
     @State private var showingAddProvider = false
 
     private let highlights: [(icon: String, title: String, subtitle: String)] = [
-        ("bolt.fill", "Any Model, Instantly", "OpenAI, Claude, Gemini, or the newest Chinese open models — DeepSeek, Qwen, Kimi, GLM."),
+        ("gift.fill", "Free Models Included", "Start chatting with OpenRouter's free open models the moment you sign up — no paid plan required."),
         ("lock.fill", "Your Keys, Your Device", "API keys are stored in the iOS Keychain. OpenChat talks directly to providers — no middleman server."),
         ("bubble.left.and.bubble.right.fill", "Familiar, Fast Chat", "A clean, native chat experience with streaming replies and full markdown & code support."),
     ]
@@ -20,7 +21,7 @@ struct WelcomeView: View {
                 .font(.largeTitle.weight(.bold))
                 .padding(.top, 20)
 
-            Text("One app for every AI model you want to talk to.")
+            Text("Free models for every new user — plus any provider you connect.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -54,9 +55,9 @@ struct WelcomeView: View {
 
             Button {
                 Haptics.light()
-                showingAddProvider = true
+                showingFreeModelsSignup = true
             } label: {
-                Text("Connect a Model")
+                Text("Start with Free Models")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -66,10 +67,22 @@ struct WelcomeView: View {
             .padding(.horizontal, 28)
             .padding(.bottom, 12)
 
-            Text("Takes about 30 seconds")
+            Button {
+                Haptics.light()
+                showingAddProvider = true
+            } label: {
+                Text("Connect another provider")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .padding(.bottom, 8)
+
+            Text("Free OpenRouter key · about 30 seconds")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .padding(.bottom, 24)
+        }
+        .sheet(isPresented: $showingFreeModelsSignup) {
+            FreeModelsSignupView()
         }
         .sheet(isPresented: $showingAddProvider) {
             AddProviderView()
