@@ -52,18 +52,13 @@ struct ConversationListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onShowSettings) {
-                    HamburgerIcon()
-                        .foregroundStyle(.primary)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
+                    Image(systemName: "gearshape")
                 }
-                .accessibilityLabel("Settings")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: onNewChat) {
                     Image(systemName: "square.and.pencil")
                 }
-                .accessibilityLabel("New chat")
             }
         }
     }
