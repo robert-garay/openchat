@@ -41,6 +41,13 @@ final class Conversation {
         messages.contains { $0.role == .user }
     }
 
+    /// Toggle temporary mode on the same chat (avoids recreate/selection races).
+    func toggleTemporaryMode() {
+        isTemporary.toggle()
+        title = isTemporary ? "Temporary Chat" : "New Chat"
+        updatedAt = .now
+    }
+
     var lastMessagePreview: String {
         guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
             return "No messages yet"

@@ -20,6 +20,21 @@ final class ConversationTemporaryChatTests: XCTestCase {
         XCTAssertEqual(conversation.title, "Temporary Chat")
     }
 
+    func testToggleTemporaryFlipsFlagAndTitleInPlace() throws {
+        let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
+        let id = conversation.id
+
+        conversation.toggleTemporaryMode()
+        XCTAssertTrue(conversation.isTemporary)
+        XCTAssertEqual(conversation.title, "Temporary Chat")
+        XCTAssertEqual(conversation.id, id)
+
+        conversation.toggleTemporaryMode()
+        XCTAssertFalse(conversation.isTemporary)
+        XCTAssertEqual(conversation.title, "New Chat")
+        XCTAssertEqual(conversation.id, id)
+    }
+
     func testHasUserMessagesRequiresUserRole() throws {
         let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
         let assistant = ChatMessage(role: .assistant, content: "Hello")

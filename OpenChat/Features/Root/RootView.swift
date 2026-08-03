@@ -108,16 +108,9 @@ struct RootView: View {
     }
 
     private func toggleTemporary(for conversation: Conversation) {
-        if conversation.isTemporary {
-            startNewChat(temporary: false, preferring: conversation)
-            return
-        }
-
-        let discardEmptySource = !conversation.hasUserMessages
-        startNewChat(temporary: true, preferring: conversation)
-        if discardEmptySource {
-            modelContext.delete(conversation)
-        }
+        // Flip in place — recreating a chat races List selection / ephemeral
+        // discard and often eats the first tap.
+        conversation.toggleTemporaryMode()
     }
 
     private func discardEphemeralChat(id: UUID?) {
