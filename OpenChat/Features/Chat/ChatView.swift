@@ -219,6 +219,7 @@ private enum ChatScrollAnchor {
 private struct ChatNearBottomStickModifier: ViewModifier {
     @Binding var stickToBottom: Bool
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content.onScrollGeometryChange(for: Bool.self) { geometry in
