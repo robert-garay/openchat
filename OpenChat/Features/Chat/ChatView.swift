@@ -6,6 +6,7 @@ struct ChatView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
+    @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
 
@@ -69,7 +70,12 @@ struct ChatView: View {
         }
         .onAppear {
             if viewModel == nil {
-                viewModel = ChatViewModel(conversation: conversation, modelContext: modelContext, providerStore: providerStore)
+                viewModel = ChatViewModel(
+                    conversation: conversation,
+                    modelContext: modelContext,
+                    providerStore: providerStore,
+                    dataSourceStore: dataSourceStore
+                )
             }
         }
     }

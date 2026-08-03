@@ -57,6 +57,13 @@ final class AgentDataSourceStore {
         defaults.set(true, forKey: fitnessNoticeKey)
     }
 
+    /// Test seam: mark a source as opted-in and authorized without an OS permission prompt.
+    func markAvailableForTesting(_ source: AgentDataSource) {
+        enabledSourceIDs.insert(source.rawValue)
+        lastAuthorizationBySource[source] = .authorized
+        persist()
+    }
+
     @discardableResult
     func setEnabled(_ enabled: Bool, for source: AgentDataSource) async -> AgentDataSourceAuthorizationStatus {
         if !enabled {
