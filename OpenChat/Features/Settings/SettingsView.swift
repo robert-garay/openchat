@@ -115,8 +115,10 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingAddProvider) {
                 AddProviderView()
+                    .preferredColorScheme(appearance.colorScheme)
             }
         }
+        .preferredColorScheme(appearance.colorScheme)
     }
 
     private var appVersion: String {

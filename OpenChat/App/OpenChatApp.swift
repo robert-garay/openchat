@@ -24,6 +24,10 @@ struct OpenChatApp: App {
                 .environment(dataSourceStore)
                 .environment(webSearchStore)
                 .preferredColorScheme(appearance.colorScheme)
+                .onAppear { appearance.applyToAllWindows() }
+                .onChange(of: appearance) { _, newValue in
+                    newValue.applyToAllWindows()
+                }
         }
         .modelContainer(modelContainer)
     }
