@@ -10,7 +10,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Models") {
+                Section("Providers") {
                     if providerStore.providers.isEmpty {
                         Text("No providers connected yet.")
                             .foregroundStyle(.secondary)
