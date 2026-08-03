@@ -1,0 +1,6 @@
+// Project signing defaults. Bundle id is set on the target in project.yml.
+// Local.xcconfig (gitignored) sets DEVELOPMENT_TEAM so pulls don't wipe it.
+
+CODE_SIGN_STYLE = Automatic
+
+#include? "Local.xcconfig"

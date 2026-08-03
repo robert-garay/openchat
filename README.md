@@ -17,7 +17,7 @@ open OpenChat.xcodeproj
 
 The `.xcodeproj` is committed to the repo, so you can also just open it directly — only re-run `xcodegen generate` after pulling changes to `project.yml` or adding/removing files.
 
-In Xcode, select the **OpenChat** target → **Signing & Capabilities** and set your own Team and a unique Bundle Identifier (the default `com.openchat.app` won't be yours to sign).
+Signing defaults to bundle id `com.genion.openchat`. Set your Apple Team ID once by copying `Config/Local.xcconfig.example` → `Config/Local.xcconfig` (gitignored) and filling in `DEVELOPMENT_TEAM`.
 
 ## Adding a model
 

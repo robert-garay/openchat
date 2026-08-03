@@ -1,0 +1,5 @@
+// Test target signing. Team comes from Local.xcconfig when present.
+
+CODE_SIGN_STYLE = Automatic
+
+#include? "Local.xcconfig"
