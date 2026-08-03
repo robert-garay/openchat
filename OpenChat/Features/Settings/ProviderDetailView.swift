@@ -7,9 +7,9 @@ struct ProviderDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var apiKey: String = ""
     @State private var showingAddNewKeyDialog = false
+    @State private var showingRemoveKeyConfirmation = false
     @State private var newModelID: String = ""
     @State private var showingDeleteConfirmation = false
-    @FocusState private var newKeyFieldFocused: Bool
 
     private var storedRedactedAPIKey: String? {
         providerStore.redactedAPIKey(for: provider)
@@ -32,36 +32,21 @@ struct ProviderDetailView: View {
             }
 
             if provider.requiresAPIKey {
-                Section {
-                    if let redacted = storedRedactedAPIKey {
-                        ZStack(alignment: .leading) {
-                            TextField("API Key", text: .constant(redacted))
-                                .font(.body.monospaced())
-                                .disabled(true)
-                            Color.clear
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    apiKey = ""
-                                    showingAddNewKeyDialog = true
-                                }
-                        }
-                    } else {
-                        SecureField("Add API key", text: $apiKey)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                        Button("Save Key") {
-                            saveAPIKey()
-                        }
-                        .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
+                APIKeySettingsSection(
+                    placeholder: "Add API key",
+                    redactedKey: storedRedactedAPIKey,
+                    draftKey: $apiKey,
+                    helpURL: provider.template?.keyHelpURL,
+                    helpProviderName: provider.name,
+                    onSave: saveAPIKey,
+                    onRequestReplace: {
+                        apiKey = ""
+                        showingAddNewKeyDialog = true
+                    },
+                    onRequestRemove: {
+                        showingRemoveKeyConfirmation = true
                     }
-                } header: {
-                    Text("API Key")
-                } footer: {
-                    if let url = provider.template?.keyHelpURL {
-                        Link("Get an API key from \(provider.name) →", destination: url)
-                    }
-                }
+                )
             }
 
             Section {
@@ -103,12 +88,35 @@ struct ProviderDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if showingAddNewKeyDialog {
-                addNewKeyDialog
-                    .transition(.opacity)
-                    .zIndex(1)
+                APIKeyReplaceDialog(
+                    title: "Add New Key",
+                    placeholder: "API key",
+                    draftKey: $apiKey,
+                    onCancel: dismissAddNewKeyDialog,
+                    onSave: {
+                        saveAPIKey()
+                        dismissAddNewKeyDialog()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .animation(Theme.springFast, value: showingAddNewKeyDialog)
+        .confirmationDialog(
+            "Remove \(provider.name) key?",
+            isPresented: $showingRemoveKeyConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Remove Key", role: .destructive) {
+                providerStore.removeAPIKey(for: provider)
+                apiKey = ""
+                Haptics.light()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This provider won’t be usable until you add a key again.")
+        }
         .confirmationDialog(
             "Remove \(provider.name)?",
             isPresented: $showingDeleteConfirmation,
@@ -123,49 +131,6 @@ struct ProviderDetailView: View {
         }
     }
 
-    private var addNewKeyDialog: some View {
-        ZStack {
-            Color.black.opacity(0.35)
-                .ignoresSafeArea()
-                .onTapGesture { dismissAddNewKeyDialog() }
-
-            VStack(spacing: 16) {
-                Text("Add New Key")
-                    .font(.headline)
-
-                SecureField("API key", text: $apiKey)
-                    .textContentType(.password)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .padding(12)
-                    .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous))
-                    .focused($newKeyFieldFocused)
-
-                HStack(spacing: 12) {
-                    Button("Cancel") {
-                        dismissAddNewKeyDialog()
-                    }
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity)
-
-                    Button("Save") {
-                        saveAPIKey()
-                        dismissAddNewKeyDialog()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            }
-            .padding(20)
-            .frame(maxWidth: 320)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
-            .padding(.horizontal, 24)
-        }
-        .onAppear { newKeyFieldFocused = true }
-    }
-
     private func saveAPIKey() {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -177,6 +142,5 @@ struct ProviderDetailView: View {
     private func dismissAddNewKeyDialog() {
         showingAddNewKeyDialog = false
         apiKey = ""
-        newKeyFieldFocused = false
     }
 }

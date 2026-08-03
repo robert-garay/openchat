@@ -96,7 +96,6 @@ struct WebSearchProviderDetailView: View {
     @State private var apiKey: String = ""
     @State private var showingReplaceKey = false
     @State private var showingRemoveConfirmation = false
-    @FocusState private var keyFieldFocused: Bool
 
     var body: some View {
         List {
@@ -143,49 +142,35 @@ struct WebSearchProviderDetailView: View {
                 }
             }
 
-            Section {
-                if let redacted = webSearchStore.redactedAPIKey(for: kind) {
-                    ZStack(alignment: .leading) {
-                        TextField("API Key", text: .constant(redacted))
-                            .font(.body.monospaced())
-                            .disabled(true)
-                        Color.clear
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                apiKey = ""
-                                showingReplaceKey = true
-                            }
-                    }
-                    Button("Remove Key", role: .destructive) {
-                        showingRemoveConfirmation = true
-                    }
-                } else {
-                    SecureField(kind.apiKeyPlaceholder, text: $apiKey)
-                        .textContentType(.password)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .focused($keyFieldFocused)
-                    Button("Save Key") {
-                        saveKey()
-                    }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            APIKeySettingsSection(
+                placeholder: kind.apiKeyPlaceholder,
+                redactedKey: webSearchStore.redactedAPIKey(for: kind),
+                draftKey: $apiKey,
+                helpURL: kind.keyHelpURL,
+                helpProviderName: kind.displayName,
+                onSave: saveKey,
+                onRequestReplace: {
+                    apiKey = ""
+                    showingReplaceKey = true
+                },
+                onRequestRemove: {
+                    showingRemoveConfirmation = true
                 }
-            } header: {
-                Text("API Key")
-            } footer: {
-                if let url = kind.keyHelpURL {
-                    Link("Get an API key from \(kind.displayName) →", destination: url)
-                }
-            }
+            )
         }
         .navigationTitle(kind.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if showingReplaceKey {
-                replaceKeyDialog
-                    .transition(.opacity)
-                    .zIndex(1)
+                APIKeyReplaceDialog(
+                    title: "Replace \(kind.displayName) Key",
+                    placeholder: kind.apiKeyPlaceholder,
+                    draftKey: $apiKey,
+                    onCancel: dismissReplaceKey,
+                    onSave: saveKey
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .animation(Theme.springFast, value: showingReplaceKey)
@@ -198,53 +183,6 @@ struct WebSearchProviderDetailView: View {
         } message: {
             Text("This provider won’t be usable until you add a key again.")
         }
-        .onAppear {
-            if !webSearchStore.hasAPIKey(for: kind) {
-                keyFieldFocused = true
-            }
-        }
-    }
-
-    private var replaceKeyDialog: some View {
-        ZStack {
-            Color.black.opacity(0.35)
-                .ignoresSafeArea()
-                .onTapGesture { dismissReplaceKey() }
-
-            VStack(spacing: 16) {
-                Text("Replace \(kind.displayName) Key")
-                    .font(.headline)
-
-                SecureField(kind.apiKeyPlaceholder, text: $apiKey)
-                    .textContentType(.password)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .padding(12)
-                    .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous))
-                    .focused($keyFieldFocused)
-
-                HStack(spacing: 12) {
-                    Button("Cancel") {
-                        dismissReplaceKey()
-                    }
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity)
-
-                    Button("Save") {
-                        saveKey()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-            .padding(20)
-            .frame(maxWidth: 320)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
-            .padding(.horizontal, 24)
-        }
-        .onAppear { keyFieldFocused = true }
     }
 
     private func saveKey() {
@@ -253,13 +191,11 @@ struct WebSearchProviderDetailView: View {
         webSearchStore.setAPIKey(trimmed, for: kind)
         apiKey = ""
         showingReplaceKey = false
-        keyFieldFocused = false
         Haptics.success()
     }
 
     private func dismissReplaceKey() {
         showingReplaceKey = false
         apiKey = ""
-        keyFieldFocused = false
     }
 }

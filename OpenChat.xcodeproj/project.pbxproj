@@ -10,6 +10,7 @@
 		0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */; };
 		11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */; };
 		181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3022C85CF36B100C7663857D /* AddProviderView.swift */; };
+		B71A9E02C4D58F6A10E3B402 /* APIKeySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71A9E02C4D58F6A10E3B401 /* APIKeySettingsSection.swift */; };
 		1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5332911ABD740626614DC38E /* Theme.swift */; };
 		1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */; };
 		1B2F7114BF34C9CD70C4DD84 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC89CCC94B4FAA05D8E5C0B /* ConversationListView.swift */; };
@@ -108,6 +109,7 @@
 		438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicClient.swift; sourceTree = "<group>"; };
 		4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredProvider.swift; sourceTree = "<group>"; };
+		B71A9E02C4D58F6A10E3B401 /* APIKeySettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeySettingsSection.swift; sourceTree = "<group>"; };
 		5332911ABD740626614DC38E /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		60E88FA5334D59F31A5DF955 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		62EFBE369A07EED25532B291 /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
@@ -353,6 +355,7 @@
 		E9F6B4526D09A8121C8F45BD /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				B71A9E02C4D58F6A10E3B401 /* APIKeySettingsSection.swift */,
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
 				A1B2C3D4E5F60718293A4B70 /* GhostIcon.swift */,
@@ -497,6 +500,7 @@
 				9C0FFAC148E41B6FE54A93FA /* APIFormat.swift in Sources */,
 				181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */,
 				0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */,
+				B71A9E02C4D58F6A10E3B402 /* APIKeySettingsSection.swift in Sources */,
 				F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */,
 				ABDB5B2887AD8455032D41C4 /* ChatCompletionClient.swift in Sources */,
 				3ED841FADCE12AE77AB278CB /* ChatMessage.swift in Sources */,
