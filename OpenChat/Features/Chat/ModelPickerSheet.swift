@@ -77,16 +77,7 @@ struct ModelPickerSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 6) {
-                    Image(systemName: "eye")
-                        .font(.caption2.weight(.semibold))
-                    Text("Can read images")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(.bar)
+                ModelCapabilityLegend()
             }
         }
         .presentationDetents([.medium, .large])
@@ -196,7 +187,7 @@ struct ModelPickerSheet: View {
             modelRow(
                 title: model.displayName,
                 subtitle: model.subtitle,
-                supportsVision: model.inputModalities.contains("image"),
+                capabilities: model.capabilities,
                 isSelected: currentProviderID == "openrouter" && currentModelID == model.id
             )
         }
@@ -211,32 +202,38 @@ struct ModelPickerSheet: View {
             modelRow(
                 title: model.displayName,
                 subtitle: model.subtitle,
-                supportsVision: model.supportsVision,
+                capabilities: model.capabilities,
                 isSelected: providerID == currentProviderID && model.id == currentModelID
             )
         }
     }
 
-    private func modelRow(title: String, subtitle: String?, supportsVision: Bool, isSelected: Bool) -> some View {
-        HStack {
+    private func modelRow(
+        title: String,
+        subtitle: String?,
+        capabilities: [ModelCapability],
+        isSelected: Bool
+    ) -> some View {
+        HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(title)
-                        .foregroundStyle(.primary)
-                    ModelCapabilitySign(supportsVision: supportsVision)
-                }
+                Text(title)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            Spacer()
+            Spacer(minLength: 8)
+            ModelCapabilitySigns(capabilities: capabilities)
             if isSelected {
                 Image(systemName: "checkmark")
                     .foregroundStyle(Color.accentColor)
                     .fontWeight(.semibold)
             }
         }
+        .accessibilityElement(children: .combine)
     }
 }

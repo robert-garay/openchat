@@ -46,6 +46,7 @@ private struct RemoteModel: Decodable {
     var hugging_face_id: String?
     var pricing: Pricing?
     var architecture: Architecture?
+    var supported_parameters: [String]?
     var alias_target: AliasTarget?
 
     struct Pricing: Decodable {
@@ -73,6 +74,7 @@ private struct RemoteModel: Decodable {
             modality: architecture?.modality,
             inputModalities: architecture?.input_modalities ?? [],
             outputModalities: architecture?.output_modalities ?? [],
+            supportedParameters: supported_parameters ?? [],
             isAlias: alias_target != nil || id.hasPrefix("~")
         )
     }

@@ -12,7 +12,74 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
     var modality: String?
     var inputModalities: [String]
     var outputModalities: [String]
+    var supportedParameters: [String]
     var isAlias: Bool
+
+    init(
+        id: String,
+        name: String,
+        created: Int? = nil,
+        contextLength: Int? = nil,
+        huggingFaceID: String? = nil,
+        promptPrice: Double,
+        completionPrice: Double,
+        modality: String? = nil,
+        inputModalities: [String],
+        outputModalities: [String],
+        supportedParameters: [String] = [],
+        isAlias: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.created = created
+        self.contextLength = contextLength
+        self.huggingFaceID = huggingFaceID
+        self.promptPrice = promptPrice
+        self.completionPrice = completionPrice
+        self.modality = modality
+        self.inputModalities = inputModalities
+        self.outputModalities = outputModalities
+        self.supportedParameters = supportedParameters
+        self.isAlias = isAlias
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, created, contextLength, huggingFaceID
+        case promptPrice, completionPrice, modality
+        case inputModalities, outputModalities, supportedParameters, isAlias
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        created = try container.decodeIfPresent(Int.self, forKey: .created)
+        contextLength = try container.decodeIfPresent(Int.self, forKey: .contextLength)
+        huggingFaceID = try container.decodeIfPresent(String.self, forKey: .huggingFaceID)
+        promptPrice = try container.decode(Double.self, forKey: .promptPrice)
+        completionPrice = try container.decode(Double.self, forKey: .completionPrice)
+        modality = try container.decodeIfPresent(String.self, forKey: .modality)
+        inputModalities = try container.decodeIfPresent([String].self, forKey: .inputModalities) ?? []
+        outputModalities = try container.decodeIfPresent([String].self, forKey: .outputModalities) ?? []
+        supportedParameters = try container.decodeIfPresent([String].self, forKey: .supportedParameters) ?? []
+        isAlias = try container.decode(Bool.self, forKey: .isAlias)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(created, forKey: .created)
+        try container.encodeIfPresent(contextLength, forKey: .contextLength)
+        try container.encodeIfPresent(huggingFaceID, forKey: .huggingFaceID)
+        try container.encode(promptPrice, forKey: .promptPrice)
+        try container.encode(completionPrice, forKey: .completionPrice)
+        try container.encodeIfPresent(modality, forKey: .modality)
+        try container.encode(inputModalities, forKey: .inputModalities)
+        try container.encode(outputModalities, forKey: .outputModalities)
+        try container.encode(supportedParameters, forKey: .supportedParameters)
+        try container.encode(isAlias, forKey: .isAlias)
+    }
 
     var isFree: Bool {
         id.hasSuffix(":free") || (promptPrice == 0 && completionPrice == 0)
@@ -49,8 +116,18 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
         return parts.isEmpty ? id : parts.joined(separator: " · ")
     }
 
+    var capabilities: [ModelCapability] {
+        ModelCapability.inferred(
+            inputModalities: inputModalities,
+            outputModalities: outputModalities,
+            supportedParameters: supportedParameters,
+            modelID: id,
+            modelName: name
+        )
+    }
+
     var asAIModel: AIModel {
-        AIModel(id: id, displayName: displayName, subtitle: subtitle, supportsVision: inputModalities.contains("image"))
+        AIModel(id: id, displayName: displayName, subtitle: subtitle, capabilities: capabilities)
     }
 
     private static func formatContext(_ tokens: Int) -> String {
