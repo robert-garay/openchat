@@ -275,14 +275,14 @@ private enum ChatScrollAnchor {
 }
 
 private struct ChatViewportFrameKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
+    static var defaultValue: CGRect { .zero }
     static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
         value = nextValue()
     }
 }
 
 private struct ChatBottomAnchorFrameKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
+    static var defaultValue: CGRect { .zero }
     static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
         value = nextValue()
     }
