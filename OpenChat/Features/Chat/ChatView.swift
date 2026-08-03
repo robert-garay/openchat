@@ -62,9 +62,7 @@ struct ChatView: View {
                         Haptics.light()
                         onToggleTemporary?()
                     } label: {
-                        Image(systemName: "circle.dashed")
-                            .font(.body.weight(.medium))
-                            .symbolRenderingMode(.hierarchical)
+                        GhostIcon(size: 17, filled: conversation.isTemporary)
                             .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                             .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
                             .accessibilityAddTraits(conversation.isTemporary ? .isSelected : [])
