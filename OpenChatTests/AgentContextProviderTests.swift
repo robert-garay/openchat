@@ -77,6 +77,7 @@ final class AgentContextProviderTests: XCTestCase {
         XCTAssertTrue(block!.contains("Standup"))
         XCTAssertTrue(block!.contains("4200"))
         XCTAssertTrue(block!.contains("On-device context"))
+        XCTAssertTrue(block!.contains("Fitness section"))
     }
 
     func testContextProviderSkipsDisabledFitnessEvenIfCalendarOn() async {

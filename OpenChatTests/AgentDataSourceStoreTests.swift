@@ -30,10 +30,29 @@ final class AgentDataSourceStoreTests: XCTestCase {
         XCTAssertTrue(store.isEnabled(.calendar))
         XCTAssertEqual(store.enabledCount, 2)
         XCTAssertEqual(Set(store.enabledSources.map(\.rawValue)), ["appleHealth", "calendar"])
+        XCTAssertTrue(defaults.bool(forKey: "com.openchat.healthAuthPromptCompleted"))
+        // Health read grants are opaque; an enabled Health toggle is enough for agent access
+        // whenever HealthKit exists on the device.
+        if HKHealthStore.isHealthDataAvailable() {
+            XCTAssertTrue(store.isAvailableForAgents(.appleHealth))
+        }
 
         let persisted = defaults.array(forKey: "com.openchat.agentDataSources") as? [String] ?? []
         XCTAssertFalse(persisted.contains("home"))
         XCTAssertFalse(persisted.contains("contacts"))
+    }
+
+    func testEnabledHealthIsAvailableEvenWithoutCachedAuthorizedStatus() {
+        defaults.set(["appleHealth"], forKey: "com.openchat.agentDataSources")
+        store = AgentDataSourceStore(defaults: defaults)
+        store.refreshAuthorizationStatuses()
+
+        XCTAssertTrue(store.isEnabled(.appleHealth))
+        if HKHealthStore.isHealthDataAvailable() {
+            XCTAssertTrue(store.isAvailableForAgents(.appleHealth))
+        } else {
+            XCTAssertFalse(store.isAvailableForAgents(.appleHealth))
+        }
     }
 
     func testDisablingClearsPersistence() async {

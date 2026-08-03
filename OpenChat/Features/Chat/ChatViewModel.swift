@@ -136,16 +136,20 @@ final class ChatViewModel {
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
-                var turns: [ChatTurn] = []
+                var systemParts: [String] = []
                 if !conversationSystemPrompt.isEmpty {
-                    turns.append(ChatTurn(role: .system, content: conversationSystemPrompt))
+                    systemParts.append(conversationSystemPrompt)
                 }
 
                 dataSourceStore.refreshAuthorizationStatuses()
                 if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    turns.append(ChatTurn(role: .system, content: agentContext))
+                    systemParts.append(agentContext)
                 }
 
+                var turns: [ChatTurn] = []
+                if !systemParts.isEmpty {
+                    turns.append(ChatTurn(role: .system, content: systemParts.joined(separator: "\n\n")))
+                }
                 turns.append(contentsOf: historyTurns)
 
                 for try await delta in client.streamReply(turns: turns, model: modelID, baseURL: baseURL, apiKey: apiKey) {

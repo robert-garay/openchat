@@ -70,13 +70,18 @@ struct AnthropicClient: ChatCompletionClient {
                 request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
             }
 
-            let systemPrompt = turns.first(where: { $0.role == .system })?.content
+            // Anthropic accepts a single system string — join every system turn.
+            let systemPrompt = turns
+                .filter { $0.role == .system }
+                .map(\.content)
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n\n")
             let conversationTurns = turns.filter { $0.role != .system }
 
             let body = RequestBody(
                 model: model,
                 maxTokens: 8192,
-                system: (systemPrompt?.isEmpty ?? true) ? nil : systemPrompt,
+                system: systemPrompt.isEmpty ? nil : systemPrompt,
                 messages: conversationTurns.map { turn in
                     RequestMessage(role: turn.role.rawValue, content: Self.encodeContent(for: turn))
                 }
