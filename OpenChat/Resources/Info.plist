@@ -29,6 +29,26 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>OpenChat uses Bluetooth so agents can work with accessories you choose to enable.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>OpenChat reads your calendar so agents can help with schedules and meeting prep.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>OpenChat uses the camera so agents can analyze photos or documents you capture.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>OpenChat reads contacts you enable so agents can help with people and relationships.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>OpenChat reads Apple Health data you enable so agents can provide health analysis and coaching.</string>
+	<key>NSHomeKitUsageDescription</key>
+	<string>OpenChat accesses HomeKit so agents can view and control homes you choose to enable.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OpenChat uses your location so agents can provide place-aware help while you use the app.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OpenChat uses the microphone for voice input and transcription when you enable it.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>OpenChat uses motion and fitness data so agents can understand activity and movement.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>OpenChat accesses photos you select so agents can analyze images.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

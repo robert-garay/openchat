@@ -51,6 +51,21 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        NSHealthShareUsageDescription: OpenChat reads Apple Health data you enable so agents can provide health analysis and coaching.
+        NSHomeKitUsageDescription: OpenChat accesses HomeKit so agents can view and control homes you choose to enable.
+        NSLocationWhenInUseUsageDescription: OpenChat uses your location so agents can provide place-aware help while you use the app.
+        NSMotionUsageDescription: OpenChat uses motion and fitness data so agents can understand activity and movement.
+        NSBluetoothAlwaysUsageDescription: OpenChat uses Bluetooth so agents can work with accessories you choose to enable.
+        NSCameraUsageDescription: OpenChat uses the camera so agents can analyze photos or documents you capture.
+        NSMicrophoneUsageDescription: OpenChat uses the microphone for voice input and transcription when you enable it.
+        NSPhotoLibraryUsageDescription: OpenChat accesses photos you select so agents can analyze images.
+        NSContactsUsageDescription: OpenChat reads contacts you enable so agents can help with people and relationships.
+        NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules and meeting prep.
+    entitlements:
+      path: OpenChat/Resources/OpenChat.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.homekit: true
     settings:
       base:
         PRODUCT_NAME: OpenChat

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(ProviderStore.self) private var providerStore
+    @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
     @State private var showingAddProvider = false
@@ -60,6 +61,23 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink {
+                        DataSourcesSettingsView()
+                    } label: {
+                        HStack {
+                            Label("Agent Data Sources", systemImage: "sensor.tag.radiowaves.forward")
+                            Spacer()
+                            Text(dataSourcesSummary)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Privacy")
+                } footer: {
+                    Text("Choose which on-device data agents may use. All sources are off by default. Enabled data may be sent to your configured AI providers.")
+                }
+
+                Section {
                     LabeledContent("Version", value: appVersion)
                     Link(destination: URL(string: "https://github.com/robert-garay/openchat")!) {
                         Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
@@ -87,5 +105,11 @@ struct SettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
+    }
+
+    private var dataSourcesSummary: String {
+        let count = dataSourceStore.enabledCount
+        if count == 0 { return "Off" }
+        return "\(count) on"
     }
 }

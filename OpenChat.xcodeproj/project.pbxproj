@@ -51,6 +51,11 @@
 		D323D94CBA175F7AB0248CDA /* ServerSentEventStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */; };
 		E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EFBE369A07EED25532B291 /* ProviderDetailView.swift */; };
 		F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */; };
+		D825C404D23F4FE3A64B1D27 /* AgentDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */; };
+		9DFD2D12E9824CD48CC196C6 /* AgentDataSourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983DBE341D5A41C3AA62ED2B /* AgentDataSourceStore.swift */; };
+		C274E79DA53C445D853B0846 /* AgentDataSourcePermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EF760A60914B4CA22776A7 /* AgentDataSourcePermissionService.swift */; };
+		1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */; };
+		5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +115,12 @@
 		E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyEntryView.swift; sourceTree = "<group>"; };
 		EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
+		1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSource.swift; sourceTree = "<group>"; };
+		983DBE341D5A41C3AA62ED2B /* AgentDataSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStore.swift; sourceTree = "<group>"; };
+		C4EF760A60914B4CA22776A7 /* AgentDataSourcePermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourcePermissionService.swift; sourceTree = "<group>"; };
+		9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourcesSettingsView.swift; sourceTree = "<group>"; };
+		8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStoreTests.swift; sourceTree = "<group>"; };
+		FBE0A9AC99CD4E08BE2B0C4C /* OpenChat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenChat.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -141,6 +152,7 @@
 		6C09D5202C20F6B05688B361 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FBE0A9AC99CD4E08BE2B0C4C /* OpenChat.entitlements */,
 				174C8A720DB382316B6679A5 /* Assets.xcassets */,
 			);
 			path = Resources;
@@ -161,6 +173,7 @@
 		86EE89C3E3103538243E1F01 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */,
 				739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */,
 			);
 			path = App;
@@ -181,6 +194,8 @@
 		903054CE5393C7DE6CEE0F1D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C4EF760A60914B4CA22776A7 /* AgentDataSourcePermissionService.swift */,
+				983DBE341D5A41C3AA62ED2B /* AgentDataSourceStore.swift */,
 				438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */,
 				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
 				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
@@ -205,6 +220,7 @@
 		C6E29A03FED964E97EDDF981 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
@@ -219,6 +235,7 @@
 		D07F06DCA57DBF4F51AE9C11 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
 				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
@@ -371,6 +388,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D825C404D23F4FE3A64B1D27 /* AgentDataSource.swift in Sources */,
+				9DFD2D12E9824CD48CC196C6 /* AgentDataSourceStore.swift in Sources */,
+				C274E79DA53C445D853B0846 /* AgentDataSourcePermissionService.swift in Sources */,
+				1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */,
 				4C866DDBCD5C78A83C5D6F5C /* AIModel.swift in Sources */,
 				9C0FFAC148E41B6FE54A93FA /* APIFormat.swift in Sources */,
 				181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */,
@@ -416,6 +437,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				5A1E8F24C7B6930D4E2A15F8 /* OpenRouterModelCatalogTests.swift in Sources */,
 				66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */,
@@ -438,6 +460,7 @@
 		060C934DC72EEBD6245E7DC1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OpenChat/Resources/OpenChat.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -491,6 +514,7 @@
 		8FDF7396FFA9E28E7EA79F7B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OpenChat/Resources/OpenChat.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
