@@ -37,7 +37,11 @@ struct ChatView: View {
                         HStack(spacing: 4) {
                             Text(viewModel.currentModel?.displayName ?? "Choose Model")
                                 .font(.subheadline.weight(.semibold))
-                            ModelCapabilitySign(supportsVision: viewModel.supportsVision)
+                                .lineLimit(1)
+                            ModelCapabilitySigns(
+                                capabilities: viewModel.currentModel?.capabilities ?? [],
+                                limit: 3
+                            )
                             Image(systemName: "chevron.down")
                                 .font(.caption2.weight(.bold))
                         }

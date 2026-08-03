@@ -33,7 +33,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             apiKeyPlaceholder: "sk-...",
             defaultModels: [
                 AIModel(id: "deepseek-chat", displayName: "DeepSeek-V3", subtitle: "General purpose · 64K context"),
-                AIModel(id: "deepseek-reasoner", displayName: "DeepSeek-R1", subtitle: "Deep reasoning · 64K context"),
+                AIModel(id: "deepseek-reasoner", displayName: "DeepSeek-R1", subtitle: "Deep reasoning · 64K context", capabilities: [.reasoning]),
             ],
             region: "China"
         ),
@@ -50,7 +50,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "qwen-max", displayName: "Qwen-Max", subtitle: "Alibaba's flagship model"),
                 AIModel(id: "qwen-plus", displayName: "Qwen-Plus", subtitle: "Balanced speed & quality"),
                 AIModel(id: "qwen-turbo", displayName: "Qwen-Turbo", subtitle: "Fast & low cost"),
-                AIModel(id: "qwen-vl-plus", displayName: "Qwen-VL Plus", subtitle: "Vision", supportsVision: true),
+                AIModel(id: "qwen-vl-plus", displayName: "Qwen-VL Plus", subtitle: "Vision", capabilities: [.vision]),
             ],
             region: "China"
         ),
@@ -80,9 +80,9 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://open.bigmodel.cn/usercenter/apikeys"),
             apiKeyPlaceholder: "API key",
             defaultModels: [
-                AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model"),
+                AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model", capabilities: [.reasoning]),
                 AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast"),
-                AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", supportsVision: true),
+                AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", capabilities: [.vision]),
             ],
             region: "China"
         ),
@@ -111,9 +111,9 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://platform.openai.com/api-keys"),
             apiKeyPlaceholder: "sk-...",
             defaultModels: [
-                AIModel(id: "gpt-5", displayName: "GPT-5", subtitle: "Flagship model", supportsVision: true),
-                AIModel(id: "gpt-5-mini", displayName: "GPT-5 Mini", subtitle: "Fast & affordable"),
-                AIModel(id: "o4-mini", displayName: "o4-mini", subtitle: "Reasoning model"),
+                AIModel(id: "gpt-5", displayName: "GPT-5", subtitle: "Flagship model", capabilities: [.vision, .tools]),
+                AIModel(id: "gpt-5-mini", displayName: "GPT-5 Mini", subtitle: "Fast & affordable", capabilities: [.tools]),
+                AIModel(id: "o4-mini", displayName: "o4-mini", subtitle: "Reasoning model", capabilities: [.reasoning, .tools]),
             ]
         ),
         ProviderTemplate(
@@ -126,8 +126,8 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://console.anthropic.com/settings/keys"),
             apiKeyPlaceholder: "sk-ant-...",
             defaultModels: [
-                AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6", subtitle: "Most capable", supportsVision: true),
-                AIModel(id: "claude-sonnet-4-6-20260805", displayName: "Claude Sonnet 4.6", subtitle: "Balanced", supportsVision: true),
+                AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6", subtitle: "Most capable", capabilities: [.vision, .tools]),
+                AIModel(id: "claude-sonnet-4-6-20260805", displayName: "Claude Sonnet 4.6", subtitle: "Balanced", capabilities: [.vision, .tools]),
             ]
         ),
         ProviderTemplate(
@@ -140,8 +140,8 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://aistudio.google.com/apikey"),
             apiKeyPlaceholder: "API key",
             defaultModels: [
-                AIModel(id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", subtitle: "Flagship", supportsVision: true),
-                AIModel(id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", subtitle: "Fast", supportsVision: true),
+                AIModel(id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", subtitle: "Flagship", capabilities: [.vision, .tools]),
+                AIModel(id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", subtitle: "Fast", capabilities: [.vision, .tools]),
             ]
         ),
         ProviderTemplate(
@@ -155,7 +155,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             apiKeyPlaceholder: "sk-or-...",
             defaultModels: [
                 AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
-                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", supportsVision: true),
+                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", capabilities: [.vision]),
                 AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
             ]
         ),

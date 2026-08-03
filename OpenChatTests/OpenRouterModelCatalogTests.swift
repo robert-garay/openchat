@@ -203,11 +203,12 @@ final class OpenRouterModelCatalogTests: XCTestCase {
               "context_length": 262144,
               "hugging_face_id": "google/gemma-4-31B-it",
               "pricing": { "prompt": "0", "completion": "0" },
-              "architecture": {
+                "architecture": {
                 "modality": "text->text",
                 "input_modalities": ["text"],
                 "output_modalities": ["text"]
-              }
+              },
+              "supported_parameters": ["temperature", "tools"]
             },
             {
               "id": "~deepseek/deepseek-alias",
@@ -227,6 +228,8 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         let models = try OpenRouterModelsClient.decodeModels(from: json)
         XCTAssertEqual(models.count, 2)
         XCTAssertEqual(models[0].id, "google/gemma-4-31b-it:free")
+        XCTAssertEqual(models[0].supportedParameters, ["temperature", "tools"])
+        XCTAssertEqual(models[0].capabilities, [.tools])
         XCTAssertTrue(models[0].isFree)
         XCTAssertTrue(models[0].isOpenSource)
         XCTAssertTrue(models[1].isAlias)
