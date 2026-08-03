@@ -59,15 +59,16 @@ struct CalendarActionProposal: Equatable, Identifiable, Sendable, Codable {
 
     private func describeWhen(start: Date?, end: Date?, isAllDay: Bool?) -> String {
         guard let start else { return "Time TBD" }
-        let day = DateFormatter.calendarActionDay
-        let time = DateFormatter.calendarActionTime
+        let day = start.formatted(date: .abbreviated, time: .omitted)
+        let startTime = start.formatted(date: .omitted, time: .shortened)
         if isAllDay == true {
-            return "All day \(day.string(from: start))"
+            return "All day \(day)"
         }
         if let end {
-            return "\(day.string(from: start)) \(time.string(from: start))–\(time.string(from: end))"
+            let endTime = end.formatted(date: .omitted, time: .shortened)
+            return "\(day) \(startTime)–\(endTime)"
         }
-        return "\(day.string(from: start)) \(time.string(from: start))"
+        return "\(day) \(startTime)"
     }
 }
 
@@ -103,11 +104,15 @@ enum CalendarActionParser {
     private static func decodeProposals(from body: String) -> [CalendarActionProposal] {
         let data = Data(body.utf8)
         let decoder = JSONDecoder()
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        plain.formatOptions = [.withInternetDateTime]
+
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let raw = try container.decode(String.self)
-            if let date = ISO8601DateFormatter.calendarActionFractional.date(from: raw)
-                ?? ISO8601DateFormatter.calendarAction.date(from: raw) {
+            if let date = withFractional.date(from: raw) ?? plain.date(from: raw) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date \(raw)")
@@ -164,34 +169,4 @@ enum CalendarActionParser {
         var notes: String?
         var isAllDay: Bool?
     }
-}
-
-private extension ISO8601DateFormatter {
-    static let calendarAction: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
-
-    static let calendarActionFractional: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-}
-
-private extension DateFormatter {
-    static let calendarActionDay: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }()
-
-    static let calendarActionTime: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        return formatter
-    }()
 }
