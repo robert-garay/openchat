@@ -48,6 +48,14 @@ final class ChatViewModel {
         webSearchStore.activeProviderDisplayName
     }
 
+    var webSearchStoreActiveLogo: String {
+        webSearchStore.activeProvider.logoAssetName
+    }
+
+    var webSearchStoreActiveTint: String {
+        webSearchStore.activeProvider.tintHex
+    }
+
     var canUseWebSearch: Bool {
         webSearchStore.isActive
     }

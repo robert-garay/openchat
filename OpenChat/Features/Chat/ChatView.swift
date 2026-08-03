@@ -29,6 +29,8 @@ struct ChatView: View {
                     canUseWebSearch: viewModel.canUseWebSearch,
                     isWebSearchArmed: viewModel.isWebSearchArmed,
                     webSearchProviderName: viewModel.webSearchProviderName,
+                    webSearchLogoAssetName: viewModel.webSearchStoreActiveLogo,
+                    webSearchTintHex: viewModel.webSearchStoreActiveTint,
                     onToggleWebSearch: viewModel.toggleWebSearchForChat,
                     onSend: {
                         viewModel.send()
