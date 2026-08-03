@@ -74,11 +74,12 @@ struct SettingsView: View {
                                     size: 28
                                 )
                             } else {
-                                Label("Web Search", systemImage: "globe")
+                                Image(systemName: "globe")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                                    .frame(width: 28, height: 28)
                             }
-                            if webSearchStore.isActive {
-                                Text("Web Search")
-                            }
+                            Text("Web Search")
                             Spacer()
                             Text(webSearchSummary)
                                 .foregroundStyle(.secondary)
