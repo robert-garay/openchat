@@ -30,7 +30,7 @@
 		<true/>
 	</dict>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>OpenChat reads your calendar so agents can help with schedules and meeting prep.</string>
+	<string>OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>OpenChat uses the camera so agents can analyze photos or documents you capture.</string>
 	<key>NSHealthShareUsageDescription</key>

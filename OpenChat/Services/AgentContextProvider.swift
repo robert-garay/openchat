@@ -5,8 +5,8 @@ import Foundation
 @MainActor
 struct AgentContextProvider {
     var dataSourceStore: AgentDataSourceStore
-    var calendarSection: () -> String? = {
-        CalendarContextReader.contextSection()
+    var calendarSection: (CalendarAccessMode) -> String? = { mode in
+        CalendarContextReader.contextSection(accessMode: mode)
     }
     var fitnessSection: () async -> String? = {
         await FitnessContextReader.contextSection()
@@ -15,9 +15,11 @@ struct AgentContextProvider {
     func makeContextBlock() async -> String? {
         var sections: [String] = []
 
-        if dataSourceStore.isAvailableForAgents(.calendar),
-           let calendar = calendarSection() {
-            sections.append(calendar)
+        if dataSourceStore.isAvailableForAgents(.calendar) {
+            let mode = dataSourceStore.calendarAccessMode ?? .readOnly
+            if let calendar = calendarSection(mode) {
+                sections.append(calendar)
+            }
         }
 
         if dataSourceStore.isAvailableForAgents(.appleHealth),

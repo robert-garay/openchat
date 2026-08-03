@@ -34,13 +34,46 @@ final class AgentContextProviderTests: XCTestCase {
             ),
         ]
 
-        let section = CalendarContextReader.contextSection(events: events, now: day, calendar: calendar)
+        let section = CalendarContextReader.contextSection(
+            events: events,
+            now: day,
+            calendar: calendar,
+            accessMode: .readOnly
+        )
 
         XCTAssertTrue(section.contains("## Calendar"))
         XCTAssertTrue(section.contains("Standup"))
         XCTAssertTrue(section.contains("Zoom"))
         XCTAssertTrue(section.contains("Offsite"))
         XCTAssertTrue(section.contains("All day"))
+        XCTAssertTrue(section.contains("Read only"))
+        XCTAssertFalse(section.contains("[id:"))
+    }
+
+    func testCalendarSectionIncludesIdsAndEditInstructionsWhenWritable() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let day = calendar.date(from: DateComponents(year: 2026, month: 8, day: 3, hour: 12))!
+        let events = [
+            CalendarEventSnapshot(
+                eventIdentifier: "evt-1",
+                title: "Standup",
+                start: calendar.date(from: DateComponents(year: 2026, month: 8, day: 3, hour: 9))!,
+                end: calendar.date(from: DateComponents(year: 2026, month: 8, day: 3, hour: 9, minute: 30))!,
+                isAllDay: false,
+                location: nil
+            ),
+        ]
+
+        let section = CalendarContextReader.contextSection(
+            events: events,
+            now: day,
+            calendar: calendar,
+            accessMode: .readWrite
+        )
+        XCTAssertTrue(section.contains("[id: evt-1]"))
+        XCTAssertTrue(section.contains("openchat-calendar"))
+        XCTAssertTrue(section.contains("Can edit"))
     }
 
     func testEmptyCalendarStillProducesSection() {
@@ -53,7 +86,7 @@ final class AgentContextProviderTests: XCTestCase {
 
     func testContextProviderOmitsSourcesThatAreNotAvailable() async {
         var provider = AgentContextProvider(dataSourceStore: store)
-        provider.calendarSection = { "## Calendar\n- secret" }
+        provider.calendarSection = { _ in "## Calendar\n- secret" }
         provider.fitnessSection = { "## Fitness\n- secret" }
 
         let block = await provider.makeContextBlock()
@@ -61,12 +94,12 @@ final class AgentContextProviderTests: XCTestCase {
     }
 
     func testContextProviderIncludesEnabledCalendarAndFitness() async {
-        store.markAvailableForTesting(.calendar)
+        store.markAvailableForTesting(.calendar, calendarMode: .readOnly)
         store.markAvailableForTesting(.appleHealth)
 
         var provider = AgentContextProvider(dataSourceStore: store)
-        provider.calendarSection = {
-            "## Calendar\n### Today\n- 9:00–10:00: Standup"
+        provider.calendarSection = { mode in
+            "## Calendar (\(mode.shortLabel))\n### Today\n- 9:00–10:00: Standup"
         }
         provider.fitnessSection = {
             "## Fitness (Apple Health)\n- Steps today: 4200"
@@ -78,13 +111,14 @@ final class AgentContextProviderTests: XCTestCase {
         XCTAssertTrue(block!.contains("4200"))
         XCTAssertTrue(block!.contains("On-device context"))
         XCTAssertTrue(block!.contains("Fitness section"))
+        XCTAssertTrue(block!.contains("Read only"))
     }
 
     func testContextProviderSkipsDisabledFitnessEvenIfCalendarOn() async {
         store.markAvailableForTesting(.calendar)
 
         var provider = AgentContextProvider(dataSourceStore: store)
-        provider.calendarSection = { "## Calendar\n- Meeting" }
+        provider.calendarSection = { _ in "## Calendar\n- Meeting" }
         provider.fitnessSection = { "## Fitness\n- should not appear" }
 
         let block = await provider.makeContextBlock()

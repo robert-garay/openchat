@@ -3,6 +3,7 @@ import SwiftUI
 struct DataSourcesSettingsView: View {
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @State private var showingFitnessNotice = false
+    @State private var showingCalendarAccessChooser = false
     @State private var busySource: AgentDataSource?
     @State private var statusMessage: String?
 
@@ -10,7 +11,7 @@ struct DataSourcesSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("When enabled, calendar and fitness data are attached to chat requests so the model can answer questions like today’s agenda. Relevant details are sent to the AI providers you configure. Camera, mic, and photos are used only when you capture or pick media.")
+                    Text("When enabled, calendar and fitness data are attached to chat requests so the model can answer questions like today’s agenda. With calendar editing on, the model can propose changes you confirm in chat. Relevant details are sent to the AI providers you configure.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -27,10 +28,15 @@ struct DataSourcesSettingsView: View {
                             source: source,
                             isOn: dataSourceStore.isEnabled(source),
                             authorizationStatus: dataSourceStore.authorizationStatus(for: source),
+                            calendarAccessMode: source == .calendar ? dataSourceStore.calendarAccessMode : nil,
                             isBusy: busySource == source,
                             onChange: { enabled in
                                 Task { await handleToggle(source, enabled: enabled) }
-                            }
+                            },
+                            onChangeCalendarMode: source == .calendar ? { mode in
+                                dataSourceStore.setCalendarAccessMode(mode)
+                                Haptics.light()
+                            } : nil
                         )
                     }
                 } header: {
@@ -38,6 +44,8 @@ struct DataSourcesSettingsView: View {
                 } footer: {
                     if section == .fitness {
                         Text("Fitness metrics only (\(FitnessHealthDataTypes.userFacingSummary)). No clinical records, labs, or medications. Not medical advice.")
+                    } else if section == .personal {
+                        Text("For Calendar, choose Read only or Read & edit when turning it on. Edits always require confirmation in chat.")
                     } else {
                         EmptyView()
                     }
@@ -63,6 +71,14 @@ struct DataSourcesSettingsView: View {
                 showingFitnessNotice = false
             }
         }
+        .sheet(isPresented: $showingCalendarAccessChooser) {
+            CalendarAccessModeChooserView { mode in
+                showingCalendarAccessChooser = false
+                Task { await enableCalendar(mode: mode) }
+            } onCancel: {
+                showingCalendarAccessChooser = false
+            }
+        }
         .onAppear {
             dataSourceStore.refreshAuthorizationStatuses()
         }
@@ -70,6 +86,10 @@ struct DataSourcesSettingsView: View {
 
     private func handleToggle(_ source: AgentDataSource, enabled: Bool) async {
         if enabled {
+            if source == .calendar {
+                showingCalendarAccessChooser = true
+                return
+            }
             if source.requiresPrivacyNotice && !dataSourceStore.hasAcknowledgedFitnessPrivacyNotice {
                 showingFitnessNotice = true
                 return
@@ -84,11 +104,21 @@ struct DataSourcesSettingsView: View {
         }
     }
 
+    private func enableCalendar(mode: CalendarAccessMode) async {
+        busySource = .calendar
+        let status = await dataSourceStore.enableCalendar(accessMode: mode)
+        busySource = nil
+        applyStatus(status, for: .calendar)
+    }
+
     private func enable(_ source: AgentDataSource) async {
         busySource = source
         let status = await dataSourceStore.setEnabled(true, for: source)
         busySource = nil
+        applyStatus(status, for: source)
+    }
 
+    private func applyStatus(_ status: AgentDataSourceAuthorizationStatus, for source: AgentDataSource) {
         switch status {
         case .authorized:
             statusMessage = nil
@@ -103,6 +133,58 @@ struct DataSourcesSettingsView: View {
             statusMessage = "\(source.title) permission wasn’t completed."
             Haptics.error()
         }
+    }
+}
+
+struct CalendarAccessModeChooserView: View {
+    let onSelect: (CalendarAccessMode) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("Choose how agents may use your calendar. iOS will ask for calendar access either way. Edits are never applied until you confirm them in chat.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                }
+
+                Section("Access level") {
+                    ForEach(CalendarAccessMode.allCases) { mode in
+                        Button {
+                            onSelect(mode)
+                        } label: {
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: mode.symbolName)
+                                    .font(.title3)
+                                    .foregroundStyle(Color.accentColor)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(mode.title)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text(mode.detail)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Calendar Access")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 
@@ -202,33 +284,50 @@ private struct DataSourceToggleRow: View {
     let source: AgentDataSource
     let isOn: Bool
     let authorizationStatus: AgentDataSourceAuthorizationStatus
+    var calendarAccessMode: CalendarAccessMode? = nil
     let isBusy: Bool
     let onChange: (Bool) -> Void
+    var onChangeCalendarMode: ((CalendarAccessMode) -> Void)? = nil
 
     var body: some View {
-        Toggle(isOn: Binding(
-            get: { isOn },
-            set: { onChange($0) }
-        )) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: source.symbolName)
-                    .font(.body)
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 28, height: 28)
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(isOn: Binding(
+                get: { isOn },
+                set: { onChange($0) }
+            )) {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: source.symbolName)
+                        .font(.body)
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: 28, height: 28)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(source.title)
-                    Text(source.subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if isOn, authorizationStatus == .denied || authorizationStatus == .restricted {
-                        Text("Permission denied — open iOS Settings")
-                            .font(.caption2)
-                            .foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(source.title)
+                        Text(source.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if isOn, authorizationStatus == .denied || authorizationStatus == .restricted {
+                            Text("Permission denied — open iOS Settings")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
                     }
                 }
             }
+            .disabled(isBusy)
+
+            if source == .calendar, isOn, let calendarAccessMode, let onChangeCalendarMode {
+                Picker("Calendar access", selection: Binding(
+                    get: { calendarAccessMode },
+                    set: { onChangeCalendarMode($0) }
+                )) {
+                    ForEach(CalendarAccessMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
         }
-        .disabled(isBusy)
     }
 }

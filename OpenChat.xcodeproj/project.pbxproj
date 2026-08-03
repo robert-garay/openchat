@@ -64,6 +64,10 @@
 		50D4B729CB2A44E6907C5E92 /* CalendarContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */; };
 		B0959D66996B4B15B8DD0BBA /* FitnessContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */; };
 		A8DE8947CF2E490E9788DEED /* AgentContextProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */; };
+		8D22F7AC651540339186AB32 /* CalendarAccessMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E6ED8A9E344B958D0AF98C /* CalendarAccessMode.swift */; };
+		16A34A75EA714BE7A5C8250C /* CalendarActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B77625D1D2476783CFE0A3 /* CalendarActionParser.swift */; };
+		58E44AC43E48407AB738976B /* CalendarEventWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E1D4D3EA3440CFB72DD7D3 /* CalendarEventWriter.swift */; };
+		7DCDA647D1C44C20BCF7EA50 /* CalendarActionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */; };
 		B16A01B2C3D4E5F60718293A /* ModelCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16A01B2C3D4E5F60718293A /* ModelCapability.swift */; };
 		B16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */; };
 /* End PBXBuildFile section */
@@ -141,6 +145,10 @@
 		6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarContextReader.swift; sourceTree = "<group>"; };
 		16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessContextReader.swift; sourceTree = "<group>"; };
 		FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProviderTests.swift; sourceTree = "<group>"; };
+		A8E6ED8A9E344B958D0AF98C /* CalendarAccessMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarAccessMode.swift; sourceTree = "<group>"; };
+		D0B77625D1D2476783CFE0A3 /* CalendarActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarActionParser.swift; sourceTree = "<group>"; };
+		32E1D4D3EA3440CFB72DD7D3 /* CalendarEventWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventWriter.swift; sourceTree = "<group>"; };
+		BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarActionParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -214,6 +222,8 @@
 		903054CE5393C7DE6CEE0F1D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				32E1D4D3EA3440CFB72DD7D3 /* CalendarEventWriter.swift */,
+				D0B77625D1D2476783CFE0A3 /* CalendarActionParser.swift */,
 				16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */,
 				6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */,
 				5B57BB584E514358B1250B17 /* AgentContextProvider.swift */,
@@ -244,6 +254,7 @@
 		C6E29A03FED964E97EDDF981 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */,
 				FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
@@ -259,6 +270,7 @@
 		D07F06DCA57DBF4F51AE9C11 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A8E6ED8A9E344B958D0AF98C /* CalendarAccessMode.swift */,
 				01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */,
 				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
@@ -418,6 +430,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58E44AC43E48407AB738976B /* CalendarEventWriter.swift in Sources */,
+				16A34A75EA714BE7A5C8250C /* CalendarActionParser.swift in Sources */,
+				8D22F7AC651540339186AB32 /* CalendarAccessMode.swift in Sources */,
 				B0959D66996B4B15B8DD0BBA /* FitnessContextReader.swift in Sources */,
 				50D4B729CB2A44E6907C5E92 /* CalendarContextReader.swift in Sources */,
 				7976BD3C86CE428EAD5041F1 /* AgentContextProvider.swift in Sources */,
@@ -474,6 +489,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7DCDA647D1C44C20BCF7EA50 /* CalendarActionParserTests.swift in Sources */,
 				A8DE8947CF2E490E9788DEED /* AgentContextProviderTests.swift in Sources */,
 				5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,

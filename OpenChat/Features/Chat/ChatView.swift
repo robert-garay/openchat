@@ -95,6 +95,15 @@ struct ChatView: View {
                             providerTint: viewModel.currentProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: viewModel.currentProvider?.symbolName ?? "sparkles",
                             providerLogoAssetName: viewModel.currentProvider?.logoAssetName,
+                            pendingCalendarActions: viewModel.pendingCalendarActionsByMessageID[message.id] ?? [],
+                            calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
+                            isApplyingCalendarActions: viewModel.isApplyingCalendarActions,
+                            onConfirmCalendarActions: {
+                                viewModel.confirmCalendarActions(for: message.id)
+                            },
+                            onDismissCalendarActions: {
+                                viewModel.dismissCalendarActions(for: message.id)
+                            },
                             onRetry: viewModel.regenerateLastReply
                         )
                         .id(message.id)

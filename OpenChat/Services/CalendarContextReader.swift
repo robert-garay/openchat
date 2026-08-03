@@ -2,6 +2,7 @@ import EventKit
 import Foundation
 
 struct CalendarEventSnapshot: Equatable, Sendable {
+    var eventIdentifier: String? = nil
     var title: String
     var start: Date
     var end: Date
@@ -27,6 +28,7 @@ enum CalendarContextReader {
                 let title = ($0.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 let location = ($0.location ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 return CalendarEventSnapshot(
+                    eventIdentifier: $0.eventIdentifier,
                     title: title.isEmpty ? "Untitled" : title,
                     start: $0.startDate,
                     end: $0.endDate,
@@ -39,7 +41,8 @@ enum CalendarContextReader {
     static func contextSection(
         events: [CalendarEventSnapshot],
         now: Date = .now,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        accessMode: CalendarAccessMode = .readOnly
     ) -> String {
         let dayFormatter = DateFormatter()
         dayFormatter.calendar = calendar
@@ -52,6 +55,9 @@ enum CalendarContextReader {
         timeFormatter.locale = .current
         timeFormatter.dateStyle = .none
         timeFormatter.timeStyle = .short
+
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime]
 
         let todayStart = calendar.startOfDay(for: now)
         let tomorrowStart = calendar.date(byAdding: .day, value: 1, to: todayStart) ?? todayStart
@@ -75,10 +81,15 @@ enum CalendarContextReader {
                 } else {
                     when = "\(timeFormatter.string(from: event.start))–\(timeFormatter.string(from: event.end))"
                 }
+                var line = "- \(when): \(event.title)"
                 if let location = event.location {
-                    return "- \(when): \(event.title) (\(location))"
+                    line += " (\(location))"
                 }
-                return "- \(when): \(event.title)"
+                if accessMode.allowsEdits, let id = event.eventIdentifier, !id.isEmpty {
+                    line += " [id: \(id)]"
+                    line += " {start: \(isoFormatter.string(from: event.start)), end: \(isoFormatter.string(from: event.end))}"
+                }
+                return line
             }
             return ([header] + lines).joined(separator: "\n")
         }
@@ -88,11 +99,35 @@ enum CalendarContextReader {
             formatDay(tomorrowStart, label: "Tomorrow"),
         ].joined(separator: "\n\n")
 
-        return "## Calendar\n\(body)"
+        var section = "## Calendar (\(accessMode.shortLabel))\n\(body)"
+        if accessMode.allowsEdits {
+            section += """
+
+
+            ### Calendar edits
+            You may propose calendar changes. Never claim an event was changed until the user confirms in the OpenChat UI.
+            When proposing changes, put ONLY machine-readable JSON in a fenced block like:
+
+            ```openchat-calendar
+            {"actions":[{"type":"create","title":"Title","start":"2026-08-04T15:00:00Z","end":"2026-08-04T16:00:00Z","location":null,"isAllDay":false}]}
+            ```
+
+            Allowed action types: create, update, delete.
+            For update/delete, use eventIdentifier from the [id: ...] values above.
+            Dates must be ISO-8601. Keep the visible reply human-readable and brief about what you propose.
+            """
+        } else {
+            section += "\n\nCalendar is read only. Do not claim you can create, edit, or delete events."
+        }
+        return section
     }
 
-    static func contextSection(now: Date = .now, calendar: Calendar = .current) -> String {
+    static func contextSection(
+        now: Date = .now,
+        calendar: Calendar = .current,
+        accessMode: CalendarAccessMode = .readOnly
+    ) -> String {
         let events = fetchUpcomingEvents(now: now, calendar: calendar)
-        return contextSection(events: events, now: now, calendar: calendar)
+        return contextSection(events: events, now: now, calendar: calendar, accessMode: accessMode)
     }
 }

@@ -9,9 +9,11 @@ final class AgentDataSourceStore {
     private(set) var enabledSourceIDs: Set<String> = []
     private(set) var lastAuthorizationBySource: [AgentDataSource: AgentDataSourceAuthorizationStatus] = [:]
     private(set) var hasAcknowledgedFitnessPrivacyNotice: Bool = false
+    private(set) var calendarAccessMode: CalendarAccessMode?
 
     private let defaultsKey = "com.openchat.agentDataSources"
     private let fitnessNoticeKey = "com.openchat.fitnessPrivacyNoticeAcknowledged"
+    private let calendarModeKey = "com.openchat.calendarAccessMode"
     private let defaults: UserDefaults
     private let permissions: AgentDataSourcePermissionService
 
@@ -29,6 +31,10 @@ final class AgentDataSourceStore {
 
     var enabledSources: [AgentDataSource] {
         AgentDataSource.allCases.filter { enabledSourceIDs.contains($0.rawValue) }
+    }
+
+    var canEditCalendar: Bool {
+        isAvailableForAgents(.calendar) && calendarAccessMode?.allowsEdits == true
     }
 
     func isEnabled(_ source: AgentDataSource) -> Bool {
@@ -63,17 +69,44 @@ final class AgentDataSourceStore {
         defaults.set(true, forKey: fitnessNoticeKey)
     }
 
+    func setCalendarAccessMode(_ mode: CalendarAccessMode) {
+        guard isEnabled(.calendar) else { return }
+        calendarAccessMode = mode
+        persistCalendarMode()
+    }
+
     /// Test seam: mark a source as opted-in and authorized without an OS permission prompt.
-    func markAvailableForTesting(_ source: AgentDataSource) {
+    func markAvailableForTesting(_ source: AgentDataSource, calendarMode: CalendarAccessMode? = nil) {
         enabledSourceIDs.insert(source.rawValue)
         lastAuthorizationBySource[source] = .authorized
+        if source == .calendar {
+            calendarAccessMode = calendarMode ?? .readOnly
+            persistCalendarMode()
+        }
         persist()
+    }
+
+    @discardableResult
+    func enableCalendar(accessMode: CalendarAccessMode) async -> AgentDataSourceAuthorizationStatus {
+        let status = await setEnabled(true, for: .calendar)
+        if status == .authorized {
+            calendarAccessMode = accessMode
+            persistCalendarMode()
+        } else {
+            calendarAccessMode = nil
+            persistCalendarMode()
+        }
+        return status
     }
 
     @discardableResult
     func setEnabled(_ enabled: Bool, for source: AgentDataSource) async -> AgentDataSourceAuthorizationStatus {
         if !enabled {
             enabledSourceIDs.remove(source.rawValue)
+            if source == .calendar {
+                calendarAccessMode = nil
+                persistCalendarMode()
+            }
             persist()
             refreshAuthorizationStatuses()
             return authorizationStatus(for: source)
@@ -89,9 +122,17 @@ final class AgentDataSourceStore {
         switch status {
         case .authorized:
             enabledSourceIDs.insert(source.rawValue)
+            if source == .calendar, calendarAccessMode == nil {
+                calendarAccessMode = .readOnly
+                persistCalendarMode()
+            }
             persist()
         case .denied, .restricted, .unavailable, .notDetermined:
             enabledSourceIDs.remove(source.rawValue)
+            if source == .calendar {
+                calendarAccessMode = nil
+                persistCalendarMode()
+            }
             persist()
         }
 
@@ -100,6 +141,9 @@ final class AgentDataSourceStore {
 
     private func load() {
         hasAcknowledgedFitnessPrivacyNotice = defaults.bool(forKey: fitnessNoticeKey)
+        if let raw = defaults.string(forKey: calendarModeKey) {
+            calendarAccessMode = CalendarAccessMode(rawValue: raw)
+        }
         guard let values = defaults.array(forKey: defaultsKey) as? [String] else {
             enabledSourceIDs = []
             return
@@ -108,6 +152,13 @@ final class AgentDataSourceStore {
         enabledSourceIDs = Set(values.filter { valid.contains($0) })
         // Drop removed MVP sources (Home, Location, etc.) from persistence.
         persist()
+        if !enabledSourceIDs.contains(AgentDataSource.calendar.rawValue) {
+            calendarAccessMode = nil
+            persistCalendarMode()
+        } else if calendarAccessMode == nil {
+            calendarAccessMode = .readOnly
+            persistCalendarMode()
+        }
         // Keep HealthKit prompt flag aligned with the Settings toggle (read grants are opaque).
         if enabledSourceIDs.contains(AgentDataSource.appleHealth.rawValue) {
             permissions.markHealthPromptCompleted()
@@ -116,5 +167,13 @@ final class AgentDataSourceStore {
 
     private func persist() {
         defaults.set(Array(enabledSourceIDs).sorted(), forKey: defaultsKey)
+    }
+
+    private func persistCalendarMode() {
+        if let calendarAccessMode {
+            defaults.set(calendarAccessMode.rawValue, forKey: calendarModeKey)
+        } else {
+            defaults.removeObject(forKey: calendarModeKey)
+        }
     }
 }
