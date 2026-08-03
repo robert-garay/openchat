@@ -37,6 +37,10 @@ final class Conversation {
         messages.sorted { $0.createdAt < $1.createdAt }
     }
 
+    var hasUserMessages: Bool {
+        messages.contains { $0.role == .user }
+    }
+
     var lastMessagePreview: String {
         guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
             return "No messages yet"

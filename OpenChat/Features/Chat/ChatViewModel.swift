@@ -174,11 +174,9 @@ final class ChatViewModel {
                     systemParts.append(conversationSystemPrompt)
                 }
 
-                if !conversation.isTemporary {
-                    dataSourceStore.refreshAuthorizationStatuses()
-                    if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                        systemParts.append(agentContext)
-                    }
+                dataSourceStore.refreshAuthorizationStatuses()
+                if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+                    systemParts.append(agentContext)
                 }
 
                 var turns: [ChatTurn] = []
@@ -204,7 +202,6 @@ final class ChatViewModel {
     }
 
     private func captureCalendarProposals(from message: ChatMessage) {
-        guard !conversation.isTemporary else { return }
         guard dataSourceStore.canEditCalendar else { return }
         let proposals = CalendarActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }

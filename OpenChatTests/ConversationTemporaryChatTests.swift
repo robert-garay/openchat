@@ -1,5 +1,4 @@
 import XCTest
-import SwiftData
 @testable import OpenChat
 
 final class ConversationTemporaryChatTests: XCTestCase {
@@ -7,6 +6,7 @@ final class ConversationTemporaryChatTests: XCTestCase {
         let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
         XCTAssertFalse(conversation.isTemporary)
         XCTAssertEqual(conversation.title, "New Chat")
+        XCTAssertFalse(conversation.hasUserMessages)
     }
 
     func testTemporaryConversationKeepsExplicitTitle() throws {
@@ -18,5 +18,18 @@ final class ConversationTemporaryChatTests: XCTestCase {
         )
         XCTAssertTrue(conversation.isTemporary)
         XCTAssertEqual(conversation.title, "Temporary Chat")
+    }
+
+    func testHasUserMessagesRequiresUserRole() throws {
+        let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
+        let assistant = ChatMessage(role: .assistant, content: "Hello")
+        assistant.conversation = conversation
+        conversation.messages.append(assistant)
+        XCTAssertFalse(conversation.hasUserMessages)
+
+        let user = ChatMessage(role: .user, content: "Hi")
+        user.conversation = conversation
+        conversation.messages.append(user)
+        XCTAssertTrue(conversation.hasUserMessages)
     }
 }

@@ -10,12 +10,34 @@ struct RootView: View {
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
     @State private var showingSettings = false
 
-    private var persistedConversations: [Conversation] {
-        conversations.filter { !$0.isTemporary }
+    /// Sidebar history: never temporary, never empty (no user messages).
+    /// Keep the currently selected empty chat visible so List selection stays stable.
+    private var listConversations: [Conversation] {
+        conversations.filter { conversation in
+            if conversation.isTemporary { return false }
+            return conversation.hasUserMessages || conversation.id == selectedConversationID
+        }
     }
 
     private var selectedConversation: Conversation? {
         conversations.first(where: { $0.id == selectedConversationID })
+    }
+
+    /// Ignores List clearing selection when the active chat isn’t in sidebar data
+    /// (temporary chats, or empty chats mid-transition).
+    private var listSelection: Binding<UUID?> {
+        Binding(
+            get: { selectedConversationID },
+            set: { newValue in
+                if newValue == nil,
+                   let current = selectedConversationID,
+                   conversations.contains(where: { $0.id == current }),
+                   !listConversations.contains(where: { $0.id == current }) {
+                    return
+                }
+                selectedConversationID = newValue
+            }
+        )
     }
 
     var body: some View {
@@ -25,8 +47,8 @@ struct RootView: View {
             } else {
                 NavigationSplitView(columnVisibility: $columnVisibility) {
                     ConversationListView(
-                        conversations: persistedConversations,
-                        selectedConversationID: $selectedConversationID,
+                        conversations: listConversations,
+                        selectedConversationID: listSelection,
                         onNewChat: { startNewChat(temporary: false) },
                         onShowSettings: { showingSettings = true }
                     )
@@ -47,10 +69,10 @@ struct RootView: View {
             SettingsView()
         }
         .onAppear {
-            discardOrphanedTemporaryChats()
+            discardOrphanedEphemeralChats()
         }
         .onChange(of: selectedConversationID) { previousID, _ in
-            discardTemporaryChat(id: previousID)
+            discardEphemeralChat(id: previousID)
         }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty { selectedConversationID = nil }
@@ -91,24 +113,26 @@ struct RootView: View {
             return
         }
 
-        let discardEmptySource = conversation.messages.isEmpty
+        let discardEmptySource = !conversation.hasUserMessages
         startNewChat(temporary: true, preferring: conversation)
         if discardEmptySource {
             modelContext.delete(conversation)
         }
     }
 
-    private func discardTemporaryChat(id: UUID?) {
+    private func discardEphemeralChat(id: UUID?) {
         guard let id,
-              let conversation = conversations.first(where: { $0.id == id }),
-              conversation.isTemporary else { return }
+              let conversation = conversations.first(where: { $0.id == id }) else { return }
+        guard conversation.isTemporary || !conversation.hasUserMessages else { return }
         modelContext.delete(conversation)
     }
 
-    private func discardOrphanedTemporaryChats() {
-        for conversation in conversations where conversation.isTemporary {
+    private func discardOrphanedEphemeralChats() {
+        for conversation in conversations {
             if conversation.id == selectedConversationID { continue }
-            modelContext.delete(conversation)
+            if conversation.isTemporary || !conversation.hasUserMessages {
+                modelContext.delete(conversation)
+            }
         }
     }
 }

@@ -166,7 +166,7 @@ private struct TemporaryChatBanner: View {
         VStack(spacing: 4) {
             Text("Temporary Chat")
                 .font(.subheadline.weight(.semibold))
-            Text("This chat won’t appear in history and won’t use your on-device data sources.")
+            Text("This chat won’t appear in history.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
