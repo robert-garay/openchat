@@ -32,8 +32,9 @@ final class WebSearchServiceTests: XCTestCase {
     }
 
     func testFormatContextIncludesResultsAndAnswer() {
-        let response = TavilyClient.SearchResponse(
+        let response = WebSearchResponse(
             query: "Swift concurrency",
+            providerName: "Tavily",
             answer: "Actors isolate state.",
             results: [
                 .init(
@@ -46,6 +47,7 @@ final class WebSearchServiceTests: XCTestCase {
         )
         let text = WebSearchService.formatContext(from: response)
         XCTAssertTrue(text.contains("Swift concurrency"))
+        XCTAssertTrue(text.contains("via Tavily"))
         XCTAssertTrue(text.contains("Actors isolate state."))
         XCTAssertTrue(text.contains("Swift.org"))
         XCTAssertTrue(text.contains("https://swift.org/concurrency"))
@@ -53,8 +55,15 @@ final class WebSearchServiceTests: XCTestCase {
     }
 
     func testToolDefinitionUsesWebSearchName() {
-        XCTAssertEqual(WebSearchService.toolDefinition.name, "web_search")
-        XCTAssertTrue(WebSearchService.toolDefinition.parametersJSON.contains("query"))
+        let tool = WebSearchService.toolDefinition(providerName: "Exa")
+        XCTAssertEqual(tool.name, "web_search")
+        XCTAssertTrue(tool.description.contains("Exa"))
+        XCTAssertTrue(tool.parametersJSON.contains("query"))
+    }
+
+    func testSearchOnlyProvidersAreListed() {
+        let ids = WebSearchProviderKind.allCases.map(\.rawValue)
+        XCTAssertEqual(ids, ["tavily", "exa", "brave", "serper", "serpAPI"])
     }
 }
 
@@ -68,150 +77,197 @@ final class WebSearchStoreTests: XCTestCase {
         super.setUp()
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
-        KeychainStore.remove("tavily")
+        for kind in WebSearchProviderKind.allCases {
+            KeychainStore.remove(kind.keychainAccount)
+            if let legacy = kind.legacyKeychainAccount {
+                KeychainStore.remove(legacy)
+            }
+        }
         store = WebSearchStore(defaults: defaults)
     }
 
     override func tearDown() {
-        KeychainStore.remove("tavily")
+        for kind in WebSearchProviderKind.allCases {
+            KeychainStore.remove(kind.keychainAccount)
+            if let legacy = kind.legacyKeychainAccount {
+                KeychainStore.remove(legacy)
+            }
+        }
         defaults.removePersistentDomain(forName: suiteName)
         store = nil
         defaults = nil
         super.tearDown()
     }
 
-    func testSetAPIKeyEnablesSearch() {
-        XCTAssertFalse(store.hasAPIKey)
+    func testSetAPIKeyEnablesSearchAndBecomesActive() {
+        XCTAssertFalse(store.hasAnyAPIKey)
         XCTAssertFalse(store.isActive)
 
-        store.setAPIKey("tvly-test-key")
+        store.setAPIKey("tvly-test-key", for: .tavily)
 
-        XCTAssertTrue(store.hasAPIKey)
+        XCTAssertTrue(store.hasAPIKey(for: .tavily))
         XCTAssertTrue(store.isEnabled)
+        XCTAssertEqual(store.activeProvider, .tavily)
         XCTAssertTrue(store.isActive)
-        XCTAssertEqual(store.apiKey(), "tvly-test-key")
-        XCTAssertEqual(store.redactedAPIKey()?.prefix(3), "tvl")
+        XCTAssertEqual(store.activeAPIKey(), "tvly-test-key")
     }
 
-    func testRemoveAPIKeyDisablesActiveSearch() {
-        store.setAPIKey("tvly-test-key")
-        store.removeAPIKey()
+    func testMultipleKeysUseSelectedActiveProvider() {
+        store.setAPIKey("tvly-key", for: .tavily)
+        store.setAPIKey("exa-key", for: .exa)
+        store.setActiveProvider(.exa)
 
-        XCTAssertFalse(store.hasAPIKey)
-        XCTAssertFalse(store.isActive)
-        XCTAssertNil(store.apiKey())
+        XCTAssertEqual(store.configuredProviders.count, 2)
+        XCTAssertEqual(store.activeProvider, .exa)
+        XCTAssertEqual(store.activeAPIKey(), "exa-key")
+    }
+
+    func testRemoveActiveFallsBackToAnotherConfiguredProvider() {
+        store.setAPIKey("tvly-key", for: .tavily)
+        store.setAPIKey("brave-key", for: .brave)
+        store.setActiveProvider(.brave)
+        store.removeAPIKey(for: .brave)
+
+        XCTAssertFalse(store.hasAPIKey(for: .brave))
+        XCTAssertEqual(store.activeProvider, .tavily)
+        XCTAssertTrue(store.isActive)
     }
 
     func testToggleKeepsKeyButStopsSearch() {
-        store.setAPIKey("tvly-test-key")
+        store.setAPIKey("tvly-test-key", for: .tavily)
         store.setEnabled(false)
 
-        XCTAssertTrue(store.hasAPIKey)
+        XCTAssertTrue(store.hasAnyAPIKey)
         XCTAssertFalse(store.isActive)
+    }
+
+    func testMigratesLegacyTavilyKeychainAccount() {
+        KeychainStore.set("legacy-tavily", forKey: "tavily")
+        let migrated = WebSearchStore(defaults: defaults)
+        XCTAssertEqual(migrated.apiKey(for: .tavily), "legacy-tavily")
+        XCTAssertNil(KeychainStore.get("tavily"))
+        XCTAssertEqual(KeychainStore.get("websearch.tavily"), "legacy-tavily")
     }
 }
 
-final class TavilyClientTests: XCTestCase {
-    func testSearchBuildsAuthorizedRequestAndDecodesResults() async throws {
-        let session = URLSession(configuration: mockConfiguration(
-            statusCode: 200,
-            body: """
-            {
-              "query": "openai news",
-              "answer": "A summary.",
-              "results": [
+final class WebSearchClientTests: XCTestCase {
+    func testTavilySearchBuildsAuthorizedRequestAndDecodesResults() async throws {
+        let session = URLSession(configuration: mockConfiguration { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer tvly-secret")
+            return (
+                200,
+                """
                 {
-                  "title": "Example",
-                  "url": "https://example.com",
-                  "content": "Snippet text",
-                  "score": 0.88
+                  "query": "openai news",
+                  "answer": "A summary.",
+                  "results": [
+                    {
+                      "title": "Example",
+                      "url": "https://example.com",
+                      "content": "Snippet text",
+                      "score": 0.88
+                    }
+                  ]
                 }
-              ]
-            }
-            """
-        ))
-        let client = TavilyClient(
-            session: session,
-            endpoint: URL(string: "https://api.tavily.com/search")!
-        )
-
+                """
+            )
+        })
+        let client = TavilyClient(session: session)
         let response = try await client.search(query: "openai news", apiKey: "tvly-secret")
+        XCTAssertEqual(response.providerName, "Tavily")
+        XCTAssertEqual(response.results.first?.title, "Example")
+    }
 
-        XCTAssertEqual(response.query, "openai news")
-        XCTAssertEqual(response.answer, "A summary.")
-        XCTAssertEqual(response.results.count, 1)
-        XCTAssertEqual(response.results[0].title, "Example")
-        XCTAssertEqual(response.results[0].url, "https://example.com")
-        XCTAssertEqual(response.results[0].content, "Snippet text")
+    func testBraveSearchDecodesWebResults() async throws {
+        let session = URLSession(configuration: mockConfiguration { request in
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Subscription-Token"), "brave-key")
+            return (
+                200,
+                """
+                {
+                  "query": { "original": "swift" },
+                  "web": {
+                    "results": [
+                      { "title": "Swift.org", "url": "https://swift.org", "description": "Apple's Swift" }
+                    ]
+                  }
+                }
+                """
+            )
+        })
+        let client = BraveSearchClient(session: session)
+        let response = try await client.search(query: "swift", apiKey: "brave-key")
+        XCTAssertEqual(response.providerName, "Brave Search")
+        XCTAssertEqual(response.results.first?.url, "https://swift.org")
+    }
+
+    func testSerperAndSerpAPIDecodeOrganicResults() async throws {
+        let serperSession = URLSession(configuration: mockConfiguration { request in
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-API-KEY"), "serper-key")
+            return (
+                200,
+                """
+                {
+                  "organic": [
+                    { "title": "A", "link": "https://a.example", "snippet": "one" }
+                  ]
+                }
+                """
+            )
+        })
+        let serper = try await SerperClient(session: serperSession).search(query: "q", apiKey: "serper-key")
+        XCTAssertEqual(serper.results.first?.title, "A")
+
+        let serpAPISession = URLSession(configuration: mockConfiguration { _ in
+            (
+                200,
+                """
+                {
+                  "organic_results": [
+                    { "title": "B", "link": "https://b.example", "snippet": "two" }
+                  ]
+                }
+                """
+            )
+        })
+        let serpAPI = try await SerpAPIClient(session: serpAPISession).search(query: "q", apiKey: "serp-key")
+        XCTAssertEqual(serpAPI.providerName, "SerpAPI")
+        XCTAssertEqual(serpAPI.results.first?.title, "B")
     }
 
     func testSearchRejectsEmptyQuery() async {
-        let client = TavilyClient()
         do {
-            _ = try await client.search(query: "  ", apiKey: "tvly-secret")
+            _ = try await TavilyClient().search(query: "  ", apiKey: "k")
             XCTFail("Expected emptyQuery")
-        } catch let error as TavilyClientError {
+        } catch let error as WebSearchClientError {
             XCTAssertEqual(error, .emptyQuery)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
 
-    func testSearchSurfacesHTTPErrors() async {
-        let session = URLSession(configuration: mockConfiguration(
-            statusCode: 401,
-            body: #"{"detail":{"error":"Unauthorized"}}"#
-        ))
-        let client = TavilyClient(
-            session: session,
-            endpoint: URL(string: "https://api.tavily.com/search")!
-        )
-
-        do {
-            _ = try await client.search(query: "test", apiKey: "bad-key")
-            XCTFail("Expected http error")
-        } catch let error as TavilyClientError {
-            guard case .http(let status, let body) = error else {
-                return XCTFail("Wrong error \(error)")
-            }
-            XCTAssertEqual(status, 401)
-            XCTAssertTrue(body.contains("Unauthorized"))
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-
-    private func mockConfiguration(statusCode: Int, body: String) -> URLSessionConfiguration {
+    private func mockConfiguration(
+        _ handler: @escaping (URLRequest) -> (Int, String)
+    ) -> URLSessionConfiguration {
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [TavilyMockURLProtocol.self]
-        TavilyMockURLProtocol.requestHandler = { request in
-            XCTAssertEqual(request.httpMethod, "POST")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer tvly-secret")
+        configuration.protocolClasses = [WebSearchMockURLProtocol.self]
+        WebSearchMockURLProtocol.requestHandler = { request in
+            let (status, body) = handler(request)
             let response = HTTPURLResponse(
                 url: request.url!,
-                statusCode: statusCode,
+                statusCode: status,
                 httpVersion: nil,
                 headerFields: ["Content-Type": "application/json"]
             )!
             return (response, Data(body.utf8))
         }
-        // For unauthorized test the key differs — relax assertion in protocol when needed.
-        if statusCode == 401 {
-            TavilyMockURLProtocol.requestHandler = { request in
-                let response = HTTPURLResponse(
-                    url: request.url!,
-                    statusCode: statusCode,
-                    httpVersion: nil,
-                    headerFields: ["Content-Type": "application/json"]
-                )!
-                return (response, Data(body.utf8))
-            }
-        }
         return configuration
     }
 }
 
-private final class TavilyMockURLProtocol: URLProtocol, @unchecked Sendable {
+private final class WebSearchMockURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
     override class func canInit(with request: URLRequest) -> Bool { true }

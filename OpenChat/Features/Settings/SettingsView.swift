@@ -75,7 +75,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Tools")
                 } footer: {
-                    Text("Optional Tavily key enables live web search for every model.")
+                    Text("Optional search keys (Tavily, Exa, Brave, Serper, SerpAPI). Only the active provider is used.")
                 }
 
                 Section {
@@ -132,8 +132,10 @@ struct SettingsView: View {
     }
 
     private var webSearchSummary: String {
-        if webSearchStore.isActive { return "On" }
-        if webSearchStore.hasAPIKey { return "Off" }
+        if webSearchStore.isActive {
+            return webSearchStore.activeProviderDisplayName
+        }
+        if webSearchStore.hasAnyAPIKey { return "Off" }
         return "Add key"
     }
 }

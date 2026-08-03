@@ -1,36 +1,13 @@
 import Foundation
 
-/// Minimal Tavily Search client. Calls `POST https://api.tavily.com/search`
-/// with the user's BYOK key and returns LLM-friendly result snippets.
-struct TavilyClient: Sendable {
+/// Minimal Tavily Search client (`POST https://api.tavily.com/search`).
+struct TavilyClient: WebSearchClient {
     var session: URLSession = .shared
     var endpoint: URL = URL(string: "https://api.tavily.com/search")!
 
-    struct SearchResult: Equatable, Sendable {
-        var title: String
-        var url: String
-        var content: String
-        var score: Double?
-    }
-
-    struct SearchResponse: Equatable, Sendable {
-        var query: String
-        var answer: String?
-        var results: [SearchResult]
-    }
-
-    func search(
-        query: String,
-        apiKey: String,
-        maxResults: Int = 5
-    ) async throws -> SearchResponse {
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedQuery.isEmpty else {
-            throw TavilyClientError.emptyQuery
-        }
-        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw TavilyClientError.missingAPIKey
-        }
+    func search(query: String, apiKey: String, maxResults: Int = 5) async throws -> WebSearchResponse {
+        let trimmedQuery = try Self.requireQuery(query)
+        try Self.requireKey(apiKey)
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -41,17 +18,15 @@ struct TavilyClient: Sendable {
         )
 
         let (data, response) = try await session.data(for: request)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            let body = String(data: data, encoding: .utf8) ?? ""
-            throw TavilyClientError.http(status: http.statusCode, body: body)
-        }
+        try Self.throwIfNeeded(response: response, data: data)
 
         let decoded = try JSONDecoder().decode(APIResponse.self, from: data)
-        return SearchResponse(
+        return WebSearchResponse(
             query: decoded.query ?? trimmedQuery,
+            providerName: WebSearchProviderKind.tavily.displayName,
             answer: decoded.answer,
             results: (decoded.results ?? []).map {
-                SearchResult(
+                WebSearchHit(
                     title: $0.title ?? "",
                     url: $0.url ?? "",
                     content: $0.content ?? "",
@@ -89,23 +64,23 @@ struct TavilyClient: Sendable {
     }
 }
 
-enum TavilyClientError: LocalizedError, Equatable {
-    case emptyQuery
-    case missingAPIKey
-    case http(status: Int, body: String)
+extension WebSearchClient {
+    static func requireQuery(_ query: String) throws -> String {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw WebSearchClientError.emptyQuery }
+        return trimmed
+    }
 
-    var errorDescription: String? {
-        switch self {
-        case .emptyQuery:
-            return "Search query is empty."
-        case .missingAPIKey:
-            return "No Tavily API key configured."
-        case .http(let status, let body):
-            let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty {
-                return "Tavily request failed with status \(status)."
-            }
-            return "Tavily request failed (\(status)): \(trimmed)"
+    static func requireKey(_ apiKey: String) throws {
+        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw WebSearchClientError.missingAPIKey
+        }
+    }
+
+    static func throwIfNeeded(response: URLResponse, data: Data) throws {
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            throw WebSearchClientError.http(status: http.statusCode, body: body)
         }
     }
 }

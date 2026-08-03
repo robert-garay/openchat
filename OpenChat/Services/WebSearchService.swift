@@ -1,6 +1,6 @@
 import Foundation
 
-/// Chooses how to attach Tavily search to a chat request and formats results.
+/// Chooses how to attach web search to a chat request and formats results.
 enum WebSearchMode: String, Equatable, Sendable {
     /// Model supports tools — expose `web_search` and let it decide when to call.
     case toolCalling
@@ -17,11 +17,11 @@ enum WebSearchService {
         return supportsTools ? .toolCalling : .inject
     }
 
-    static var toolDefinition: ChatToolDefinition {
+    static func toolDefinition(providerName: String) -> ChatToolDefinition {
         ChatToolDefinition(
             name: toolName,
             description: """
-            Search the live web via Tavily for up-to-date facts, news, and sources. \
+            Search the live web via \(providerName) for up-to-date facts, news, and sources. \
             Use when the user asks about current events, recent data, or anything that may be outdated in training data.
             """,
             parametersJSON: """
@@ -39,6 +39,11 @@ enum WebSearchService {
         )
     }
 
+    /// Backward-compatible default tool schema.
+    static var toolDefinition: ChatToolDefinition {
+        toolDefinition(providerName: "the configured search provider")
+    }
+
     static func query(fromToolArguments argumentsJSON: String) -> String? {
         guard let data = argumentsJSON.data(using: .utf8),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -50,10 +55,10 @@ enum WebSearchService {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    /// Formats Tavily results for injection into a system/tool turn.
-    static func formatContext(from response: TavilyClient.SearchResponse) -> String {
+    /// Formats search results for injection into a system/tool turn.
+    static func formatContext(from response: WebSearchResponse) -> String {
         var lines: [String] = [
-            "Web search results for \"\(response.query)\" (via Tavily). Cite sources with URLs when relevant. Do not invent sources beyond this list."
+            "Web search results for \"\(response.query)\" (via \(response.providerName)). Cite sources with URLs when relevant. Do not invent sources beyond this list."
         ]
 
         if let answer = response.answer?.trimmingCharacters(in: .whitespacesAndNewlines), !answer.isEmpty {
@@ -86,9 +91,9 @@ enum WebSearchService {
     static func makeInjectedContext(
         query: String,
         apiKey: String,
-        client: TavilyClient = TavilyClient()
+        client: any WebSearchClient
     ) async throws -> String {
-        let response = try await client.search(query: query, apiKey: apiKey)
+        let response = try await client.search(query: query, apiKey: apiKey, maxResults: 5)
         return formatContext(from: response)
     }
 
@@ -96,7 +101,7 @@ enum WebSearchService {
     static func executeToolCall(
         _ call: ChatToolCall,
         apiKey: String,
-        client: TavilyClient = TavilyClient()
+        client: any WebSearchClient
     ) async throws -> String {
         guard call.name == toolName else {
             return "Unknown tool: \(call.name)"
@@ -104,7 +109,7 @@ enum WebSearchService {
         guard let query = query(fromToolArguments: call.argumentsJSON) else {
             return "Invalid web_search arguments. Expected JSON with a \"query\" string."
         }
-        let response = try await client.search(query: query, apiKey: apiKey)
+        let response = try await client.search(query: query, apiKey: apiKey, maxResults: 5)
         return formatContext(from: response)
     }
 }
