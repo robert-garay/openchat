@@ -74,7 +74,7 @@ struct ProviderKeyEntryView: View {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         if template.id == "openrouter" {
-            providerStore.grantFreeModelsAccess(apiKey: trimmed)
+            providerStore.connectOpenRouter(apiKey: trimmed)
             providerStore.refreshOpenRouterModelsIfNeeded(force: true)
         } else {
             let provider = ConfiguredProvider.fromTemplate(template)

@@ -18,11 +18,11 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertTrue(ids.isSuperset(of: ["deepseek", "qwen", "moonshot", "zhipu"]))
     }
 
-    func testOpenRouterDefaultsAreFreeStarterModels() {
+    func testOpenRouterDefaultsAreStarterModels() {
         let models = ProviderTemplate.template(for: "openrouter")!.defaultModels
         XCTAssertFalse(models.isEmpty)
-        XCTAssertEqual(models, ProviderTemplate.openRouterFreeModels)
-        XCTAssertTrue(models.allSatisfy { $0.id.hasSuffix(":free") })
+        XCTAssertEqual(models, ProviderTemplate.openRouterStarterModels)
+        XCTAssertTrue(models.allSatisfy { !$0.id.hasSuffix(":free") })
         XCTAssertTrue(models.contains { $0.subtitle?.localizedCaseInsensitiveContains("open source") == true })
     }
 

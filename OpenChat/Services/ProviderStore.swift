@@ -57,20 +57,19 @@ final class ProviderStore {
         persist()
     }
 
-    /// Grants OpenRouter free-model access for a newly signed-up user.
-    /// Adds OpenRouter if needed, seeds free starter models, and stores the key.
-    func grantFreeModelsAccess(apiKey: String) {
+    /// Connects OpenRouter with starter models and stores the API key.
+    func connectOpenRouter(apiKey: String) {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         guard let template = ProviderTemplate.template(for: "openrouter") else { return }
 
-        let freeModels = ProviderTemplate.openRouterFreeModels
+        let starterModels = ProviderTemplate.openRouterStarterModels
         if var existing = provider(withID: "openrouter") {
-            mergeModels(freeModels, into: &existing, atFront: true)
+            mergeModels(starterModels, into: &existing, atFront: true)
             update(existing)
         } else {
             var provider = ConfiguredProvider.fromTemplate(template)
-            provider.models = freeModels.isEmpty ? template.defaultModels : freeModels
+            provider.models = starterModels.isEmpty ? template.defaultModels : starterModels
             providers.append(provider)
             persist()
         }
@@ -147,7 +146,7 @@ final class ProviderStore {
             guard !Task.isCancelled else { return }
             openRouterModels = models
             persistOpenRouterCache(models)
-            syncGrantedFreeModels()
+            syncOpenRouterStarterModels()
             isLoadingOpenRouterModels = false
         } catch {
             guard !Task.isCancelled else { return }
@@ -163,22 +162,15 @@ final class ProviderStore {
         openRouterModels = models
     }
 
-    /// Keeps free models granted on the OpenRouter provider as the live catalog updates.
-    func syncGrantedFreeModels() {
+    /// Keeps starter OpenRouter models present on the configured provider.
+    func syncOpenRouterStarterModels() {
         guard var provider = provider(withID: "openrouter") else { return }
-        let freeModels = OpenRouterModelCatalog.topFree(
-            from: openRouterModels,
-            limit: max(OpenRouterModelCatalog.topFreeCount, ProviderTemplate.openRouterFreeModels.count)
-        ).map(\.asAIModel)
-        let starterModels = ProviderTemplate.openRouterFreeModels
-        let granted = starterModels + freeModels.filter { candidate in
-            !starterModels.contains { $0.id == candidate.id }
-        }
-        guard !granted.isEmpty else { return }
+        let starters = ProviderTemplate.openRouterStarterModels
+        guard !starters.isEmpty else { return }
 
         var didChange = false
         let existingIDs = Set(provider.models.map(\.id))
-        for model in granted.reversed() where !existingIDs.contains(model.id) {
+        for model in starters.reversed() where !existingIDs.contains(model.id) {
             provider.models.insert(model, at: 0)
             didChange = true
         }

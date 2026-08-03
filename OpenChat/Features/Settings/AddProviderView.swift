@@ -12,10 +12,6 @@ struct AddProviderView: View {
             .filter { template in
                 !providerStore.providers.contains { $0.id == template.id }
             }
-            .sorted { lhs, rhs in
-                // Surface OpenRouter first so free-model signup stays one tap away.
-                (lhs.id == "openrouter" ? 0 : 1) < (rhs.id == "openrouter" ? 0 : 1)
-            }
     }
 
     var body: some View {
@@ -32,7 +28,7 @@ struct AddProviderView: View {
                 } header: {
                     Text("Model Providers")
                 } footer: {
-                    Text("OpenRouter includes free models for every new user. Also supports DeepSeek, Qwen, Kimi, GLM, OpenAI, Claude, and Gemini.")
+                    Text("Connect OpenRouter, DeepSeek, Qwen, Kimi, GLM, OpenAI, Claude, Gemini, or any provider you prefer.")
                 }
 
                 Section {

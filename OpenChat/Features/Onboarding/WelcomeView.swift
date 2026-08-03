@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    @State private var showingFreeModelsSignup = false
     @State private var showingAddProvider = false
 
     private let highlights: [(icon: String, title: String, subtitle: String)] = [
-        ("gift.fill", "Free Models Included", "Start chatting with OpenRouter's free open models the moment you sign up — no paid plan required."),
+        ("square.stack.3d.up.fill", "Any Model, Any Provider", "Connect OpenAI, Claude, Gemini, OpenRouter, open models, or your own endpoint — switch anytime."),
         ("lock.fill", "Your Keys, Your Device", "API keys are stored in the iOS Keychain. OpenChat talks directly to providers — no middleman server."),
         ("bubble.left.and.bubble.right.fill", "Familiar, Fast Chat", "A clean, native chat experience with streaming replies and full markdown & code support."),
     ]
@@ -55,9 +54,9 @@ struct WelcomeView: View {
 
             Button {
                 Haptics.light()
-                showingFreeModelsSignup = true
+                showingAddProvider = true
             } label: {
-                Text("Start with Free Models")
+                Text("Connect a Provider")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -65,24 +64,7 @@ struct WelcomeView: View {
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.capsule)
             .padding(.horizontal, 28)
-            .padding(.bottom, 12)
-
-            Button {
-                Haptics.light()
-                showingAddProvider = true
-            } label: {
-                Text("Connect another provider")
-                    .font(.subheadline.weight(.semibold))
-            }
-            .padding(.bottom, 8)
-
-            Text("Free OpenRouter key · about 30 seconds")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .padding(.bottom, 24)
-        }
-        .sheet(isPresented: $showingFreeModelsSignup) {
-            FreeModelsSignupView()
+            .padding(.bottom, 24)
         }
         .sheet(isPresented: $showingAddProvider) {
             AddProviderView()

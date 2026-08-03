@@ -21,7 +21,7 @@ In Xcode, select the **OpenChat** target → **Signing & Capabilities** and set 
 
 ## Adding a model
 
-On first launch, tap **Connect a Model**, pick a provider, and paste in an API key. Get keys here:
+On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Get keys here:
 
 | Provider | Console |
 |---|---|
