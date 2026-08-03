@@ -8,6 +8,7 @@ struct ChatView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
+    @Environment(WebSearchStore.self) private var webSearchStore
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
 
@@ -98,7 +99,8 @@ struct ChatView: View {
                     conversation: conversation,
                     modelContext: modelContext,
                     providerStore: providerStore,
-                    dataSourceStore: dataSourceStore
+                    dataSourceStore: dataSourceStore,
+                    webSearchStore: webSearchStore
                 )
             }
         }

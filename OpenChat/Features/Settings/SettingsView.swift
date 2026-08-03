@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
+    @Environment(WebSearchStore.self) private var webSearchStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
     @State private var showingAddProvider = false
@@ -62,6 +63,23 @@ struct SettingsView: View {
 
                 Section {
                     NavigationLink {
+                        WebSearchSettingsView()
+                    } label: {
+                        HStack {
+                            Label("Web Search", systemImage: "globe")
+                            Spacer()
+                            Text(webSearchSummary)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Tools")
+                } footer: {
+                    Text("Optional Tavily key enables live web search for every model.")
+                }
+
+                Section {
+                    NavigationLink {
                         DataSourcesSettingsView()
                     } label: {
                         HStack {
@@ -111,5 +129,11 @@ struct SettingsView: View {
         let count = dataSourceStore.enabledCount
         if count == 0 { return "Off" }
         return "\(count) on"
+    }
+
+    private var webSearchSummary: String {
+        if webSearchStore.isActive { return "On" }
+        if webSearchStore.hasAPIKey { return "Off" }
+        return "Add key"
     }
 }

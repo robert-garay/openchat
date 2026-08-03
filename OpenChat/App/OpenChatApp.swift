@@ -6,6 +6,7 @@ struct OpenChatApp: App {
     let modelContainer: ModelContainer
     @State private var providerStore = ProviderStore()
     @State private var dataSourceStore = AgentDataSourceStore()
+    @State private var webSearchStore = WebSearchStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
@@ -21,6 +22,7 @@ struct OpenChatApp: App {
             RootView()
                 .environment(providerStore)
                 .environment(dataSourceStore)
+                .environment(webSearchStore)
                 .preferredColorScheme(appearance.colorScheme)
         }
         .modelContainer(modelContainer)

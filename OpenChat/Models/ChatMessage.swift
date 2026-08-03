@@ -5,6 +5,8 @@ enum MessageRole: String, Codable, Sendable {
     case system
     case user
     case assistant
+    /// OpenAI-compatible tool result role. Not persisted in SwiftData chat history.
+    case tool
 }
 
 @Model

@@ -6,14 +6,27 @@ struct ChatTurn: Sendable {
     var role: MessageRole
     var content: String
     var images: [ChatImageAttachment]
+    /// Assistant turns may request tool calls instead of (or alongside) text.
+    var toolCalls: [ChatToolCall]
+    /// For `.tool` turns (OpenAI) / tool_result blocks (Anthropic).
+    var toolCallID: String?
 
-    init(role: MessageRole, content: String, images: [ChatImageAttachment] = []) {
+    init(
+        role: MessageRole,
+        content: String,
+        images: [ChatImageAttachment] = [],
+        toolCalls: [ChatToolCall] = [],
+        toolCallID: String? = nil
+    ) {
         self.role = role
         self.content = content
         self.images = images
+        self.toolCalls = toolCalls
+        self.toolCallID = toolCallID
     }
 
     var hasImages: Bool { !images.isEmpty }
+    var hasToolCalls: Bool { !toolCalls.isEmpty }
 }
 
 enum ChatServiceError: LocalizedError {
