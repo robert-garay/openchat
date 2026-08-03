@@ -21,7 +21,7 @@ struct WelcomeView: View {
                 .font(.largeTitle.weight(.bold))
                 .padding(.top, 20)
 
-            Text("Free models for every new user — plus any provider you connect.")
+            Text("Chat with any model you choose.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
