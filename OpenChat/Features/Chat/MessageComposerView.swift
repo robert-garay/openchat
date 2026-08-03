@@ -22,10 +22,10 @@ struct MessageComposerView: View {
     let supportsVision: Bool
     let modelDisplayName: String?
     let isStreaming: Bool
-    var isFocused: FocusState<Bool>.Binding
     let onSend: () -> Void
     let onStop: () -> Void
 
+    @FocusState private var isFocused: Bool
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
@@ -57,7 +57,7 @@ struct MessageComposerView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .focused(isFocused)
+                    .focused($isFocused)
                     .onSubmit(submitIfPossible)
 
                 Button(action: primaryAction) {
