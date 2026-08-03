@@ -10,6 +10,14 @@ struct RootView: View {
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
     @State private var showingSettings = false
 
+    private var persistedConversations: [Conversation] {
+        conversations.filter { !$0.isTemporary }
+    }
+
+    private var selectedConversation: Conversation? {
+        conversations.first(where: { $0.id == selectedConversationID })
+    }
+
     var body: some View {
         Group {
             if providerStore.enabledProviders.isEmpty {
@@ -17,17 +25,20 @@ struct RootView: View {
             } else {
                 NavigationSplitView(columnVisibility: $columnVisibility) {
                     ConversationListView(
-                        conversations: conversations,
+                        conversations: persistedConversations,
                         selectedConversationID: $selectedConversationID,
-                        onNewChat: startNewChat,
+                        onNewChat: { startNewChat(temporary: false) },
                         onShowSettings: { showingSettings = true }
                     )
                 } detail: {
-                    if let conversation = conversations.first(where: { $0.id == selectedConversationID }) {
-                        ChatView(conversation: conversation)
-                            .id(conversation.id)
+                    if let conversation = selectedConversation {
+                        ChatView(
+                            conversation: conversation,
+                            onToggleTemporary: { toggleTemporary(for: conversation) }
+                        )
+                        .id(conversation.id)
                     } else {
-                        EmptyChatDetailView(onNewChat: startNewChat)
+                        EmptyChatDetailView(onNewChat: { startNewChat(temporary: false) })
                     }
                 }
             }
@@ -35,18 +46,70 @@ struct RootView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .onAppear {
+            discardOrphanedTemporaryChats()
+        }
+        .onChange(of: selectedConversationID) { previousID, _ in
+            discardTemporaryChat(id: previousID)
+        }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty { selectedConversationID = nil }
         }
     }
 
-    private func startNewChat() {
-        guard let provider = providerStore.enabledProviders.first,
-              let model = provider.models.first else { return }
-        let conversation = Conversation(providerID: provider.id, modelID: model.id)
+    private func startNewChat(temporary: Bool, preferring source: Conversation? = nil) {
+        let providerID: String
+        let modelID: String
+
+        if let source,
+           providerStore.provider(withID: source.providerID) != nil,
+           providerStore.model(providerID: source.providerID, modelID: source.modelID) != nil {
+            providerID = source.providerID
+            modelID = source.modelID
+        } else if let provider = providerStore.enabledProviders.first,
+                  let model = provider.models.first {
+            providerID = provider.id
+            modelID = model.id
+        } else {
+            return
+        }
+
+        let conversation = Conversation(
+            title: temporary ? "Temporary Chat" : "New Chat",
+            providerID: providerID,
+            modelID: modelID,
+            isTemporary: temporary
+        )
         modelContext.insert(conversation)
         selectedConversationID = conversation.id
         columnVisibility = .detailOnly
+    }
+
+    private func toggleTemporary(for conversation: Conversation) {
+        if conversation.isTemporary {
+            startNewChat(temporary: false, preferring: conversation)
+            return
+        }
+
+        let discardEmptySource = conversation.messages.isEmpty
+        startNewChat(temporary: true, preferring: conversation)
+        if discardEmptySource {
+            modelContext.delete(conversation)
+        }
+    }
+
+    private func discardTemporaryChat(id: UUID?) {
+        guard let id,
+              let conversation = conversations.first(where: { $0.id == id }),
+              conversation.isTemporary else { return }
+        modelContext.delete(conversation)
+    }
+
+    private func discardOrphanedTemporaryChats() {
+        for conversation in conversations where conversation.isTemporary {
+            if conversation.id == selectedConversationID { continue }
+            modelContext.delete(conversation)
+        }
     }
 }
 

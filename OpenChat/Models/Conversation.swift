@@ -10,6 +10,7 @@ final class Conversation {
     var providerID: String
     var modelID: String
     var systemPrompt: String
+    var isTemporary: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
@@ -19,7 +20,8 @@ final class Conversation {
         title: String = "New Chat",
         providerID: String,
         modelID: String,
-        systemPrompt: String = ""
+        systemPrompt: String = "",
+        isTemporary: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -28,6 +30,7 @@ final class Conversation {
         self.providerID = providerID
         self.modelID = modelID
         self.systemPrompt = systemPrompt
+        self.isTemporary = isTemporary
     }
 
     var sortedMessages: [ChatMessage] {

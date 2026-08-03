@@ -107,7 +107,7 @@ final class ChatViewModel {
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
 
-        if conversation.title == "New Chat" {
+        if !conversation.isTemporary, conversation.title == "New Chat" {
             if !text.isEmpty {
                 conversation.title = String(text.prefix(40))
             } else {
@@ -174,9 +174,11 @@ final class ChatViewModel {
                     systemParts.append(conversationSystemPrompt)
                 }
 
-                dataSourceStore.refreshAuthorizationStatuses()
-                if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    systemParts.append(agentContext)
+                if !conversation.isTemporary {
+                    dataSourceStore.refreshAuthorizationStatuses()
+                    if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+                        systemParts.append(agentContext)
+                    }
                 }
 
                 var turns: [ChatTurn] = []
@@ -202,6 +204,7 @@ final class ChatViewModel {
     }
 
     private func captureCalendarProposals(from message: ChatMessage) {
+        guard !conversation.isTemporary else { return }
         guard dataSourceStore.canEditCalendar else { return }
         let proposals = CalendarActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }
