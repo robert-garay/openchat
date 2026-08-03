@@ -173,7 +173,6 @@
 		86EE89C3E3103538243E1F01 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */,
 				739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */,
 			);
 			path = App;
@@ -184,6 +183,7 @@
 			children = (
 				3022C85CF36B100C7663857D /* AddProviderView.swift */,
 				DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */,
+				9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */,
 				62EFBE369A07EED25532B291 /* ProviderDetailView.swift */,
 				E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */,
 				60E88FA5334D59F31A5DF955 /* SettingsView.swift */,
@@ -220,7 +220,6 @@
 		C6E29A03FED964E97EDDF981 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
-				8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
@@ -277,6 +276,7 @@
 		F4D564E07008C8BF19E4CF5C /* OpenChatTests */ = {
 			isa = PBXGroup;
 			children = (
+				8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				8A4C6D03EBF27159C3DA6492 /* OpenRouterModelCatalogTests.swift */,
 				9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */,
