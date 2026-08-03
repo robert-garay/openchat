@@ -35,6 +35,12 @@ final class Conversation {
     }
 
     var lastMessagePreview: String {
-        sortedMessages.last(where: { !$0.content.isEmpty })?.content ?? "No messages yet"
+        guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
+            return "No messages yet"
+        }
+        if !last.content.isEmpty {
+            return last.content
+        }
+        return last.imageAttachments.count == 1 ? "Photo" : "Photos"
     }
 }

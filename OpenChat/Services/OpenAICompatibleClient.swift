@@ -14,7 +14,22 @@ struct OpenAICompatibleClient: ChatCompletionClient {
 
     private struct RequestMessage: Encodable {
         var role: String
-        var content: String
+        var content: MessageContent
+    }
+
+    private enum MessageContent: Encodable {
+        case text(String)
+        case parts([MultimodalRequestEncoder.OpenAIPart])
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .text(let value):
+                try container.encode(value)
+            case .parts(let parts):
+                try container.encode(parts)
+            }
+        }
     }
 
     private struct Chunk: Decodable {
@@ -54,7 +69,9 @@ struct OpenAICompatibleClient: ChatCompletionClient {
 
             let body = RequestBody(
                 model: model,
-                messages: turns.map { RequestMessage(role: $0.role.rawValue, content: $0.content) }
+                messages: turns.map { turn in
+                    RequestMessage(role: turn.role.rawValue, content: Self.encodeContent(for: turn))
+                }
             )
             do {
                 request.httpBody = try JSONEncoder().encode(body)
@@ -80,5 +97,12 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    private static func encodeContent(for turn: ChatTurn) -> MessageContent {
+        if let parts = MultimodalRequestEncoder.openAIParts(for: turn) {
+            return .parts(parts)
+        }
+        return .text(turn.content)
     }
 }

@@ -17,7 +17,22 @@ struct AnthropicClient: ChatCompletionClient {
 
     private struct RequestMessage: Encodable {
         var role: String
-        var content: String
+        var content: MessageContent
+    }
+
+    private enum MessageContent: Encodable {
+        case text(String)
+        case parts([MultimodalRequestEncoder.AnthropicPart])
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .text(let value):
+                try container.encode(value)
+            case .parts(let parts):
+                try container.encode(parts)
+            }
+        }
     }
 
     private struct StreamEvent: Decodable {
@@ -62,7 +77,9 @@ struct AnthropicClient: ChatCompletionClient {
                 model: model,
                 maxTokens: 8192,
                 system: (systemPrompt?.isEmpty ?? true) ? nil : systemPrompt,
-                messages: conversationTurns.map { RequestMessage(role: $0.role.rawValue, content: $0.content) }
+                messages: conversationTurns.map { turn in
+                    RequestMessage(role: turn.role.rawValue, content: Self.encodeContent(for: turn))
+                }
             )
             do {
                 request.httpBody = try JSONEncoder().encode(body)
@@ -90,5 +107,12 @@ struct AnthropicClient: ChatCompletionClient {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    private static func encodeContent(for turn: ChatTurn) -> MessageContent {
+        if let parts = MultimodalRequestEncoder.anthropicParts(for: turn) {
+            return .parts(parts)
+        }
+        return .text(turn.content)
     }
 }

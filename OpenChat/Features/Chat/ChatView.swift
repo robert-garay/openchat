@@ -16,6 +16,9 @@ struct ChatView: View {
                 messageList(viewModel: viewModel)
                 MessageComposerView(
                     text: Bindable(viewModel).composerText,
+                    attachments: Bindable(viewModel).pendingAttachments,
+                    supportsVision: viewModel.supportsVision,
+                    modelDisplayName: viewModel.currentModel?.displayName,
                     isStreaming: viewModel.isStreaming,
                     onSend: viewModel.send,
                     onStop: viewModel.cancelStreaming
@@ -34,6 +37,7 @@ struct ChatView: View {
                         HStack(spacing: 4) {
                             Text(viewModel.currentModel?.displayName ?? "Choose Model")
                                 .font(.subheadline.weight(.semibold))
+                            ModelCapabilitySign(supportsVision: viewModel.supportsVision)
                             Image(systemName: "chevron.down")
                                 .font(.caption2.weight(.bold))
                         }
@@ -50,6 +54,19 @@ struct ChatView: View {
                     onSelect: viewModel.selectModel
                 )
             }
+        }
+        .alert(
+            "Images not supported",
+            isPresented: Binding(
+                get: { viewModel?.capabilityWarning != nil },
+                set: { if !$0 { viewModel?.dismissCapabilityWarning() } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                viewModel?.dismissCapabilityWarning()
+            }
+        } message: {
+            Text(viewModel?.capabilityWarning ?? "")
         }
         .onAppear {
             if viewModel == nil {
