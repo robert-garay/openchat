@@ -8,10 +8,9 @@ struct AddProviderView: View {
     @Environment(\.dismiss) private var dismiss
 
     private var availableTemplates: [ProviderTemplate] {
-        ProviderTemplate.all
-            .filter { template in
-                !providerStore.providers.contains { $0.id == template.id }
-            }
+        ProviderTemplate.all.filter { template in
+            !providerStore.providers.contains { $0.id == template.id }
+        }
     }
 
     var body: some View {

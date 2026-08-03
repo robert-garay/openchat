@@ -63,47 +63,4 @@ final class ProviderStoreTests: XCTestCase {
         let reloaded = ProviderStore(defaults: defaults)
         XCTAssertEqual(reloaded.providers.map(\.id), ["qwen"])
     }
-
-    func testConnectOpenRouterAddsStarterModels() {
-        store.connectOpenRouter(apiKey: "sk-or-test")
-
-        let provider = store.provider(withID: "openrouter")
-        XCTAssertNotNil(provider)
-        XCTAssertEqual(store.enabledProviders.map(\.id), ["openrouter"])
-        XCTAssertEqual(KeychainStore.get("openrouter"), "sk-or-test")
-        XCTAssertFalse(ProviderTemplate.openRouterStarterModels.isEmpty)
-        XCTAssertEqual(
-            Set(provider!.models.map(\.id)).intersection(Set(ProviderTemplate.openRouterStarterModels.map(\.id))),
-            Set(ProviderTemplate.openRouterStarterModels.map(\.id))
-        )
-        XCTAssertTrue(provider!.models.allSatisfy { !$0.id.hasSuffix(":free") })
-    }
-
-    func testConnectOpenRouterIsIdempotentAndKeepsKey() {
-        store.connectOpenRouter(apiKey: "sk-or-one")
-        store.connectOpenRouter(apiKey: "sk-or-two")
-
-        XCTAssertEqual(store.providers.filter { $0.id == "openrouter" }.count, 1)
-        XCTAssertEqual(KeychainStore.get("openrouter"), "sk-or-two")
-        XCTAssertEqual(
-            Set(store.provider(withID: "openrouter")!.models.map(\.id)),
-            Set(ProviderTemplate.openRouterStarterModels.map(\.id))
-        )
-    }
-
-    func testSyncOpenRouterStarterModelsRestoresMissingDefaults() {
-        store.connectOpenRouter(apiKey: "sk-or-sync")
-        guard var provider = store.provider(withID: "openrouter") else {
-            return XCTFail("OpenRouter should be connected")
-        }
-        let removedID = ProviderTemplate.openRouterStarterModels[0].id
-        provider.models.removeAll { $0.id == removedID }
-        store.update(provider)
-
-        store.syncOpenRouterStarterModels()
-
-        let ids = store.provider(withID: "openrouter")!.models.map(\.id)
-        XCTAssertTrue(ids.contains(removedID))
-        XCTAssertFalse(ids.contains { $0.hasSuffix(":free") })
-    }
 }

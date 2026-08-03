@@ -156,14 +156,10 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
                 AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source"),
+                AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
             ]
         ),
     ]
-
-    /// Default OpenRouter starter models seeded when the provider is first connected.
-    static var openRouterStarterModels: [AIModel] {
-        template(for: "openrouter")?.defaultModels ?? []
-    }
 
     static func template(for id: String) -> ProviderTemplate? {
         all.first { $0.id == id }

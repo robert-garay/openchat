@@ -57,27 +57,6 @@ final class ProviderStore {
         persist()
     }
 
-    /// Connects OpenRouter with starter models and stores the API key.
-    func connectOpenRouter(apiKey: String) {
-        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        guard let template = ProviderTemplate.template(for: "openrouter") else { return }
-
-        let starterModels = ProviderTemplate.openRouterStarterModels
-        if var existing = provider(withID: "openrouter") {
-            mergeModels(starterModels, into: &existing, atFront: true)
-            update(existing)
-        } else {
-            var provider = ConfiguredProvider.fromTemplate(template)
-            provider.models = starterModels.isEmpty ? template.defaultModels : starterModels
-            providers.append(provider)
-            persist()
-        }
-
-        guard let openRouter = provider(withID: "openrouter") else { return }
-        setAPIKey(trimmed, for: openRouter)
-    }
-
     func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) {
         providers.append(.customEndpoint(name: name, baseURL: baseURL, models: models, requiresAPIKey: requiresAPIKey))
         persist()
@@ -146,7 +125,6 @@ final class ProviderStore {
             guard !Task.isCancelled else { return }
             openRouterModels = models
             persistOpenRouterCache(models)
-            syncOpenRouterStarterModels()
             isLoadingOpenRouterModels = false
         } catch {
             guard !Task.isCancelled else { return }
@@ -154,43 +132,6 @@ final class ProviderStore {
                 openRouterModelsError = error.localizedDescription
             }
             isLoadingOpenRouterModels = false
-        }
-    }
-
-    /// Replaces the in-memory OpenRouter catalog. Used by tests and local tooling.
-    func replaceOpenRouterModels(_ models: [OpenRouterCatalogModel]) {
-        openRouterModels = models
-    }
-
-    /// Keeps starter OpenRouter models present on the configured provider.
-    func syncOpenRouterStarterModels() {
-        guard var provider = provider(withID: "openrouter") else { return }
-        let starters = ProviderTemplate.openRouterStarterModels
-        guard !starters.isEmpty else { return }
-
-        var didChange = false
-        let existingIDs = Set(provider.models.map(\.id))
-        for model in starters.reversed() where !existingIDs.contains(model.id) {
-            provider.models.insert(model, at: 0)
-            didChange = true
-        }
-        if didChange {
-            update(provider)
-        }
-    }
-
-    private func mergeModels(_ incoming: [AIModel], into provider: inout ConfiguredProvider, atFront: Bool) {
-        for model in incoming.reversed() {
-            if let index = provider.models.firstIndex(where: { $0.id == model.id }) {
-                provider.models[index] = model
-                if atFront && index != 0 {
-                    provider.models.move(fromOffsets: IndexSet(integer: index), toOffset: 0)
-                }
-            } else if atFront {
-                provider.models.insert(model, at: 0)
-            } else {
-                provider.models.append(model)
-            }
         }
     }
 

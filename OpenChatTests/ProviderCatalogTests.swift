@@ -21,7 +21,6 @@ final class ProviderCatalogTests: XCTestCase {
     func testOpenRouterDefaultsAreStarterModels() {
         let models = ProviderTemplate.template(for: "openrouter")!.defaultModels
         XCTAssertFalse(models.isEmpty)
-        XCTAssertEqual(models, ProviderTemplate.openRouterStarterModels)
         XCTAssertTrue(models.allSatisfy { !$0.id.hasSuffix(":free") })
         XCTAssertTrue(models.contains { $0.subtitle?.localizedCaseInsensitiveContains("open source") == true })
     }

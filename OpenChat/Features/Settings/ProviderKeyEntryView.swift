@@ -73,14 +73,9 @@ struct ProviderKeyEntryView: View {
     private func save() {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        if template.id == "openrouter" {
-            providerStore.connectOpenRouter(apiKey: trimmed)
-            providerStore.refreshOpenRouterModelsIfNeeded(force: true)
-        } else {
-            let provider = ConfiguredProvider.fromTemplate(template)
-            providerStore.addFromTemplate(template)
-            providerStore.setAPIKey(trimmed, for: provider)
-        }
+        let provider = ConfiguredProvider.fromTemplate(template)
+        providerStore.addFromTemplate(template)
+        providerStore.setAPIKey(trimmed, for: provider)
         Haptics.success()
         onSaved()
     }
