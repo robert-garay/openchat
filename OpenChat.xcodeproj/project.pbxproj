@@ -149,6 +149,9 @@
 		D0B77625D1D2476783CFE0A3 /* CalendarActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarActionParser.swift; sourceTree = "<group>"; };
 		32E1D4D3EA3440CFB72DD7D3 /* CalendarEventWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventWriter.swift; sourceTree = "<group>"; };
 		BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarActionParserTests.swift; sourceTree = "<group>"; };
+		A52ABF103BCBBADF62829FC4 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		9D50FCFE0CA588840982DF58 /* SigningTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = SigningTests.xcconfig; sourceTree = "<group>"; };
+		13AAE68D826914F95CC0032D /* Local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -242,9 +245,20 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		28DF57F80789246DCDC91045 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				13AAE68D826914F95CC0032D /* Local.xcconfig.example */,
+				A52ABF103BCBBADF62829FC4 /* Signing.xcconfig */,
+				9D50FCFE0CA588840982DF58 /* SigningTests.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		9E761752745F2ADB19A0FB78 = {
 			isa = PBXGroup;
 			children = (
+				28DF57F80789246DCDC91045 /* Config */,
 				E0CBD31E1E13E54CFF644054 /* OpenChat */,
 				F4D564E07008C8BF19E4CF5C /* OpenChatTests */,
 				5FBC4FCABDCF09CC2E504D85 /* Products */,
@@ -385,11 +399,9 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					2B29DA223D502CCCA6C33B3E = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					7688D0FED9B6CF49CFCC7605 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -527,7 +539,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.genion.openchat;
 				PRODUCT_NAME = OpenChat;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -537,6 +549,7 @@
 		};
 		2FCDD0E36576640495A26E57 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9D50FCFE0CA588840982DF58 /* SigningTests.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -544,7 +557,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.genion.openchat.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenChat.app/OpenChat";
@@ -553,6 +566,7 @@
 		};
 		6D018635842CB7AB37F44A09 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9D50FCFE0CA588840982DF58 /* SigningTests.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -560,7 +574,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.genion.openchat.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenChat.app/OpenChat";
@@ -581,7 +595,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.openchat.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.genion.openchat;
 				PRODUCT_NAME = OpenChat;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -591,6 +605,7 @@
 		};
 		96B09B5C00758663C042690A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A52ABF103BCBBADF62829FC4 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -626,7 +641,6 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -661,6 +675,7 @@
 		};
 		97CFF1261866080F6A548F3A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A52ABF103BCBBADF62829FC4 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -696,7 +711,6 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
