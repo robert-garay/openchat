@@ -5,6 +5,7 @@ import SwiftData
 struct OpenChatApp: App {
     let modelContainer: ModelContainer
     @State private var providerStore = ProviderStore()
+    @State private var dataSourceStore = AgentDataSourceStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
@@ -19,6 +20,7 @@ struct OpenChatApp: App {
         WindowGroup {
             RootView()
                 .environment(providerStore)
+                .environment(dataSourceStore)
                 .preferredColorScheme(appearance.colorScheme)
         }
         .modelContainer(modelContainer)
