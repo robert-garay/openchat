@@ -6,8 +6,14 @@ struct ProviderDetailView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
     @State private var apiKey: String = ""
+    @State private var isReplacingAPIKey = false
+    @State private var showingReplaceAPIKeyOptions = false
     @State private var newModelID: String = ""
     @State private var showingDeleteConfirmation = false
+
+    private var storedRedactedAPIKey: String? {
+        providerStore.redactedAPIKey(for: provider)
+    }
 
     var body: some View {
         Form {
@@ -27,16 +33,42 @@ struct ProviderDetailView: View {
 
             if provider.requiresAPIKey {
                 Section {
-                    SecureField(providerStore.apiKey(for: provider) == nil ? "Add API key" : "Update API key", text: $apiKey)
+                    if let redacted = storedRedactedAPIKey, !isReplacingAPIKey {
+                        ZStack(alignment: .leading) {
+                            TextField("API Key", text: .constant(redacted))
+                                .font(.body.monospaced())
+                                .disabled(true)
+                            Color.clear
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    showingReplaceAPIKeyOptions = true
+                                }
+                        }
+                    } else {
+                        SecureField(
+                            storedRedactedAPIKey == nil ? "Add API key" : "New API key",
+                            text: $apiKey
+                        )
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                    Button("Save Key") {
-                        guard !apiKey.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                        providerStore.setAPIKey(apiKey, for: provider)
-                        apiKey = ""
-                        Haptics.success()
+
+                        Button(storedRedactedAPIKey == nil ? "Save Key" : "Replace Key") {
+                            guard !apiKey.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                            providerStore.setAPIKey(apiKey, for: provider)
+                            apiKey = ""
+                            isReplacingAPIKey = false
+                            Haptics.success()
+                        }
+                        .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                        if isReplacingAPIKey {
+                            Button("Cancel") {
+                                apiKey = ""
+                                isReplacingAPIKey = false
+                            }
+                        }
                     }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
                 } header: {
                     Text("API Key")
                 } footer: {
@@ -83,6 +115,19 @@ struct ProviderDetailView: View {
         }
         .navigationTitle(provider.name)
         .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog(
+            "API Key",
+            isPresented: $showingReplaceAPIKeyOptions,
+            titleVisibility: .visible
+        ) {
+            Button("Replace API Key") {
+                apiKey = ""
+                isReplacingAPIKey = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("The current key can’t be edited. Replace it with a new one.")
+        }
         .confirmationDialog(
             "Remove \(provider.name)?",
             isPresented: $showingDeleteConfirmation,

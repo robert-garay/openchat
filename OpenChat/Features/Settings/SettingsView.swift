@@ -28,17 +28,10 @@ struct SettingsView: View {
                                 )
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(provider.name)
-                                    if provider.requiresAPIKey {
-                                        if let redacted = providerStore.redactedAPIKey(for: provider) {
-                                            Text(redacted)
-                                                .font(.caption.monospaced())
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
-                                        } else {
-                                            Text("Needs an API key")
-                                                .font(.caption)
-                                                .foregroundStyle(.orange)
-                                        }
+                                    if provider.requiresAPIKey, !providerStore.hasUsableCredentials(provider) {
+                                        Text("Needs an API key")
+                                            .font(.caption)
+                                            .foregroundStyle(.orange)
                                     }
                                 }
                                 Spacer()
@@ -53,7 +46,7 @@ struct SettingsView: View {
                     Button {
                         showingAddProvider = true
                     } label: {
-                        Label("Add a Model", systemImage: "plus.circle.fill")
+                        Label("Add a Provider", systemImage: "plus.circle.fill")
                     }
                 }
 
