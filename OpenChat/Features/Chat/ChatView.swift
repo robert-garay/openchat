@@ -56,17 +56,19 @@ struct ChatView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Haptics.light()
-                    onToggleTemporary?()
-                } label: {
-                    Image(systemName: "circle.dashed")
-                        .font(.body.weight(.medium))
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : [])
+            if conversation.messages.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Haptics.light()
+                        onToggleTemporary?()
+                    } label: {
+                        Image(systemName: "circle.dashed")
+                            .font(.body.weight(.medium))
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                            .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                            .accessibilityAddTraits(conversation.isTemporary ? .isSelected : [])
+                    }
                 }
             }
         }
