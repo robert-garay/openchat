@@ -26,6 +26,10 @@ struct ChatView: View {
                     supportsVision: viewModel.supportsVision,
                     modelDisplayName: viewModel.currentModel?.displayName,
                     isStreaming: viewModel.isStreaming,
+                    canUseWebSearch: viewModel.canUseWebSearch,
+                    isWebSearchArmed: viewModel.isWebSearchArmed,
+                    webSearchProviderName: viewModel.webSearchProviderName,
+                    onToggleWebSearch: viewModel.toggleWebSearchForChat,
                     onSend: {
                         viewModel.send()
                     },

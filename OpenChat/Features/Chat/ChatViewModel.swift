@@ -18,23 +18,44 @@ final class ChatViewModel {
     private let providerStore: ProviderStore
     private let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
-    private let tavilyClient: TavilyClient
     private var streamingTask: Task<Void, Never>?
+
+    /// Per-chat override. When false, this conversation will not call search
+    /// even if Settings has an active provider. Defaults on when search is configured.
+    var isWebSearchEnabledForChat: Bool
 
     init(
         conversation: Conversation,
         modelContext: ModelContext,
         providerStore: ProviderStore,
         dataSourceStore: AgentDataSourceStore,
-        webSearchStore: WebSearchStore,
-        tavilyClient: TavilyClient = TavilyClient()
+        webSearchStore: WebSearchStore
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
         self.dataSourceStore = dataSourceStore
         self.webSearchStore = webSearchStore
-        self.tavilyClient = tavilyClient
+        self.isWebSearchEnabledForChat = webSearchStore.isActive
+    }
+
+    /// Search will run on the next send: chat toggle on + Settings active provider ready.
+    var isWebSearchArmed: Bool {
+        isWebSearchEnabledForChat && webSearchStore.isActive
+    }
+
+    var webSearchProviderName: String {
+        webSearchStore.activeProviderDisplayName
+    }
+
+    var canUseWebSearch: Bool {
+        webSearchStore.isActive
+    }
+
+    func toggleWebSearchForChat() {
+        guard canUseWebSearch else { return }
+        isWebSearchEnabledForChat.toggle()
+        Haptics.light()
     }
 
     var currentProvider: ConfiguredProvider? {
@@ -173,10 +194,12 @@ final class ChatViewModel {
             .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
             .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) }
         let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
-        let tavilyKey = webSearchStore.apiKey()
+        let searchAPIKey = webSearchStore.activeAPIKey()
+        let searchProviderName = webSearchStore.activeProviderDisplayName
+        let searchClient = webSearchStore.makeActiveClient()
         let searchMode = WebSearchService.preferredMode(
             supportsTools: supportsTools,
-            isActive: webSearchStore.isActive
+            isActive: isWebSearchEnabledForChat && webSearchStore.isActive
         )
 
         streamingTask = Task { [weak self] in
@@ -193,12 +216,12 @@ final class ChatViewModel {
                 }
 
                 var tools: [ChatToolDefinition] = []
-                if searchMode == .inject, let tavilyKey, !latestUserText.isEmpty {
+                if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
                     do {
                         let injected = try await WebSearchService.makeInjectedContext(
                             query: latestUserText,
-                            apiKey: tavilyKey,
-                            client: tavilyClient
+                            apiKey: searchAPIKey,
+                            client: searchClient
                         )
                         systemParts.append(injected)
                     } catch {
@@ -206,10 +229,10 @@ final class ChatViewModel {
                             "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
                         )
                     }
-                } else if searchMode == .toolCalling, tavilyKey != nil {
-                    tools = [WebSearchService.toolDefinition]
+                } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
+                    tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
                     systemParts.append(
-                        "You have a web_search tool powered by Tavily. Use it when the user needs current or factual information from the web."
+                        "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
                     )
                 }
 
@@ -219,14 +242,14 @@ final class ChatViewModel {
                 }
                 turns.append(contentsOf: historyTurns)
 
-                let executeTool: @Sendable (ChatToolCall) async throws -> String = { [tavilyClient, tavilyKey] call in
-                    guard let tavilyKey else {
-                        return "Tavily API key is not configured."
+                let executeTool: @Sendable (ChatToolCall) async throws -> String = { call in
+                    guard let searchAPIKey, let searchClient else {
+                        return "Search API key is not configured."
                     }
                     return try await WebSearchService.executeToolCall(
                         call,
-                        apiKey: tavilyKey,
-                        client: tavilyClient
+                        apiKey: searchAPIKey,
+                        client: searchClient
                     )
                 }
 

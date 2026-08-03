@@ -2,16 +2,12 @@ import SwiftUI
 
 struct WebSearchSettingsView: View {
     @Environment(WebSearchStore.self) private var webSearchStore
-    @State private var apiKey: String = ""
-    @State private var showingReplaceKey = false
-    @State private var showingRemoveConfirmation = false
-    @FocusState private var keyFieldFocused: Bool
 
     var body: some View {
         List {
             Section {
                 Label {
-                    Text("Add a Tavily API key to give every chat model live web search. Models with tool calling decide when to search; others get search results injected automatically.")
+                    Text("Add one or more search API keys. Only the active provider is used per chat. Models with tool calling decide when to search; others get results injected automatically. No crawl/extract providers.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -26,17 +22,113 @@ struct WebSearchSettingsView: View {
                     get: { webSearchStore.isEnabled },
                     set: { webSearchStore.setEnabled($0) }
                 ))
-                .disabled(!webSearchStore.hasAPIKey)
+                .disabled(!webSearchStore.hasAnyAPIKey)
             } footer: {
-                if webSearchStore.hasAPIKey {
-                    Text(modeFooter)
-                } else {
-                    Text("Save a Tavily key to turn web search on.")
+                Text(masterFooter)
+            }
+
+            Section {
+                ForEach(WebSearchProviderKind.allCases) { kind in
+                    NavigationLink {
+                        WebSearchProviderDetailView(kind: kind)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: kind.symbolName)
+                                .font(.body)
+                                .foregroundStyle(Color.accentColor)
+                                .frame(width: 28)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(kind.displayName)
+                                Text(statusSubtitle(for: kind))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer(minLength: 0)
+
+                            if webSearchStore.hasAPIKey(for: kind),
+                               webSearchStore.activeProvider == kind {
+                                Text("Active")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Providers")
+            } footer: {
+                Text("Saving a key on a provider can make it active. Switch Active from a provider’s detail screen.")
+            }
+        }
+        .navigationTitle("Web Search")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var masterFooter: String {
+        if !webSearchStore.hasAnyAPIKey {
+            return "Save a search API key to turn web search on."
+        }
+        if webSearchStore.isActive {
+            return "Active provider: \(webSearchStore.activeProviderDisplayName). You can also turn search off per chat with the globe button."
+        }
+        if webSearchStore.isEnabled {
+            return "Enabled, but the active provider needs an API key."
+        }
+        return "Keys saved, but web search is turned off globally."
+    }
+
+    private func statusSubtitle(for kind: WebSearchProviderKind) -> String {
+        if webSearchStore.hasAPIKey(for: kind) {
+            return webSearchStore.redactedAPIKey(for: kind) ?? "Key saved"
+        }
+        return kind.subtitle
+    }
+}
+
+struct WebSearchProviderDetailView: View {
+    let kind: WebSearchProviderKind
+
+    @Environment(WebSearchStore.self) private var webSearchStore
+    @State private var apiKey: String = ""
+    @State private var showingReplaceKey = false
+    @State private var showingRemoveConfirmation = false
+    @FocusState private var keyFieldFocused: Bool
+
+    var body: some View {
+        List {
+            Section {
+                LabeledContent("Provider", value: kind.displayName)
+                Text(kind.subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if webSearchStore.hasAPIKey(for: kind) {
+                Section {
+                    Button {
+                        webSearchStore.setActiveProvider(kind)
+                        webSearchStore.setEnabled(true)
+                        Haptics.light()
+                    } label: {
+                        HStack {
+                            Label("Use as Active Provider", systemImage: "checkmark.circle")
+                            Spacer()
+                            if webSearchStore.activeProvider == kind {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+                    .disabled(webSearchStore.activeProvider == kind)
+                } footer: {
+                    Text("Only the active provider is called when web search runs.")
                 }
             }
 
             Section {
-                if let redacted = webSearchStore.redactedAPIKey() {
+                if let redacted = webSearchStore.redactedAPIKey(for: kind) {
                     ZStack(alignment: .leading) {
                         TextField("API Key", text: .constant(redacted))
                             .font(.body.monospaced())
@@ -53,7 +145,7 @@ struct WebSearchSettingsView: View {
                         showingRemoveConfirmation = true
                     }
                 } else {
-                    SecureField("tvly-…", text: $apiKey)
+                    SecureField(kind.apiKeyPlaceholder, text: $apiKey)
                         .textContentType(.password)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
@@ -64,12 +156,14 @@ struct WebSearchSettingsView: View {
                     .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } header: {
-                Text("Tavily API Key")
+                Text("API Key")
             } footer: {
-                Link("Get a free API key from Tavily →", destination: URL(string: "https://app.tavily.com/home")!)
+                if let url = kind.keyHelpURL {
+                    Link("Get an API key from \(kind.displayName) →", destination: url)
+                }
             }
         }
-        .navigationTitle("Web Search")
+        .navigationTitle(kind.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if showingReplaceKey {
@@ -79,27 +173,20 @@ struct WebSearchSettingsView: View {
             }
         }
         .animation(Theme.springFast, value: showingReplaceKey)
-        .confirmationDialog("Remove Tavily key?", isPresented: $showingRemoveConfirmation, titleVisibility: .visible) {
+        .confirmationDialog("Remove \(kind.displayName) key?", isPresented: $showingRemoveConfirmation, titleVisibility: .visible) {
             Button("Remove Key", role: .destructive) {
-                webSearchStore.removeAPIKey()
+                webSearchStore.removeAPIKey(for: kind)
                 Haptics.light()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Web search will stop until you add a key again.")
+            Text("This provider won’t be usable until you add a key again.")
         }
         .onAppear {
-            if !webSearchStore.hasAPIKey {
+            if !webSearchStore.hasAPIKey(for: kind) {
                 keyFieldFocused = true
             }
         }
-    }
-
-    private var modeFooter: String {
-        if webSearchStore.isActive {
-            return "Active. Tool-capable models use native tool calling; all other models fall back to injected search results."
-        }
-        return "Key saved, but web search is turned off."
     }
 
     private var replaceKeyDialog: some View {
@@ -109,10 +196,10 @@ struct WebSearchSettingsView: View {
                 .onTapGesture { dismissReplaceKey() }
 
             VStack(spacing: 16) {
-                Text("Replace Tavily Key")
+                Text("Replace \(kind.displayName) Key")
                     .font(.headline)
 
-                SecureField("New Tavily key", text: $apiKey)
+                SecureField(kind.apiKeyPlaceholder, text: $apiKey)
                     .textContentType(.password)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
@@ -147,7 +234,7 @@ struct WebSearchSettingsView: View {
     private func saveKey() {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        webSearchStore.setAPIKey(trimmed)
+        webSearchStore.setAPIKey(trimmed, for: kind)
         apiKey = ""
         showingReplaceKey = false
         keyFieldFocused = false

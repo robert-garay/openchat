@@ -22,6 +22,10 @@ struct MessageComposerView: View {
     let supportsVision: Bool
     let modelDisplayName: String?
     let isStreaming: Bool
+    var canUseWebSearch: Bool = false
+    var isWebSearchArmed: Bool = false
+    var webSearchProviderName: String = "Search"
+    var onToggleWebSearch: (() -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
 
@@ -29,6 +33,7 @@ struct MessageComposerView: View {
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
+    @State private var showingWebSearchDisabledAlert = false
 
     private var canSend: Bool {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -51,6 +56,7 @@ struct MessageComposerView: View {
 
             HStack(alignment: .bottom, spacing: 8) {
                 attachButton
+                webSearchButton
 
                 TextField("Message", text: $text, axis: .vertical)
                     .lineLimit(1...6)
@@ -90,6 +96,36 @@ struct MessageComposerView: View {
                 Text("This model can’t process images. Choose a model marked with an eye to attach or paste photos.")
             }
         }
+        .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Add a search API key in Settings → Web Search, enable it, and choose an active provider.")
+        }
+    }
+
+    private var webSearchButton: some View {
+        Button {
+            if canUseWebSearch {
+                onToggleWebSearch?()
+            } else {
+                Haptics.warning()
+                showingWebSearchDisabledAlert = true
+            }
+        } label: {
+            Image(systemName: "globe")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(isWebSearchArmed ? Color.accentColor : Color(.tertiaryLabel))
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
+                .opacity(canUseWebSearch || isWebSearchArmed ? 1 : 0.85)
+        }
+        .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
+        .accessibilityHint(
+            canUseWebSearch
+                ? "Uses \(webSearchProviderName). Tap to turn web search \(isWebSearchArmed ? "off" : "on") for this chat."
+                : "Configure a search provider in Settings"
+        )
+        .animation(Theme.springFast, value: isWebSearchArmed)
     }
 
     private var attachButton: some View {

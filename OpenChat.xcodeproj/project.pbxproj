@@ -78,6 +78,11 @@
 		A7001B11E000000000000005 /* WebSearchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7001F11E000000000000005 /* WebSearchStore.swift */; };
 		A7001B11E000000000000006 /* WebSearchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7001F11E000000000000006 /* WebSearchSettingsView.swift */; };
 		A7001B11E000000000000007 /* WebSearchServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7001F11E000000000000007 /* WebSearchServiceTests.swift */; };
+		A8001B11E000000000000001 /* WebSearchProviderKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000001 /* WebSearchProviderKind.swift */; };
+		A8001B11E000000000000002 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000002 /* ExaClient.swift */; };
+		A8001B11E000000000000003 /* BraveSearchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000003 /* BraveSearchClient.swift */; };
+		A8001B11E000000000000004 /* SerperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000004 /* SerperClient.swift */; };
+		A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000005 /* SerpAPIClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -168,6 +173,11 @@
 		A7001F11E000000000000005 /* WebSearchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchStore.swift; sourceTree = "<group>"; };
 		A7001F11E000000000000006 /* WebSearchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchSettingsView.swift; sourceTree = "<group>"; };
 		A7001F11E000000000000007 /* WebSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchServiceTests.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000001 /* WebSearchProviderKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderKind.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000002 /* ExaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaClient.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000003 /* BraveSearchClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BraveSearchClient.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000004 /* SerperClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerperClient.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000005 /* SerpAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -263,6 +273,10 @@
 				A7001F11E000000000000003 /* TavilyClient.swift */,
 				A7001F11E000000000000004 /* WebSearchService.swift */,
 				A7001F11E000000000000005 /* WebSearchStore.swift */,
+				A8001F11E000000000000002 /* ExaClient.swift */,
+				A8001F11E000000000000003 /* BraveSearchClient.swift */,
+				A8001F11E000000000000004 /* SerperClient.swift */,
+				A8001F11E000000000000005 /* SerpAPIClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -311,6 +325,7 @@
 				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
 				F16A01B2C3D4E5F60718293A /* ModelCapability.swift */,
+				A8001F11E000000000000001 /* WebSearchProviderKind.swift */,
 				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
 				B22C33D44E5F60718293A4B5 /* ChatImageAttachment.swift */,
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
@@ -524,6 +539,11 @@
 				A7001B11E000000000000004 /* WebSearchService.swift in Sources */,
 				A7001B11E000000000000005 /* WebSearchStore.swift in Sources */,
 				A7001B11E000000000000006 /* WebSearchSettingsView.swift in Sources */,
+				A8001B11E000000000000001 /* WebSearchProviderKind.swift in Sources */,
+				A8001B11E000000000000002 /* ExaClient.swift in Sources */,
+				A8001B11E000000000000003 /* BraveSearchClient.swift in Sources */,
+				A8001B11E000000000000004 /* SerperClient.swift in Sources */,
+				A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

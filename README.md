@@ -37,12 +37,22 @@ You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, 
 
 ## Web search (optional)
 
-Settings → Web Search → paste a [Tavily](https://app.tavily.com/home) API key. OpenChat then enables live search for every model:
+Settings → Web Search → add keys for one or more search providers:
+
+| Provider | Console |
+|---|---|
+| Tavily | app.tavily.com |
+| Exa | dashboard.exa.ai |
+| Brave Search | api-dashboard.search.brave.com |
+| Serper | serper.dev |
+| SerpAPI | serpapi.com |
+
+Only the **active** provider is used (no crawl/extract). In chat, tap the **globe** to turn search on/off for that conversation.
 
 - **Tool-capable models** use native function/tool calling (`web_search`)
-- **All other models** fall back to injecting Tavily results into the prompt
+- **All other models** fall back to injecting search results into the prompt
 
-The Tavily key is stored in the iOS Keychain, same as provider keys.
+Search keys are stored in the iOS Keychain, same as provider keys.
 
 ## Ship to TestFlight
 
