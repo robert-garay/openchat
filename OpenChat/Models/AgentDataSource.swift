@@ -29,7 +29,7 @@ enum AgentDataSource: String, CaseIterable, Codable, Identifiable, Sendable {
         case .camera: "Capture photos or documents for the agent"
         case .microphone: "Voice input and transcription"
         case .photos: "Analyze images you choose to share"
-        case .calendar: "Events, schedules, and meeting prep"
+        case .calendar: "Events and schedules — choose read only or edit when enabling"
         case .notifications: "Reminders and follow-ups from the agent"
         }
     }

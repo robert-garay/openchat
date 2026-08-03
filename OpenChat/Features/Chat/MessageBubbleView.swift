@@ -8,6 +8,11 @@ struct MessageBubbleView: View {
     let providerTint: Color
     let providerSymbol: String
     var providerLogoAssetName: String? = nil
+    var pendingCalendarActions: [CalendarActionProposal] = []
+    var calendarActionStatus: String? = nil
+    var isApplyingCalendarActions: Bool = false
+    var onConfirmCalendarActions: (() -> Void)? = nil
+    var onDismissCalendarActions: (() -> Void)? = nil
     let onRetry: () -> Void
 
     var body: some View {
@@ -51,8 +56,16 @@ struct MessageBubbleView: View {
                 if message.content.isEmpty && message.isStreaming {
                     TypingIndicatorView()
                         .padding(.top, 6)
-                } else if !message.content.isEmpty {
-                    MarkdownMessageView(content: message.content, isUserMessage: false)
+                } else if !displayContent.isEmpty {
+                    MarkdownMessageView(content: displayContent, isUserMessage: false)
+                }
+
+                if !pendingCalendarActions.isEmpty {
+                    calendarConfirmationCard
+                } else if let calendarActionStatus, !calendarActionStatus.isEmpty {
+                    Text(calendarActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 if let errorMessage = message.errorMessage {
@@ -70,6 +83,44 @@ struct MessageBubbleView: View {
             }
             Spacer(minLength: 24)
         }
+    }
+
+    private var displayContent: String {
+        CalendarActionParser.strippingFences(from: message.content)
+    }
+
+    private var calendarConfirmationCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Confirm calendar changes", systemImage: "calendar.badge.clock")
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(pendingCalendarActions) { action in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(action.summaryTitle)
+                        .font(.caption.weight(.semibold))
+                    Text(action.summaryDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 10) {
+                Button("Apply") {
+                    onConfirmCalendarActions?()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isApplyingCalendarActions)
+
+                Button("Discard") {
+                    onDismissCalendarActions?()
+                }
+                .buttonStyle(.bordered)
+                .disabled(isApplyingCalendarActions)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func attachmentGallery(_ attachments: [ChatImageAttachment]) -> some View {

@@ -9,6 +9,9 @@ final class ChatViewModel {
     var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
     var capabilityWarning: String?
+    private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
+    private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var isApplyingCalendarActions = false
 
     private let conversation: Conversation
     private let modelContext: ModelContext
@@ -54,6 +57,36 @@ final class ChatViewModel {
 
     func dismissCapabilityWarning() {
         capabilityWarning = nil
+    }
+
+    func confirmCalendarActions(for messageID: UUID) {
+        guard !isApplyingCalendarActions else { return }
+        guard dataSourceStore.canEditCalendar else {
+            calendarActionStatusByMessageID[messageID] = CalendarEventWriterError.editingDisabled.localizedDescription
+            pendingCalendarActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingCalendarActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingCalendarActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try CalendarEventWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        calendarActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingCalendarActionsByMessageID[messageID] = nil
+        isApplyingCalendarActions = false
+        Haptics.success()
+    }
+
+    func dismissCalendarActions(for messageID: UUID) {
+        pendingCalendarActionsByMessageID[messageID] = nil
+        calendarActionStatusByMessageID[messageID] = "Calendar changes discarded."
+        Haptics.light()
     }
 
     func send() {
@@ -156,6 +189,7 @@ final class ChatViewModel {
                     assistantMessage.content += delta
                 }
                 assistantMessage.isStreaming = false
+                captureCalendarProposals(from: assistantMessage)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
             } catch {
@@ -165,5 +199,12 @@ final class ChatViewModel {
             conversation.updatedAt = .now
             isStreaming = false
         }
+    }
+
+    private func captureCalendarProposals(from message: ChatMessage) {
+        guard dataSourceStore.canEditCalendar else { return }
+        let proposals = CalendarActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        pendingCalendarActionsByMessageID[message.id] = proposals
     }
 }

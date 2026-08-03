@@ -55,7 +55,7 @@ targets:
         NSCameraUsageDescription: OpenChat uses the camera so agents can analyze photos or documents you capture.
         NSMicrophoneUsageDescription: OpenChat uses the microphone for voice input and transcription when you enable it.
         NSPhotoLibraryUsageDescription: OpenChat accesses photos you select so agents can analyze images.
-        NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules and meeting prep.
+        NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.
     entitlements:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:
