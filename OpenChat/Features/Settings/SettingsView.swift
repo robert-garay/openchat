@@ -65,8 +65,21 @@ struct SettingsView: View {
                     NavigationLink {
                         WebSearchSettingsView()
                     } label: {
-                        HStack {
-                            Label("Web Search", systemImage: "globe")
+                        HStack(spacing: 12) {
+                            if webSearchStore.isActive {
+                                ProviderLogoView(
+                                    logoAssetName: webSearchStore.activeProvider.logoAssetName,
+                                    symbolName: webSearchStore.activeProvider.symbolName,
+                                    tint: Color(hex: webSearchStore.activeProvider.tintHex),
+                                    size: 28
+                                )
+                            } else {
+                                Image(systemName: "globe")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                                    .frame(width: 28, height: 28)
+                            }
+                            Text("Web Search")
                             Spacer()
                             Text(webSearchSummary)
                                 .foregroundStyle(.secondary)

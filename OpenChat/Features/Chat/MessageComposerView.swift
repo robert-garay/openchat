@@ -25,6 +25,8 @@ struct MessageComposerView: View {
     var canUseWebSearch: Bool = false
     var isWebSearchArmed: Bool = false
     var webSearchProviderName: String = "Search"
+    var webSearchLogoAssetName: String? = nil
+    var webSearchTintHex: String = "007AFF"
     var onToggleWebSearch: (() -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
@@ -112,12 +114,25 @@ struct MessageComposerView: View {
                 showingWebSearchDisabledAlert = true
             }
         } label: {
-            Image(systemName: "globe")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(isWebSearchArmed ? Color.accentColor : Color(.tertiaryLabel))
-                .frame(width: 36, height: 36)
-                .contentShape(Rectangle())
-                .opacity(canUseWebSearch || isWebSearchArmed ? 1 : 0.85)
+            ZStack {
+                if isWebSearchArmed, let logo = webSearchLogoAssetName, UIImage(named: logo) != nil {
+                    ProviderLogoView(
+                        logoAssetName: logo,
+                        symbolName: "globe",
+                        tint: Color(hex: webSearchTintHex),
+                        size: 28,
+                        cornerRadius: 8
+                    )
+                } else {
+                    Image(systemName: "globe")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(isWebSearchArmed ? Color.accentColor : Color(.tertiaryLabel))
+                        .frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
+                        .opacity(canUseWebSearch || isWebSearchArmed ? 1 : 0.85)
+                }
+            }
+            .frame(width: 36, height: 36)
         }
         .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
         .accessibilityHint(

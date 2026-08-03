@@ -65,6 +65,13 @@ final class WebSearchServiceTests: XCTestCase {
         let ids = WebSearchProviderKind.allCases.map(\.rawValue)
         XCTAssertEqual(ids, ["tavily", "exa", "brave", "serper", "serpAPI"])
     }
+
+    func testEachProviderHasLogoAssetMapping() {
+        for kind in WebSearchProviderKind.allCases {
+            XCTAssertFalse(kind.logoAssetName.isEmpty, "\(kind.displayName) missing logo asset")
+            XCTAssertTrue(kind.logoAssetName.hasPrefix("SearchLogo"))
+        }
+    }
 }
 
 @MainActor

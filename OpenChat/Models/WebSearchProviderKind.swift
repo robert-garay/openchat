@@ -40,6 +40,28 @@ enum WebSearchProviderKind: String, CaseIterable, Identifiable, Codable, Sendabl
         }
     }
 
+    /// Asset catalog logo used in Settings / pickers.
+    var logoAssetName: String {
+        switch self {
+        case .tavily: "SearchLogoTavily"
+        case .exa: "SearchLogoExa"
+        case .brave: "SearchLogoBrave"
+        case .serper: "SearchLogoSerper"
+        case .serpAPI: "SearchLogoSerpAPI"
+        }
+    }
+
+    /// Soft chip tint behind the logo (matches ProviderLogoView usage).
+    var tintHex: String {
+        switch self {
+        case .tavily: "0F172A"
+        case .exa: "2E47E6"
+        case .brave: "FB542B"
+        case .serper: "5BA4D9"
+        case .serpAPI: "5B4BDB"
+        }
+    }
+
     var apiKeyPlaceholder: String {
         switch self {
         case .tavily: "tvly-…"

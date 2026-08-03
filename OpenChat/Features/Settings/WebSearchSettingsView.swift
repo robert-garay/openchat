@@ -33,10 +33,12 @@ struct WebSearchSettingsView: View {
                         WebSearchProviderDetailView(kind: kind)
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: kind.symbolName)
-                                .font(.body)
-                                .foregroundStyle(Color.accentColor)
-                                .frame(width: 28)
+                            ProviderLogoView(
+                                logoAssetName: kind.logoAssetName,
+                                symbolName: kind.symbolName,
+                                tint: Color(hex: kind.tintHex),
+                                size: 30
+                            )
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(kind.displayName)
@@ -99,10 +101,24 @@ struct WebSearchProviderDetailView: View {
     var body: some View {
         List {
             Section {
-                LabeledContent("Provider", value: kind.displayName)
-                Text(kind.subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 12) {
+                    ProviderLogoView(
+                        logoAssetName: kind.logoAssetName,
+                        symbolName: kind.symbolName,
+                        tint: Color(hex: kind.tintHex),
+                        size: 44,
+                        cornerRadius: 12
+                    )
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(kind.displayName)
+                            .font(.headline)
+                        Text(kind.subtitle)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+                .listRowBackground(Color.clear)
             }
 
             if webSearchStore.hasAPIKey(for: kind) {
