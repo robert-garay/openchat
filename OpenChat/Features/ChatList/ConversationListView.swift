@@ -52,7 +52,8 @@ struct ConversationListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onShowSettings) {
-                    Image(systemName: "gearshape")
+                    Image(systemName: "line.2.horizontal")
+                        .accessibilityLabel("Settings")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
