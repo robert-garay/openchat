@@ -65,7 +65,7 @@ struct ChatView: View {
                         GhostIcon(size: 17, filled: conversation.isTemporary)
                             .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                             .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                            .accessibilityAddTraits(conversation.isTemporary ? .isSelected : [])
+                            .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                     }
                 }
             }
