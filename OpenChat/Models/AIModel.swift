@@ -13,6 +13,10 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
         capabilities.contains(.vision)
     }
 
+    var supportsTools: Bool {
+        capabilities.contains(.tools)
+    }
+
     init(
         id: String,
         displayName: String,

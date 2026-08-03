@@ -17,18 +17,24 @@ final class ChatViewModel {
     private let modelContext: ModelContext
     private let providerStore: ProviderStore
     private let dataSourceStore: AgentDataSourceStore
+    private let webSearchStore: WebSearchStore
+    private let tavilyClient: TavilyClient
     private var streamingTask: Task<Void, Never>?
 
     init(
         conversation: Conversation,
         modelContext: ModelContext,
         providerStore: ProviderStore,
-        dataSourceStore: AgentDataSourceStore
+        dataSourceStore: AgentDataSourceStore,
+        webSearchStore: WebSearchStore,
+        tavilyClient: TavilyClient = TavilyClient()
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
         self.dataSourceStore = dataSourceStore
+        self.webSearchStore = webSearchStore
+        self.tavilyClient = tavilyClient
     }
 
     var currentProvider: ConfiguredProvider? {
@@ -107,7 +113,7 @@ final class ChatViewModel {
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
 
-        if !conversation.isTemporary, conversation.title == "New Chat" {
+        if conversation.title == "New Chat" {
             if !text.isEmpty {
                 conversation.title = String(text.prefix(40))
             } else {
@@ -161,10 +167,17 @@ final class ChatViewModel {
         let client = ChatService.client(for: provider.apiFormat)
         let baseURL = provider.baseURL
         let modelID = model.id
+        let supportsTools = model.supportsTools
         let conversationSystemPrompt = conversation.systemPrompt
         let historyTurns: [ChatTurn] = conversation.sortedMessages
             .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
             .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) }
+        let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
+        let tavilyKey = webSearchStore.apiKey()
+        let searchMode = WebSearchService.preferredMode(
+            supportsTools: supportsTools,
+            isActive: webSearchStore.isActive
+        )
 
         streamingTask = Task { [weak self] in
             guard let self else { return }
@@ -179,13 +192,52 @@ final class ChatViewModel {
                     systemParts.append(agentContext)
                 }
 
+                var tools: [ChatToolDefinition] = []
+                if searchMode == .inject, let tavilyKey, !latestUserText.isEmpty {
+                    do {
+                        let injected = try await WebSearchService.makeInjectedContext(
+                            query: latestUserText,
+                            apiKey: tavilyKey,
+                            client: tavilyClient
+                        )
+                        systemParts.append(injected)
+                    } catch {
+                        systemParts.append(
+                            "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
+                        )
+                    }
+                } else if searchMode == .toolCalling, tavilyKey != nil {
+                    tools = [WebSearchService.toolDefinition]
+                    systemParts.append(
+                        "You have a web_search tool powered by Tavily. Use it when the user needs current or factual information from the web."
+                    )
+                }
+
                 var turns: [ChatTurn] = []
                 if !systemParts.isEmpty {
                     turns.append(ChatTurn(role: .system, content: systemParts.joined(separator: "\n\n")))
                 }
                 turns.append(contentsOf: historyTurns)
 
-                for try await delta in client.streamReply(turns: turns, model: modelID, baseURL: baseURL, apiKey: apiKey) {
+                let executeTool: @Sendable (ChatToolCall) async throws -> String = { [tavilyClient, tavilyKey] call in
+                    guard let tavilyKey else {
+                        return "Tavily API key is not configured."
+                    }
+                    return try await WebSearchService.executeToolCall(
+                        call,
+                        apiKey: tavilyKey,
+                        client: tavilyClient
+                    )
+                }
+
+                for try await delta in client.streamReply(
+                    turns: turns,
+                    model: modelID,
+                    baseURL: baseURL,
+                    apiKey: apiKey,
+                    tools: tools,
+                    executeTool: executeTool
+                ) {
                     assistantMessage.content += delta
                 }
                 assistantMessage.isStreaming = false

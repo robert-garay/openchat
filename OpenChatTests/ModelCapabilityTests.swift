@@ -71,4 +71,11 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertTrue(model.asAIModel.supportsVision)
         XCTAssertEqual(model.asAIModel.capabilities, [.vision, .tools])
     }
+
+    func testAIModelSupportsTools() {
+        let withTools = AIModel(id: "a", displayName: "A", capabilities: [.tools])
+        let withoutTools = AIModel(id: "b", displayName: "B", capabilities: [.vision])
+        XCTAssertTrue(withTools.supportsTools)
+        XCTAssertFalse(withoutTools.supportsTools)
+    }
 }

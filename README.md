@@ -35,6 +35,15 @@ On first launch, tap **Connect a Provider**, pick a provider, and paste in an AP
 
 You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
 
+## Web search (optional)
+
+Settings → Web Search → paste a [Tavily](https://app.tavily.com/home) API key. OpenChat then enables live search for every model:
+
+- **Tool-capable models** use native function/tool calling (`web_search`)
+- **All other models** fall back to injecting Tavily results into the prompt
+
+The Tavily key is stored in the iOS Keychain, same as provider keys.
+
 ## Ship to TestFlight
 
 1. In Xcode: **Product → Archive** (requires a physical device or "Any iOS Device" build target, not the simulator).
