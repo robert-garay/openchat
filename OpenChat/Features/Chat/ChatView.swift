@@ -3,6 +3,7 @@ import SwiftData
 
 struct ChatView: View {
     let conversation: Conversation
+    var onToggleTemporary: (() -> Void)?
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -12,6 +13,10 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if conversation.isTemporary {
+                TemporaryChatBanner()
+            }
+
             if let viewModel {
                 messageList(viewModel: viewModel)
                 MessageComposerView(
@@ -27,7 +32,7 @@ struct ChatView: View {
                 )
             }
         }
-        .navigationTitle(conversation.title)
+        .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -49,6 +54,19 @@ struct ChatView: View {
                         }
                         .foregroundStyle(.primary)
                     }
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Haptics.light()
+                    onToggleTemporary?()
+                } label: {
+                    Image(systemName: "circle.dashed")
+                        .font(.body.weight(.medium))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : [])
                 }
             }
         }
@@ -138,5 +156,22 @@ struct ChatView: View {
         } else {
             proxy.scrollTo(lastID, anchor: .bottom)
         }
+    }
+}
+
+private struct TemporaryChatBanner: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            Text("Temporary Chat")
+                .font(.subheadline.weight(.semibold))
+            Text("This chat won’t appear in history and won’t use your on-device data sources.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, Theme.contentPadding)
+        .padding(.vertical, 10)
+        .background(.bar)
     }
 }
