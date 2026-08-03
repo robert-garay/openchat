@@ -11,12 +11,19 @@ final class ChatViewModel {
     private let conversation: Conversation
     private let modelContext: ModelContext
     private let providerStore: ProviderStore
+    private let dataSourceStore: AgentDataSourceStore
     private var streamingTask: Task<Void, Never>?
 
-    init(conversation: Conversation, modelContext: ModelContext, providerStore: ProviderStore) {
+    init(
+        conversation: Conversation,
+        modelContext: ModelContext,
+        providerStore: ProviderStore,
+        dataSourceStore: AgentDataSourceStore
+    ) {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
+        self.dataSourceStore = dataSourceStore
     }
 
     var currentProvider: ConfiguredProvider? {
@@ -74,22 +81,30 @@ final class ChatViewModel {
         conversation.messages.append(assistantMessage)
         modelContext.insert(assistantMessage)
 
-        var turns: [ChatTurn] = []
-        if !conversation.systemPrompt.isEmpty {
-            turns.append(ChatTurn(role: .system, content: conversation.systemPrompt))
-        }
-        turns.append(contentsOf: conversation.sortedMessages
-            .filter { $0.id != assistantMessage.id && !$0.content.isEmpty }
-            .map { ChatTurn(role: $0.role, content: $0.content) })
-
         isStreaming = true
         let client = ChatService.client(for: provider.apiFormat)
         let baseURL = provider.baseURL
         let modelID = model.id
+        let conversationSystemPrompt = conversation.systemPrompt
+        let historyTurns: [ChatTurn] = conversation.sortedMessages
+            .filter { $0.id != assistantMessage.id && !$0.content.isEmpty }
+            .map { ChatTurn(role: $0.role, content: $0.content) }
 
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
+                var turns: [ChatTurn] = []
+                if !conversationSystemPrompt.isEmpty {
+                    turns.append(ChatTurn(role: .system, content: conversationSystemPrompt))
+                }
+
+                dataSourceStore.refreshAuthorizationStatuses()
+                if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+                    turns.append(ChatTurn(role: .system, content: agentContext))
+                }
+
+                turns.append(contentsOf: historyTurns)
+
                 for try await delta in client.streamReply(turns: turns, model: modelID, baseURL: baseURL, apiKey: apiKey) {
                     assistantMessage.content += delta
                 }

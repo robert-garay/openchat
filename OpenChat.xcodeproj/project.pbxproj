@@ -56,6 +56,10 @@
 		1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */; };
 		5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */; };
 		0709CEEEE0054117AE9211BA /* FitnessHealthDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */; };
+		7976BD3C86CE428EAD5041F1 /* AgentContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57BB584E514358B1250B17 /* AgentContextProvider.swift */; };
+		50D4B729CB2A44E6907C5E92 /* CalendarContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */; };
+		B0959D66996B4B15B8DD0BBA /* FitnessContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */; };
+		A8DE8947CF2E490E9788DEED /* AgentContextProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +125,10 @@
 		8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStoreTests.swift; sourceTree = "<group>"; };
 		FBE0A9AC99CD4E08BE2B0C4C /* OpenChat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenChat.entitlements; sourceTree = "<group>"; };
 		01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessHealthDataTypes.swift; sourceTree = "<group>"; };
+		5B57BB584E514358B1250B17 /* AgentContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProvider.swift; sourceTree = "<group>"; };
+		6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarContextReader.swift; sourceTree = "<group>"; };
+		16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessContextReader.swift; sourceTree = "<group>"; };
+		FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProviderTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -194,6 +202,9 @@
 		903054CE5393C7DE6CEE0F1D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				16FC6D386B0E423389E9FB9F /* FitnessContextReader.swift */,
+				6BACC2CB1EF94CAEAE929593 /* CalendarContextReader.swift */,
+				5B57BB584E514358B1250B17 /* AgentContextProvider.swift */,
 				C4EF760A60914B4CA22776A7 /* AgentDataSourcePermissionService.swift */,
 				983DBE341D5A41C3AA62ED2B /* AgentDataSourceStore.swift */,
 				438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */,
@@ -220,6 +231,7 @@
 		C6E29A03FED964E97EDDF981 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
@@ -388,6 +400,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0959D66996B4B15B8DD0BBA /* FitnessContextReader.swift in Sources */,
+				50D4B729CB2A44E6907C5E92 /* CalendarContextReader.swift in Sources */,
+				7976BD3C86CE428EAD5041F1 /* AgentContextProvider.swift in Sources */,
 				0709CEEEE0054117AE9211BA /* FitnessHealthDataTypes.swift in Sources */,
 				D825C404D23F4FE3A64B1D27 /* AgentDataSource.swift in Sources */,
 				9DFD2D12E9824CD48CC196C6 /* AgentDataSourceStore.swift in Sources */,
@@ -437,6 +452,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8DE8947CF2E490E9788DEED /* AgentContextProviderTests.swift in Sources */,
 				5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				5A1E8F24C7B6930D4E2A15F8 /* OpenRouterModelCatalogTests.swift in Sources */,

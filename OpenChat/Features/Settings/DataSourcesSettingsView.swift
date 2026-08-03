@@ -10,7 +10,7 @@ struct DataSourcesSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("Agents only use sources you enable. Relevant details may be included in prompts sent to the AI providers you configure. Nothing is shared until a source is on and iOS permission is granted.")
+                    Text("When enabled, calendar and fitness data are attached to chat requests so the model can answer questions like today’s agenda. Relevant details are sent to the AI providers you configure. Camera, mic, and photos are used only when you capture or pick media.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
