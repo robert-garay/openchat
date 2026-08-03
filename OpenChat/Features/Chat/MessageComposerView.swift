@@ -78,9 +78,6 @@ struct MessageComposerView: View {
         .onChange(of: photoPickerItems) { _, items in
             Task { await loadPickerItems(items) }
         }
-        .onPasteCommand(of: [UTType.image]) { providers in
-            handlePasteProviders(providers)
-        }
         .onDrop(of: [UTType.image], isTargeted: nil) { providers in
             handleDropProviders(providers)
         }
@@ -188,15 +185,6 @@ struct MessageComposerView: View {
         guard let image = UIPasteboard.general.image else { return }
         appendImage(image)
         #endif
-    }
-
-    private func handlePasteProviders(_ providers: [NSItemProvider]) {
-        guard supportsVision else {
-            Haptics.warning()
-            showingVisionAlert = true
-            return
-        }
-        loadImages(from: providers)
     }
 
     private func handleDropProviders(_ providers: [NSItemProvider]) -> Bool {
