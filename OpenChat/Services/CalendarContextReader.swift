@@ -56,14 +56,14 @@ enum CalendarContextReader {
         let todayStart = calendar.startOfDay(for: now)
         let tomorrowStart = calendar.date(byAdding: .day, value: 1, to: todayStart) ?? todayStart
 
-        func events(on day: Date) -> [CalendarEventSnapshot] {
+        func eventsOnDay(_ day: Date) -> [CalendarEventSnapshot] {
             let start = calendar.startOfDay(for: day)
             guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return [] }
             return events.filter { $0.start < end && $0.end > start }
         }
 
         func formatDay(_ day: Date, label: String) -> String {
-            let dayEvents = events(on: day)
+            let dayEvents = eventsOnDay(day)
             let header = "### \(label) — \(dayFormatter.string(from: day))"
             guard !dayEvents.isEmpty else {
                 return "\(header)\n- No events"
