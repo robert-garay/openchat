@@ -1,6 +1,22 @@
 import Foundation
 import Observation
 
+/// Masks an API key for display, keeping a short prefix and suffix so the
+/// user can recognize which key is configured without revealing the secret.
+enum APIKeyRedaction {
+    static func redacted(_ key: String) -> String {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+        // Short keys would leak too much if any characters stayed visible.
+        guard trimmed.count > 8 else {
+            return String(repeating: "•", count: 8)
+        }
+        let prefix = String(trimmed.prefix(3))
+        let suffix = String(trimmed.suffix(4))
+        return prefix + String(repeating: "•", count: 8) + suffix
+    }
+}
+
 /// Owns the list of providers the user has configured and their API keys.
 /// Non-secret provider metadata is persisted as JSON in `UserDefaults`;
 /// API keys live in the Keychain via `KeychainStore`.
@@ -19,6 +35,8 @@ final class ProviderStore {
     private let defaults: UserDefaults
     private let openRouterClient: OpenRouterModelsClient
     private var openRouterRefreshTask: Task<Void, Never>?
+    /// Bumped when Keychain-backed credentials change so Observation can refresh views.
+    private var credentialsEpoch = 0
 
     init(
         defaults: UserDefaults = .standard,
@@ -39,16 +57,25 @@ final class ProviderStore {
     }
 
     func apiKey(for provider: ConfiguredProvider) -> String? {
+        _ = credentialsEpoch
         let key = KeychainStore.get(provider.id)
         return (key?.isEmpty ?? true) ? nil : key
     }
 
+    /// Redacted key for Settings rows, or `nil` when no key is stored.
+    func redactedAPIKey(for provider: ConfiguredProvider) -> String? {
+        guard let key = apiKey(for: provider) else { return nil }
+        return APIKeyRedaction.redacted(key)
+    }
+
     func setAPIKey(_ apiKey: String, for provider: ConfiguredProvider) {
         KeychainStore.set(apiKey, forKey: provider.id)
+        credentialsEpoch &+= 1
     }
 
     func removeAPIKey(for provider: ConfiguredProvider) {
         KeychainStore.remove(provider.id)
+        credentialsEpoch &+= 1
     }
 
     func addFromTemplate(_ template: ProviderTemplate) {
