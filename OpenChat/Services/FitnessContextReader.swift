@@ -116,9 +116,7 @@ enum FitnessContextReader {
         start: Date,
         end: Date
     ) async -> Double? {
-        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .cumulativeSum) {
-            $0.sumQuantity()?.doubleValue(for: unit)
-        }
+        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .cumulativeSum, mode: .sum)
     }
 
     private static func statisticAverage(
@@ -128,9 +126,12 @@ enum FitnessContextReader {
         start: Date,
         end: Date
     ) async -> Double? {
-        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .discreteAverage) {
-            $0.averageQuantity()?.doubleValue(for: unit)
-        }
+        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .discreteAverage, mode: .average)
+    }
+
+    private enum StatisticMode: Sendable {
+        case sum
+        case average
     }
 
     private static func statistic(
@@ -140,10 +141,12 @@ enum FitnessContextReader {
         start: Date,
         end: Date,
         options: HKStatisticsOptions,
-        extract: @escaping (HKStatistics) -> Double?
+        mode: StatisticMode
     ) async -> Double? {
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return nil }
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        // HKUnit is immutable/thread-safe but not marked Sendable; safe to share into the query callback.
+        nonisolated(unsafe) let unit = unit
 
         return await withCheckedContinuation { continuation in
             let query = HKStatisticsQuery(
@@ -155,7 +158,14 @@ enum FitnessContextReader {
                     continuation.resume(returning: nil)
                     return
                 }
-                continuation.resume(returning: extract(statistics))
+                let value: Double?
+                switch mode {
+                case .sum:
+                    value = statistics.sumQuantity()?.doubleValue(for: unit)
+                case .average:
+                    value = statistics.averageQuantity()?.doubleValue(for: unit)
+                }
+                continuation.resume(returning: value)
             }
             store.execute(query)
         }
@@ -277,7 +287,7 @@ private extension HKWorkoutActivityType {
         case .flexibility: "Flexibility"
         case .mixedCardio: "Mixed cardio"
         case .other: "Workout"
-        @unknown default: "Workout"
+        default: "Workout"
         }
     }
 }
