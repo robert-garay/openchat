@@ -125,6 +125,20 @@ final class WebSearchStoreTests: XCTestCase {
         store.setActiveProvider(.exa)
 
         XCTAssertEqual(store.configuredProviders.count, 2)
+        XCTAssertEqual(store.configuredProviders, [.tavily, .exa])
+        XCTAssertEqual(store.activeProvider, .exa)
+        XCTAssertEqual(store.activeAPIKey(), "exa-key")
+    }
+
+    func testSelectingProviderReenablesSearch() {
+        store.setAPIKey("tvly-key", for: .tavily)
+        store.setAPIKey("exa-key", for: .exa)
+        store.setEnabled(false)
+
+        store.setActiveProvider(.exa)
+        store.setEnabled(true)
+
+        XCTAssertTrue(store.isActive)
         XCTAssertEqual(store.activeProvider, .exa)
         XCTAssertEqual(store.activeAPIKey(), "exa-key")
     }

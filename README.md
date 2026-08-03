@@ -47,7 +47,7 @@ Settings → Web Search → add keys for one or more search providers:
 | Serper | serper.dev |
 | SerpAPI | serpapi.com |
 
-Only the **active** provider is used (no crawl/extract). In chat, tap the **globe** to turn search on/off for that conversation.
+In chat, tap the **web search** button to pick a registered provider (logo when active) or turn search off (globe). No crawl/extract.
 
 - **Tool-capable models** use native function/tool calling (`web_search`)
 - **All other models** fall back to injecting search results into the prompt
