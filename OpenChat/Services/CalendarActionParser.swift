@@ -104,15 +104,10 @@ enum CalendarActionParser {
     private static func decodeProposals(from body: String) -> [CalendarActionProposal] {
         let data = Data(body.utf8)
         let decoder = JSONDecoder()
-        let withFractional = ISO8601DateFormatter()
-        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let plain = ISO8601DateFormatter()
-        plain.formatOptions = [.withInternetDateTime]
-
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let raw = try container.decode(String.self)
-            if let date = withFractional.date(from: raw) ?? plain.date(from: raw) {
+            if let date = parseISO8601(raw) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date \(raw)")
@@ -129,6 +124,18 @@ enum CalendarActionParser {
             return many.compactMap(Self.normalized)
         }
         return []
+    }
+
+    /// Parses ISO-8601 without capturing non-Sendable formatters across `@Sendable` decode closures.
+    private static func parseISO8601(_ raw: String) -> Date? {
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = withFractional.date(from: raw) {
+            return date
+        }
+        let plain = ISO8601DateFormatter()
+        plain.formatOptions = [.withInternetDateTime]
+        return plain.date(from: raw)
     }
 
     private static func normalized(_ raw: RawAction) -> CalendarActionProposal? {
