@@ -74,7 +74,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Privacy")
                 } footer: {
-                    Text("MVP sources: camera, mic, photos, calendar, notifications, and Apple Health (with fitness privacy notice). All off by default; enabled data may be sent to your AI providers.")
+                    Text("Enabled calendar and fitness data are included with chat requests. All sources are off by default.")
                 }
 
                 Section {
