@@ -145,8 +145,6 @@ enum FitnessContextReader {
     ) async -> Double? {
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return nil }
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
-        // HKUnit is immutable/thread-safe but not marked Sendable; safe to share into the query callback.
-        nonisolated(unsafe) let unit = unit
 
         return await withCheckedContinuation { continuation in
             let query = HKStatisticsQuery(

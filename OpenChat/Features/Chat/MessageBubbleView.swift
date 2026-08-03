@@ -22,7 +22,7 @@ struct MessageBubbleView: View {
                 userBubble
             case .assistant:
                 assistantContent
-            case .system:
+            case .system, .tool:
                 EmptyView()
             }
         }
