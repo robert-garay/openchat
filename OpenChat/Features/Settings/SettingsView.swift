@@ -28,10 +28,17 @@ struct SettingsView: View {
                                 )
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(provider.name)
-                                    if !providerStore.hasUsableCredentials(provider) {
-                                        Text("Needs an API key")
-                                            .font(.caption)
-                                            .foregroundStyle(.orange)
+                                    if provider.requiresAPIKey {
+                                        if let redacted = providerStore.redactedAPIKey(for: provider) {
+                                            Text(redacted)
+                                                .font(.caption.monospaced())
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        } else {
+                                            Text("Needs an API key")
+                                                .font(.caption)
+                                                .foregroundStyle(.orange)
+                                        }
                                     }
                                 }
                                 Spacer()

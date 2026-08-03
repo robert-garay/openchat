@@ -63,4 +63,34 @@ final class ProviderStoreTests: XCTestCase {
         let reloaded = ProviderStore(defaults: defaults)
         XCTAssertEqual(reloaded.providers.map(\.id), ["qwen"])
     }
+
+    func testRedactedAPIKeyNilWhenMissing() {
+        store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
+        let provider = store.provider(withID: "deepseek")!
+        XCTAssertNil(store.redactedAPIKey(for: provider))
+    }
+
+    func testRedactedAPIKeyMasksStoredSecret() {
+        store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
+        let provider = store.provider(withID: "deepseek")!
+        store.setAPIKey("sk-or-v1-abcdefghijklmnop1234", for: provider)
+        XCTAssertEqual(store.redactedAPIKey(for: provider), "sk-••••••••1234")
+    }
+}
+
+final class APIKeyRedactionTests: XCTestCase {
+    func testEmptyReturnsEmpty() {
+        XCTAssertEqual(APIKeyRedaction.redacted(""), "")
+        XCTAssertEqual(APIKeyRedaction.redacted("   "), "")
+    }
+
+    func testShortKeysAreFullyMasked() {
+        XCTAssertEqual(APIKeyRedaction.redacted("sk-test"), "••••••••")
+        XCTAssertEqual(APIKeyRedaction.redacted("12345678"), "••••••••")
+    }
+
+    func testLongKeysKeepPrefixAndSuffix() {
+        XCTAssertEqual(APIKeyRedaction.redacted("sk-abcdefghij"), "sk-••••••••ghij")
+        XCTAssertEqual(APIKeyRedaction.redacted("sk-ant-api03-secretvalue99"), "sk-••••••••ue99")
+    }
 }
