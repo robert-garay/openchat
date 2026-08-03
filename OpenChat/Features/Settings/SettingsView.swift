@@ -88,7 +88,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Tools")
                 } footer: {
-                    Text("Optional search keys (Tavily, Exa, Brave, Serper, SerpAPI). Only the active provider is used.")
+                    Text("Optional search keys (Tavily, Exa, Brave, Serper, SerpAPI). Choose the provider from the chat web search button.")
                 }
 
                 Section {

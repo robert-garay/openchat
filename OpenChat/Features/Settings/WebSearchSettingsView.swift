@@ -7,7 +7,7 @@ struct WebSearchSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("Add one or more search API keys. Only the active provider is used per chat. Models with tool calling decide when to search; others get results injected automatically. No crawl/extract providers.")
+                    Text("Add search API keys here. Pick which provider to use from the web search button in chat. Models with tool calling decide when to search; others get results injected automatically.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -46,22 +46,13 @@ struct WebSearchSettingsView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
-
-                            Spacer(minLength: 0)
-
-                            if webSearchStore.hasAPIKey(for: kind),
-                               webSearchStore.activeProvider == kind {
-                                Text("Active")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
-                            }
                         }
                     }
                 }
             } header: {
                 Text("Providers")
             } footer: {
-                Text("Saving a key on a provider can make it active. Switch Active from a provider’s detail screen.")
+                Text("Registered providers appear in the chat web search menu.")
             }
         }
         .navigationTitle("Web Search")
@@ -70,13 +61,13 @@ struct WebSearchSettingsView: View {
 
     private var masterFooter: String {
         if !webSearchStore.hasAnyAPIKey {
-            return "Save a search API key to turn web search on."
+            return "Save a search API key, then choose a provider from the chat web search button."
         }
         if webSearchStore.isActive {
-            return "Active provider: \(webSearchStore.activeProviderDisplayName). You can also turn search off per chat with the globe button."
+            return "Using \(webSearchStore.activeProviderDisplayName). Change providers from the chat web search button."
         }
         if webSearchStore.isEnabled {
-            return "Enabled, but the active provider needs an API key."
+            return "Enabled, but no usable provider key is selected. Pick one in chat after saving a key."
         }
         return "Keys saved, but web search is turned off globally."
     }
@@ -118,28 +109,6 @@ struct WebSearchProviderDetailView: View {
                 }
                 .padding(.vertical, 4)
                 .listRowBackground(Color.clear)
-            }
-
-            if webSearchStore.hasAPIKey(for: kind) {
-                Section {
-                    Button {
-                        webSearchStore.setActiveProvider(kind)
-                        webSearchStore.setEnabled(true)
-                        Haptics.light()
-                    } label: {
-                        HStack {
-                            Label("Use as Active Provider", systemImage: "checkmark.circle")
-                            Spacer()
-                            if webSearchStore.activeProvider == kind {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        }
-                    }
-                    .disabled(webSearchStore.activeProvider == kind)
-                } footer: {
-                    Text("Only the active provider is called when web search runs.")
-                }
             }
 
             APIKeySettingsSection(

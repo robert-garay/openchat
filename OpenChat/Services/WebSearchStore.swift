@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// Owns BYOK keys for search providers, which provider is active, and the
-/// global search enable switch. Chat can still toggle search off per session.
+/// global search enable switch. The active provider is chosen from chat.
 @MainActor
 @Observable
 final class WebSearchStore {

@@ -24,10 +24,14 @@ struct MessageComposerView: View {
     let isStreaming: Bool
     var canUseWebSearch: Bool = false
     var isWebSearchArmed: Bool = false
+    var webSearchProviders: [WebSearchProviderKind] = []
+    var selectedWebSearchProvider: WebSearchProviderKind? = nil
     var webSearchProviderName: String = "Search"
     var webSearchLogoAssetName: String? = nil
+    var webSearchSymbolName: String = "globe"
     var webSearchTintHex: String = "007AFF"
-    var onToggleWebSearch: (() -> Void)? = nil
+    var onSelectWebSearchProvider: ((WebSearchProviderKind) -> Void)? = nil
+    var onDisableWebSearch: (() -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
 
@@ -101,46 +105,78 @@ struct MessageComposerView: View {
         .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Add a search API key in Settings → Web Search, enable it, and choose an active provider.")
+            Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
     }
 
     private var webSearchButton: some View {
-        Button {
+        Group {
             if canUseWebSearch {
-                onToggleWebSearch?()
+                Menu {
+                    Picker(
+                        "Web Search",
+                        selection: Binding(
+                            get: { isWebSearchArmed ? selectedWebSearchProvider : nil },
+                            set: { newValue in
+                                if let newValue {
+                                    onSelectWebSearchProvider?(newValue)
+                                } else {
+                                    onDisableWebSearch?()
+                                }
+                            }
+                        )
+                    ) {
+                        Label("Off", systemImage: "globe")
+                            .tag(Optional<WebSearchProviderKind>.none)
+                        ForEach(webSearchProviders) { provider in
+                            Label(provider.displayName, systemImage: provider.symbolName)
+                                .tag(Optional.some(provider))
+                        }
+                    }
+                } label: {
+                    webSearchIcon
+                }
             } else {
-                Haptics.warning()
-                showingWebSearchDisabledAlert = true
-            }
-        } label: {
-            ZStack {
-                if isWebSearchArmed, let logo = webSearchLogoAssetName, UIImage(named: logo) != nil {
-                    ProviderLogoView(
-                        logoAssetName: logo,
-                        symbolName: "globe",
-                        tint: Color(hex: webSearchTintHex),
-                        size: 28,
-                        cornerRadius: 8
-                    )
-                } else {
-                    Image(systemName: "globe")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(isWebSearchArmed ? Color.accentColor : Color(.tertiaryLabel))
-                        .frame(width: 36, height: 36)
-                        .contentShape(Rectangle())
-                        .opacity(canUseWebSearch || isWebSearchArmed ? 1 : 0.85)
+                Button {
+                    Haptics.warning()
+                    showingWebSearchDisabledAlert = true
+                } label: {
+                    webSearchIcon
                 }
             }
-            .frame(width: 36, height: 36)
         }
         .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
         .accessibilityHint(
             canUseWebSearch
-                ? "Uses \(webSearchProviderName). Tap to turn web search \(isWebSearchArmed ? "off" : "on") for this chat."
-                : "Configure a search provider in Settings"
+                ? (isWebSearchArmed
+                    ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
+                    : "Choose a search provider for this chat.")
+                : "Add a search API key in Settings"
         )
         .animation(Theme.springFast, value: isWebSearchArmed)
+        .animation(Theme.springFast, value: selectedWebSearchProvider)
+    }
+
+    private var webSearchIcon: some View {
+        ZStack {
+            if isWebSearchArmed {
+                ProviderLogoView(
+                    logoAssetName: webSearchLogoAssetName,
+                    symbolName: webSearchSymbolName,
+                    tint: Color(hex: webSearchTintHex),
+                    size: 28,
+                    cornerRadius: 8
+                )
+            } else {
+                Image(systemName: "globe")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color(.tertiaryLabel))
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+                    .opacity(canUseWebSearch ? 1 : 0.85)
+            }
+        }
+        .frame(width: 36, height: 36)
     }
 
     private var attachButton: some View {

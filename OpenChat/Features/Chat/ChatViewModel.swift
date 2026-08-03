@@ -21,7 +21,7 @@ final class ChatViewModel {
     private var streamingTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
-    /// even if Settings has an active provider. Defaults on when search is configured.
+    /// even if a provider is configured. Defaults on when search is active.
     var isWebSearchEnabledForChat: Bool
 
     init(
@@ -39,13 +39,17 @@ final class ChatViewModel {
         self.isWebSearchEnabledForChat = webSearchStore.isActive
     }
 
-    /// Search will run on the next send: chat toggle on + Settings active provider ready.
+    /// Search will run on the next send: chat toggle on + configured active provider ready.
     var isWebSearchArmed: Bool {
         isWebSearchEnabledForChat && webSearchStore.isActive
     }
 
     var webSearchProviderName: String {
         webSearchStore.activeProviderDisplayName
+    }
+
+    var selectedWebSearchProvider: WebSearchProviderKind? {
+        isWebSearchArmed ? webSearchStore.activeProvider : nil
     }
 
     var webSearchStoreActiveLogo: String {
@@ -56,13 +60,30 @@ final class ChatViewModel {
         webSearchStore.activeProvider.tintHex
     }
 
-    var canUseWebSearch: Bool {
-        webSearchStore.isActive
+    var webSearchStoreActiveSymbol: String {
+        webSearchStore.activeProvider.symbolName
     }
 
-    func toggleWebSearchForChat() {
-        guard canUseWebSearch else { return }
-        isWebSearchEnabledForChat.toggle()
+    /// Providers with a saved API key, shown in the composer picker.
+    var configuredWebSearchProviders: [WebSearchProviderKind] {
+        webSearchStore.configuredProviders
+    }
+
+    /// True when at least one search provider has a key (menu can open).
+    var canUseWebSearch: Bool {
+        webSearchStore.hasAnyAPIKey
+    }
+
+    func selectWebSearchProvider(_ kind: WebSearchProviderKind) {
+        guard webSearchStore.hasAPIKey(for: kind) else { return }
+        webSearchStore.setActiveProvider(kind)
+        webSearchStore.setEnabled(true)
+        isWebSearchEnabledForChat = true
+        Haptics.light()
+    }
+
+    func disableWebSearchForChat() {
+        isWebSearchEnabledForChat = false
         Haptics.light()
     }
 
