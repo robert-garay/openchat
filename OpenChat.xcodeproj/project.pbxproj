@@ -24,7 +24,6 @@
 		3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E2480EE347BF9E56152366 /* WelcomeView.swift */; };
 		416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */; };
 		B1B2C3D4E5F60718293A4B70 /* GhostIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B70 /* GhostIcon.swift */; };
-		D2D3E4F5A60718293A4B5C81 /* HamburgerIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A60718293A4B5C81 /* HamburgerIcon.swift */; };
 		4B7E2A91C0D14F6EA3B8C215 /* ProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F1C3D27A9E04B5C9D2E6F80 /* ProviderLogoView.swift */; };
 		4D8A1C02B7E35F49A0C21678 /* OpenChatLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */; };
 		48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9485D5CB91D1A9E8C7915F97 /* Haptics.swift */; };
@@ -120,7 +119,6 @@
 		A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStream.swift; sourceTree = "<group>"; };
 		A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B70 /* GhostIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostIcon.swift; sourceTree = "<group>"; };
-		C2D3E4F5A60718293A4B5C81 /* HamburgerIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HamburgerIcon.swift; sourceTree = "<group>"; };
 		A9B2B9966BEE5B326ABB3896 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		B5D868369D030010308DDCDB /* MarkdownMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownMessageView.swift; sourceTree = "<group>"; };
@@ -323,7 +321,6 @@
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
 				A1B2C3D4E5F60718293A4B70 /* GhostIcon.swift */,
-				C2D3E4F5A60718293A4B5C81 /* HamburgerIcon.swift */,
 				9485D5CB91D1A9E8C7915F97 /* Haptics.swift */,
 				C33D44E55F60718293A4B5C6 /* ModelCapabilitySign.swift */,
 				9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */,
@@ -473,7 +470,6 @@
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
 				416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */,
 				B1B2C3D4E5F60718293A4B70 /* GhostIcon.swift in Sources */,
-				D2D3E4F5A60718293A4B5C81 /* HamburgerIcon.swift in Sources */,
 				3C94E98A049ED6EF027DF53B /* ConfiguredProvider.swift in Sources */,
 				4B7E2A91C0D14F6EA3B8C215 /* ProviderLogoView.swift in Sources */,
 				1ECC5B45B7CC4CA24787C98A /* Conversation.swift in Sources */,
