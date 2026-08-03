@@ -53,7 +53,7 @@ struct AddProviderView: View {
                     }
                 }
             }
-            .navigationTitle("Add a Model")
+            .navigationTitle("Add a Provider")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

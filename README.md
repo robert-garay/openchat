@@ -33,7 +33,7 @@ On first launch, tap **Connect a Provider**, pick a provider, and paste in an AP
 | Anthropic | console.anthropic.com |
 | OpenRouter | openrouter.ai |
 
-You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Model → Custom Endpoint.
+You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
 
 ## Ship to TestFlight
 
