@@ -36,8 +36,14 @@ final class AgentDataSourceStore {
     }
 
     /// Ready for agents: user opted in and iOS authorization is granted.
+    /// Apple Health read grants are opaque on iOS, so the Settings toggle is the source of truth
+    /// once Health data is available on the device.
     func isAvailableForAgents(_ source: AgentDataSource) -> Bool {
-        isEnabled(source) && authorizationStatus(for: source) == .authorized
+        guard isEnabled(source) else { return false }
+        if source == .appleHealth {
+            return authorizationStatus(for: source) != .unavailable
+        }
+        return authorizationStatus(for: source) == .authorized
     }
 
     func authorizationStatus(for source: AgentDataSource) -> AgentDataSourceAuthorizationStatus {
@@ -102,6 +108,10 @@ final class AgentDataSourceStore {
         enabledSourceIDs = Set(values.filter { valid.contains($0) })
         // Drop removed MVP sources (Home, Location, etc.) from persistence.
         persist()
+        // Keep HealthKit prompt flag aligned with the Settings toggle (read grants are opaque).
+        if enabledSourceIDs.contains(AgentDataSource.appleHealth.rawValue) {
+            permissions.markHealthPromptCompleted()
+        }
     }
 
     private func persist() {

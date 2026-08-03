@@ -63,11 +63,15 @@ final class AgentDataSourcePermissionService {
         do {
             try await healthStore.requestAuthorization(toShare: [], read: types)
             // Read authorization is intentionally opaque on iOS; a completed prompt counts as opted-in.
-            defaults.set(true, forKey: healthPromptKey)
+            markHealthPromptCompleted()
             return .authorized
         } catch {
             return .denied
         }
+    }
+
+    func markHealthPromptCompleted() {
+        defaults.set(true, forKey: healthPromptKey)
     }
 
     // MARK: - Calendar / Notifications

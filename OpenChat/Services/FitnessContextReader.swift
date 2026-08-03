@@ -36,6 +36,23 @@ enum FitnessContextReader {
             start: dayStart,
             end: now
         )
+        async let averageHeartRate = statisticAverage(
+            store: store,
+            identifier: .heartRate,
+            unit: HKUnit.count().unitDivided(by: .minute()),
+            start: dayStart,
+            end: now
+        )
+        async let restingHeartRate = latestQuantity(
+            store: store,
+            identifier: .restingHeartRate,
+            unit: HKUnit.count().unitDivided(by: .minute())
+        )
+        async let hrv = latestQuantity(
+            store: store,
+            identifier: .heartRateVariabilitySDNN,
+            unit: .secondUnit(with: .milli)
+        )
         async let workouts = recentWorkouts(store: store, now: now, calendar: calendar)
         async let sleepHours = lastNightSleepHours(store: store, now: now, calendar: calendar)
 
@@ -43,25 +60,40 @@ enum FitnessContextReader {
         let energyValue = await energy
         let exerciseValue = await exercise
         let distanceValue = await distance
+        let heartRateValue = await averageHeartRate
+        let restingValue = await restingHeartRate
+        let hrvValue = await hrv
         let workoutRows = await workouts
         let sleepValue = await sleepHours
 
-        var lines: [String] = ["## Fitness (Apple Health)"]
-        if let stepsValue {
-            lines.append("- Steps today: \(Int(stepsValue.rounded()))")
-        }
-        if let energyValue {
-            lines.append("- Active energy today: \(Int(energyValue.rounded())) kcal")
-        }
-        if let exerciseValue {
-            lines.append("- Exercise minutes today: \(Int(exerciseValue.rounded()))")
-        }
-        if let distanceValue {
-            lines.append(String(format: "- Walking/running distance today: %.1f mi", distanceValue))
-        }
-        if let sleepValue {
-            lines.append(String(format: "- Sleep (last night): %.1f hours", sleepValue))
-        }
+        var lines: [String] = [
+            "## Fitness (Apple Health)",
+            "Use these metrics when the user asks about steps, heart rate, workouts, sleep, or training. If a metric says unavailable, say you don't have that reading — do not invent values.",
+        ]
+
+        lines.append(metricLine("Steps today", stepsValue.map { "\(Int($0.rounded()))" }))
+        lines.append(metricLine("Active energy today", energyValue.map { "\(Int($0.rounded())) kcal" }))
+        lines.append(metricLine("Exercise minutes today", exerciseValue.map { "\(Int($0.rounded()))" }))
+        lines.append(metricLine(
+            "Walking/running distance today",
+            distanceValue.map { String(format: "%.1f mi", $0) }
+        ))
+        lines.append(metricLine(
+            "Average heart rate today",
+            heartRateValue.map { "\(Int($0.rounded())) bpm" }
+        ))
+        lines.append(metricLine(
+            "Resting heart rate (latest)",
+            restingValue.map { "\(Int($0.rounded())) bpm" }
+        ))
+        lines.append(metricLine(
+            "Heart rate variability SDNN (latest)",
+            hrvValue.map { String(format: "%.0f ms", $0) }
+        ))
+        lines.append(metricLine(
+            "Sleep (last night)",
+            sleepValue.map { String(format: "%.1f hours", $0) }
+        ))
 
         if workoutRows.isEmpty {
             lines.append("- Recent workouts: none in the last 7 days")
@@ -70,9 +102,11 @@ enum FitnessContextReader {
             lines.append(contentsOf: workoutRows.map { "  - \($0)" })
         }
 
-        // If HealthKit returned nothing usable, skip injecting an empty section.
-        guard lines.count > 1 else { return nil }
         return lines.joined(separator: "\n")
+    }
+
+    private static func metricLine(_ label: String, _ value: String?) -> String {
+        "- \(label): \(value ?? "unavailable")"
     }
 
     private static func statisticSum(
@@ -82,6 +116,32 @@ enum FitnessContextReader {
         start: Date,
         end: Date
     ) async -> Double? {
+        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .cumulativeSum) {
+            $0.sumQuantity()?.doubleValue(for: unit)
+        }
+    }
+
+    private static func statisticAverage(
+        store: HKHealthStore,
+        identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit,
+        start: Date,
+        end: Date
+    ) async -> Double? {
+        await statistic(store: store, identifier: identifier, unit: unit, start: start, end: end, options: .discreteAverage) {
+            $0.averageQuantity()?.doubleValue(for: unit)
+        }
+    }
+
+    private static func statistic(
+        store: HKHealthStore,
+        identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit,
+        start: Date,
+        end: Date,
+        options: HKStatisticsOptions,
+        extract: @escaping (HKStatistics) -> Double?
+    ) async -> Double? {
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return nil }
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
 
@@ -89,13 +149,39 @@ enum FitnessContextReader {
             let query = HKStatisticsQuery(
                 quantityType: quantityType,
                 quantitySamplePredicate: predicate,
-                options: .cumulativeSum
+                options: options
             ) { _, statistics, _ in
-                let value = statistics?.sumQuantity()?.doubleValue(for: unit)
-                continuation.resume(returning: value)
+                guard let statistics else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: extract(statistics))
             }
             store.execute(query)
         }
+    }
+
+    private static func latestQuantity(
+        store: HKHealthStore,
+        identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit
+    ) async -> Double? {
+        guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return nil }
+        let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let sample: HKQuantitySample? = await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: quantityType,
+                predicate: nil,
+                limit: 1,
+                sortDescriptors: [sort]
+            ) { _, results, _ in
+                continuation.resume(returning: results?.first as? HKQuantitySample)
+            }
+            store.execute(query)
+        }
+
+        return sample?.quantity.doubleValue(for: unit)
     }
 
     private static func recentWorkouts(
