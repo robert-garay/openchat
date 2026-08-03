@@ -27,7 +27,7 @@ struct AddProviderView: View {
                 } header: {
                     Text("Model Providers")
                 } footer: {
-                    Text("Includes leading Chinese open models — DeepSeek, Qwen, Kimi, and GLM — alongside OpenAI, Claude, Gemini, and OpenRouter.")
+                    Text("Connect OpenRouter, DeepSeek, Qwen, Kimi, GLM, OpenAI, Claude, Gemini, or any provider you prefer.")
                 }
 
                 Section {

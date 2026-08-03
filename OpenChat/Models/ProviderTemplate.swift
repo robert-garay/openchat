@@ -81,7 +81,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             apiKeyPlaceholder: "API key",
             defaultModels: [
                 AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model"),
-                AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast & free tier"),
+                AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast"),
                 AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", supportsVision: true),
             ],
             region: "China"
@@ -154,8 +154,6 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://openrouter.ai/keys"),
             apiKeyPlaceholder: "sk-or-...",
             defaultModels: [
-                AIModel(id: "google/gemma-4-31b-it:free", displayName: "Gemma 4 31B", subtitle: "Free · Open source"),
-                AIModel(id: "nvidia/nemotron-3-nano-30b-a3b:free", displayName: "Nemotron 3 Nano", subtitle: "Free · Open source"),
                 AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
                 AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source"),
                 AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),

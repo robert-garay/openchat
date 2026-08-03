@@ -25,10 +25,6 @@ struct ModelPickerSheet: View {
         OpenRouterModelCatalog.filtered(models: providerStore.openRouterModels, query: searchText)
     }
 
-    private var topFreeModels: [OpenRouterCatalogModel] {
-        OpenRouterModelCatalog.topFree(from: providerStore.openRouterModels)
-    }
-
     private var topOpenSourceModels: [OpenRouterCatalogModel] {
         OpenRouterModelCatalog.topOpenSource(from: providerStore.openRouterModels)
     }
@@ -126,20 +122,6 @@ struct ModelPickerSheet: View {
             }
         } else {
             Section {
-                ForEach(topFreeModels) { model in
-                    openRouterModelButton(model)
-                }
-                if topFreeModels.isEmpty {
-                    Text("No free models available right now.")
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                Label("Top Free", systemImage: "gift")
-            } footer: {
-                Text("Search to browse the full OpenRouter catalog.")
-            }
-
-            Section {
                 ForEach(topOpenSourceModels) { model in
                     openRouterModelButton(model)
                 }
@@ -149,9 +131,11 @@ struct ModelPickerSheet: View {
                 }
             } header: {
                 Label("Top Open Source", systemImage: "chevron.left.forwardslash.chevron.right")
+            } footer: {
+                Text("Search to browse the full OpenRouter catalog.")
             }
 
-            savedModelsSection(provider: provider, excluding: topFreeModels + topOpenSourceModels)
+            savedModelsSection(provider: provider, excluding: topOpenSourceModels)
         }
     }
 

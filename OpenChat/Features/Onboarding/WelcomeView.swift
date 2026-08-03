@@ -4,7 +4,7 @@ struct WelcomeView: View {
     @State private var showingAddProvider = false
 
     private let highlights: [(icon: String, title: String, subtitle: String)] = [
-        ("bolt.fill", "Any Model, Instantly", "OpenAI, Claude, Gemini, or the newest Chinese open models — DeepSeek, Qwen, Kimi, GLM."),
+        ("square.stack.3d.up.fill", "Any Model, Any Provider", "Connect OpenAI, Claude, Gemini, OpenRouter, open models, or your own endpoint — switch anytime."),
         ("lock.fill", "Your Keys, Your Device", "API keys are stored in the iOS Keychain. OpenChat talks directly to providers — no middleman server."),
         ("bubble.left.and.bubble.right.fill", "Familiar, Fast Chat", "A clean, native chat experience with streaming replies and full markdown & code support."),
     ]
@@ -20,7 +20,7 @@ struct WelcomeView: View {
                 .font(.largeTitle.weight(.bold))
                 .padding(.top, 20)
 
-            Text("One app for every AI model you want to talk to.")
+            Text("Chat with any model you choose.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -56,7 +56,7 @@ struct WelcomeView: View {
                 Haptics.light()
                 showingAddProvider = true
             } label: {
-                Text("Connect a Model")
+                Text("Connect a Provider")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -64,12 +64,7 @@ struct WelcomeView: View {
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.capsule)
             .padding(.horizontal, 28)
-            .padding(.bottom, 12)
-
-            Text("Takes about 30 seconds")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .padding(.bottom, 24)
+            .padding(.bottom, 24)
         }
         .sheet(isPresented: $showingAddProvider) {
             AddProviderView()

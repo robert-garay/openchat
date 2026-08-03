@@ -184,7 +184,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
     func testDisplayNameAndSubtitleFormatting() {
         let free = sampleModels.first { $0.id == "google/gemma-4-31b-it:free" }!
         XCTAssertEqual(free.displayName, "Gemma 4 31B")
-        XCTAssertEqual(free.subtitle, "Free · 262K context")
+        XCTAssertEqual(free.subtitle, "Open source · 262K context")
 
         let oss = sampleModels.first { $0.id == "meta-llama/llama-4-maverick" }!
         XCTAssertEqual(oss.displayName, "Llama 4 Maverick")

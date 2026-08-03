@@ -40,9 +40,7 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
 
     var subtitle: String {
         var parts: [String] = []
-        if isFree {
-            parts.append("Free")
-        } else if isOpenSource {
+        if isOpenSource {
             parts.append("Open source")
         }
         if let contextLength, contextLength > 0 {
