@@ -68,6 +68,8 @@
 		16A34A75EA714BE7A5C8250C /* CalendarActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B77625D1D2476783CFE0A3 /* CalendarActionParser.swift */; };
 		58E44AC43E48407AB738976B /* CalendarEventWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E1D4D3EA3440CFB72DD7D3 /* CalendarEventWriter.swift */; };
 		7DCDA647D1C44C20BCF7EA50 /* CalendarActionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */; };
+		B16A01B2C3D4E5F60718293A /* ModelCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16A01B2C3D4E5F60718293A /* ModelCapability.swift */; };
+		B16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +104,8 @@
 		8A4C6D03EBF27159C3DA6492 /* OpenRouterModelCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterModelCatalogTests.swift; sourceTree = "<group>"; };
 		739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatApp.swift; sourceTree = "<group>"; };
 		7415602CE5D47D71F672CB31 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
+		F16A01B2C3D4E5F60718293A /* ModelCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapability.swift; sourceTree = "<group>"; };
+		F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapabilityTests.swift; sourceTree = "<group>"; };
 		7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPickerSheet.swift; sourceTree = "<group>"; };
 		8278B52A14134A4DE0197F82 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		8349AA13A5CE82E605DED785 /* OpenChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OpenChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -270,6 +274,7 @@
 				01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */,
 				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
+				F16A01B2C3D4E5F60718293A /* ModelCapability.swift */,
 				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
 				B22C33D44E5F60718293A4B5 /* ChatImageAttachment.swift */,
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
@@ -314,6 +319,7 @@
 				8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */,
+				F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */,
 				8A4C6D03EBF27159C3DA6492 /* OpenRouterModelCatalogTests.swift */,
 				9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */,
 				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
@@ -436,6 +442,7 @@
 				C274E79DA53C445D853B0846 /* AgentDataSourcePermissionService.swift in Sources */,
 				1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */,
 				4C866DDBCD5C78A83C5D6F5C /* AIModel.swift in Sources */,
+				B16A01B2C3D4E5F60718293A /* ModelCapability.swift in Sources */,
 				9C0FFAC148E41B6FE54A93FA /* APIFormat.swift in Sources */,
 				181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */,
 				0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */,
@@ -487,6 +494,7 @@
 				5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				A44E55F66718293A4B5C6D70 /* MultimodalAttachmentTests.swift in Sources */,
+				B16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift in Sources */,
 				5A1E8F24C7B6930D4E2A15F8 /* OpenRouterModelCatalogTests.swift in Sources */,
 				66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */,
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,

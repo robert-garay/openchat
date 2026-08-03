@@ -6,12 +6,49 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
     var displayName: String
     /// Short human hint shown under the model name in the picker, e.g. "128K context · Reasoning".
     var subtitle: String?
-    var supportsVision: Bool
+    /// Capability badges shown next to the model name.
+    var capabilities: [ModelCapability]
 
-    init(id: String, displayName: String, subtitle: String? = nil, supportsVision: Bool = false) {
+    var supportsVision: Bool {
+        capabilities.contains(.vision)
+    }
+
+    init(
+        id: String,
+        displayName: String,
+        subtitle: String? = nil,
+        supportsVision: Bool = false,
+        capabilities: [ModelCapability] = []
+    ) {
         self.id = id
         self.displayName = displayName
         self.subtitle = subtitle
-        self.supportsVision = supportsVision
+        var caps = Set(capabilities)
+        if supportsVision { caps.insert(.vision) }
+        self.capabilities = ModelCapability.sorted(caps)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, displayName, subtitle, capabilities, supportsVision
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
+        var caps = Set(try container.decodeIfPresent([ModelCapability].self, forKey: .capabilities) ?? [])
+        if try container.decodeIfPresent(Bool.self, forKey: .supportsVision) == true {
+            caps.insert(.vision)
+        }
+        capabilities = ModelCapability.sorted(caps)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encodeIfPresent(subtitle, forKey: .subtitle)
+        try container.encode(capabilities, forKey: .capabilities)
     }
 }

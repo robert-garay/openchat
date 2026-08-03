@@ -48,7 +48,11 @@ struct ProviderDetailView: View {
 
             Section {
                 ForEach(provider.models) { model in
-                    Text(model.displayName)
+                    HStack {
+                        Text(model.displayName)
+                        Spacer()
+                        ModelCapabilitySigns(capabilities: model.capabilities)
+                    }
                 }
                 .onDelete { indices in
                     provider.models.remove(atOffsets: indices)
