@@ -66,7 +66,7 @@ enum CalendarEventWriter {
         } catch {
             throw CalendarEventWriterError.saveFailed(error.localizedDescription)
         }
-        return "Created “\(title)”."
+        return "Created \"\(title)\"."
     }
 
     @MainActor
@@ -94,7 +94,8 @@ enum CalendarEventWriter {
         } catch {
             throw CalendarEventWriterError.saveFailed(error.localizedDescription)
         }
-        return "Updated “\(event.title ?? "event”)”."
+        let name = event.title ?? "event"
+        return "Updated \"\(name)\"."
     }
 
     @MainActor
@@ -109,6 +110,6 @@ enum CalendarEventWriter {
         } catch {
             throw CalendarEventWriterError.saveFailed(error.localizedDescription)
         }
-        return "Deleted “\(title)”."
+        return "Deleted \"\(title)\"."
     }
 }
