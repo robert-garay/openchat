@@ -76,6 +76,18 @@ struct ModelPickerSheet: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 6) {
+                    Image(systemName: "eye")
+                        .font(.caption2.weight(.semibold))
+                    Text("Can read images")
+                        .font(.caption2)
+                }
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
         }
         .presentationDetents([.medium, .large])
         .task {
@@ -184,6 +196,7 @@ struct ModelPickerSheet: View {
             modelRow(
                 title: model.displayName,
                 subtitle: model.subtitle,
+                supportsVision: model.inputModalities.contains("image"),
                 isSelected: currentProviderID == "openrouter" && currentModelID == model.id
             )
         }
@@ -198,16 +211,20 @@ struct ModelPickerSheet: View {
             modelRow(
                 title: model.displayName,
                 subtitle: model.subtitle,
+                supportsVision: model.supportsVision,
                 isSelected: providerID == currentProviderID && model.id == currentModelID
             )
         }
     }
 
-    private func modelRow(title: String, subtitle: String?, isSelected: Bool) -> some View {
+    private func modelRow(title: String, subtitle: String?, supportsVision: Bool, isSelected: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .foregroundStyle(.primary)
+                HStack(spacing: 6) {
+                    Text(title)
+                        .foregroundStyle(.primary)
+                    ModelCapabilitySign(supportsVision: supportsVision)
+                }
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.caption)

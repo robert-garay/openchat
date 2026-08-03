@@ -56,6 +56,10 @@
 		1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */; };
 		5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */; };
 		0709CEEEE0054117AE9211BA /* FitnessHealthDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */; };
+		A11B22C33D4E5F60718293A4 /* ChatImageAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22C33D44E5F60718293A4B5 /* ChatImageAttachment.swift */; };
+		A22C33D44E5F60718293A4B5 /* ModelCapabilitySign.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33D44E55F60718293A4B5C6 /* ModelCapabilitySign.swift */; };
+		A33D44E55F60718293A4B5C6 /* MultimodalRequestEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */; };
+		A44E55F66718293A4B5C6D70 /* MultimodalAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +112,10 @@
 		BF39430772B8F591B2A8AE36 /* OpenChatTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OpenChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStreamTests.swift; sourceTree = "<group>"; };
 		C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		B22C33D44E5F60718293A4B5 /* ChatImageAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatImageAttachment.swift; sourceTree = "<group>"; };
+		C33D44E55F60718293A4B5C6 /* ModelCapabilitySign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapabilitySign.swift; sourceTree = "<group>"; };
+		D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultimodalRequestEncoder.swift; sourceTree = "<group>"; };
+		E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultimodalAttachmentTests.swift; sourceTree = "<group>"; };
 		DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProviderView.swift; sourceTree = "<group>"; };
 		E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionClient.swift; sourceTree = "<group>"; };
 		E4EA65A8E67CCE1B461F1C3E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -200,6 +208,7 @@
 				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
 				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
+				D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */,
 				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
 				7F3B5C92DAE16048B2C95381 /* OpenRouterModelsClient.swift */,
 				8278B52A14134A4DE0197F82 /* ProviderStore.swift */,
@@ -238,6 +247,7 @@
 				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
 				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
+				B22C33D44E5F60718293A4B5 /* ChatImageAttachment.swift */,
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
 				50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */,
 				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
@@ -266,6 +276,7 @@
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
 				9485D5CB91D1A9E8C7915F97 /* Haptics.swift */,
+				C33D44E55F60718293A4B5C6 /* ModelCapabilitySign.swift */,
 				9B2E4F81C0D16A5B8E3F7091 /* OpenChatLogoView.swift */,
 				8F1C3D27A9E04B5C9D2E6F80 /* ProviderLogoView.swift */,
 				5332911ABD740626614DC38E /* Theme.swift */,
@@ -278,6 +289,7 @@
 			children = (
 				8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
+				E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */,
 				8A4C6D03EBF27159C3DA6492 /* OpenRouterModelCatalogTests.swift */,
 				9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */,
 				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
@@ -400,6 +412,7 @@
 				F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */,
 				ABDB5B2887AD8455032D41C4 /* ChatCompletionClient.swift in Sources */,
 				3ED841FADCE12AE77AB278CB /* ChatMessage.swift in Sources */,
+				A11B22C33D4E5F60718293A4 /* ChatImageAttachment.swift in Sources */,
 				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
 				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
@@ -414,7 +427,9 @@
 				5FBADBABFC44F1299042C3DC /* MarkdownMessageView.swift in Sources */,
 				30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */,
 				3133335079619130518EF11E /* MessageComposerView.swift in Sources */,
+				A22C33D44E5F60718293A4B5 /* ModelCapabilitySign.swift in Sources */,
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
+				A33D44E55F60718293A4B5C6 /* MultimodalRequestEncoder.swift in Sources */,
 				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
 				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
 				4D8A1C02B7E35F49A0C21678 /* OpenChatLogoView.swift in Sources */,
@@ -439,6 +454,7 @@
 			files = (
 				5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
+				A44E55F66718293A4B5C6D70 /* MultimodalAttachmentTests.swift in Sources */,
 				5A1E8F24C7B6930D4E2A15F8 /* OpenRouterModelCatalogTests.swift in Sources */,
 				66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */,
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,

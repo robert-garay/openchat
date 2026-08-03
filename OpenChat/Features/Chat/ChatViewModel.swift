@@ -7,6 +7,8 @@ import Observation
 final class ChatViewModel {
     private(set) var isStreaming = false
     var composerText = ""
+    var pendingAttachments: [ChatImageAttachment] = []
+    var capabilityWarning: String?
 
     private let conversation: Conversation
     private let modelContext: ModelContext
@@ -27,24 +29,50 @@ final class ChatViewModel {
         providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID)
     }
 
+    var supportsVision: Bool {
+        currentModel?.supportsVision ?? false
+    }
+
     func selectModel(providerID: String, modelID: String) {
         conversation.providerID = providerID
         conversation.modelID = modelID
         conversation.updatedAt = .now
+
+        let model = providerStore.model(providerID: providerID, modelID: modelID)
+        if !pendingAttachments.isEmpty, model?.supportsVision != true {
+            pendingAttachments = []
+            capabilityWarning = "\(model?.displayName ?? "This model") can’t process images, so attached photos were removed."
+        }
+    }
+
+    func dismissCapabilityWarning() {
+        capabilityWarning = nil
     }
 
     func send() {
         let text = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !isStreaming else { return }
-        composerText = ""
+        let images = pendingAttachments
+        guard (!text.isEmpty || !images.isEmpty), !isStreaming else { return }
 
-        let userMessage = ChatMessage(role: .user, content: text)
+        if !images.isEmpty, !supportsVision {
+            capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
+            return
+        }
+
+        composerText = ""
+        pendingAttachments = []
+
+        let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images)
         userMessage.conversation = conversation
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
 
         if conversation.title == "New Chat" {
-            conversation.title = String(text.prefix(40))
+            if !text.isEmpty {
+                conversation.title = String(text.prefix(40))
+            } else {
+                conversation.title = "Image"
+            }
         }
         conversation.updatedAt = .now
 
@@ -69,6 +97,21 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
+        let priorMessages = conversation.sortedMessages.filter { !($0.role == .assistant && $0.isStreaming) }
+
+        if priorMessages.contains(where: { !$0.imageAttachments.isEmpty }), !model.supportsVision {
+            let assistantMessage = ChatMessage(
+                role: .assistant,
+                content: "",
+                errorMessage: ChatServiceError.modelLacksVision.errorDescription
+            )
+            assistantMessage.conversation = conversation
+            conversation.messages.append(assistantMessage)
+            modelContext.insert(assistantMessage)
+            conversation.updatedAt = .now
+            return
+        }
+
         let assistantMessage = ChatMessage(role: .assistant, content: "", isStreaming: true)
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
@@ -79,8 +122,8 @@ final class ChatViewModel {
             turns.append(ChatTurn(role: .system, content: conversation.systemPrompt))
         }
         turns.append(contentsOf: conversation.sortedMessages
-            .filter { $0.id != assistantMessage.id && !$0.content.isEmpty }
-            .map { ChatTurn(role: $0.role, content: $0.content) })
+            .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
+            .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) })
 
         isStreaming = true
         let client = ChatService.client(for: provider.apiFormat)

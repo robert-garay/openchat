@@ -5,6 +5,15 @@ import Foundation
 struct ChatTurn: Sendable {
     var role: MessageRole
     var content: String
+    var images: [ChatImageAttachment]
+
+    init(role: MessageRole, content: String, images: [ChatImageAttachment] = []) {
+        self.role = role
+        self.content = content
+        self.images = images
+    }
+
+    var hasImages: Bool { !images.isEmpty }
 }
 
 enum ChatServiceError: LocalizedError {
@@ -13,6 +22,7 @@ enum ChatServiceError: LocalizedError {
     case http(status: Int, body: String)
     case decoding(String)
     case cancelled
+    case modelLacksVision
 
     var errorDescription: String? {
         switch self {
@@ -30,6 +40,8 @@ enum ChatServiceError: LocalizedError {
             return "Couldn't read the response: \(reason)"
         case .cancelled:
             return "Request cancelled."
+        case .modelLacksVision:
+            return "This model can't process images. Choose a vision-capable model."
         }
     }
 }

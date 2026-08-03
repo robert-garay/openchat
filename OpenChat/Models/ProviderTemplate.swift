@@ -155,7 +155,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             apiKeyPlaceholder: "sk-or-...",
             defaultModels: [
                 AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
-                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source"),
+                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", supportsVision: true),
                 AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
             ]
         ),
