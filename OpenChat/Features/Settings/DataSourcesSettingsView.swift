@@ -37,7 +37,7 @@ struct DataSourcesSettingsView: View {
                     Text(section.title)
                 } footer: {
                     if section == .fitness {
-                        Text("Fitness insights only — not medical advice. Review the privacy notice before enabling Apple Health.")
+                        Text("Fitness metrics only (\(FitnessHealthDataTypes.userFacingSummary)). No clinical records, labs, or medications. Not medical advice.")
                     } else {
                         EmptyView()
                     }
@@ -70,7 +70,7 @@ struct DataSourcesSettingsView: View {
 
     private func handleToggle(_ source: AgentDataSource, enabled: Bool) async {
         if enabled {
-            if source.requiresPrivacyNotice {
+            if source.requiresPrivacyNotice && !dataSourceStore.hasAcknowledgedFitnessPrivacyNotice {
                 showingFitnessNotice = true
                 return
             }
@@ -123,13 +123,18 @@ struct FitnessPrivacyNoticeView: View {
 
                     noticeRow(
                         symbol: "heart.text.square",
-                        title: "Fitness insights only",
-                        detail: "Agents may use workouts, heart rate, sleep, and activity for coaching-style insights. This is not medical advice, diagnosis, or treatment."
+                        title: "Fitness metrics only",
+                        detail: "OpenChat may read \(FitnessHealthDataTypes.userFacingSummary). This is for coaching-style fitness insights — not medical advice, diagnosis, or treatment."
+                    )
+                    noticeRow(
+                        symbol: "cross.case",
+                        title: "No clinical data",
+                        detail: "OpenChat does not request clinical records, lab results, medications, immunizations, or other medical chart data from Apple Health."
                     )
                     noticeRow(
                         symbol: "network",
                         title: "Sent to your AI provider",
-                        detail: "Relevant health metrics may be included in prompts sent to the AI providers you configure (for example OpenAI, Anthropic, or a custom endpoint). OpenChat does not operate its own backend for this data."
+                        detail: "Relevant fitness metrics may be included in prompts sent to the AI providers you configure (for example OpenAI, Anthropic, or a custom endpoint). OpenChat does not operate its own backend for this data."
                     )
                     noticeRow(
                         symbol: "lock.shield",

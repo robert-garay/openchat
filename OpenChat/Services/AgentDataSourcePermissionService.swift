@@ -57,32 +57,9 @@ final class AgentDataSourcePermissionService {
 
     // MARK: - Health
 
-    private func healthReadTypes() -> Set<HKObjectType> {
-        var types: Set<HKObjectType> = []
-        let identifiers: [HKQuantityTypeIdentifier] = [
-            .stepCount,
-            .heartRate,
-            .restingHeartRate,
-            .heartRateVariabilitySDNN,
-            .activeEnergyBurned,
-            .bodyMass,
-            .height,
-        ]
-        for id in identifiers {
-            if let type = HKObjectType.quantityType(forIdentifier: id) {
-                types.insert(type)
-            }
-        }
-        if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
-            types.insert(sleep)
-        }
-        types.insert(HKObjectType.workoutType())
-        return types
-    }
-
     private func requestHealth() async -> AgentDataSourceAuthorizationStatus {
         guard HKHealthStore.isHealthDataAvailable() else { return .unavailable }
-        let types = healthReadTypes()
+        let types = FitnessHealthDataTypes.readTypes
         do {
             try await healthStore.requestAuthorization(toShare: [], read: types)
             // Read authorization is intentionally opaque on iOS; a completed prompt counts as opted-in.

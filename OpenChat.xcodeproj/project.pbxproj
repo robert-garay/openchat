@@ -56,6 +56,7 @@
 		C274E79DA53C445D853B0846 /* AgentDataSourcePermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EF760A60914B4CA22776A7 /* AgentDataSourcePermissionService.swift */; };
 		1DC76157332944458C848EBC /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */; };
 		5A3C879CFE284AE8AC7F8096 /* AgentDataSourceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */; };
+		0709CEEEE0054117AE9211BA /* FitnessHealthDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +122,7 @@
 		9CDA79816CD44FB0B19417FA /* DataSourcesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourcesSettingsView.swift; sourceTree = "<group>"; };
 		8B77BD8EFA4E4335AE3C0516 /* AgentDataSourceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStoreTests.swift; sourceTree = "<group>"; };
 		FBE0A9AC99CD4E08BE2B0C4C /* OpenChat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenChat.entitlements; sourceTree = "<group>"; };
+		01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessHealthDataTypes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -235,6 +237,7 @@
 		D07F06DCA57DBF4F51AE9C11 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				01CFC54CE4914110814A4A49 /* FitnessHealthDataTypes.swift */,
 				1A62CF22E9D24E64BFADD1B4 /* AgentDataSource.swift */,
 				7415602CE5D47D71F672CB31 /* AIModel.swift */,
 				351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */,
@@ -388,6 +391,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0709CEEEE0054117AE9211BA /* FitnessHealthDataTypes.swift in Sources */,
 				D825C404D23F4FE3A64B1D27 /* AgentDataSource.swift in Sources */,
 				9DFD2D12E9824CD48CC196C6 /* AgentDataSourceStore.swift in Sources */,
 				C274E79DA53C445D853B0846 /* AgentDataSourcePermissionService.swift in Sources */,

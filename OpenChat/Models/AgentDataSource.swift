@@ -25,7 +25,7 @@ enum AgentDataSource: String, CaseIterable, Codable, Identifiable, Sendable {
 
     var subtitle: String {
         switch self {
-        case .appleHealth: "Workouts, heart rate, sleep, and activity for fitness insights"
+        case .appleHealth: "Steps, heart rate, workouts, and related fitness metrics only"
         case .camera: "Capture photos or documents for the agent"
         case .microphone: "Voice input and transcription"
         case .photos: "Analyze images you choose to share"

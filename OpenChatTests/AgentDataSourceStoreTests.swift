@@ -1,3 +1,4 @@
+import HealthKit
 import XCTest
 @testable import OpenChat
 
@@ -74,4 +75,26 @@ final class AgentDataSourceStoreTests: XCTestCase {
             "notifications",
         ])
     }
+
+    func testFitnessHealthAllowlistExcludesBodyMetricsAndIsWorkoutFocused() {
+        let ids = Set(FitnessHealthDataTypes.quantityIdentifiers.map(\.rawValue))
+        XCTAssertEqual(ids, [
+            "HKQuantityTypeIdentifierStepCount",
+            "HKQuantityTypeIdentifierHeartRate",
+            "HKQuantityTypeIdentifierRestingHeartRate",
+            "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+            "HKQuantityTypeIdentifierActiveEnergyBurned",
+            "HKQuantityTypeIdentifierAppleExerciseTime",
+            "HKQuantityTypeIdentifierDistanceWalkingRunning",
+        ])
+        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierBodyMass"))
+        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierHeight"))
+        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierBloodGlucose"))
+
+        let readTypes = FitnessHealthDataTypes.readTypes
+        XCTAssertTrue(readTypes.contains(HKObjectType.workoutType()))
+        XCTAssertTrue(readTypes.contains(HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!))
+        XCTAssertFalse(readTypes.contains(where: { $0 is HKClinicalType }))
+    }
 }
+
