@@ -51,7 +51,7 @@ enum WebSearchProviderKind: String, CaseIterable, Identifiable, Codable, Sendabl
         }
     }
 
-    /// Soft chip tint behind the logo (matches ProviderLogoView usage).
+    /// Tint used for SF Symbol fallback when a logo asset is missing.
     var tintHex: String {
         switch self {
         case .tavily: "0F172A"

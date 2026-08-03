@@ -10,22 +10,25 @@ struct ProviderLogoView: View {
     var cornerRadius: CGFloat = 8
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(tint.opacity(0.12))
-            .frame(width: size, height: size)
-            .overlay {
-                if let logoAssetName, UIImage(named: logoAssetName) != nil {
-                    Image(logoAssetName)
-                        .resizable()
-                        .scaledToFit()
-                        .padding(size * 0.18)
-                } else {
-                    Image(systemName: symbolName)
-                        .font(.system(size: size * 0.42, weight: .semibold))
-                        .foregroundStyle(tint)
-                }
+        Group {
+            if let logoAssetName, UIImage(named: logoAssetName) != nil {
+                Image(logoAssetName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size, height: size)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            } else {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(tint.opacity(0.12))
+                    .frame(width: size, height: size)
+                    .overlay {
+                        Image(systemName: symbolName)
+                            .font(.system(size: size * 0.42, weight: .semibold))
+                            .foregroundStyle(tint)
+                    }
             }
-            .accessibilityHidden(true)
+        }
+        .accessibilityHidden(true)
     }
 }
 
