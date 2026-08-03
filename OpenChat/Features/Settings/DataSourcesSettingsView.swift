@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DataSourcesSettingsView: View {
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
-    @State private var pendingSource: AgentDataSource?
+    @State private var showingFitnessNotice = false
     @State private var busySource: AgentDataSource?
     @State private var statusMessage: String?
 
@@ -35,6 +35,12 @@ struct DataSourcesSettingsView: View {
                     }
                 } header: {
                     Text(section.title)
+                } footer: {
+                    if section == .fitness {
+                        Text("Fitness insights only — not medical advice. Review the privacy notice before enabling Apple Health.")
+                    } else {
+                        EmptyView()
+                    }
                 }
             }
 
@@ -48,25 +54,14 @@ struct DataSourcesSettingsView: View {
         }
         .navigationTitle("Agent Data Sources")
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog(
-            pendingSource?.title ?? "Enable source",
-            isPresented: Binding(
-                get: { pendingSource != nil },
-                set: { if !$0 { pendingSource = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Enable") {
-                if let source = pendingSource {
-                    pendingSource = nil
-                    Task { await enable(source) }
-                }
+        .sheet(isPresented: $showingFitnessNotice) {
+            FitnessPrivacyNoticeView {
+                dataSourceStore.acknowledgeFitnessPrivacyNotice()
+                showingFitnessNotice = false
+                Task { await enable(.appleHealth) }
+            } onCancel: {
+                showingFitnessNotice = false
             }
-            Button("Cancel", role: .cancel) {
-                pendingSource = nil
-            }
-        } message: {
-            Text(pendingSource?.confirmationMessage ?? "")
         }
         .onAppear {
             dataSourceStore.refreshAuthorizationStatuses()
@@ -75,8 +70,8 @@ struct DataSourcesSettingsView: View {
 
     private func handleToggle(_ source: AgentDataSource, enabled: Bool) async {
         if enabled {
-            if source.requiresConfirmation {
-                pendingSource = source
+            if source.requiresPrivacyNotice {
+                showingFitnessNotice = true
                 return
             }
             await enable(source)
@@ -107,6 +102,93 @@ struct DataSourcesSettingsView: View {
         case .notDetermined:
             statusMessage = "\(source.title) permission wasn’t completed."
             Haptics.error()
+        }
+    }
+}
+
+struct FitnessPrivacyNoticeView: View {
+    let onAgree: () -> Void
+    let onCancel: () -> Void
+    @State private var acknowledged = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Fitness & Health Privacy")
+                        .font(.title2.weight(.semibold))
+
+                    Text("Before OpenChat can read Apple Health, please confirm you understand how this data is used.")
+                        .foregroundStyle(.secondary)
+
+                    noticeRow(
+                        symbol: "heart.text.square",
+                        title: "Fitness insights only",
+                        detail: "Agents may use workouts, heart rate, sleep, and activity for coaching-style insights. This is not medical advice, diagnosis, or treatment."
+                    )
+                    noticeRow(
+                        symbol: "network",
+                        title: "Sent to your AI provider",
+                        detail: "Relevant health metrics may be included in prompts sent to the AI providers you configure (for example OpenAI, Anthropic, or a custom endpoint). OpenChat does not operate its own backend for this data."
+                    )
+                    noticeRow(
+                        symbol: "lock.shield",
+                        title: "Under your control",
+                        detail: "Apple Health stays off until you enable it. You can turn it off anytime in OpenChat. Revoke system access in iOS Settings → Health → Data Access."
+                    )
+                    noticeRow(
+                        symbol: "eye.slash",
+                        title: "No selling or ads",
+                        detail: "OpenChat does not sell Health data or use it for advertising or credit decisions."
+                    )
+
+                    Toggle(isOn: $acknowledged) {
+                        Text("I understand and want to enable Apple Health for fitness insights.")
+                            .font(.subheadline)
+                    }
+                    .padding(.top, 8)
+                }
+                .padding(20)
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 10) {
+                    Button("Agree & Continue") {
+                        onAgree()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(!acknowledged)
+                    .frame(maxWidth: .infinity)
+
+                    Button("Not Now", action: onCancel)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(20)
+                .background(.bar)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private func noticeRow(symbol: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol)
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.headline)
+                Text(detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

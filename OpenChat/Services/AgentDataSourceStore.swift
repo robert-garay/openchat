@@ -8,8 +8,10 @@ import Observation
 final class AgentDataSourceStore {
     private(set) var enabledSourceIDs: Set<String> = []
     private(set) var lastAuthorizationBySource: [AgentDataSource: AgentDataSourceAuthorizationStatus] = [:]
+    private(set) var hasAcknowledgedFitnessPrivacyNotice: Bool = false
 
     private let defaultsKey = "com.openchat.agentDataSources"
+    private let fitnessNoticeKey = "com.openchat.fitnessPrivacyNoticeAcknowledged"
     private let defaults: UserDefaults
     private let permissions: AgentDataSourcePermissionService
 
@@ -50,6 +52,11 @@ final class AgentDataSourceStore {
         lastAuthorizationBySource = statuses
     }
 
+    func acknowledgeFitnessPrivacyNotice() {
+        hasAcknowledgedFitnessPrivacyNotice = true
+        defaults.set(true, forKey: fitnessNoticeKey)
+    }
+
     @discardableResult
     func setEnabled(_ enabled: Bool, for source: AgentDataSource) async -> AgentDataSourceAuthorizationStatus {
         if !enabled {
@@ -57,6 +64,10 @@ final class AgentDataSourceStore {
             persist()
             refreshAuthorizationStatuses()
             return authorizationStatus(for: source)
+        }
+
+        if source.requiresPrivacyNotice && !hasAcknowledgedFitnessPrivacyNotice {
+            return .notDetermined
         }
 
         let status = await permissions.requestAccess(for: source)
@@ -75,12 +86,15 @@ final class AgentDataSourceStore {
     }
 
     private func load() {
+        hasAcknowledgedFitnessPrivacyNotice = defaults.bool(forKey: fitnessNoticeKey)
         guard let values = defaults.array(forKey: defaultsKey) as? [String] else {
             enabledSourceIDs = []
             return
         }
         let valid = Set(AgentDataSource.allCases.map(\.rawValue))
         enabledSourceIDs = Set(values.filter { valid.contains($0) })
+        // Drop removed MVP sources (Home, Location, etc.) from persistence.
+        persist()
     }
 
     private func persist() {
