@@ -16,13 +16,27 @@ struct MessageBubbleView: View {
     let onRetry: () -> Void
 
     var body: some View {
-        switch message.role {
-        case .user:
-            userBubble
-        case .assistant:
-            assistantContent
-        case .system:
-            EmptyView()
+        Group {
+            switch message.role {
+            case .user:
+                userBubble
+            case .assistant:
+                assistantContent
+            case .system:
+                EmptyView()
+            }
+        }
+        .contextMenu {
+            if !message.content.isEmpty {
+                Button {
+                    #if canImport(UIKit)
+                    UIPasteboard.general.string = message.content
+                    #endif
+                    Haptics.light()
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+            }
         }
     }
 
