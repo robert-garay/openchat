@@ -14,7 +14,6 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
     var defaultModels: [AIModel]
-    var region: String?
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -34,8 +33,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "deepseek-chat", displayName: "DeepSeek-V3", subtitle: "General purpose · 64K context"),
                 AIModel(id: "deepseek-reasoner", displayName: "DeepSeek-R1", subtitle: "Deep reasoning · 64K context", capabilities: [.reasoning]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "qwen",
@@ -51,8 +49,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "qwen-plus", displayName: "Qwen-Plus", subtitle: "Balanced speed & quality"),
                 AIModel(id: "qwen-turbo", displayName: "Qwen-Turbo", subtitle: "Fast & low cost"),
                 AIModel(id: "qwen-vl-plus", displayName: "Qwen-VL Plus", subtitle: "Vision", capabilities: [.vision]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "moonshot",
@@ -67,8 +64,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "kimi-k2-0711-preview", displayName: "Kimi K2", subtitle: "Frontier open model"),
                 AIModel(id: "moonshot-v1-32k", displayName: "Moonshot v1 32K", subtitle: "32K context"),
                 AIModel(id: "moonshot-v1-128k", displayName: "Moonshot v1 128K", subtitle: "128K context"),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "zhipu",
@@ -83,8 +79,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model", capabilities: [.reasoning]),
                 AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast"),
                 AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", capabilities: [.vision]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "yi",
@@ -98,8 +93,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "yi-large", displayName: "Yi-Large", subtitle: "Flagship model"),
                 AIModel(id: "yi-large-turbo", displayName: "Yi-Large-Turbo", subtitle: "Faster variant"),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "openai",
