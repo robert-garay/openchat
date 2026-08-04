@@ -53,15 +53,6 @@
             ReferencedContainer = "container:OpenChat.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <CodeCoverageTargets>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2B29DA223D502CCCA6C33B3E"
-            BuildableName = "OpenChat.app"
-            BlueprintName = "OpenChat"
-            ReferencedContainer = "container:OpenChat.xcodeproj">
-         </BuildableReference>
-      </CodeCoverageTargets>
       <Testables>
          <TestableReference
             skipped = "NO"
@@ -78,6 +69,15 @@
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
+      <CodeCoverageTargets>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2B29DA223D502CCCA6C33B3E"
+            BuildableName = "OpenChat.app"
+            BlueprintName = "OpenChat"
+            ReferencedContainer = "container:OpenChat.xcodeproj">
+         </BuildableReference>
+      </CodeCoverageTargets>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

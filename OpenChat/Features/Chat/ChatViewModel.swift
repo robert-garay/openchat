@@ -233,13 +233,15 @@ final class ChatViewModel {
             guard let self else { return }
             do {
                 var summary = ""
-                for try await delta in client.streamReply(
+                for try await event in client.streamReply(
                     turns: summarizationTurns,
                     model: modelID,
                     baseURL: baseURL,
                     apiKey: apiKey
                 ) {
-                    summary += delta
+                    if case .text(let delta) = event {
+                        summary += delta
+                    }
                 }
 
                 let trimmed = summary.trimmingCharacters(in: .whitespacesAndNewlines)
