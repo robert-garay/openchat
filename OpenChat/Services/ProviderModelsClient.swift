@@ -31,17 +31,20 @@ struct ProviderModelsClient: Sendable {
     static func decodeOpenAIModels(from data: Data) throws -> [AIModel] {
         let decoded = try JSONDecoder().decode(OpenAIModelsResponse.self, from: data)
         return decoded.data
-            .map(\.id)
-            .filter(isLikelyChatModelID)
-            .map { id in
+            .filter { isLikelyChatModelID($0.id) }
+            .map { remote in
+                // Empty modalities/parameters mean "unknown" so identity heuristics can fill gaps.
+                // Providers that include architecture metadata (e.g. some OpenRouter-compatible
+                // proxies) are trusted over name matching.
                 AIModel(
-                    id: id,
-                    displayName: id,
+                    id: remote.id,
+                    displayName: remote.id,
                     capabilities: ModelCapability.inferred(
-                        inputModalities: ["text"],
-                        outputModalities: ["text"],
-                        modelID: id,
-                        modelName: id
+                        inputModalities: remote.architecture?.input_modalities ?? [],
+                        outputModalities: remote.architecture?.output_modalities ?? [],
+                        supportedParameters: remote.supported_parameters ?? [],
+                        modelID: remote.id,
+                        modelName: remote.id
                     )
                 )
             }
@@ -94,6 +97,15 @@ struct ProviderModelsClient: Sendable {
             // Anthropic Messages API models support tools.
             caps.insert(.tools)
 
+            // Fill gaps when the API omits the capabilities object (older responses).
+            let inferred = ModelCapability.inferred(
+                inputModalities: [],
+                outputModalities: [],
+                modelID: remote.id,
+                modelName: remote.display_name ?? remote.id
+            )
+            caps.formUnion(inferred)
+
             var subtitle: String?
             if let tokens = remote.max_input_tokens, tokens > 0 {
                 subtitle = Self.formatContext(tokens)
@@ -113,7 +125,7 @@ struct ProviderModelsClient: Sendable {
         )
     }
 
-    /// Prefer template metadata when a live model id matches a known default.
+    /// Prefer template display names/subtitles; union capabilities from live + defaults.
     static func enrich(_ models: [AIModel], using defaults: [AIModel]) -> [AIModel] {
         let known = Dictionary(uniqueKeysWithValues: defaults.map { ($0.id, $0) })
         return models.map { model in
@@ -122,7 +134,7 @@ struct ProviderModelsClient: Sendable {
                 id: model.id,
                 displayName: match.displayName,
                 subtitle: match.subtitle ?? model.subtitle,
-                capabilities: match.capabilities.isEmpty ? model.capabilities : match.capabilities
+                capabilities: ModelCapability.sorted(Set(model.capabilities).union(match.capabilities))
             )
         }
     }
@@ -225,6 +237,13 @@ private struct OpenAIModelsResponse: Decodable {
 
 private struct OpenAIRemoteModel: Decodable {
     var id: String
+    var architecture: OpenAIRemoteArchitecture?
+    var supported_parameters: [String]?
+}
+
+private struct OpenAIRemoteArchitecture: Decodable {
+    var input_modalities: [String]?
+    var output_modalities: [String]?
 }
 
 private struct AnthropicModelsResponse: Decodable {
