@@ -7,6 +7,7 @@ struct OpenChatApp: App {
     @State private var providerStore = ProviderStore()
     @State private var dataSourceStore = AgentDataSourceStore()
     @State private var webSearchStore = WebSearchStore()
+    @State private var rulesStore = RulesStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
@@ -23,6 +24,7 @@ struct OpenChatApp: App {
                 .environment(providerStore)
                 .environment(dataSourceStore)
                 .environment(webSearchStore)
+                .environment(rulesStore)
                 .preferredColorScheme(appearance.colorScheme)
                 .onAppear { appearance.applyToAllWindows() }
                 .onChange(of: appearance) { _, newValue in

@@ -44,6 +44,14 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    NavigationLink {
+                        RulesSettingsView()
+                    } label: {
+                        Label("Rules", systemImage: "text.alignleft")
+                    }
+                }
+
                 Section("Privacy") {
                     NavigationLink {
                         DataSourcesSettingsView()

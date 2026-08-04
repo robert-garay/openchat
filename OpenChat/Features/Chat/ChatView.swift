@@ -9,8 +9,10 @@ struct ChatView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(WebSearchStore.self) private var webSearchStore
+    @Environment(RulesStore.self) private var rulesStore
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
+    @State private var showingChatRules = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,19 +69,32 @@ struct ChatView: View {
                     }
                 }
             }
-            if conversation.messages.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 12) {
+                    if conversation.messages.isEmpty {
+                        Button {
+                            Haptics.light()
+                            onToggleTemporary?()
+                        } label: {
+                            GhostIcon(size: 17, filled: conversation.isTemporary)
+                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                                .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                                .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                        }
+                    }
+
                     Button {
                         Haptics.light()
-                        onToggleTemporary?()
+                        showingChatRules = true
                     } label: {
-                        GhostIcon(size: 17, filled: conversation.isTemporary)
-                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                            .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                            .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                        Image(systemName: "text.alignleft")
+                            .accessibilityLabel("Chat rules")
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showingChatRules) {
+            ChatRulesSheet(conversation: conversation)
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
@@ -110,7 +125,8 @@ struct ChatView: View {
                     modelContext: modelContext,
                     providerStore: providerStore,
                     dataSourceStore: dataSourceStore,
-                    webSearchStore: webSearchStore
+                    webSearchStore: webSearchStore,
+                    rulesStore: rulesStore
                 )
             }
         }

@@ -88,6 +88,12 @@
 		A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000005 /* SerpAPIClient.swift */; };
 		A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000006 /* WebSearchProviderPicker.swift */; };
 		A9001B11E000000000000001 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000001 /* CameraPicker.swift */; };
+		C2001B11E000000000000001 /* RulesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000001 /* RulesStore.swift */; };
+		C2001B11E000000000000002 /* ChatSystemPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */; };
+		C2001B11E000000000000003 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000003 /* RulesSettingsView.swift */; };
+		C2001B11E000000000000004 /* ChatRulesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000004 /* ChatRulesSheet.swift */; };
+		C2001B11E000000000000005 /* RulesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000005 /* RulesStoreTests.swift */; };
+		C2001B11E000000000000006 /* ChatSystemPromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000006 /* ChatSystemPromptBuilderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +194,12 @@
 		A8001F11E000000000000005 /* SerpAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIClient.swift; sourceTree = "<group>"; };
 		A8001F11E000000000000006 /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000001 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000001 /* RulesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStore.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilder.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000003 /* RulesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesSettingsView.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000004 /* ChatRulesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRulesSheet.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000005 /* RulesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStoreTests.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000006 /* ChatSystemPromptBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilderTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -254,6 +266,7 @@
 				62EFBE369A07EED25532B291 /* ProviderDetailView.swift */,
 				E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */,
 				60E88FA5334D59F31A5DF955 /* SettingsView.swift */,
+				C2001F11E000000000000003 /* RulesSettingsView.swift */,
 				A7001F11E000000000000006 /* WebSearchSettingsView.swift */,
 			);
 			path = Settings;
@@ -284,6 +297,8 @@
 				A7001F11E000000000000003 /* TavilyClient.swift */,
 				A7001F11E000000000000004 /* WebSearchService.swift */,
 				A7001F11E000000000000005 /* WebSearchStore.swift */,
+				C2001F11E000000000000001 /* RulesStore.swift */,
+				C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */,
 				A8001F11E000000000000002 /* ExaClient.swift */,
 				A8001F11E000000000000003 /* BraveSearchClient.swift */,
 				A8001F11E000000000000004 /* SerperClient.swift */,
@@ -319,6 +334,7 @@
 				FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */,
 				A9001F11E000000000000001 /* CameraPicker.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
+				C2001F11E000000000000004 /* ChatRulesSheet.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
 				38179096B024B94EA48B03CA /* MessageBubbleView.swift */,
@@ -392,6 +408,8 @@
 				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
 				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
 				A7001F11E000000000000007 /* WebSearchServiceTests.swift */,
+				C2001F11E000000000000005 /* RulesStoreTests.swift */,
+				C2001F11E000000000000006 /* ChatSystemPromptBuilderTests.swift */,
 			);
 			path = OpenChatTests;
 			sourceTree = "<group>";
@@ -519,6 +537,7 @@
 				A11B22C33D4E5F60718293A4 /* ChatImageAttachment.swift in Sources */,
 				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
 				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
+				C2001B11E000000000000004 /* ChatRulesSheet.swift in Sources */,
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
 				416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */,
 				B1B2C3D4E5F60718293A4B70 /* GhostIcon.swift in Sources */,
@@ -548,6 +567,7 @@
 				8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */,
 				D323D94CBA175F7AB0248CDA /* ServerSentEventStream.swift in Sources */,
 				388E8B37683BBD3C7294F4C4 /* SettingsView.swift in Sources */,
+				C2001B11E000000000000003 /* RulesSettingsView.swift in Sources */,
 				1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */,
 				5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */,
 				A7001B11E000000000000001 /* AnyCodableJSON.swift in Sources */,
@@ -555,6 +575,8 @@
 				A7001B11E000000000000003 /* TavilyClient.swift in Sources */,
 				A7001B11E000000000000004 /* WebSearchService.swift in Sources */,
 				A7001B11E000000000000005 /* WebSearchStore.swift in Sources */,
+				C2001B11E000000000000001 /* RulesStore.swift in Sources */,
+				C2001B11E000000000000002 /* ChatSystemPromptBuilder.swift in Sources */,
 				A7001B11E000000000000006 /* WebSearchSettingsView.swift in Sources */,
 				A8001B11E000000000000001 /* WebSearchProviderKind.swift in Sources */,
 				A8001B11E000000000000002 /* ExaClient.swift in Sources */,
@@ -583,6 +605,8 @@
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				A7001B11E000000000000007 /* WebSearchServiceTests.swift in Sources */,
+				C2001B11E000000000000005 /* RulesStoreTests.swift in Sources */,
+				C2001B11E000000000000006 /* ChatSystemPromptBuilderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

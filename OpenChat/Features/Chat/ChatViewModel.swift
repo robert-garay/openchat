@@ -18,6 +18,7 @@ final class ChatViewModel {
     private let providerStore: ProviderStore
     private let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
+    private let rulesStore: RulesStore
     private var streamingTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
@@ -29,13 +30,15 @@ final class ChatViewModel {
         modelContext: ModelContext,
         providerStore: ProviderStore,
         dataSourceStore: AgentDataSourceStore,
-        webSearchStore: WebSearchStore
+        webSearchStore: WebSearchStore,
+        rulesStore: RulesStore
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
         self.dataSourceStore = dataSourceStore
         self.webSearchStore = webSearchStore
+        self.rulesStore = rulesStore
         self.isWebSearchEnabledForChat = webSearchStore.isActive
     }
 
@@ -234,17 +237,15 @@ final class ChatViewModel {
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
-                var systemParts: [String] = []
-                if !conversationSystemPrompt.isEmpty {
-                    systemParts.append(conversationSystemPrompt)
-                }
+                var middleSections: [String] = []
 
                 dataSourceStore.refreshAuthorizationStatuses()
                 if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    systemParts.append(agentContext)
+                    middleSections.append(agentContext)
                 }
 
                 var tools: [ChatToolDefinition] = []
+                var webSearchToolPrompt: String?
                 if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
                     do {
                         let injected = try await WebSearchService.makeInjectedContext(
@@ -252,22 +253,28 @@ final class ChatViewModel {
                             apiKey: searchAPIKey,
                             client: searchClient
                         )
-                        systemParts.append(injected)
+                        middleSections.append(injected)
                     } catch {
-                        systemParts.append(
+                        middleSections.append(
                             "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
                         )
                     }
                 } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
                     tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-                    systemParts.append(
+                    webSearchToolPrompt =
                         "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
-                    )
                 }
 
+                let systemContent = ChatSystemPromptBuilder.assemble(
+                    globalRules: rulesStore.globalRules,
+                    chatRules: conversationSystemPrompt,
+                    middleSections: middleSections,
+                    webSearchToolPrompt: webSearchToolPrompt
+                )
+
                 var turns: [ChatTurn] = []
-                if !systemParts.isEmpty {
-                    turns.append(ChatTurn(role: .system, content: systemParts.joined(separator: "\n\n")))
+                if let systemContent {
+                    turns.append(ChatTurn(role: .system, content: systemContent))
                 }
                 turns.append(contentsOf: historyTurns)
 
