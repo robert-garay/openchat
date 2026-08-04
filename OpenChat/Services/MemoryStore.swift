@@ -1,54 +1,159 @@
 import Foundation
 import Observation
 import SwiftData
-@MainActor @Observable final class MemoryStore {
-    static let maxInjectionItems = 40, maxInjectionCharacters = 8000
-    private let useKey = "com.openchat.memory.useInChats", confirmKey = "com.openchat.memory.requireConfirmation"
+
+@MainActor
+@Observable
+final class MemoryStore {
+    static let maxInjectionItems = 40
+    static let maxInjectionCharacters = 8000
+
+    private let useKey = "com.openchat.memory.useInChats"
+    private let confirmKey = "com.openchat.memory.requireConfirmation"
+
+    @ObservationIgnored
     private let defaults: UserDefaults
+
     private(set) var useInChats: Bool
     private(set) var requireConfirmation: Bool
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        useInChats = defaults.object(forKey: useKey) == nil ? false : defaults.bool(forKey: useKey)
-        requireConfirmation = defaults.object(forKey: confirmKey) == nil ? true : defaults.bool(forKey: confirmKey)
-    }
-    nonisolated static func shouldUseMemory(isTemporary: Bool, useInChats: Bool) -> Bool { useInChats && !isTemporary }
-    func setUseInChats(_ v: Bool) { useInChats = v; defaults.set(v, forKey: useKey) }
-    func setRequireConfirmation(_ v: Bool) { requireConfirmation = v; defaults.set(v, forKey: confirmKey) }
-    func fetchItems(modelContext: ModelContext) throws -> [MemoryItem] { try modelContext.fetch(FetchDescriptor(sortBy: [SortDescriptor(\.pinned, order: .reverse), SortDescriptor(\.updatedAt, order: .reverse)])) }
-    @discardableResult func save(content: String, source: MemorySource, modelContext: ModelContext) throws -> MemoryItem {
-        let t = content.trimmingCharacters(in: .whitespacesAndNewlines); guard !t.isEmpty else { throw MemoryStoreError.emptyContent }
-        if let m = findSimilar(try fetchItems(modelContext: modelContext), t) { m.content = t; m.updatedAt = .now; if source == .user || m.source == .user { m.source = .user } else if source == .confirmedFromChat { m.source = .confirmedFromChat }; return m }
-        let i = MemoryItem(content: t, source: source); modelContext.insert(i); return i
-    }
-    func delete(_ i: MemoryItem, modelContext: ModelContext) { modelContext.delete(i) }
-    func clearAll(modelContext: ModelContext) throws { for i in try fetchItems(modelContext: modelContext) { modelContext.delete(i) } }
-    func togglePinned(_ i: MemoryItem) { i.pinned.toggle(); i.updatedAt = .now }
-    func updateContent(_ i: MemoryItem, content: String, modelContext: ModelContext) throws {
-        let t = content.trimmingCharacters(in: .whitespacesAndNewlines); guard !t.isEmpty else { throw MemoryStoreError.emptyContent }
-        let rest = try fetchItems(modelContext: modelContext).filter { $0.id != i.id }
-        if let m = findSimilar(rest, t) { modelContext.delete(i); m.content = t; m.updatedAt = .now; return }
-        i.content = t; i.updatedAt = .now
-    }
-    func injectionItems(from items: [MemoryItem]) -> [MemoryItem] {
-        var sel: [MemoryItem] = [], chars = 0
-        for i in items.sorted(by: { $0.pinned != $1.pinned ? $0.pinned && !$1.pinned : $0.updatedAt > $1.updatedAt }) {
-            guard sel.count < Self.maxInjectionItems else { break }
-            let line = "- \(i.content)"; if chars + line.count + 1 > Self.maxInjectionCharacters, !sel.isEmpty { break }
-            sel.append(i); chars += line.count + 1
+        if defaults.object(forKey: useKey) == nil {
+            useInChats = false
+        } else {
+            useInChats = defaults.bool(forKey: useKey)
         }
-        return sel
+        if defaults.object(forKey: confirmKey) == nil {
+            requireConfirmation = true
+        } else {
+            requireConfirmation = defaults.bool(forKey: confirmKey)
+        }
     }
-    nonisolated static func contextSection(for items: [MemoryItem]) -> String? {
+
+    nonisolated static func shouldUseMemory(isTemporary: Bool, useInChats: Bool) -> Bool {
+        useInChats && !isTemporary
+    }
+
+    func setUseInChats(_ value: Bool) {
+        useInChats = value
+        defaults.set(value, forKey: useKey)
+    }
+
+    func setRequireConfirmation(_ value: Bool) {
+        requireConfirmation = value
+        defaults.set(value, forKey: confirmKey)
+    }
+
+    func fetchItems(modelContext: ModelContext) throws -> [MemoryItem] {
+        try modelContext.fetch(
+            FetchDescriptor(
+                sortBy: [
+                    SortDescriptor(\.pinned, order: .reverse),
+                    SortDescriptor(\.updatedAt, order: .reverse),
+                ]
+            )
+        )
+    }
+
+    @discardableResult
+    func save(content: String, source: MemorySource, modelContext: ModelContext) throws -> MemoryItem {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw MemoryStoreError.emptyContent }
+
+        if let match = findSimilar(try fetchItems(modelContext: modelContext), trimmed) {
+            match.content = trimmed
+            match.updatedAt = .now
+            if source == .user || match.source == .user {
+                match.source = .user
+            } else if source == .confirmedFromChat {
+                match.source = .confirmedFromChat
+            }
+            return match
+        }
+
+        let item = MemoryItem(content: trimmed, source: source)
+        modelContext.insert(item)
+        return item
+    }
+
+    func delete(_ item: MemoryItem, modelContext: ModelContext) {
+        modelContext.delete(item)
+    }
+
+    func clearAll(modelContext: ModelContext) throws {
+        for item in try fetchItems(modelContext: modelContext) {
+            modelContext.delete(item)
+        }
+    }
+
+    func togglePinned(_ item: MemoryItem) {
+        item.pinned.toggle()
+        item.updatedAt = .now
+    }
+
+    func updateContent(_ item: MemoryItem, content: String, modelContext: ModelContext) throws {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw MemoryStoreError.emptyContent }
+
+        let others = try fetchItems(modelContext: modelContext).filter { $0.id != item.id }
+        if let match = findSimilar(others, trimmed) {
+            modelContext.delete(item)
+            match.content = trimmed
+            match.updatedAt = .now
+            return
+        }
+
+        item.content = trimmed
+        item.updatedAt = .now
+    }
+
+    func injectionItems(from items: [MemoryItem]) -> [MemoryItem] {
+        var selected: [MemoryItem] = []
+        var characters = 0
+        let ordered = items.sorted { lhs, rhs in
+            if lhs.pinned != rhs.pinned { return lhs.pinned && !rhs.pinned }
+            return lhs.updatedAt > rhs.updatedAt
+        }
+        for item in ordered {
+            guard selected.count < Self.maxInjectionItems else { break }
+            let line = "- \(item.content)"
+            if characters + line.count + 1 > Self.maxInjectionCharacters, !selected.isEmpty {
+                break
+            }
+            selected.append(item)
+            characters += line.count + 1
+        }
+        return selected
+    }
+
+    static func contextSection(for items: [MemoryItem]) -> String? {
         guard !items.isEmpty else { return nil }
-        return "## Memory\nDurable facts the user saved in OpenChat. Use when relevant. Do not invent facts beyond this list.\n\n" + items.map { "- \($0.content)" }.joined(separator: "\n")
+        let body = items.map { "- \($0.content)" }.joined(separator: "\n")
+        return "## Memory\nDurable facts the user saved in OpenChat. Use when relevant. Do not invent facts beyond this list.\n\n\(body)"
     }
-    nonisolated static func modelInstruction() -> String { "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled." }
-    nonisolated static func normalizeContent(_ c: String) -> String {
-        c.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    nonisolated static func modelInstruction() -> String {
+        "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled."
+    }
+
+    nonisolated static func normalizeContent(_ content: String) -> String {
+        content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             .lowercased()
     }
-    private func findSimilar(_ items: [MemoryItem], _ content: String) -> MemoryItem? { let n = Self.normalizeContent(content); return items.first { Self.normalizeContent($0.content) == n } }
+
+    private func findSimilar(_ items: [MemoryItem], _ content: String) -> MemoryItem? {
+        let normalized = Self.normalizeContent(content)
+        return items.first { Self.normalizeContent($0.content) == normalized }
+    }
 }
-enum MemoryStoreError: LocalizedError { case emptyContent; var errorDescription: String? { "Memory cannot be empty." } }
+
+enum MemoryStoreError: LocalizedError {
+    case emptyContent
+
+    var errorDescription: String? {
+        "Memory cannot be empty."
+    }
+}
