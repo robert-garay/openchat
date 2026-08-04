@@ -14,16 +14,29 @@ struct ModelPickerSheet: View {
         providerStore.enabledProviders.first { $0.id == "openrouter" }
     }
 
-    private var otherProviders: [ConfiguredProvider] {
-        providerStore.enabledProviders.filter { $0.id != "openrouter" }
-    }
+    private var allResults: [PickerModelItem] {
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        var items: [PickerModelItem] = []
 
-    private var openRouterResults: [OpenRouterCatalogModel] {
-        OpenRouterModelCatalog.filtered(
-            models: providerStore.openRouterModels,
-            query: searchText,
-            capabilities: selectedCapabilities
-        )
+        for provider in providerStore.enabledProviders {
+            if provider.id == "openrouter" {
+                // Searching the provider name should surface that provider's full catalog.
+                let query = matchesProviderName(provider.name, query: trimmed) ? "" : searchText
+                let models = OpenRouterModelCatalog.filtered(
+                    models: providerStore.openRouterModels,
+                    query: query,
+                    capabilities: selectedCapabilities
+                )
+                items.append(contentsOf: models.map { PickerModelItem(provider: provider, catalogModel: $0) })
+            } else {
+                items.append(contentsOf: provider.models.compactMap { model in
+                    guard matchesFilters(model: model, providerName: provider.name, query: trimmed) else { return nil }
+                    return PickerModelItem(provider: provider, model: model)
+                })
+            }
+        }
+
+        return items
     }
 
     private var emptyFilterMessage: String {
@@ -37,35 +50,57 @@ struct ModelPickerSheet: View {
         return "No models available right now."
     }
 
+    private var isOpenRouterLoading: Bool {
+        openRouterProvider != nil
+            && providerStore.isLoadingOpenRouterModels
+            && providerStore.openRouterModels.isEmpty
+    }
+
+    private var openRouterError: String? {
+        guard openRouterProvider != nil,
+              providerStore.openRouterModels.isEmpty,
+              let error = providerStore.openRouterModelsError
+        else { return nil }
+        return error
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                if let openRouterProvider {
-                    openRouterSections(provider: openRouterProvider)
+                if isOpenRouterLoading {
+                    Section {
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text("Loading OpenRouter models…")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } else if let error = openRouterError {
+                    Section {
+                        Text(error)
+                            .foregroundStyle(.secondary)
+                        Button("Try Again") {
+                            providerStore.refreshOpenRouterModelsIfNeeded(force: true)
+                        }
+                    }
                 }
 
-                ForEach(otherProviders) { provider in
-                    Section {
-                        ForEach(filteredModels(for: provider)) { model in
-                            modelButton(providerID: provider.id, model: model)
+                Section {
+                    if allResults.isEmpty, !isOpenRouterLoading {
+                        Text(emptyFilterMessage)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(allResults) { item in
+                            modelButton(item)
                         }
-                    } header: {
-                        HStack(spacing: 8) {
-                            ProviderLogoView(
-                                logoAssetName: provider.logoAssetName,
-                                symbolName: provider.symbolName,
-                                tint: Color(hex: provider.tint),
-                                size: 20,
-                                cornerRadius: 5
-                            )
-                            Text(provider.name)
-                        }
-                        .foregroundStyle(Color(hex: provider.tint))
-                        .textCase(nil)
+                    }
+                } footer: {
+                    if !allResults.isEmpty {
+                        Text("\(allResults.count) models")
                     }
                 }
             }
-            .searchable(text: $searchText, prompt: openRouterProvider == nil ? "Search models" : "Search OpenRouter models")
+            .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -94,120 +129,114 @@ struct ModelPickerSheet: View {
         }
     }
 
-    @ViewBuilder
-    private func openRouterSections(provider: ConfiguredProvider) -> some View {
-        if providerStore.isLoadingOpenRouterModels && providerStore.openRouterModels.isEmpty {
-            Section {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text("Loading OpenRouter models…")
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                openRouterHeader(provider)
-            }
-        } else if let error = providerStore.openRouterModelsError, providerStore.openRouterModels.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.secondary)
-                Button("Try Again") {
-                    providerStore.refreshOpenRouterModelsIfNeeded(force: true)
-                }
-            } header: {
-                openRouterHeader(provider)
-            }
-        } else {
-            Section {
-                if openRouterResults.isEmpty {
-                    Text(emptyFilterMessage)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(openRouterResults) { model in
-                        openRouterModelButton(model)
-                    }
-                }
-            } header: {
-                openRouterHeader(provider)
-            } footer: {
-                Text("\(openRouterResults.count) models")
-            }
-        }
+    private func matchesFilters(model: AIModel, providerName: String, query: String) -> Bool {
+        let matchesText = query.isEmpty
+            || model.id.localizedCaseInsensitiveContains(query)
+            || model.displayName.localizedCaseInsensitiveContains(query)
+            || (model.subtitle?.localizedCaseInsensitiveContains(query) ?? false)
+            || matchesProviderName(providerName, query: query)
+        let matchesCapabilities = ModelCapability.matches(model.capabilities, filters: selectedCapabilities)
+        return matchesText && matchesCapabilities
     }
 
-    private func openRouterHeader(_ provider: ConfiguredProvider) -> some View {
-        Label(provider.name, systemImage: provider.symbolName)
-            .foregroundStyle(Color(hex: provider.tint))
+    private func matchesProviderName(_ name: String, query: String) -> Bool {
+        guard query.count >= 2 else { return false }
+        return name.localizedCaseInsensitiveContains(query)
     }
 
-    private func filteredModels(for provider: ConfiguredProvider) -> [AIModel] {
-        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return provider.models.filter { model in
-            let matchesText = trimmed.isEmpty
-                || model.id.localizedCaseInsensitiveContains(trimmed)
-                || model.displayName.localizedCaseInsensitiveContains(trimmed)
-                || (model.subtitle?.localizedCaseInsensitiveContains(trimmed) ?? false)
-            let matchesCapabilities = ModelCapability.matches(model.capabilities, filters: selectedCapabilities)
-            return matchesText && matchesCapabilities
-        }
-    }
-
-    private func openRouterModelButton(_ model: OpenRouterCatalogModel) -> some View {
+    private func modelButton(_ item: PickerModelItem) -> some View {
         Button {
             Haptics.light()
-            providerStore.rememberOpenRouterModel(model)
-            onSelect("openrouter", model.id)
+            if item.providerID == "openrouter", let catalogModel = item.catalogModel {
+                providerStore.rememberOpenRouterModel(catalogModel)
+            }
+            onSelect(item.providerID, item.modelID)
             dismiss()
         } label: {
-            modelRow(
-                title: model.displayName,
-                subtitle: model.subtitle,
-                capabilities: model.capabilities,
-                isSelected: currentProviderID == "openrouter" && currentModelID == model.id
-            )
+            modelRow(item)
         }
     }
 
-    private func modelButton(providerID: String, model: AIModel) -> some View {
-        Button {
-            Haptics.light()
-            onSelect(providerID, model.id)
-            dismiss()
-        } label: {
-            modelRow(
-                title: model.displayName,
-                subtitle: model.subtitle,
-                capabilities: model.capabilities,
-                isSelected: providerID == currentProviderID && model.id == currentModelID
-            )
-        }
-    }
-
-    private func modelRow(
-        title: String,
-        subtitle: String?,
-        capabilities: [ModelCapability],
-        isSelected: Bool
-    ) -> some View {
+    private func modelRow(_ item: PickerModelItem) -> some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(item.displayName)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
+                HStack(spacing: 6) {
+                    ProviderLogoView(
+                        logoAssetName: item.providerLogoAssetName,
+                        symbolName: item.providerSymbolName,
+                        tint: Color(hex: item.providerTint),
+                        size: 14,
+                        cornerRadius: 3
+                    )
+                    Text(providerSubtitle(for: item))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
             Spacer(minLength: 8)
-            ModelCapabilitySigns(capabilities: capabilities)
-            if isSelected {
+            ModelCapabilitySigns(capabilities: item.capabilities)
+            if item.providerID == currentProviderID && item.modelID == currentModelID {
                 Image(systemName: "checkmark")
                     .foregroundStyle(Color.accentColor)
                     .fontWeight(.semibold)
             }
         }
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.displayName), \(item.providerName)")
+    }
+
+    private func providerSubtitle(for item: PickerModelItem) -> String {
+        if let subtitle = item.subtitle, !subtitle.isEmpty {
+            return "\(item.providerName) · \(subtitle)"
+        }
+        return item.providerName
+    }
+}
+
+/// A selectable model row that can come from any enabled provider.
+private struct PickerModelItem: Identifiable {
+    let id: String
+    let providerID: String
+    let providerName: String
+    let providerSymbolName: String
+    let providerTint: String
+    let providerLogoAssetName: String?
+    let modelID: String
+    let displayName: String
+    let subtitle: String?
+    let capabilities: [ModelCapability]
+    /// Present for OpenRouter catalog rows so selection can persist the model.
+    let catalogModel: OpenRouterCatalogModel?
+
+    init(provider: ConfiguredProvider, model: AIModel) {
+        id = "\(provider.id)/\(model.id)"
+        providerID = provider.id
+        providerName = provider.name
+        providerSymbolName = provider.symbolName
+        providerTint = provider.tint
+        providerLogoAssetName = provider.logoAssetName
+        modelID = model.id
+        displayName = model.displayName
+        subtitle = model.subtitle
+        capabilities = model.capabilities
+        catalogModel = nil
+    }
+
+    init(provider: ConfiguredProvider, catalogModel: OpenRouterCatalogModel) {
+        id = "\(provider.id)/\(catalogModel.id)"
+        providerID = provider.id
+        providerName = provider.name
+        providerSymbolName = provider.symbolName
+        providerTint = provider.tint
+        providerLogoAssetName = provider.logoAssetName
+        modelID = catalogModel.id
+        displayName = catalogModel.displayName
+        subtitle = catalogModel.subtitle
+        capabilities = catalogModel.capabilities
+        self.catalogModel = catalogModel
     }
 }
