@@ -346,8 +346,7 @@ private struct CodeBlockView: View {
             Divider()
 
             ScrollView(.horizontal, showsIndicators: false) {
-                Text(code)
-                    .font(.system(.footnote, design: .monospaced))
+                Text(CodeSyntaxHighlighter.highlight(code: code, language: language))
                     .textSelection(.enabled)
                     .padding(12)
             }
