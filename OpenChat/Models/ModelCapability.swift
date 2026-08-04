@@ -69,7 +69,8 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         return filters.isSubset(of: Set(modelCapabilities))
     }
 
-    /// Infer badges from OpenRouter modality + parameter metadata.
+    /// Infer badges from modality / parameter metadata, filling gaps from the model identity
+    /// when a provider's `/models` payload omits that metadata (common for OpenAI-compatible APIs).
     static func inferred(
         inputModalities: [String],
         outputModalities: [String],
@@ -88,15 +89,28 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         if inputs.contains("audio") { caps.insert(.audioIn) }
         if outputs.contains("audio") { caps.insert(.audioOut) }
         if inputs.contains("file") { caps.insert(.files) }
+
         if params.contains("tools") { caps.insert(.tools) }
         if params.contains("reasoning") || params.contains("include_reasoning") {
             caps.insert(.reasoning)
         }
-        if looksLikeSearchModel(haystack) {
-            caps.insert(.search)
+
+        // Naming signals that catalogs rarely encode as modalities.
+        if looksLikeSearchModel(haystack) { caps.insert(.search) }
+        if looksLikeReasoningModel(haystack) { caps.insert(.reasoning) }
+
+        // OpenAI-compatible `/models` often omits modalities entirely — infer from identity.
+        let modalitiesUnknown = inputModalities.isEmpty && outputModalities.isEmpty
+        if modalitiesUnknown {
+            if looksLikeVisionModel(haystack) { caps.insert(.vision) }
+            if looksLikeImageGenModel(haystack) { caps.insert(.imageGen) }
+            if looksLikeAudioInModel(haystack) { caps.insert(.audioIn) }
+            if looksLikeAudioOutModel(haystack) { caps.insert(.audioOut) }
         }
-        if looksLikeReasoningModel(haystack) {
-            caps.insert(.reasoning)
+
+        // When `supported_parameters` wasn't reported, infer tools for known chat families.
+        if supportedParameters.isEmpty, looksLikeToolsModel(haystack) {
+            caps.insert(.tools)
         }
 
         return sorted(caps)
@@ -108,7 +122,51 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
     }
 
     private static func looksLikeReasoningModel(_ haystack: String) -> Bool {
-        let markers = ["reasoner", "reasoning", "-r1", "/r1", "o1-", "o3-", "o4-", "thinking", "deepseek-r1"]
+        let markers = [
+            "reasoner", "reasoning", "-r1", "/r1", "o1-", "o3-", "o4-",
+            "thinking", "deepseek-r1", "gpt-5-pro", "gpt-5.pro"
+        ]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeVisionModel(_ haystack: String) -> Bool {
+        let markers = [
+            "gpt-4o", "gpt-4.1", "gpt-4.5", "gpt-4-turbo", "gpt-4-vision", "gpt-5",
+            "chatgpt-4o", "o3-", "o4-",
+            "claude-3", "claude-4", "claude-opus-4", "claude-sonnet-4", "claude-haiku-4",
+            "gemini",
+            "-vl", "vl-", "vision", "llava", "pixtral",
+            "glm-4v", "llama-4", "maverick", "scout",
+            "qwen2.5-vl", "qwen2-vl", "qwen-vl", "qwen3-vl"
+        ]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeImageGenModel(_ haystack: String) -> Bool {
+        let markers = ["dall-e", "dalle", "gpt-image", "imagen-", "flux-", "stable-diffusion", "black-forest"]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeAudioInModel(_ haystack: String) -> Bool {
+        let markers = ["gpt-4o-audio", "gpt-audio", "-audio-", "whisper"]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeAudioOutModel(_ haystack: String) -> Bool {
+        let markers = ["gpt-4o-audio", "gpt-audio", "-tts", "tts-", "realtime"]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeToolsModel(_ haystack: String) -> Bool {
+        let markers = [
+            "gpt-3.5", "gpt-4", "gpt-5", "chatgpt",
+            "o1-", "o3-", "o4-",
+            "claude", "gemini",
+            "deepseek-chat", "deepseek-reasoner", "deepseek-v",
+            "qwen", "glm-4", "glm-5", "kimi", "moonshot",
+            "yi-large", "yi-lightning",
+            "llama-3", "llama-4", "mistral", "mixtral", "command-r"
+        ]
         return markers.contains { haystack.contains($0) }
     }
 }

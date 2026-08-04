@@ -32,7 +32,46 @@ final class ModelCapabilityTests: XCTestCase {
             modelID: "deepseek/deepseek-reasoner",
             modelName: "DeepSeek R1"
         )
-        XCTAssertEqual(caps, [.reasoning])
+        // Params omitted → tools inferred for the deepseek-reasoner family too.
+        XCTAssertEqual(caps, [.tools, .reasoning])
+    }
+
+    func testIdentityHeuristicsWhenModalitiesUnknown() {
+        let gpt4o = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "gpt-4o",
+            modelName: "gpt-4o"
+        )
+        XCTAssertEqual(gpt4o, [.vision, .tools])
+
+        let gemini = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "gemini-2.5-pro",
+            modelName: "gemini-2.5-pro"
+        )
+        XCTAssertEqual(gemini, [.vision, .tools])
+
+        let deepseekChat = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "deepseek-chat",
+            modelName: "deepseek-chat"
+        )
+        XCTAssertEqual(deepseekChat, [.tools])
+    }
+
+    func testDoesNotOverrideExplicitTextOnlyModalitiesWithVisionHeuristic() {
+        let caps = ModelCapability.inferred(
+            inputModalities: ["text"],
+            outputModalities: ["text"],
+            supportedParameters: ["temperature"],
+            modelID: "gpt-4o",
+            modelName: "gpt-4o"
+        )
+        // Provider explicitly reported text-only + no tools param → trust metadata.
+        XCTAssertEqual(caps, [])
     }
 
     func testAIModelLegacySupportsVisionDecoding() throws {
