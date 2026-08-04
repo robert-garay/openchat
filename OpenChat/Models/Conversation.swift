@@ -11,6 +11,8 @@ final class Conversation {
     var modelID: String
     var systemPrompt: String
     var isTemporary: Bool = false
+    /// When true, auto title generation must not overwrite a user rename.
+    var hasCustomTitle: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
@@ -21,7 +23,8 @@ final class Conversation {
         providerID: String,
         modelID: String,
         systemPrompt: String = "",
-        isTemporary: Bool = false
+        isTemporary: Bool = false,
+        hasCustomTitle: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -31,6 +34,7 @@ final class Conversation {
         self.modelID = modelID
         self.systemPrompt = systemPrompt
         self.isTemporary = isTemporary
+        self.hasCustomTitle = hasCustomTitle
     }
 
     var sortedMessages: [ChatMessage] {
@@ -45,7 +49,22 @@ final class Conversation {
     func toggleTemporaryMode() {
         isTemporary.toggle()
         title = isTemporary ? "Temporary Chat" : "New Chat"
+        hasCustomTitle = false
         updatedAt = .now
+    }
+
+    /// Apply a user-chosen title and lock out further auto-generation.
+    func rename(to newTitle: String) {
+        let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        title = trimmed
+        hasCustomTitle = true
+        updatedAt = .now
+    }
+
+    /// True when the title is still a default placeholder eligible for auto-naming.
+    var needsAutoTitle: Bool {
+        !isTemporary && !hasCustomTitle && (title == "New Chat" || title == "Temporary Chat")
     }
 
     var lastMessagePreview: String {

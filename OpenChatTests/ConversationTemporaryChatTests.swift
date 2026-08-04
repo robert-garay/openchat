@@ -6,6 +6,8 @@ final class ConversationTemporaryChatTests: XCTestCase {
         let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
         XCTAssertFalse(conversation.isTemporary)
         XCTAssertEqual(conversation.title, "New Chat")
+        XCTAssertFalse(conversation.hasCustomTitle)
+        XCTAssertTrue(conversation.needsAutoTitle)
         XCTAssertFalse(conversation.hasUserMessages)
     }
 
@@ -32,6 +34,7 @@ final class ConversationTemporaryChatTests: XCTestCase {
         conversation.toggleTemporaryMode()
         XCTAssertFalse(conversation.isTemporary)
         XCTAssertEqual(conversation.title, "New Chat")
+        XCTAssertFalse(conversation.hasCustomTitle)
         XCTAssertEqual(conversation.id, id)
     }
 

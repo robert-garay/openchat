@@ -42,6 +42,7 @@ final class ChatViewModel {
     private let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
     private var streamingTask: Task<Void, Never>?
+    private var titleGenerationTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Defaults on when search is active.
@@ -224,16 +225,51 @@ final class ChatViewModel {
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
 
-        if conversation.title == "New Chat" {
+        let isFirstUserMessage = conversation.messages.filter { $0.role == .user }.count == 1
+        if isFirstUserMessage, !conversation.isTemporary, !conversation.hasCustomTitle {
+            let provisional = ConversationTitleGenerator.fallbackTitle(
+                for: text,
+                hasImages: !images.isEmpty
+            )
+            conversation.title = provisional
             if !text.isEmpty {
-                conversation.title = String(text.prefix(40))
-            } else {
-                conversation.title = "Image"
+                requestTitleGeneration(from: text, provisionalTitle: provisional)
             }
         }
         conversation.updatedAt = .now
 
         requestAssistantReply()
+    }
+
+    private func requestTitleGeneration(from text: String, provisionalTitle: String) {
+        guard let provider = currentProvider, let model = currentModel else { return }
+        let apiKey = providerStore.apiKey(for: provider)
+        guard !provider.requiresAPIKey || apiKey != nil else { return }
+
+        let client = ChatService.client(for: provider.apiFormat)
+        let baseURL = provider.baseURL
+        let modelID = model.id
+        let conversationID = conversation.id
+
+        titleGenerationTask?.cancel()
+        titleGenerationTask = Task { [weak self] in
+            guard let self else { return }
+            let generated = await ConversationTitleGenerator.generate(
+                from: text,
+                client: client,
+                model: modelID,
+                baseURL: baseURL,
+                apiKey: apiKey
+            )
+            guard !Task.isCancelled, let generated else { return }
+            guard conversation.id == conversationID,
+                  !conversation.hasCustomTitle,
+                  !conversation.isTemporary,
+                  conversation.title == provisionalTitle
+            else { return }
+            conversation.title = generated
+            conversation.updatedAt = .now
+        }
     }
 
     func regenerateLastReply() {

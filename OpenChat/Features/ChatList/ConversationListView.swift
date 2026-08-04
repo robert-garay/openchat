@@ -10,6 +10,8 @@ struct ConversationListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
     @State private var searchText = ""
+    @State private var conversationPendingRename: Conversation?
+    @State private var renameText = ""
 
     private var filtered: [Conversation] {
         guard !searchText.isEmpty else { return conversations }
@@ -17,6 +19,13 @@ struct ConversationListView: View {
             $0.title.localizedCaseInsensitiveContains(searchText) ||
             $0.lastMessagePreview.localizedCaseInsensitiveContains(searchText)
         }
+    }
+
+    private var isRenameAlertPresented: Binding<Bool> {
+        Binding(
+            get: { conversationPendingRename != nil },
+            set: { if !$0 { conversationPendingRename = nil } }
+        )
     }
 
     var body: some View {
@@ -35,6 +44,18 @@ struct ConversationListView: View {
                     ForEach(filtered) { conversation in
                         ConversationRow(conversation: conversation, providerStore: providerStore)
                             .tag(conversation.id)
+                            .contextMenu {
+                                Button {
+                                    beginRename(conversation)
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                                Button(role: .destructive) {
+                                    delete(conversation)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
                                     delete(conversation)
@@ -61,6 +82,30 @@ struct ConversationListView: View {
                 }
             }
         }
+        .alert("Rename Chat", isPresented: isRenameAlertPresented) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel) {
+                conversationPendingRename = nil
+            }
+            Button("Rename") {
+                applyRename()
+            }
+        } message: {
+            Text("Enter a new name for this chat.")
+        }
+    }
+
+    private func beginRename(_ conversation: Conversation) {
+        Haptics.light()
+        renameText = conversation.title
+        conversationPendingRename = conversation
+    }
+
+    private func applyRename() {
+        guard let conversation = conversationPendingRename else { return }
+        conversation.rename(to: renameText)
+        conversationPendingRename = nil
+        Haptics.light()
     }
 
     private func delete(_ conversation: Conversation) {
@@ -68,6 +113,9 @@ struct ConversationListView: View {
         withAnimation(Theme.springFast) {
             if selectedConversationID == conversation.id {
                 selectedConversationID = nil
+            }
+            if conversationPendingRename?.id == conversation.id {
+                conversationPendingRename = nil
             }
             modelContext.delete(conversation)
         }

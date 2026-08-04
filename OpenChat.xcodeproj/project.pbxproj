@@ -89,6 +89,8 @@
 		A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000006 /* WebSearchProviderPicker.swift */; };
 		A9001B11E000000000000001 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000001 /* CameraPicker.swift */; };
 		A9001B11E000000000000003 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000003 /* ChatRequestHistory.swift */; };
+		A9301B11E000000000000001 /* ConversationTitleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9301F11E000000000000001 /* ConversationTitleGenerator.swift */; };
+		A9301B11E000000000000002 /* ConversationTitleGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9301F11E000000000000002 /* ConversationTitleGeneratorTests.swift */; };
 		A9001B11E000000000000004 /* ChatRequestHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */; };
 		A9101B11E000000000000001 /* MarkdownContentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9101F11E000000000000001 /* MarkdownContentParserTests.swift */; };
 		A9201B11E000000000000001 /* CodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9201F11E000000000000001 /* CodeSyntaxHighlighter.swift */; };
@@ -197,6 +199,8 @@
 		A8001F11E000000000000006 /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000001 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000003 /* ChatRequestHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistory.swift; sourceTree = "<group>"; };
+		A9301F11E000000000000001 /* ConversationTitleGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTitleGenerator.swift; sourceTree = "<group>"; };
+		A9301F11E000000000000002 /* ConversationTitleGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTitleGeneratorTests.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistoryTests.swift; sourceTree = "<group>"; };
 		A9101F11E000000000000001 /* MarkdownContentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentParserTests.swift; sourceTree = "<group>"; };
 		A9201F11E000000000000002 /* CodeSyntaxHighlighterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSyntaxHighlighterTests.swift; sourceTree = "<group>"; };
@@ -285,6 +289,7 @@
 				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
 				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
 				A9001F11E000000000000003 /* ChatRequestHistory.swift */,
+				A9301F11E000000000000001 /* ConversationTitleGenerator.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
 				D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */,
 				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
@@ -401,6 +406,7 @@
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */,
 				A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */,
+				A9301F11E000000000000002 /* ConversationTitleGeneratorTests.swift */,
 				A9201F11E000000000000002 /* CodeSyntaxHighlighterTests.swift */,
 				A9101F11E000000000000001 /* MarkdownContentParserTests.swift */,
 				F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */,
@@ -537,6 +543,7 @@
 				A11B22C33D4E5F60718293A4 /* ChatImageAttachment.swift in Sources */,
 				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
 				A9001B11E000000000000003 /* ChatRequestHistory.swift in Sources */,
+				A9301B11E000000000000001 /* ConversationTitleGenerator.swift in Sources */,
 				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
 				416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */,
@@ -598,6 +605,7 @@
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				A44E55F66718293A4B5C6D70 /* MultimodalAttachmentTests.swift in Sources */,
 				A9001B11E000000000000004 /* ChatRequestHistoryTests.swift in Sources */,
+				A9301B11E000000000000002 /* ConversationTitleGeneratorTests.swift in Sources */,
 				A9201B11E000000000000002 /* CodeSyntaxHighlighterTests.swift in Sources */,
 				A9101B11E000000000000001 /* MarkdownContentParserTests.swift in Sources */,
 				B16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift in Sources */,
