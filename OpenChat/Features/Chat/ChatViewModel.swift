@@ -14,6 +14,10 @@ final class ChatViewModel {
     private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
+    private(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
+    private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var isCompacting = false
+    private(set) var compactStatusMessage: String?
 
     struct PendingModelSwitch: Equatable {
         var providerID: String
@@ -41,7 +45,10 @@ final class ChatViewModel {
     private let providerStore: ProviderStore
     private let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
+    private let rulesStore: RulesStore
+    private let memoryStore: MemoryStore
     private var streamingTask: Task<Void, Never>?
+    private var pendingSkillSystemBlock: String?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Defaults on when search is active.
@@ -52,14 +59,22 @@ final class ChatViewModel {
         modelContext: ModelContext,
         providerStore: ProviderStore,
         dataSourceStore: AgentDataSourceStore,
-        webSearchStore: WebSearchStore
+        webSearchStore: WebSearchStore,
+        rulesStore: RulesStore,
+        memoryStore: MemoryStore
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
         self.dataSourceStore = dataSourceStore
         self.webSearchStore = webSearchStore
+        self.rulesStore = rulesStore
+        self.memoryStore = memoryStore
         self.isWebSearchEnabledForChat = webSearchStore.isActive
+    }
+
+    private var shouldUseMemory: Bool {
+        MemoryStore.shouldUseMemory(isTemporary: conversation.isTemporary, useInChats: memoryStore.useInChats)
     }
 
     /// Search will run on the next send: chat toggle on + configured active provider ready.
@@ -167,6 +182,88 @@ final class ChatViewModel {
         capabilityWarning = nil
     }
 
+    func dismissCompactStatus() {
+        compactStatusMessage = nil
+    }
+
+    var canShowCompact: Bool {
+        CompactConversationSettings.isEnabled() && !conversation.isTemporary
+    }
+
+    var canCompactConversation: Bool {
+        guard canShowCompact, !isStreaming, !isCompacting else { return false }
+        let eligible = ConversationCompactionService.eligibleMessages(
+            from: ConversationCompactionService.snapshots(from: conversation.sortedMessages)
+        )
+        return ConversationCompactionService.canCompact(messageCount: eligible.count)
+    }
+
+    func compactConversation() {
+        guard canShowCompact, !isStreaming, !isCompacting else { return }
+        guard let provider = currentProvider, let model = currentModel else { return }
+        let apiKey = providerStore.apiKey(for: provider)
+        guard !provider.requiresAPIKey || apiKey != nil else { return }
+
+        let snapshots = ConversationCompactionService.snapshots(from: conversation.sortedMessages)
+        guard let plan = ConversationCompactionService.planCompaction(
+            sortedMessages: snapshots,
+            compactedThroughMessageID: conversation.compactedThroughMessageID
+        ) else {
+            compactStatusMessage = "Not enough messages to compact."
+            Haptics.warning()
+            return
+        }
+
+        isCompacting = true
+        let client = ChatService.client(for: provider.apiFormat)
+        let baseURL = provider.baseURL
+        let modelID = model.id
+        let existingSummary = conversation.compactedSummary
+        let transcript = ConversationCompactionService.transcriptForSummarization(
+            existingSummary: existingSummary.isEmpty ? nil : existingSummary,
+            messages: plan.messagesToSummarize
+        )
+        let summarizationTurns = [
+            ChatTurn(role: .system, content: ConversationCompactionService.summarizationSystemPrompt()),
+            ChatTurn(role: .user, content: ConversationCompactionService.summarizationUserPrompt(transcript: transcript))
+        ]
+
+        streamingTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                var summary = ""
+                for try await delta in client.streamReply(
+                    turns: summarizationTurns,
+                    model: modelID,
+                    baseURL: baseURL,
+                    apiKey: apiKey
+                ) {
+                    summary += delta
+                }
+
+                let trimmed = summary.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else {
+                    compactStatusMessage = "Compaction failed: empty summary."
+                    Haptics.warning()
+                    isCompacting = false
+                    return
+                }
+
+                conversation.compactedSummary = trimmed
+                conversation.compactedThroughMessageID = plan.watermarkMessageID
+                conversation.updatedAt = .now
+                compactStatusMessage = "Conversation compacted."
+                Haptics.success()
+            } catch is CancellationError {
+                compactStatusMessage = nil
+            } catch {
+                compactStatusMessage = "Compaction failed: \(error.localizedDescription)"
+                Haptics.warning()
+            }
+            isCompacting = false
+        }
+    }
+
     private func applyModelSelection(providerID: String, modelID: String, clearPendingAttachments: Bool) {
         conversation.providerID = providerID
         conversation.modelID = modelID
@@ -206,13 +303,36 @@ final class ChatViewModel {
         Haptics.light()
     }
 
+    func confirmMemoryProposals(for messageID: UUID) {
+        guard let proposals = pendingMemoryProposalsByMessageID[messageID], !proposals.isEmpty else { return }
+        saveMemoryProposals(proposals, source: .confirmedFromChat, messageID: messageID)
+        pendingMemoryProposalsByMessageID[messageID] = nil
+        try? modelContext.save()
+        Haptics.success()
+    }
+
+    func dismissMemoryProposals(for messageID: UUID) {
+        pendingMemoryProposalsByMessageID[messageID] = nil
+        memoryActionStatusByMessageID[messageID] = "Memory discarded."
+        Haptics.light()
+    }
+
     func send() {
-        let text = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
-        guard (!text.isEmpty || !images.isEmpty), !isStreaming else { return }
+        guard (!rawText.isEmpty || !images.isEmpty), !isStreaming else { return }
 
         if !images.isEmpty, !supportsVision {
             capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
+            return
+        }
+
+        let skills = fetchSkillMatches()
+        let resolution = SkillResolver.resolve(text: rawText, skills: skills)
+        let text = resolution?.storedMessage ?? rawText
+        pendingSkillSystemBlock = resolution.map { SkillResolver.systemBlock(for: $0.skill) }
+        guard !text.isEmpty || !images.isEmpty || resolution != nil else {
+            pendingSkillSystemBlock = nil
             return
         }
 
@@ -225,15 +345,16 @@ final class ChatViewModel {
         modelContext.insert(userMessage)
 
         if conversation.title == "New Chat" {
-            if !text.isEmpty {
-                conversation.title = String(text.prefix(40))
-            } else {
-                conversation.title = "Image"
-            }
+            conversation.title = text.isEmpty ? "Image" : String(text.prefix(40))
         }
         conversation.updatedAt = .now
 
         requestAssistantReply()
+    }
+
+    private func fetchSkillMatches() -> [SkillMatchable] {
+        let skills = (try? modelContext.fetch(FetchDescriptor<Skill>())) ?? []
+        return skills.map(SkillMatchable.init(skill:))
     }
 
     func regenerateLastReply() {
@@ -264,10 +385,15 @@ final class ChatViewModel {
         let baseURL = provider.baseURL
         let modelID = model.id
         let supportsTools = model.supportsTools
+        let supportsVision = model.supportsVision
         let conversationSystemPrompt = conversation.systemPrompt
-        let historyTurns = ChatRequestHistory.turns(
-            from: conversation.sortedMessages,
-            includeImages: model.supportsVision,
+        let skillSystemBlock = pendingSkillSystemBlock
+        pendingSkillSystemBlock = nil
+        let historyTurns = ConversationCompactionService.apiHistoryTurns(
+            sortedMessages: conversation.sortedMessages,
+            compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
+            compactedThroughMessageID: conversation.compactedThroughMessageID,
+            includeImages: supportsVision,
             excludingMessageID: assistantMessage.id
         )
         let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
@@ -282,17 +408,28 @@ final class ChatViewModel {
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
-                var systemParts: [String] = []
-                if !conversationSystemPrompt.isEmpty {
-                    systemParts.append(conversationSystemPrompt)
+                var middleSections: [String] = []
+
+                if shouldUseMemory {
+                    let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
+                    let injectionItems = memoryStore.injectionItems(from: items)
+                    if let memorySection = MemoryStore.contextSection(for: injectionItems) {
+                        middleSections.append(memorySection)
+                    }
+                    middleSections.append(MemoryStore.modelInstruction())
+                }
+
+                if let skillSystemBlock, !skillSystemBlock.isEmpty {
+                    middleSections.append(skillSystemBlock)
                 }
 
                 dataSourceStore.refreshAuthorizationStatuses()
                 if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    systemParts.append(agentContext)
+                    middleSections.append(agentContext)
                 }
 
                 var tools: [ChatToolDefinition] = []
+                var webSearchToolPrompt: String?
                 if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
                     do {
                         let injected = try await WebSearchService.makeInjectedContext(
@@ -300,22 +437,28 @@ final class ChatViewModel {
                             apiKey: searchAPIKey,
                             client: searchClient
                         )
-                        systemParts.append(injected)
+                        middleSections.append(injected)
                     } catch {
-                        systemParts.append(
+                        middleSections.append(
                             "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
                         )
                     }
                 } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
                     tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-                    systemParts.append(
+                    webSearchToolPrompt =
                         "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
-                    )
                 }
 
+                let systemContent = ChatSystemPromptBuilder.assemble(
+                    globalRules: rulesStore.globalRules,
+                    chatRules: conversationSystemPrompt,
+                    middleSections: middleSections,
+                    webSearchToolPrompt: webSearchToolPrompt
+                )
+
                 var turns: [ChatTurn] = []
-                if !systemParts.isEmpty {
-                    turns.append(ChatTurn(role: .system, content: systemParts.joined(separator: "\n\n")))
+                if let systemContent {
+                    turns.append(ChatTurn(role: .system, content: systemContent))
                 }
                 turns.append(contentsOf: historyTurns)
 
@@ -342,6 +485,7 @@ final class ChatViewModel {
                 }
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)
+                captureMemoryProposals(from: assistantMessage)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
             } catch {
@@ -358,5 +502,33 @@ final class ChatViewModel {
         let proposals = CalendarActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }
         pendingCalendarActionsByMessageID[message.id] = proposals
+    }
+
+    private func captureMemoryProposals(from message: ChatMessage) {
+        guard shouldUseMemory else { return }
+        let proposals = MemoryActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        if memoryStore.requireConfirmation {
+            pendingMemoryProposalsByMessageID[message.id] = proposals
+        } else {
+            saveMemoryProposals(proposals, source: .auto, messageID: message.id)
+        }
+    }
+
+    private func saveMemoryProposals(_ proposals: [MemoryProposal], source: MemorySource, messageID: UUID) {
+        var saved = 0
+        for proposal in proposals {
+            do {
+                _ = try memoryStore.save(content: proposal.content, source: source, modelContext: modelContext)
+                saved += 1
+            } catch {
+                memoryActionStatusByMessageID[messageID] = error.localizedDescription
+                return
+            }
+        }
+        if saved > 0 {
+            try? modelContext.save()
+            memoryActionStatusByMessageID[messageID] = "Memory updated."
+        }
     }
 }

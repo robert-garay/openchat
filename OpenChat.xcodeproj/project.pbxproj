@@ -94,6 +94,26 @@
 		A9201B11E000000000000001 /* CodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9201F11E000000000000001 /* CodeSyntaxHighlighter.swift */; };
 		A9201B11E000000000000002 /* CodeSyntaxHighlighterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9201F11E000000000000002 /* CodeSyntaxHighlighterTests.swift */; };
 		A9201B11E000000000000003 /* CodeLanguageProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9201F11E000000000000003 /* CodeLanguageProfile.swift */; };
+		B1001B11E000000000000001 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000001 /* Skill.swift */; };
+		B1001B11E000000000000002 /* SkillResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000002 /* SkillResolver.swift */; };
+		B1001B11E000000000000003 /* SkillPickerDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000003 /* SkillPickerDropdown.swift */; };
+		B1001B11E000000000000004 /* SkillsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000004 /* SkillsSettingsView.swift */; };
+		B1001B11E000000000000005 /* SkillEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000005 /* SkillEditorView.swift */; };
+		B1001B11E000000000000006 /* SkillResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1001F11E000000000000006 /* SkillResolverTests.swift */; };
+		B2001B11E000000000000002 /* ConversationCompactionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2001F11E000000000000001 /* ConversationCompactionService.swift */; };
+		B2001B11E000000000000004 /* ConversationCompactionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2001F11E000000000000003 /* ConversationCompactionTests.swift */; };
+		C2001B11E000000000000001 /* RulesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000001 /* RulesStore.swift */; };
+		C2001B11E000000000000002 /* ChatSystemPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */; };
+		C2001B11E000000000000003 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000003 /* RulesSettingsView.swift */; };
+		C2001B11E000000000000004 /* ChatRulesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000004 /* ChatRulesSheet.swift */; };
+		C2001B11E000000000000005 /* RulesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000005 /* RulesStoreTests.swift */; };
+		C2001B11E000000000000006 /* ChatSystemPromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2001F11E000000000000006 /* ChatSystemPromptBuilderTests.swift */; };
+		D2001B11E000000000000001 /* MemoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000001 /* MemoryItem.swift */; };
+		D2001B11E000000000000002 /* MemoryActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000002 /* MemoryActionParser.swift */; };
+		D2001B11E000000000000003 /* MemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000003 /* MemoryStore.swift */; };
+		D2001B11E000000000000004 /* MemorySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000004 /* MemorySettingsView.swift */; };
+		D2001B11E000000000000005 /* MemoryActionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000005 /* MemoryActionParserTests.swift */; };
+		D2001B11E000000000000006 /* MemoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2001F11E000000000000006 /* MemoryStoreTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -200,6 +220,26 @@
 		A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistoryTests.swift; sourceTree = "<group>"; };
 		A9101F11E000000000000001 /* MarkdownContentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentParserTests.swift; sourceTree = "<group>"; };
 		A9201F11E000000000000002 /* CodeSyntaxHighlighterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSyntaxHighlighterTests.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000001 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000002 /* SkillResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillResolver.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000003 /* SkillPickerDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPickerDropdown.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000004 /* SkillsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsSettingsView.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000005 /* SkillEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillEditorView.swift; sourceTree = "<group>"; };
+		B1001F11E000000000000006 /* SkillResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillResolverTests.swift; sourceTree = "<group>"; };
+		B2001F11E000000000000001 /* ConversationCompactionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionService.swift; sourceTree = "<group>"; };
+		B2001F11E000000000000003 /* ConversationCompactionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionTests.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000001 /* RulesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStore.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilder.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000003 /* RulesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesSettingsView.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000004 /* ChatRulesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRulesSheet.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000005 /* RulesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStoreTests.swift; sourceTree = "<group>"; };
+		C2001F11E000000000000006 /* ChatSystemPromptBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilderTests.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000001 /* MemoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryItem.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000002 /* MemoryActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryActionParser.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000003 /* MemoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000004 /* MemorySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySettingsView.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000005 /* MemoryActionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryActionParserTests.swift; sourceTree = "<group>"; };
+		D2001F11E000000000000006 /* MemoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -267,6 +307,10 @@
 				E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */,
 				60E88FA5334D59F31A5DF955 /* SettingsView.swift */,
 				A7001F11E000000000000006 /* WebSearchSettingsView.swift */,
+				D2001F11E000000000000004 /* MemorySettingsView.swift */,
+				B1001F11E000000000000004 /* SkillsSettingsView.swift */,
+				B1001F11E000000000000005 /* SkillEditorView.swift */,
+				C2001F11E000000000000003 /* RulesSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -285,6 +329,12 @@
 				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
 				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
 				A9001F11E000000000000003 /* ChatRequestHistory.swift */,
+				C2001F11E000000000000002 /* ChatSystemPromptBuilder.swift */,
+				B2001F11E000000000000001 /* ConversationCompactionService.swift */,
+				D2001F11E000000000000002 /* MemoryActionParser.swift */,
+				D2001F11E000000000000003 /* MemoryStore.swift */,
+				C2001F11E000000000000001 /* RulesStore.swift */,
+				B1001F11E000000000000002 /* SkillResolver.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
 				D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */,
 				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
@@ -333,12 +383,14 @@
 				A9001F11E000000000000001 /* CameraPicker.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
+				C2001F11E000000000000004 /* ChatRulesSheet.swift */,
 				A9201F11E000000000000003 /* CodeLanguageProfile.swift */,
 				A9201F11E000000000000001 /* CodeSyntaxHighlighter.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
 				38179096B024B94EA48B03CA /* MessageBubbleView.swift */,
 				0DA7BF3262C5159168758827 /* MessageComposerView.swift */,
 				7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */,
+				B1001F11E000000000000003 /* SkillPickerDropdown.swift */,
 				86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */,
 				A8001F11E000000000000006 /* WebSearchProviderPicker.swift */,
 			);
@@ -359,7 +411,9 @@
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
 				50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */,
 				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
+				D2001F11E000000000000001 /* MemoryItem.swift */,
 				6E2A4B81C9D05F37A1B84270 /* OpenRouterCatalogModel.swift */,
+				B1001F11E000000000000001 /* Skill.swift */,
 				16F332162541FC9583006859 /* ProviderTemplate.swift */,
 			);
 			path = Models;
@@ -585,6 +639,20 @@
 				A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */,
 				A9001B11E000000000000001 /* CameraPicker.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
+				B1001B11E000000000000001 /* Skill.swift in Sources */,
+				B1001B11E000000000000002 /* SkillResolver.swift in Sources */,
+				B1001B11E000000000000003 /* SkillPickerDropdown.swift in Sources */,
+				B1001B11E000000000000004 /* SkillsSettingsView.swift in Sources */,
+				B1001B11E000000000000005 /* SkillEditorView.swift in Sources */,
+				B2001B11E000000000000002 /* ConversationCompactionService.swift in Sources */,
+				C2001B11E000000000000001 /* RulesStore.swift in Sources */,
+				C2001B11E000000000000002 /* ChatSystemPromptBuilder.swift in Sources */,
+				C2001B11E000000000000003 /* RulesSettingsView.swift in Sources */,
+				C2001B11E000000000000004 /* ChatRulesSheet.swift in Sources */,
+				D2001B11E000000000000001 /* MemoryItem.swift in Sources */,
+				D2001B11E000000000000002 /* MemoryActionParser.swift in Sources */,
+				D2001B11E000000000000003 /* MemoryStore.swift in Sources */,
+				D2001B11E000000000000004 /* MemorySettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -607,6 +675,12 @@
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				A7001B11E000000000000007 /* WebSearchServiceTests.swift in Sources */,
+				B1001B11E000000000000006 /* SkillResolverTests.swift in Sources */,
+				B2001B11E000000000000004 /* ConversationCompactionTests.swift in Sources */,
+				C2001B11E000000000000005 /* RulesStoreTests.swift in Sources */,
+				C2001B11E000000000000006 /* ChatSystemPromptBuilderTests.swift in Sources */,
+				D2001B11E000000000000005 /* MemoryActionParserTests.swift in Sources */,
+				D2001B11E000000000000006 /* MemoryStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
