@@ -32,6 +32,7 @@ struct MessageComposerView: View {
     var webSearchTintHex: String = "007AFF"
     var onSelectWebSearchProvider: ((WebSearchProviderKind) -> Void)? = nil
     var onDisableWebSearch: (() -> Void)? = nil
+    var skills: [SkillMatchable] = []
     let onSend: () -> Void
     let onStop: () -> Void
 
@@ -47,6 +48,13 @@ struct MessageComposerView: View {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return hasText || !attachments.isEmpty
     }
+
+    private var slashQuery: String? { SkillResolver.slashQuery(from: text) }
+    private var matchingSkills: [SkillMatchable] {
+        guard let slashQuery else { return [] }
+        return SkillResolver.filter(skills, query: slashQuery)
+    }
+    private var showSkillPicker: Bool { slashQuery != nil && !matchingSkills.isEmpty }
 
     private var pasteboardHasImage: Bool {
         #if canImport(UIKit)
@@ -117,6 +125,13 @@ struct MessageComposerView: View {
 
     private var composerField: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if showSkillPicker {
+                SkillPickerDropdown(skills: matchingSkills) { skill in
+                    text = SkillResolver.applySelection(skill: skill, to: text)
+                    Haptics.light()
+                }
+                .padding(.horizontal, 4).padding(.bottom, 6)
+            }
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
                 .focused($isFocused)
@@ -136,6 +151,7 @@ struct MessageComposerView: View {
             .padding(.bottom, 4)
         }
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .animation(Theme.springFast, value: showSkillPicker)
     }
 
     private var plusMenuButton: some View {

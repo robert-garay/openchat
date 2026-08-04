@@ -9,8 +9,10 @@ struct ChatView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(WebSearchStore.self) private var webSearchStore
+    @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
+    @State private var showingNewSkill = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,9 +38,8 @@ struct ChatView: View {
                     webSearchTintHex: viewModel.webSearchStoreActiveTint,
                     onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
                     onDisableWebSearch: viewModel.disableWebSearchForChat,
-                    onSend: {
-                        viewModel.send()
-                    },
+                    skills: skills.map(SkillMatchable.init(skill:)),
+                    onSend: { viewModel.send() },
                     onStop: viewModel.cancelStreaming
                 )
             }
@@ -80,6 +81,11 @@ struct ChatView: View {
                     }
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Haptics.light(); showingNewSkill = true } label: {
+                    Image(systemName: "bolt.badge.plus")
+                }.accessibilityLabel("New Skill")
+            }
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
@@ -89,6 +95,9 @@ struct ChatView: View {
                     onSelect: viewModel.selectModel
                 )
             }
+        }
+        .sheet(isPresented: $showingNewSkill) {
+            SkillEditorView(skill: nil, createdFromChatID: conversation.id)
         }
         .alert(
             "Images not supported",

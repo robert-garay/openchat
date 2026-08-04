@@ -11,7 +11,7 @@ struct OpenChatApp: App {
 
     init() {
         do {
-            modelContainer = try ModelContainer(for: Conversation.self, ChatMessage.self)
+            modelContainer = try ModelContainer(for: Conversation.self, ChatMessage.self, Skill.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

@@ -42,6 +42,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Web Search", systemImage: "globe")
                     }
+                    NavigationLink {
+                        SkillsSettingsView()
+                    } label: {
+                        Label("Skills", systemImage: "bolt.fill")
+                    }
                 }
 
                 Section("Privacy") {

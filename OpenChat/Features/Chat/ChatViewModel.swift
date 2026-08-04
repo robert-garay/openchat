@@ -19,6 +19,7 @@ final class ChatViewModel {
     private let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
     private var streamingTask: Task<Void, Never>?
+    private var pendingSkillSystemBlock: String?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Defaults on when search is active.
@@ -146,33 +147,31 @@ final class ChatViewModel {
     }
 
     func send() {
-        let text = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
-        guard (!text.isEmpty || !images.isEmpty), !isStreaming else { return }
-
+        guard (!rawText.isEmpty || !images.isEmpty), !isStreaming else { return }
         if !images.isEmpty, !supportsVision {
             capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
             return
         }
-
-        composerText = ""
-        pendingAttachments = []
-
+        let skills = fetchSkillMatches()
+        let resolution = SkillResolver.resolve(text: rawText, skills: skills)
+        let text = resolution?.storedMessage ?? rawText
+        pendingSkillSystemBlock = resolution.map { SkillResolver.systemBlock(for: $0.skill) }
+        guard !text.isEmpty || !images.isEmpty || resolution != nil else { pendingSkillSystemBlock = nil; return }
+        composerText = ""; pendingAttachments = []
         let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images)
         userMessage.conversation = conversation
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
-
-        if conversation.title == "New Chat" {
-            if !text.isEmpty {
-                conversation.title = String(text.prefix(40))
-            } else {
-                conversation.title = "Image"
-            }
-        }
+        if conversation.title == "New Chat" { conversation.title = text.isEmpty ? "Image" : String(text.prefix(40)) }
         conversation.updatedAt = .now
-
         requestAssistantReply()
+    }
+
+    private func fetchSkillMatches() -> [SkillMatchable] {
+        let skills = (try? modelContext.fetch(FetchDescriptor<Skill>())) ?? []
+        return skills.map(SkillMatchable.init(skill:))
     }
 
     func regenerateLastReply() {
@@ -219,6 +218,8 @@ final class ChatViewModel {
         let modelID = model.id
         let supportsTools = model.supportsTools
         let conversationSystemPrompt = conversation.systemPrompt
+        let skillSystemBlock = pendingSkillSystemBlock
+        pendingSkillSystemBlock = nil
         let historyTurns: [ChatTurn] = conversation.sortedMessages
             .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
             .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) }
@@ -235,9 +236,8 @@ final class ChatViewModel {
             guard let self else { return }
             do {
                 var systemParts: [String] = []
-                if !conversationSystemPrompt.isEmpty {
-                    systemParts.append(conversationSystemPrompt)
-                }
+                if !conversationSystemPrompt.isEmpty { systemParts.append(conversationSystemPrompt) }
+                if let skillSystemBlock, !skillSystemBlock.isEmpty { systemParts.append(skillSystemBlock) }
 
                 dataSourceStore.refreshAuthorizationStatuses()
                 if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
