@@ -27,19 +27,16 @@ struct SettingsView: View {
                                     tint: Color(hex: provider.tint),
                                     size: 30
                                 )
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(provider.name)
-                                    if provider.requiresAPIKey, !providerStore.hasUsableCredentials(provider) {
-                                        Text("Needs an API key")
-                                            .font(.caption)
-                                            .foregroundStyle(.orange)
-                                    }
-                                }
+                                Text(provider.name)
                                 Spacer()
                                 if !provider.isEnabled {
                                     Text("Off")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+                                } else if provider.requiresAPIKey, !providerStore.hasUsableCredentials(provider) {
+                                    Text("Needs key")
+                                        .font(.caption)
+                                        .foregroundStyle(.orange)
                                 }
                             }
                         }
@@ -48,6 +45,22 @@ struct SettingsView: View {
                         showingAddProvider = true
                     } label: {
                         Label("Add a Provider", systemImage: "plus.circle.fill")
+                    }
+                }
+
+                Section("Tools") {
+                    NavigationLink {
+                        WebSearchSettingsView()
+                    } label: {
+                        Label("Web Search", systemImage: "globe")
+                    }
+                }
+
+                Section("Privacy") {
+                    NavigationLink {
+                        DataSourcesSettingsView()
+                    } label: {
+                        Label("Agent Data Sources", systemImage: "sensor.tag.radiowaves.forward")
                     }
                 }
 
@@ -62,61 +75,12 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    NavigationLink {
-                        WebSearchSettingsView()
-                    } label: {
-                        HStack(spacing: 12) {
-                            if webSearchStore.isActive {
-                                ProviderLogoView(
-                                    logoAssetName: webSearchStore.activeProvider.logoAssetName,
-                                    symbolName: webSearchStore.activeProvider.symbolName,
-                                    tint: Color(hex: webSearchStore.activeProvider.tintHex),
-                                    size: 28
-                                )
-                            } else {
-                                Image(systemName: "globe")
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
-                                    .frame(width: 28, height: 28)
-                            }
-                            Text("Web Search")
-                            Spacer()
-                            Text(webSearchSummary)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Tools")
-                } footer: {
-                    Text("Optional search keys (Tavily, Exa, Brave, Serper, SerpAPI). Choose the provider from the chat web search button.")
-                }
-
-                Section {
-                    NavigationLink {
-                        DataSourcesSettingsView()
-                    } label: {
-                        HStack {
-                            Label("Agent Data Sources", systemImage: "sensor.tag.radiowaves.forward")
-                            Spacer()
-                            Text(dataSourcesSummary)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Privacy")
-                } footer: {
-                    Text("Enabled calendar and fitness data are included with chat requests. All sources are off by default.")
-                }
-
-                Section {
                     LabeledContent("Version", value: appVersion)
                     Link(destination: URL(string: "https://github.com/robert-garay/openchat")!) {
                         Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 } header: {
                     Text("About")
-                } footer: {
-                    Text("OpenChat connects directly to the providers you configure. Your conversations are stored only on this device.")
                 }
             }
             .navigationTitle("Settings")
@@ -138,19 +102,5 @@ struct SettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
-    }
-
-    private var dataSourcesSummary: String {
-        let count = dataSourceStore.enabledCount
-        if count == 0 { return "Off" }
-        return "\(count) on"
-    }
-
-    private var webSearchSummary: String {
-        if webSearchStore.isActive {
-            return webSearchStore.activeProviderDisplayName
-        }
-        if webSearchStore.hasAnyAPIKey { return "Off" }
-        return "Add key"
     }
 }
