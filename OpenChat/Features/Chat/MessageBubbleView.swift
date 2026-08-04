@@ -13,6 +13,10 @@ struct MessageBubbleView: View {
     var isApplyingCalendarActions: Bool = false
     var onConfirmCalendarActions: (() -> Void)? = nil
     var onDismissCalendarActions: (() -> Void)? = nil
+    var pendingMemoryProposals: [MemoryProposal] = []
+    var memoryActionStatus: String? = nil
+    var onConfirmMemoryProposals: (() -> Void)? = nil
+    var onDismissMemoryProposals: (() -> Void)? = nil
     let onRetry: () -> Void
 
     #if canImport(UIKit)
@@ -97,6 +101,14 @@ struct MessageBubbleView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if !pendingMemoryProposals.isEmpty {
+                    memoryConfirmationCard
+                } else if let memoryActionStatus, !memoryActionStatus.isEmpty {
+                    Text(memoryActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let errorMessage = message.errorMessage {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -115,7 +127,7 @@ struct MessageBubbleView: View {
     }
 
     private var displayContent: String {
-        CalendarActionParser.strippingFences(from: message.content)
+        MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
     }
 
     private var calendarConfirmationCard: some View {
@@ -150,6 +162,27 @@ struct MessageBubbleView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var memoryConfirmationCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Save to memory?", systemImage: "brain.head.profile")
+                .font(.subheadline.weight(.semibold))
+            ForEach(pendingMemoryProposals) { proposal in
+                Text(proposal.content)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            HStack {
+                Button("Save") { onConfirmMemoryProposals?() }
+                    .buttonStyle(.borderedProminent)
+                Button("Discard") { onDismissMemoryProposals?() }
+                    .buttonStyle(.bordered)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func attachmentGallery(_ attachments: [ChatImageAttachment], alignment: HorizontalAlignment) -> some View {

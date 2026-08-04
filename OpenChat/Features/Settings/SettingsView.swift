@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
+    @AppStorage(CompactConversationSettings.enabledKey) private var compactEnabled = false
     @State private var showingAddProvider = false
 
     var body: some View {
@@ -42,6 +43,32 @@ struct SettingsView: View {
                     } label: {
                         Label("Web Search", systemImage: "globe")
                     }
+                    NavigationLink {
+                        MemorySettingsView()
+                    } label: {
+                        Label("Memory", systemImage: "brain.head.profile")
+                    }
+                    NavigationLink {
+                        SkillsSettingsView()
+                    } label: {
+                        Label("Skills", systemImage: "bolt.fill")
+                    }
+                }
+
+                Section {
+                    NavigationLink {
+                        RulesSettingsView()
+                    } label: {
+                        Label("Rules", systemImage: "text.alignleft")
+                    }
+                }
+
+                Section {
+                    Toggle("Enable Compact", isOn: $compactEnabled)
+                } header: {
+                    Text("Context")
+                } footer: {
+                    Text("When enabled, a compact button appears in chat to summarize older messages and reduce context sent to the model.")
                 }
 
                 Section("Privacy") {
