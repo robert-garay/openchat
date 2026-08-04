@@ -2,8 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(ProviderStore.self) private var providerStore
-    @Environment(AgentDataSourceStore.self) private var dataSourceStore
-    @Environment(WebSearchStore.self) private var webSearchStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
     @State private var showingAddProvider = false
@@ -28,16 +26,6 @@ struct SettingsView: View {
                                     size: 30
                                 )
                                 Text(provider.name)
-                                Spacer()
-                                if !provider.isEnabled {
-                                    Text("Off")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                } else if provider.requiresAPIKey, !providerStore.hasUsableCredentials(provider) {
-                                    Text("Needs key")
-                                        .font(.caption)
-                                        .foregroundStyle(.orange)
-                                }
                             }
                         }
                     }
