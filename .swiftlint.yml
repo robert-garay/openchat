@@ -20,7 +20,10 @@ opt_in_rules:
 
 disabled_rules:
   - trailing_whitespace
+  - trailing_comma
   - todo
+  # Network/API surfaces intentionally take many args; not worth churn in iteration 1.
+  - function_parameter_count
 
 line_length:
   warning: 160
@@ -48,8 +51,10 @@ cyclomatic_complexity:
 
 identifier_name:
   min_length:
-    warning: 2
+    warning: 1
     error: 1
+  # Allow snake_case Decodable fields that mirror external JSON keys.
+  allowed_symbols: "_"
   excluded:
     - id
     - x
@@ -59,6 +64,7 @@ identifier_name:
     - ok
     - to
     - on
+    - q
 
 nesting:
   type_level: 3
