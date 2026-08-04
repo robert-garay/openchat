@@ -43,7 +43,11 @@ import SwiftData
         return "## Memory\nDurable facts the user saved in OpenChat. Use when relevant. Do not invent facts beyond this list.\n\n" + items.map { "- \($0.content)" }.joined(separator: "\n")
     }
     static func modelInstruction() -> String { "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled." }
-    static func normalizeContent(_ c: String) -> String { c.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: #\"\\s+\"#, with: \" \", options: .regularExpression).lowercased() }
+    static func normalizeContent(_ c: String) -> String {
+        c.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .lowercased()
+    }
     private func findSimilar(_ items: [MemoryItem], _ content: String) -> MemoryItem? { let n = Self.normalizeContent(content); return items.first { Self.normalizeContent($0.content) == n } }
 }
 enum MemoryStoreError: LocalizedError { case emptyContent; var errorDescription: String? { "Memory cannot be empty." } }
