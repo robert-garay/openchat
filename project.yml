@@ -102,7 +102,12 @@ schemes:
       config: Debug
     test:
       config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - OpenChat
       targets:
-        - OpenChatTests
+        - name: OpenChatTests
+          parallelizable: true
+          randomExecutionOrder: true
     archive:
       config: Release
