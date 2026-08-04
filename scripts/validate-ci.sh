@@ -67,6 +67,13 @@ if yaml is not None:
         jobs = workflow.get("jobs") or {}
         if "lint" not in jobs or "test" not in jobs:
             errors.append("ci.yml must define lint and test jobs")
+        else:
+            lint_runner = jobs["lint"].get("runs-on")
+            test_runner = jobs["test"].get("runs-on")
+            if lint_runner != "ubuntu-latest":
+                errors.append(f"lint job should run on ubuntu-latest, got {lint_runner!r}")
+            if test_runner != "macos-15":
+                errors.append(f"test job should run on macos-15, got {test_runner!r}")
         on = workflow.get("on") or workflow.get(True)  # PyYAML may coerce 'on' -> True
         if on is None:
             errors.append("ci.yml missing on: triggers")
@@ -93,7 +100,7 @@ if yaml is not None:
             errors.append("OpenChatTests missing from scheme test targets")
 else:
     text = workflow_path.read_text()
-    for needle in ("jobs:", "lint:", "test:", "concurrency:", "macos-15", "scripts/ci-test.sh", "scripts/ci-lint.sh"):
+    for needle in ("jobs:", "lint:", "test:", "concurrency:", "ubuntu-latest", "macos-15", "scripts/ci-test.sh", "swiftlint"):
         if needle not in text:
             errors.append(f"ci.yml missing expected content: {needle}")
     project_text = project_path.read_text()

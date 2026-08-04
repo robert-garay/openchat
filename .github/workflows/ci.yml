@@ -22,35 +22,26 @@ permissions:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+  SWIFTLINT_IMAGE: ghcr.io/realm/swiftlint:0.57.0
 
 jobs:
   lint:
     name: Lint
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Homebrew
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew
-            /opt/homebrew/Cellar/swiftlint
-            /usr/local/Cellar/swiftlint
-          key: brew-swiftlint-${{ runner.os }}-${{ hashFiles('.swiftlint.yml') }}
-          restore-keys: |
-            brew-swiftlint-${{ runner.os }}-
-
-      - name: Install SwiftLint
-        run: |
-          if ! command -v swiftlint >/dev/null 2>&1; then
-            brew install swiftlint
-          fi
-          swiftlint version
+      - name: Validate CI config
+        run: ./scripts/validate-ci.sh
 
       - name: Run SwiftLint
-        run: ./scripts/ci-lint.sh
+        run: |
+          docker run --rm \
+            --volume "$PWD:/work" \
+            --workdir /work \
+            "$SWIFTLINT_IMAGE" \
+            lint --reporter github-actions-logging
 
   test:
     name: Unit Tests
