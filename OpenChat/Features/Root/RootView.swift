@@ -4,7 +4,10 @@ import SwiftData
 struct RootView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Conversation.updatedAt, order: .reverse) private var conversations: [Conversation]
+    @Query(sort: [
+        SortDescriptor(\Conversation.isPinned, order: .reverse),
+        SortDescriptor(\Conversation.updatedAt, order: .reverse),
+    ]) private var conversations: [Conversation]
 
     @State private var selectedConversationID: UUID?
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
