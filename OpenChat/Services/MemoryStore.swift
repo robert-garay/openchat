@@ -11,7 +11,7 @@ import SwiftData
         useInChats = defaults.object(forKey: useKey) == nil ? false : defaults.bool(forKey: useKey)
         requireConfirmation = defaults.object(forKey: confirmKey) == nil ? true : defaults.bool(forKey: confirmKey)
     }
-    static func shouldUseMemory(isTemporary: Bool, useInChats: Bool) -> Bool { useInChats && !isTemporary }
+    nonisolated static func shouldUseMemory(isTemporary: Bool, useInChats: Bool) -> Bool { useInChats && !isTemporary }
     func setUseInChats(_ v: Bool) { useInChats = v; defaults.set(v, forKey: useKey) }
     func setRequireConfirmation(_ v: Bool) { requireConfirmation = v; defaults.set(v, forKey: confirmKey) }
     func fetchItems(modelContext: ModelContext) throws -> [MemoryItem] { try modelContext.fetch(FetchDescriptor(sortBy: [SortDescriptor(\.pinned, order: .reverse), SortDescriptor(\.updatedAt, order: .reverse)])) }
@@ -38,12 +38,12 @@ import SwiftData
         }
         return sel
     }
-    static func contextSection(for items: [MemoryItem]) -> String? {
+    nonisolated static func contextSection(for items: [MemoryItem]) -> String? {
         guard !items.isEmpty else { return nil }
         return "## Memory\nDurable facts the user saved in OpenChat. Use when relevant. Do not invent facts beyond this list.\n\n" + items.map { "- \($0.content)" }.joined(separator: "\n")
     }
-    static func modelInstruction() -> String { "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled." }
-    static func normalizeContent(_ c: String) -> String {
+    nonisolated static func modelInstruction() -> String { "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled." }
+    nonisolated static func normalizeContent(_ c: String) -> String {
         c.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             .lowercased()
