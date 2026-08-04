@@ -33,13 +33,8 @@ struct AddProviderView: View {
                         CustomProviderView { dismiss() }
                     } label: {
                         Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Custom Endpoint")
-                                    .font(.body.weight(.medium))
-                                Text("Ollama, LM Studio, vLLM, or any OpenAI-compatible API")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                            Text("Custom Endpoint")
+                                .font(.body.weight(.medium))
                         } icon: {
                             ProviderLogoView(
                                 logoAssetName: nil,
@@ -67,18 +62,8 @@ struct ProviderTemplateRow: View {
 
     var body: some View {
         Label {
-            HStack(spacing: 6) {
-                Text(template.name)
-                    .font(.body.weight(.medium))
-                if let region = template.region {
-                    Text(region)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color(hex: template.tint).opacity(0.15), in: Capsule())
-                        .foregroundStyle(Color(hex: template.tint))
-                }
-            }
+            Text(template.name)
+                .font(.body.weight(.medium))
         } icon: {
             ProviderLogoView(
                 logoAssetName: template.logoAssetName,
