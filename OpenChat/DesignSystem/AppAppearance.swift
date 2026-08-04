@@ -41,6 +41,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
         }
     }
 
+    @MainActor
     func applyToAllWindows() {
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }
