@@ -96,13 +96,29 @@ struct MessageComposerView: View {
         .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Add a search API key in Settings → Web Search, then pick a provider from the + menu.")
+            Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
+        }
+        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
+            WebSearchProviderPicker(
+                providers: webSearchProviders,
+                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
+                onSelect: { provider in
+                    showingWebSearchPicker = false
+                    onSelectWebSearchProvider?(provider)
+                },
+                onDisable: {
+                    showingWebSearchPicker = false
+                    onDisableWebSearch?()
+                }
+            )
+            .presentationCompactAdaptation(.popover)
         }
     }
 
     private var composerField: some View {
         HStack(alignment: .bottom, spacing: 0) {
             plusMenuButton
+            webSearchButton
 
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
@@ -110,11 +126,6 @@ struct MessageComposerView: View {
                 .onSubmit(submitIfPossible)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 10)
-
-            if isWebSearchArmed {
-                webSearchArmedChip
-                    .padding(.bottom, 4)
-            }
 
             sendButton
                 .padding(.bottom, 2)
@@ -144,21 +155,6 @@ struct MessageComposerView: View {
                 Label("Paste Image", systemImage: "doc.on.clipboard")
             }
             .disabled(!pasteboardHasImage)
-
-            Divider()
-
-            Button {
-                // Let the menu dismiss before presenting the provider popover.
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(150))
-                    openWebSearch()
-                }
-            } label: {
-                Label(
-                    isWebSearchArmed ? "Web Search · \(webSearchProviderName)" : "Web Search",
-                    systemImage: "globe"
-                )
-            }
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 20, weight: .medium))
@@ -168,39 +164,53 @@ struct MessageComposerView: View {
         }
         .padding(.bottom, 2)
         .accessibilityLabel("Add")
-        .accessibilityHint("Attach a photo, paste an image, or turn on web search")
-        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
-            WebSearchProviderPicker(
-                providers: webSearchProviders,
-                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
-                onSelect: { provider in
-                    showingWebSearchPicker = false
-                    onSelectWebSearchProvider?(provider)
-                },
-                onDisable: {
-                    showingWebSearchPicker = false
-                    onDisableWebSearch?()
-                }
-            )
-            .presentationCompactAdaptation(.popover)
-        }
+        .accessibilityHint("Attach a photo or paste an image")
     }
 
-    private var webSearchArmedChip: some View {
+    private var webSearchButton: some View {
         Button {
-            openWebSearch()
+            if canUseWebSearch {
+                showingWebSearchPicker = true
+            } else {
+                Haptics.warning()
+                showingWebSearchDisabledAlert = true
+            }
         } label: {
-            ProviderLogoView(
-                logoAssetName: webSearchLogoAssetName,
-                symbolName: webSearchSymbolName,
-                tint: Color(hex: webSearchTintHex),
-                size: 26,
-                cornerRadius: 7
-            )
+            webSearchIcon
         }
-        .accessibilityLabel("Web search on")
-        .accessibilityHint("Using \(webSearchProviderName). Choose another provider or turn web search off.")
+        .padding(.bottom, 2)
+        .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
+        .accessibilityHint(
+            canUseWebSearch
+                ? (isWebSearchArmed
+                    ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
+                    : "Choose a search provider for this chat.")
+                : "Add a search API key in Settings"
+        )
+        .animation(Theme.springFast, value: isWebSearchArmed)
         .animation(Theme.springFast, value: selectedWebSearchProvider)
+    }
+
+    private var webSearchIcon: some View {
+        ZStack {
+            if isWebSearchArmed {
+                ProviderLogoView(
+                    logoAssetName: webSearchLogoAssetName,
+                    symbolName: webSearchSymbolName,
+                    tint: Color(hex: webSearchTintHex),
+                    size: 28,
+                    cornerRadius: 8
+                )
+            } else {
+                Image(systemName: "globe")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color(.tertiaryLabel))
+                    .frame(width: 34, height: 34)
+                    .contentShape(Rectangle())
+                    .opacity(canUseWebSearch ? 1 : 0.85)
+            }
+        }
+        .frame(width: 34, height: 34)
     }
 
     private var sendButton: some View {
@@ -267,15 +277,6 @@ struct MessageComposerView: View {
             return
         }
         showingCamera = true
-    }
-
-    private func openWebSearch() {
-        if canUseWebSearch {
-            showingWebSearchPicker = true
-        } else {
-            Haptics.warning()
-            showingWebSearchDisabledAlert = true
-        }
     }
 
     private func primaryAction() {
