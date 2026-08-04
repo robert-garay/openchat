@@ -89,7 +89,7 @@ struct WebSearchProviderDetailView: View {
     @State private var showingRemoveConfirmation = false
 
     var body: some View {
-        List {
+        Form {
             Section {
                 HStack(spacing: 12) {
                     ProviderLogoView(
@@ -117,7 +117,6 @@ struct WebSearchProviderDetailView: View {
                 draftKey: $apiKey,
                 helpURL: kind.keyHelpURL,
                 helpProviderName: kind.displayName,
-                onSave: saveKey,
                 onRequestReplace: {
                     apiKey = ""
                     showingReplaceKey = true
@@ -129,6 +128,15 @@ struct WebSearchProviderDetailView: View {
         }
         .navigationTitle(kind.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if webSearchStore.redactedAPIKey(for: kind) == nil {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveKey() }
+                        .fontWeight(.semibold)
+                        .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
         .overlay {
             if showingReplaceKey {
                 APIKeyReplaceDialog(

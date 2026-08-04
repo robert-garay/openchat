@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Shared API-key controls for provider settings: empty state with field +
-/// save action, or a saved state with redacted preview, replace, and remove.
+/// Shared API-key controls for provider settings: empty state with field, or a
+/// saved state with redacted preview, replace, and remove.
 struct APIKeySettingsSection: View {
     let placeholder: String
     let redactedKey: String?
@@ -9,15 +9,10 @@ struct APIKeySettingsSection: View {
     var helpURL: URL? = nil
     var helpProviderName: String? = nil
     var allowsRemove: Bool = true
-    var onSave: () -> Void
     var onRequestReplace: () -> Void
     var onRequestRemove: (() -> Void)? = nil
 
     @FocusState private var fieldFocused: Bool
-
-    private var canSave: Bool {
-        !draftKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
 
     var body: some View {
         Section {
@@ -39,18 +34,6 @@ struct APIKeySettingsSection: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .focused($fieldFocused)
-
-                Button(action: onSave) {
-                    Label("Save Key", systemImage: "key.fill")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!canSave)
-                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
-                .listRowBackground(Color.clear)
-                .accessibilityHint(canSave ? "Saves the API key to the Keychain" : "Enter an API key first")
             }
         } header: {
             Text("API Key")
