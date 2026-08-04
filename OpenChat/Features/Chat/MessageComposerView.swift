@@ -116,22 +116,25 @@ struct MessageComposerView: View {
     }
 
     private var composerField: some View {
-        HStack(alignment: .bottom, spacing: 0) {
-            plusMenuButton
-            webSearchButton
-
+        VStack(alignment: .leading, spacing: 0) {
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
                 .focused($isFocused)
                 .onSubmit(submitIfPossible)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
-            sendButton
-                .padding(.bottom, 2)
+            HStack(alignment: .center, spacing: 2) {
+                plusMenuButton
+                webSearchButton
+                Spacer(minLength: 0)
+                sendButton
+            }
+            .padding(.leading, 2)
+            .padding(.trailing, 4)
+            .padding(.bottom, 4)
         }
-        .padding(.leading, 2)
-        .padding(.trailing, 4)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
@@ -162,7 +165,6 @@ struct MessageComposerView: View {
                 .frame(width: 34, height: 34)
                 .contentShape(Rectangle())
         }
-        .padding(.bottom, 2)
         .accessibilityLabel("Add")
         .accessibilityHint("Attach a photo or paste an image")
     }
@@ -178,7 +180,6 @@ struct MessageComposerView: View {
         } label: {
             webSearchIcon
         }
-        .padding(.bottom, 2)
         .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
         .accessibilityHint(
             canUseWebSearch
