@@ -5,7 +5,8 @@ import SwiftData
     static let maxInjectionItems = 40, maxInjectionCharacters = 8000
     private let useKey = "com.openchat.memory.useInChats", confirmKey = "com.openchat.memory.requireConfirmation"
     private let defaults: UserDefaults
-    private(set) var useInChats: Bool, requireConfirmation: Bool
+    private(set) var useInChats: Bool
+    private(set) var requireConfirmation: Bool
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         useInChats = defaults.object(forKey: useKey) == nil ? false : defaults.bool(forKey: useKey)
