@@ -45,7 +45,7 @@ struct MessageBubbleView: View {
             Spacer(minLength: 48)
             VStack(alignment: .trailing, spacing: 8) {
                 if !message.imageAttachments.isEmpty {
-                    attachmentGallery(message.imageAttachments)
+                    attachmentGallery(message.imageAttachments, alignment: .trailing)
                 }
                 if !message.content.isEmpty {
                     MarkdownMessageView(content: message.content, isUserMessage: true)
@@ -67,7 +67,11 @@ struct MessageBubbleView: View {
             )
 
             VStack(alignment: .leading, spacing: 8) {
-                if message.content.isEmpty && message.isStreaming {
+                if !message.imageAttachments.isEmpty {
+                    attachmentGallery(message.imageAttachments, alignment: .leading)
+                }
+
+                if message.content.isEmpty && message.isStreaming && message.imageAttachments.isEmpty {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
@@ -137,15 +141,15 @@ struct MessageBubbleView: View {
         .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private func attachmentGallery(_ attachments: [ChatImageAttachment]) -> some View {
-        VStack(alignment: .trailing, spacing: 6) {
+    private func attachmentGallery(_ attachments: [ChatImageAttachment], alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 6) {
             ForEach(attachments) { attachment in
                 #if canImport(UIKit)
                 if let uiImage = UIImage(data: attachment.data) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
-                        .frame(maxWidth: 220, maxHeight: 220)
+                        .frame(maxWidth: 260, maxHeight: 320)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 #endif

@@ -17,7 +17,7 @@ final class ChatMessage {
     var createdAt: Date
     var isStreaming: Bool
     var errorMessage: String?
-    /// JSON-encoded `[ChatImageAttachment]` for multimodal user turns.
+    /// JSON-encoded `[ChatImageAttachment]` for multimodal user or assistant turns.
     var attachmentsData: Data?
     var conversation: Conversation?
 

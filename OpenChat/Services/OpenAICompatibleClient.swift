@@ -14,17 +14,32 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
-        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String
-    ) -> AsyncThrowingStream<String, Error> {
+        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        supportsImageGen: Bool
+    ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    if tools.isEmpty {
+                    if supportsImageGen && tools.isEmpty {
+                        // Image-capable chat models (OpenRouter Gemini/Flux, etc.) return
+                        // images on a non-streaming completion with `modalities`.
+                        try await Self.completeAndYield(
+                            turns: turns,
+                            model: model,
+                            baseURL: baseURL,
+                            apiKey: apiKey,
+                            tools: [],
+                            supportsImageGen: true,
+                            session: session,
+                            continuation: continuation
+                        )
+                    } else if tools.isEmpty {
                         try await Self.streamText(
                             turns: turns,
                             model: model,
                             baseURL: baseURL,
                             apiKey: apiKey,
+                            supportsImageGen: false,
                             session: session,
                             continuation: continuation
                         )
@@ -36,6 +51,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             apiKey: apiKey,
                             tools: tools,
                             executeTool: executeTool,
+                            supportsImageGen: supportsImageGen,
                             session: session,
                             continuation: continuation
                         )
@@ -60,8 +76,9 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        supportsImageGen: Bool,
         session: URLSession,
-        continuation: AsyncThrowingStream<String, Error>.Continuation
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var workingTurns = turns
         for _ in 0..<WebSearchService.maxToolRounds {
@@ -72,6 +89,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 baseURL: baseURL,
                 apiKey: apiKey,
                 tools: tools,
+                supportsImageGen: supportsImageGen,
                 session: session
             )
 
@@ -88,24 +106,80 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 continue
             }
 
-            if !result.text.isEmpty {
-                continuation.yield(result.text)
-            }
+            try yieldCompletion(result, to: continuation)
             return
         }
 
         // Exhausted tool rounds — stream a final answer without tools.
-        try await streamText(
-            turns: workingTurns,
+        if supportsImageGen {
+            try await completeAndYield(
+                turns: workingTurns,
+                model: model,
+                baseURL: baseURL,
+                apiKey: apiKey,
+                tools: [],
+                supportsImageGen: true,
+                session: session,
+                continuation: continuation
+            )
+        } else {
+            try await streamText(
+                turns: workingTurns,
+                model: model,
+                baseURL: baseURL,
+                apiKey: apiKey,
+                supportsImageGen: false,
+                session: session,
+                continuation: continuation
+            )
+        }
+    }
+
+    // MARK: - Non-streaming completion
+
+    private static func completeAndYield(
+        turns: [ChatTurn],
+        model: String,
+        baseURL: String,
+        apiKey: String?,
+        tools: [ChatToolDefinition],
+        supportsImageGen: Bool,
+        session: URLSession,
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
+    ) async throws {
+        let result = try await complete(
+            turns: turns,
             model: model,
             baseURL: baseURL,
             apiKey: apiKey,
-            session: session,
-            continuation: continuation
+            tools: tools,
+            supportsImageGen: supportsImageGen,
+            session: session
         )
+        try yieldCompletion(result, to: continuation)
     }
 
-    // MARK: - Non-streaming completion (tool rounds)
+    private static func yieldCompletion(
+        _ result: ChatCompletionResult,
+        to continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
+    ) throws {
+        try Task.checkCancellation()
+        var text = result.text
+        var images = result.images
+
+        if images.isEmpty {
+            let extracted = GeneratedImageParser.extractMarkdownDataURIImages(from: text)
+            text = extracted.text
+            images = extracted.images
+        }
+
+        if !text.isEmpty {
+            continuation.yield(.text(text))
+        }
+        if !images.isEmpty {
+            continuation.yield(.images(images))
+        }
+    }
 
     private static func complete(
         turns: [ChatTurn],
@@ -113,6 +187,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        supportsImageGen: Bool,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
@@ -120,7 +195,8 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             model: model,
             messages: turns.map(encodeMessage),
             stream: false,
-            tools: tools.isEmpty ? nil : tools.map(encodeTool)
+            tools: tools.isEmpty ? nil : tools.map(encodeTool),
+            modalities: supportsImageGen ? ["image", "text"] : nil
         )
         request.httpBody = try JSONEncoder().encode(body)
 
@@ -143,25 +219,42 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 argumentsJSON: call.function?.arguments ?? "{}"
             )
         }
-        return ChatCompletionResult(text: message.content ?? "", toolCalls: toolCalls)
+
+        var images: [ChatImageAttachment] = []
+        for image in message.images ?? [] {
+            if let url = image.imageURL?.url,
+               let attachment = GeneratedImageParser.attachment(fromDataURI: url) {
+                images.append(attachment)
+            }
+        }
+        // Some providers put image parts inside multimodal `content` arrays.
+        images.append(contentsOf: message.content.inlineImages)
+
+        return ChatCompletionResult(
+            text: message.content.text,
+            toolCalls: toolCalls,
+            images: images
+        )
     }
 
-    // MARK: - Streaming text (no tools)
+    // MARK: - Streaming text (no tools / no image gen)
 
     private static func streamText(
         turns: [ChatTurn],
         model: String,
         baseURL: String,
         apiKey: String?,
+        supportsImageGen: Bool,
         session: URLSession,
-        continuation: AsyncThrowingStream<String, Error>.Continuation
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         let body = RequestBody(
             model: model,
             messages: turns.map(encodeMessage),
             stream: true,
-            tools: nil
+            tools: nil,
+            modalities: supportsImageGen ? ["image", "text"] : nil
         )
         request.httpBody = try JSONEncoder().encode(body)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
@@ -170,8 +263,20 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
             guard let chunk = try? JSONDecoder().decode(Chunk.self, from: data) else { continue }
-            if let text = chunk.choices?.first?.delta?.content, !text.isEmpty {
-                continuation.yield(text)
+            let delta = chunk.choices?.first?.delta
+            if let text = delta?.content.text, !text.isEmpty {
+                continuation.yield(.text(text))
+            }
+            var streamImages: [ChatImageAttachment] = []
+            for image in delta?.images ?? [] {
+                if let url = image.imageURL?.url,
+                   let attachment = GeneratedImageParser.attachment(fromDataURI: url) {
+                    streamImages.append(attachment)
+                }
+            }
+            streamImages.append(contentsOf: delta?.content.inlineImages ?? [])
+            if !streamImages.isEmpty {
+                continuation.yield(.images(streamImages))
             }
         }
     }
@@ -261,6 +366,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         var messages: [RequestMessage]
         var stream: Bool
         var tools: [ToolPayload]?
+        var modalities: [String]?
     }
 
     private struct RequestMessage: Encodable {
@@ -319,12 +425,26 @@ struct OpenAICompatibleClient: ChatCompletionClient {
     private struct CompletionResponse: Decodable {
         struct Choice: Decodable {
             struct Message: Decodable {
-                var content: String?
+                var content: FlexibleMessageContent
                 var toolCalls: [ToolCallDTO]?
+                var images: [GeneratedImageDTO]?
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    if container.contains(.content),
+                       (try? container.decodeNil(forKey: .content)) != true {
+                        content = try container.decode(FlexibleMessageContent.self, forKey: .content)
+                    } else {
+                        content = FlexibleMessageContent()
+                    }
+                    toolCalls = try container.decodeIfPresent([ToolCallDTO].self, forKey: .toolCalls)
+                    images = try container.decodeIfPresent([GeneratedImageDTO].self, forKey: .images)
+                }
 
                 enum CodingKeys: String, CodingKey {
                     case content
                     case toolCalls = "tool_calls"
+                    case images
                 }
             }
             var message: Message?
@@ -342,10 +462,87 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         }
     }
 
+    private struct GeneratedImageDTO: Decodable {
+        var type: String?
+        var imageURL: ImageURLDTO?
+
+        enum CodingKeys: String, CodingKey {
+            case type
+            case imageURL = "image_url"
+        }
+
+        struct ImageURLDTO: Decodable {
+            var url: String?
+        }
+    }
+
+    /// Assistant `content` may be a plain string or a multimodal part array.
+    private struct FlexibleMessageContent: Decodable {
+        var text: String
+        var inlineImages: [ChatImageAttachment]
+
+        init(text: String = "", inlineImages: [ChatImageAttachment] = []) {
+            self.text = text
+            self.inlineImages = inlineImages
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if container.decodeNil() {
+                self.init()
+                return
+            }
+            if let string = try? container.decode(String.self) {
+                self.init(text: string)
+                return
+            }
+            let parts = try container.decode([ContentPartDTO].self)
+            var textParts: [String] = []
+            var images: [ChatImageAttachment] = []
+            for part in parts {
+                if let partText = part.text, !partText.isEmpty {
+                    textParts.append(partText)
+                }
+                if let url = part.imageURL?.url,
+                   let attachment = GeneratedImageParser.attachment(fromDataURI: url) {
+                    images.append(attachment)
+                }
+            }
+            self.init(text: textParts.joined(), inlineImages: images)
+        }
+
+        private struct ContentPartDTO: Decodable {
+            var type: String?
+            var text: String?
+            var imageURL: GeneratedImageDTO.ImageURLDTO?
+
+            enum CodingKeys: String, CodingKey {
+                case type, text
+                case imageURL = "image_url"
+            }
+        }
+    }
+
     private struct Chunk: Decodable {
         struct Choice: Decodable {
             struct Delta: Decodable {
-                var content: String?
+                var content: FlexibleMessageContent
+                var images: [GeneratedImageDTO]?
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    if container.contains(.content),
+                       (try? container.decodeNil(forKey: .content)) != true {
+                        content = try container.decode(FlexibleMessageContent.self, forKey: .content)
+                    } else {
+                        content = FlexibleMessageContent()
+                    }
+                    images = try container.decodeIfPresent([GeneratedImageDTO].self, forKey: .images)
+                }
+
+                enum CodingKeys: String, CodingKey {
+                    case content, images
+                }
             }
             var delta: Delta?
         }

@@ -237,9 +237,9 @@ enum OpenRouterModelCatalog {
         guard !model.isAlias else { return false }
         guard !model.id.hasPrefix("~") else { return false }
         guard model.id != "openrouter/free" else { return false }
-        guard model.outputModalities.contains("text") || (model.modality?.contains("->text") == true) else {
-            return false
-        }
+        let hasTextOut = model.outputModalities.contains("text") || (model.modality?.contains("->text") == true)
+        let hasImageOut = model.outputModalities.contains("image") || (model.modality?.contains("->image") == true)
+        guard hasTextOut || hasImageOut else { return false }
         let lowered = model.id.lowercased()
         if lowered.contains("lyria") || lowered.contains("content-safety") {
             return false
