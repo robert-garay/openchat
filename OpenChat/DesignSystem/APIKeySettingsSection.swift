@@ -81,27 +81,18 @@ struct APIKeySettingsSection: View {
                     .truncationMode(.middle)
 
                 Spacer(minLength: 8)
-
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.accentColor)
-                    .accessibilityHidden(true)
-
-                Text("Saved")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("API key saved")
+        .accessibilityLabel("API key")
         .accessibilityValue(redacted)
         .accessibilityHint("Double tap to replace key")
     }
 }
 
-/// Modal overlay for replacing a stored API key.
+/// Centered modal overlay for replacing a stored API key.
 struct APIKeyReplaceDialog: View {
-    let title: String
     let placeholder: String
     @Binding var draftKey: String
     var onCancel: () -> Void
@@ -114,45 +105,82 @@ struct APIKeyReplaceDialog: View {
     }
 
     var body: some View {
+        SettingsModalChrome(onDismiss: onCancel) {
+            SecureField(placeholder, text: $draftKey)
+                .textContentType(.password)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .padding(12)
+                .background(
+                    Color(.secondarySystemFill),
+                    in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
+                )
+                .focused($fieldFocused)
+
+            HStack(spacing: 12) {
+                Button("Cancel", action: onCancel)
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+
+                Button(action: onSave) {
+                    Label("Save", systemImage: "checkmark")
+                        .labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+                .disabled(!canSave)
+            }
+        }
+        .onAppear { fieldFocused = true }
+    }
+}
+
+/// Centered confirm/cancel dialog used instead of bottom `confirmationDialog` sheets.
+struct SettingsConfirmDialog: View {
+    let title: String
+    let message: String
+    var confirmTitle: String = "Remove"
+    var onCancel: () -> Void
+    var onConfirm: () -> Void
+
+    var body: some View {
+        SettingsModalChrome(onDismiss: onCancel) {
+            Text(title)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 12) {
+                Button("Cancel", action: onCancel)
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+
+                Button(confirmTitle, role: .destructive, action: onConfirm)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
+/// Shared dimmed backdrop + material card used by settings center modals.
+private struct SettingsModalChrome<Content: View>: View {
+    var onDismiss: () -> Void
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
         ZStack {
             Color.black.opacity(0.35)
                 .ignoresSafeArea()
-                .onTapGesture(perform: onCancel)
+                .onTapGesture(perform: onDismiss)
 
             VStack(spacing: 16) {
-                Image(systemName: "key.fill")
-                    .font(.title2)
-                    .foregroundStyle(Color.accentColor)
-                    .padding(10)
-                    .background(Color.accentColor.opacity(0.12), in: Circle())
-
-                Text(title)
-                    .font(.headline)
-
-                SecureField(placeholder, text: $draftKey)
-                    .textContentType(.password)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .padding(12)
-                    .background(
-                        Color(.secondarySystemFill),
-                        in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
-                    )
-                    .focused($fieldFocused)
-
-                HStack(spacing: 12) {
-                    Button("Cancel", action: onCancel)
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-
-                    Button(action: onSave) {
-                        Label("Save", systemImage: "checkmark")
-                            .labelStyle(.titleAndIcon)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(!canSave)
-                }
+                content()
             }
             .padding(20)
             .frame(maxWidth: 320)
@@ -160,6 +188,5 @@ struct APIKeyReplaceDialog: View {
             .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
             .padding(.horizontal, 24)
         }
-        .onAppear { fieldFocused = true }
     }
 }
