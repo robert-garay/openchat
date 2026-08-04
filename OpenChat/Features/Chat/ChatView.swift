@@ -103,6 +103,22 @@ struct ChatView: View {
         } message: {
             Text(viewModel?.capabilityWarning ?? "")
         }
+        .alert(
+            "Switch model?",
+            isPresented: Binding(
+                get: { viewModel?.pendingModelSwitch != nil },
+                set: { if !$0 { viewModel?.cancelPendingModelSwitch() } }
+            )
+        ) {
+            Button("Cancel", role: .cancel) {
+                viewModel?.cancelPendingModelSwitch()
+            }
+            Button("Switch") {
+                viewModel?.confirmPendingModelSwitch()
+            }
+        } message: {
+            Text(viewModel?.pendingModelSwitch?.message ?? "")
+        }
         .task(id: conversation.id) {
             if viewModel == nil {
                 viewModel = ChatViewModel(

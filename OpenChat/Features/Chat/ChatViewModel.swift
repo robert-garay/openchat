@@ -9,9 +9,32 @@ final class ChatViewModel {
     var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
     var capabilityWarning: String?
+    /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
+    private(set) var pendingModelSwitch: PendingModelSwitch?
     private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
+
+    struct PendingModelSwitch: Equatable {
+        var providerID: String
+        var modelID: String
+        var modelDisplayName: String
+        var clearsPendingAttachments: Bool
+        var omitsThreadImages: Bool
+
+        var message: String {
+            var parts: [String] = []
+            if omitsThreadImages {
+                parts.append(
+                    "\(modelDisplayName) can’t process images. Photos already in this chat stay visible but won’t be sent until you switch back to a vision model."
+                )
+            }
+            if clearsPendingAttachments {
+                parts.append("Unsent attachments will be removed.")
+            }
+            return parts.joined(separator: "\n\n")
+        }
+    }
 
     private let conversation: Conversation
     private let modelContext: ModelContext
@@ -100,19 +123,57 @@ final class ChatViewModel {
     }
 
     func selectModel(providerID: String, modelID: String) {
-        conversation.providerID = providerID
-        conversation.modelID = modelID
-        conversation.updatedAt = .now
+        if providerID == conversation.providerID, modelID == conversation.modelID {
+            return
+        }
 
         let model = providerStore.model(providerID: providerID, modelID: modelID)
-        if !pendingAttachments.isEmpty, model?.supportsVision != true {
-            pendingAttachments = []
-            capabilityWarning = "\(model?.displayName ?? "This model") can’t process images, so attached photos were removed."
+        let targetSupportsVision = model?.supportsVision == true
+        let hasThreadImages = conversation.messages.contains { !$0.imageAttachments.isEmpty }
+        let clearsPendingAttachments = !pendingAttachments.isEmpty && !targetSupportsVision
+        let leavingVision = currentModel?.supportsVision == true
+
+        let needsConfirmation = !targetSupportsVision
+            && ((hasThreadImages && leavingVision) || clearsPendingAttachments)
+        if needsConfirmation {
+            pendingModelSwitch = PendingModelSwitch(
+                providerID: providerID,
+                modelID: modelID,
+                modelDisplayName: model?.displayName ?? "This model",
+                clearsPendingAttachments: clearsPendingAttachments,
+                omitsThreadImages: hasThreadImages
+            )
+            return
         }
+
+        applyModelSelection(providerID: providerID, modelID: modelID, clearPendingAttachments: clearsPendingAttachments)
+    }
+
+    func confirmPendingModelSwitch() {
+        guard let pending = pendingModelSwitch else { return }
+        pendingModelSwitch = nil
+        applyModelSelection(
+            providerID: pending.providerID,
+            modelID: pending.modelID,
+            clearPendingAttachments: pending.clearsPendingAttachments
+        )
+    }
+
+    func cancelPendingModelSwitch() {
+        pendingModelSwitch = nil
     }
 
     func dismissCapabilityWarning() {
         capabilityWarning = nil
+    }
+
+    private func applyModelSelection(providerID: String, modelID: String, clearPendingAttachments: Bool) {
+        conversation.providerID = providerID
+        conversation.modelID = modelID
+        conversation.updatedAt = .now
+        if clearPendingAttachments {
+            pendingAttachments = []
+        }
     }
 
     func confirmCalendarActions(for messageID: UUID) {
@@ -193,21 +254,6 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
-        let priorMessages = conversation.sortedMessages.filter { !($0.role == .assistant && $0.isStreaming) }
-
-        if priorMessages.contains(where: { !$0.imageAttachments.isEmpty }), !model.supportsVision {
-            let assistantMessage = ChatMessage(
-                role: .assistant,
-                content: "",
-                errorMessage: ChatServiceError.modelLacksVision.errorDescription
-            )
-            assistantMessage.conversation = conversation
-            conversation.messages.append(assistantMessage)
-            modelContext.insert(assistantMessage)
-            conversation.updatedAt = .now
-            return
-        }
-
         let assistantMessage = ChatMessage(role: .assistant, content: "", isStreaming: true)
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
@@ -219,9 +265,11 @@ final class ChatViewModel {
         let modelID = model.id
         let supportsTools = model.supportsTools
         let conversationSystemPrompt = conversation.systemPrompt
-        let historyTurns: [ChatTurn] = conversation.sortedMessages
-            .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
-            .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) }
+        let historyTurns = ChatRequestHistory.turns(
+            from: conversation.sortedMessages,
+            includeImages: model.supportsVision,
+            excludingMessageID: assistantMessage.id
+        )
         let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
         let searchAPIKey = webSearchStore.activeAPIKey()
         let searchProviderName = webSearchStore.activeProviderDisplayName
