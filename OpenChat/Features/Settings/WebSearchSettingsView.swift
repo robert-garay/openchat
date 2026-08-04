@@ -132,7 +132,6 @@ struct WebSearchProviderDetailView: View {
         .overlay {
             if showingReplaceKey {
                 APIKeyReplaceDialog(
-                    title: "Replace \(kind.displayName) Key",
                     placeholder: kind.apiKeyPlaceholder,
                     draftKey: $apiKey,
                     onCancel: dismissReplaceKey,
@@ -140,18 +139,24 @@ struct WebSearchProviderDetailView: View {
                 )
                 .transition(.opacity)
                 .zIndex(1)
+            } else if showingRemoveConfirmation {
+                SettingsConfirmDialog(
+                    title: "Remove \(kind.displayName) key?",
+                    message: "This provider won’t be usable until you add a key again.",
+                    confirmTitle: "Remove Key",
+                    onCancel: { showingRemoveConfirmation = false },
+                    onConfirm: {
+                        webSearchStore.removeAPIKey(for: kind)
+                        showingRemoveConfirmation = false
+                        Haptics.light()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .animation(Theme.springFast, value: showingReplaceKey)
-        .confirmationDialog("Remove \(kind.displayName) key?", isPresented: $showingRemoveConfirmation, titleVisibility: .visible) {
-            Button("Remove Key", role: .destructive) {
-                webSearchStore.removeAPIKey(for: kind)
-                Haptics.light()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This provider won’t be usable until you add a key again.")
-        }
+        .animation(Theme.springFast, value: showingRemoveConfirmation)
     }
 
     private func saveKey() {
