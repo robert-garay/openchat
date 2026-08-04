@@ -38,13 +38,13 @@ enum ProviderLogo {
         guard let id else { return nil }
         switch id {
         case "deepseek": return "ProviderLogoDeepSeek"
-        case "qwen": return "ProviderLogoQwen"
+        case "qwen": return "ProviderLogoAlibabaCloud"
         case "moonshot": return "ProviderLogoMoonshot"
         case "zhipu": return "ProviderLogoZhipu"
         case "yi": return "ProviderLogoYi"
         case "openai": return "ProviderLogoOpenAI"
         case "anthropic": return "ProviderLogoAnthropic"
-        case "google": return "ProviderLogoGoogle"
+        case "google": return "ProviderLogoGoogle" // Gemini mark kept intentionally
         case "openrouter": return "ProviderLogoOpenRouter"
         default: return nil
         }

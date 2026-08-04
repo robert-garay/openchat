@@ -41,7 +41,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             id: "qwen",
             name: "Alibaba Cloud",
             symbolName: "wind",
-            tint: "#615CED",
+            tint: "#FF6A00",
             baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://bailian.console.aliyun.com/?apiKey=1"),

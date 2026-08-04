@@ -1,26 +1,59 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "ProviderLogoMoonshot.png",
-      "idiom" : "universal",
-      "scale" : "1x"
+      "filename": "ProviderLogoMoonshot.png",
+      "idiom": "universal",
+      "scale": "1x"
     },
     {
-      "filename" : "ProviderLogoMoonshot@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
+      "filename": "ProviderLogoMoonshot-Dark.png",
+      "idiom": "universal",
+      "scale": "1x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
     },
     {
-      "filename" : "ProviderLogoMoonshot@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename": "ProviderLogoMoonshot@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "filename": "ProviderLogoMoonshot-Dark@2x.png",
+      "idiom": "universal",
+      "scale": "2x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "filename": "ProviderLogoMoonshot@3x.png",
+      "idiom": "universal",
+      "scale": "3x"
+    },
+    {
+      "filename": "ProviderLogoMoonshot-Dark@3x.png",
+      "idiom": "universal",
+      "scale": "3x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   },
-  "properties" : {
-    "template-rendering-intent" : "original"
+  "properties": {
+    "template-rendering-intent": "original"
   }
 }
