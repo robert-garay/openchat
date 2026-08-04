@@ -19,6 +19,16 @@ The `.xcodeproj` is committed to the repo, so you can also just open it directly
 
 Signing defaults to bundle id `com.genion.openchat`. Set your Apple Team ID once by copying `Config/Local.xcconfig.example` → `Config/Local.xcconfig` (gitignored) and filling in `DEVELOPMENT_TEAM`.
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs SwiftLint and unit tests on every PR / push to `main`.
+
+```bash
+./scripts/validate-ci.sh   # config checks (Linux-safe)
+./scripts/ci-lint.sh       # SwiftLint (macOS; brew install swiftlint)
+./scripts/ci-test.sh       # xcodebuild test + coverage (macOS + Xcode 16+)
+```
+
 ## Adding a model
 
 On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Get keys here:
@@ -26,9 +36,9 @@ On first launch, tap **Connect a Provider**, pick a provider, and paste in an AP
 | Provider | Console |
 |---|---|
 | DeepSeek | platform.deepseek.com |
-| Qwen (Alibaba) | bailian.console.aliyun.com |
-| Kimi (Moonshot) | platform.moonshot.cn |
-| Zhipu GLM | open.bigmodel.cn |
+| Alibaba Cloud | bailian.console.aliyun.com |
+| Moonshot AI | platform.moonshot.cn |
+| Zhipu AI | open.bigmodel.cn |
 | OpenAI | platform.openai.com |
 | Anthropic | console.anthropic.com |
 | OpenRouter | openrouter.ai |

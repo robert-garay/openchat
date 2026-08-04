@@ -39,7 +39,9 @@ struct MessageComposerView: View {
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
+    @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
+    @State private var showingWebSearchPicker = false
 
     private var canSend: Bool {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -60,30 +62,9 @@ struct MessageComposerView: View {
                 attachmentStrip
             }
 
-            HStack(alignment: .bottom, spacing: 8) {
-                attachButton
-                webSearchButton
-
-                TextField("Message", text: $text, axis: .vertical)
-                    .lineLimit(1...6)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .focused($isFocused)
-                    .onSubmit(submitIfPossible)
-
-                Button(action: primaryAction) {
-                    Image(systemName: isStreaming ? "stop.circle.fill" : "arrow.up.circle.fill")
-                        .font(.system(size: 30))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, primaryButtonColor)
-                }
-                .disabled(!isStreaming && !canSend)
-                .animation(Theme.springFast, value: canSend)
-                .animation(Theme.springFast, value: isStreaming)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            composerField
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
         }
         .background(.bar)
         .photosPicker(isPresented: $showingPhotoPicker, selection: $photoPickerItems, maxSelectionCount: 4, matching: .images)
@@ -92,6 +73,16 @@ struct MessageComposerView: View {
         }
         .onDrop(of: [UTType.image], isTargeted: nil) { providers in
             handleDropProviders(providers)
+        }
+        .fullScreenCover(isPresented: $showingCamera) {
+            #if canImport(UIKit)
+            CameraPicker(isPresented: $showingCamera) { image in
+                appendImage(image)
+            }
+            .ignoresSafeArea()
+            #else
+            Color.clear.onAppear { showingCamera = false }
+            #endif
         }
         .alert("Images not supported", isPresented: $showingVisionAlert) {
             Button("OK", role: .cancel) {}
@@ -107,43 +98,87 @@ struct MessageComposerView: View {
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
+        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
+            WebSearchProviderPicker(
+                providers: webSearchProviders,
+                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
+                onSelect: { provider in
+                    showingWebSearchPicker = false
+                    onSelectWebSearchProvider?(provider)
+                },
+                onDisable: {
+                    showingWebSearchPicker = false
+                    onDisableWebSearch?()
+                }
+            )
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    private var composerField: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TextField("Message", text: $text, axis: .vertical)
+                .lineLimit(1...6)
+                .focused($isFocused)
+                .onSubmit(submitIfPossible)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            HStack(alignment: .center, spacing: 2) {
+                plusMenuButton
+                webSearchButton
+                Spacer(minLength: 0)
+                sendButton
+            }
+            .padding(.leading, 2)
+            .padding(.trailing, 4)
+            .padding(.bottom, 4)
+        }
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var plusMenuButton: some View {
+        Menu {
+            if CameraCaptureAvailability.isAvailable {
+                Button {
+                    requestCamera()
+                } label: {
+                    Label("Camera", systemImage: "camera")
+                }
+            }
+
+            Button {
+                requestPhotoLibrary()
+            } label: {
+                Label("Photos", systemImage: "photo")
+            }
+
+            Button(action: pasteFromClipboard) {
+                Label("Paste Image", systemImage: "doc.on.clipboard")
+            }
+            .disabled(!pasteboardHasImage)
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Color.primary)
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Add")
+        .accessibilityHint("Attach a photo or paste an image")
     }
 
     private var webSearchButton: some View {
-        Group {
+        Button {
             if canUseWebSearch {
-                Menu {
-                    Picker(
-                        "Web Search",
-                        selection: Binding(
-                            get: { isWebSearchArmed ? selectedWebSearchProvider : nil },
-                            set: { newValue in
-                                if let newValue {
-                                    onSelectWebSearchProvider?(newValue)
-                                } else {
-                                    onDisableWebSearch?()
-                                }
-                            }
-                        )
-                    ) {
-                        Label("Off", systemImage: "globe")
-                            .tag(Optional<WebSearchProviderKind>.none)
-                        ForEach(webSearchProviders) { provider in
-                            Label(provider.displayName, systemImage: provider.symbolName)
-                                .tag(Optional.some(provider))
-                        }
-                    }
-                } label: {
-                    webSearchIcon
-                }
+                showingWebSearchPicker = true
             } else {
-                Button {
-                    Haptics.warning()
-                    showingWebSearchDisabledAlert = true
-                } label: {
-                    webSearchIcon
-                }
+                Haptics.warning()
+                showingWebSearchDisabledAlert = true
             }
+        } label: {
+            webSearchIcon
         }
         .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
         .accessibilityHint(
@@ -171,49 +206,24 @@ struct MessageComposerView: View {
                 Image(systemName: "globe")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(Color(.tertiaryLabel))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 34, height: 34)
                     .contentShape(Rectangle())
                     .opacity(canUseWebSearch ? 1 : 0.85)
             }
         }
-        .frame(width: 36, height: 36)
+        .frame(width: 34, height: 34)
     }
 
-    private var attachButton: some View {
-        Group {
-            if supportsVision {
-                Menu {
-                    Button {
-                        showingPhotoPicker = true
-                    } label: {
-                        Label("Photo Library", systemImage: "photo.on.rectangle")
-                    }
-                    Button(action: pasteFromClipboard) {
-                        Label("Paste Image", systemImage: "doc.on.clipboard")
-                    }
-                    .disabled(!pasteboardHasImage)
-                } label: {
-                    attachIcon(active: true)
-                }
-            } else {
-                Button {
-                    Haptics.warning()
-                    showingVisionAlert = true
-                } label: {
-                    attachIcon(active: false)
-                }
-            }
+    private var sendButton: some View {
+        Button(action: primaryAction) {
+            Image(systemName: isStreaming ? "stop.circle.fill" : "arrow.up.circle.fill")
+                .font(.system(size: 30))
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, primaryButtonColor)
         }
-        .accessibilityLabel("Attach")
-        .accessibilityHint(supportsVision ? "Attach or paste an image" : "Current model does not support images")
-    }
-
-    private func attachIcon(active: Bool) -> some View {
-        Image(systemName: "paperclip")
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(active ? Color.accentColor : Color(.tertiaryLabel))
-            .frame(width: 36, height: 36)
-            .contentShape(Rectangle())
+        .disabled(!isStreaming && !canSend)
+        .animation(Theme.springFast, value: canSend)
+        .animation(Theme.springFast, value: isStreaming)
     }
 
     private var attachmentStrip: some View {
@@ -252,6 +262,24 @@ struct MessageComposerView: View {
         return canSend ? .accentColor : Color(.tertiaryLabel)
     }
 
+    private func requestPhotoLibrary() {
+        guard supportsVision else {
+            Haptics.warning()
+            showingVisionAlert = true
+            return
+        }
+        showingPhotoPicker = true
+    }
+
+    private func requestCamera() {
+        guard supportsVision else {
+            Haptics.warning()
+            showingVisionAlert = true
+            return
+        }
+        showingCamera = true
+    }
+
     private func primaryAction() {
         if isStreaming {
             Haptics.medium()
@@ -269,6 +297,11 @@ struct MessageComposerView: View {
 
     private func pasteFromClipboard() {
         #if canImport(UIKit)
+        guard supportsVision else {
+            Haptics.warning()
+            showingVisionAlert = true
+            return
+        }
         guard let image = UIPasteboard.general.image else { return }
         appendImage(image)
         #endif
@@ -322,6 +355,11 @@ struct MessageComposerView: View {
 
     #if canImport(UIKit)
     private func appendImage(_ image: UIImage) {
+        guard supportsVision else {
+            Haptics.warning()
+            showingVisionAlert = true
+            return
+        }
         guard let attachment = ImageAttachmentEncoder.makeAttachment(from: image) else { return }
         attachments.append(attachment)
         Haptics.light()

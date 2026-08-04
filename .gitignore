@@ -6,3 +6,6 @@ xcuserdata/
 .swiftpm/
 .build/
 Config/Local.xcconfig
+TestResults.xcresult
+coverage-summary.txt
+*.xcresult

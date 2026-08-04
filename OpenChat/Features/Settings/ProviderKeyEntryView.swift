@@ -44,19 +44,6 @@ struct ProviderKeyEntryView: View {
                     Link("Get an API key from \(template.name) →", destination: url)
                 }
             }
-
-            Section("Available Models") {
-                ForEach(template.defaultModels) { model in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(model.displayName)
-                        if let subtitle = model.subtitle {
-                            Text(subtitle)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
         }
         .navigationTitle(template.name)
         .navigationBarTitleDisplayMode(.inline)

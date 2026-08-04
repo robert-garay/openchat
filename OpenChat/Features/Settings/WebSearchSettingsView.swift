@@ -23,8 +23,6 @@ struct WebSearchSettingsView: View {
                     set: { webSearchStore.setEnabled($0) }
                 ))
                 .disabled(!webSearchStore.hasAnyAPIKey)
-            } footer: {
-                Text(masterFooter)
             }
 
             Section {
@@ -51,25 +49,10 @@ struct WebSearchSettingsView: View {
                 }
             } header: {
                 Text("Providers")
-            } footer: {
-                Text("Registered providers appear in the chat web search menu.")
             }
         }
         .navigationTitle("Web Search")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var masterFooter: String {
-        if !webSearchStore.hasAnyAPIKey {
-            return "Save a search API key, then choose a provider from the chat web search button."
-        }
-        if webSearchStore.isActive {
-            return "Using \(webSearchStore.activeProviderDisplayName). Change providers from the chat web search button."
-        }
-        if webSearchStore.isEnabled {
-            return "Enabled, but no usable provider key is selected. Pick one in chat after saving a key."
-        }
-        return "Keys saved, but web search is turned off globally."
     }
 
     private func statusSubtitle(for kind: WebSearchProviderKind) -> String {
@@ -89,7 +72,7 @@ struct WebSearchProviderDetailView: View {
     @State private var showingRemoveConfirmation = false
 
     var body: some View {
-        List {
+        Form {
             Section {
                 HStack(spacing: 12) {
                     ProviderLogoView(
@@ -117,7 +100,6 @@ struct WebSearchProviderDetailView: View {
                 draftKey: $apiKey,
                 helpURL: kind.keyHelpURL,
                 helpProviderName: kind.displayName,
-                onSave: saveKey,
                 onRequestReplace: {
                     apiKey = ""
                     showingReplaceKey = true
@@ -129,10 +111,18 @@ struct WebSearchProviderDetailView: View {
         }
         .navigationTitle(kind.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if webSearchStore.redactedAPIKey(for: kind) == nil {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveKey() }
+                        .fontWeight(.semibold)
+                        .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
         .overlay {
             if showingReplaceKey {
                 APIKeyReplaceDialog(
-                    title: "Replace \(kind.displayName) Key",
                     placeholder: kind.apiKeyPlaceholder,
                     draftKey: $apiKey,
                     onCancel: dismissReplaceKey,
@@ -140,18 +130,24 @@ struct WebSearchProviderDetailView: View {
                 )
                 .transition(.opacity)
                 .zIndex(1)
+            } else if showingRemoveConfirmation {
+                SettingsConfirmDialog(
+                    title: "Remove \(kind.displayName) key?",
+                    message: "This provider won’t be usable until you add a key again.",
+                    confirmTitle: "Remove Key",
+                    onCancel: { showingRemoveConfirmation = false },
+                    onConfirm: {
+                        webSearchStore.removeAPIKey(for: kind)
+                        showingRemoveConfirmation = false
+                        Haptics.light()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .animation(Theme.springFast, value: showingReplaceKey)
-        .confirmationDialog("Remove \(kind.displayName) key?", isPresented: $showingRemoveConfirmation, titleVisibility: .visible) {
-            Button("Remove Key", role: .destructive) {
-                webSearchStore.removeAPIKey(for: kind)
-                Haptics.light()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This provider won’t be usable until you add a key again.")
-        }
+        .animation(Theme.springFast, value: showingRemoveConfirmation)
     }
 
     private func saveKey() {

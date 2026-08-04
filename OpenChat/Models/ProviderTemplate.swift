@@ -14,7 +14,6 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
     var defaultModels: [AIModel]
-    var region: String?
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -34,14 +33,13 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "deepseek-chat", displayName: "DeepSeek-V3", subtitle: "General purpose · 64K context"),
                 AIModel(id: "deepseek-reasoner", displayName: "DeepSeek-R1", subtitle: "Deep reasoning · 64K context", capabilities: [.reasoning]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "qwen",
-            name: "Qwen",
+            name: "Alibaba Cloud",
             symbolName: "wind",
-            tint: "#615CED",
+            tint: "#FF6A00",
             baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://bailian.console.aliyun.com/?apiKey=1"),
@@ -51,12 +49,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "qwen-plus", displayName: "Qwen-Plus", subtitle: "Balanced speed & quality"),
                 AIModel(id: "qwen-turbo", displayName: "Qwen-Turbo", subtitle: "Fast & low cost"),
                 AIModel(id: "qwen-vl-plus", displayName: "Qwen-VL Plus", subtitle: "Vision", capabilities: [.vision]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "moonshot",
-            name: "Kimi (Moonshot AI)",
+            name: "Moonshot AI",
             symbolName: "moon.stars.fill",
             tint: "#16B998",
             baseURL: "https://api.moonshot.cn/v1",
@@ -67,12 +64,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "kimi-k2-0711-preview", displayName: "Kimi K2", subtitle: "Frontier open model"),
                 AIModel(id: "moonshot-v1-32k", displayName: "Moonshot v1 32K", subtitle: "32K context"),
                 AIModel(id: "moonshot-v1-128k", displayName: "Moonshot v1 128K", subtitle: "128K context"),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "zhipu",
-            name: "Zhipu GLM",
+            name: "Zhipu AI",
             symbolName: "cube.transparent.fill",
             tint: "#3859FF",
             baseURL: "https://open.bigmodel.cn/api/paas/v4",
@@ -83,12 +79,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
                 AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model", capabilities: [.reasoning]),
                 AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast"),
                 AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", capabilities: [.vision]),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "yi",
-            name: "01.AI (Yi)",
+            name: "01.AI",
             symbolName: "circle.hexagongrid.fill",
             tint: "#0F172A",
             baseURL: "https://api.lingyiwanwu.com/v1",
@@ -98,8 +93,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "yi-large", displayName: "Yi-Large", subtitle: "Flagship model"),
                 AIModel(id: "yi-large-turbo", displayName: "Yi-Large-Turbo", subtitle: "Faster variant"),
-            ],
-            region: "China"
+            ]
         ),
         ProviderTemplate(
             id: "openai",
@@ -132,7 +126,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "google",
-            name: "Google Gemini",
+            name: "Google",
             symbolName: "diamond.fill",
             tint: "#4285F4",
             baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",

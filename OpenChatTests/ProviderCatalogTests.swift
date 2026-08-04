@@ -30,10 +30,28 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertNil(ProviderTemplate.template(for: "does-not-exist"))
     }
 
+    func testProviderNamesUseCompanyBrandsNotModels() {
+        let names = Dictionary(uniqueKeysWithValues: ProviderTemplate.all.map { ($0.id, $0.name) })
+        XCTAssertEqual(names["moonshot"], "Moonshot AI")
+        XCTAssertEqual(names["qwen"], "Alibaba Cloud")
+        XCTAssertEqual(names["zhipu"], "Zhipu AI")
+        XCTAssertEqual(names["yi"], "01.AI")
+        XCTAssertEqual(names["google"], "Google")
+    }
+
     func testEveryTemplateHasAnOfficialLogoAsset() {
         for template in ProviderTemplate.all {
             XCTAssertNotNil(template.logoAssetName, "\(template.name) is missing a logo asset mapping")
             XCTAssertEqual(template.logoAssetName, ProviderLogo.assetName(for: template.id))
         }
+    }
+
+    func testProviderLogosMapToCompanyAssets() {
+        XCTAssertEqual(ProviderLogo.assetName(for: "qwen"), "ProviderLogoAlibabaCloud")
+        XCTAssertEqual(ProviderLogo.assetName(for: "moonshot"), "ProviderLogoMoonshot")
+        XCTAssertEqual(ProviderLogo.assetName(for: "google"), "ProviderLogoGoogle")
+        XCTAssertEqual(ProviderLogo.assetName(for: "deepseek"), "ProviderLogoDeepSeek")
+        XCTAssertEqual(ProviderLogo.assetName(for: "openai"), "ProviderLogoOpenAI")
+        XCTAssertEqual(ProviderLogo.assetName(for: "anthropic"), "ProviderLogoAnthropic")
     }
 }

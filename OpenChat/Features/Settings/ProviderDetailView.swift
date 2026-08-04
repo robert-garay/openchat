@@ -8,7 +8,6 @@ struct ProviderDetailView: View {
     @State private var apiKey: String = ""
     @State private var showingAddNewKeyDialog = false
     @State private var showingRemoveKeyConfirmation = false
-    @State private var newModelID: String = ""
     @State private var showingDeleteConfirmation = false
 
     private var storedRedactedAPIKey: String? {
@@ -22,15 +21,6 @@ struct ProviderDetailView: View {
                     .onChange(of: provider.isEnabled) { _, _ in providerStore.update(provider) }
             }
 
-            Section {
-                TextField("Base URL", text: $provider.baseURL)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .onSubmit { providerStore.update(provider) }
-            } header: {
-                Text("Endpoint")
-            }
-
             if provider.requiresAPIKey {
                 APIKeySettingsSection(
                     placeholder: "Add API key",
@@ -38,7 +28,6 @@ struct ProviderDetailView: View {
                     draftKey: $apiKey,
                     helpURL: provider.template?.keyHelpURL,
                     helpProviderName: provider.name,
-                    onSave: saveAPIKey,
                     onRequestReplace: {
                         apiKey = ""
                         showingAddNewKeyDialog = true
@@ -50,35 +39,6 @@ struct ProviderDetailView: View {
             }
 
             Section {
-                ForEach(provider.models) { model in
-                    HStack {
-                        Text(model.displayName)
-                        Spacer()
-                        ModelCapabilitySigns(capabilities: model.capabilities)
-                    }
-                }
-                .onDelete { indices in
-                    provider.models.remove(atOffsets: indices)
-                    providerStore.update(provider)
-                }
-                HStack {
-                    TextField("Add model ID", text: $newModelID)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                    Button("Add") {
-                        let trimmed = newModelID.trimmingCharacters(in: .whitespaces)
-                        guard !trimmed.isEmpty else { return }
-                        provider.models.append(AIModel(id: trimmed, displayName: trimmed))
-                        providerStore.update(provider)
-                        newModelID = ""
-                    }
-                    .disabled(newModelID.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            } header: {
-                Text("Models")
-            }
-
-            Section {
                 Button("Remove Provider", role: .destructive) {
                     showingDeleteConfirmation = true
                 }
@@ -86,10 +46,18 @@ struct ProviderDetailView: View {
         }
         .navigationTitle(provider.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if provider.requiresAPIKey, storedRedactedAPIKey == nil {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveAPIKey() }
+                        .fontWeight(.semibold)
+                        .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
         .overlay {
             if showingAddNewKeyDialog {
                 APIKeyReplaceDialog(
-                    title: "Add New Key",
                     placeholder: "API key",
                     draftKey: $apiKey,
                     onCancel: dismissAddNewKeyDialog,
@@ -100,35 +68,39 @@ struct ProviderDetailView: View {
                 )
                 .transition(.opacity)
                 .zIndex(1)
+            } else if showingRemoveKeyConfirmation {
+                SettingsConfirmDialog(
+                    title: "Remove \(provider.name) key?",
+                    message: "This provider won’t be usable until you add a key again.",
+                    confirmTitle: "Remove Key",
+                    onCancel: { showingRemoveKeyConfirmation = false },
+                    onConfirm: {
+                        providerStore.removeAPIKey(for: provider)
+                        apiKey = ""
+                        showingRemoveKeyConfirmation = false
+                        Haptics.light()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(1)
+            } else if showingDeleteConfirmation {
+                SettingsConfirmDialog(
+                    title: "Remove \(provider.name)?",
+                    message: "Its API key will be deleted from the Keychain. Existing chats using this model will keep their history but can no longer generate new replies.",
+                    confirmTitle: "Remove",
+                    onCancel: { showingDeleteConfirmation = false },
+                    onConfirm: {
+                        providerStore.remove(provider)
+                        dismiss()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .animation(Theme.springFast, value: showingAddNewKeyDialog)
-        .confirmationDialog(
-            "Remove \(provider.name) key?",
-            isPresented: $showingRemoveKeyConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Remove Key", role: .destructive) {
-                providerStore.removeAPIKey(for: provider)
-                apiKey = ""
-                Haptics.light()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This provider won’t be usable until you add a key again.")
-        }
-        .confirmationDialog(
-            "Remove \(provider.name)?",
-            isPresented: $showingDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Remove", role: .destructive) {
-                providerStore.remove(provider)
-                dismiss()
-            }
-        } message: {
-            Text("Its API key will be deleted from the Keychain. Existing chats using this model will keep their history but can no longer generate new replies.")
-        }
+        .animation(Theme.springFast, value: showingRemoveKeyConfirmation)
+        .animation(Theme.springFast, value: showingDeleteConfirmation)
     }
 
     private func saveAPIKey() {

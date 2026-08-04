@@ -76,6 +76,28 @@ final class ProviderStoreTests: XCTestCase {
         store.setAPIKey("sk-or-v1-abcdefghijklmnop1234", for: provider)
         XCTAssertEqual(store.redactedAPIKey(for: provider), "sk-••••••••1234")
     }
+
+    func testPickerModelsFallsBackToSavedDefaults() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        let provider = store.provider(withID: "openai")!
+        store.setAPIKey("sk-test", for: provider)
+
+        let picker = store.pickerModels(for: store.provider(withID: "openai")!)
+        XCTAssertFalse(picker.isEmpty)
+        XCTAssertEqual(picker.map(\.id), provider.models.map(\.id))
+    }
+
+    func testRememberModelPersistsSelection() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        let provider = store.provider(withID: "openai")!
+        store.setAPIKey("sk-test", for: provider)
+
+        let live = AIModel(id: "gpt-live-test", displayName: "GPT Live", capabilities: [.tools])
+        store.rememberModel(live, providerID: "openai")
+
+        XCTAssertEqual(store.provider(withID: "openai")?.models.first?.id, "gpt-live-test")
+        XCTAssertEqual(store.model(providerID: "openai", modelID: "gpt-live-test")?.displayName, "GPT Live")
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {
