@@ -78,6 +78,9 @@ struct RootView: View {
         }
         .onAppear {
             discardOrphanedEphemeralChats()
+            providerStore.seedModelUsageFromConversationsIfNeeded(
+                conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
+            )
         }
         .onChange(of: selectedConversationID) { previousID, _ in
             discardEphemeralChat(id: previousID)

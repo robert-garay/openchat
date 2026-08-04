@@ -37,6 +37,8 @@ final class ProviderStore {
     private let openRouterCacheDateKey = "com.openchat.openRouterModelsCacheDate"
     private let liveModelsCacheKeyPrefix = "com.openchat.liveModels."
     private let liveModelsCacheDateKeyPrefix = "com.openchat.liveModelsDate."
+    private let modelUsageCountsKey = "com.openchat.modelUsageCounts"
+    private let modelUsageSeededKey = "com.openchat.modelUsageSeeded"
     private let modelsCacheTTL: TimeInterval = 60 * 60
     private let defaults: UserDefaults
     private let openRouterClient: OpenRouterModelsClient
@@ -44,6 +46,8 @@ final class ProviderStore {
     private var modelRefreshTasks: [String: Task<Void, Never>] = [:]
     /// Bumped when Keychain-backed credentials change so Observation can refresh views.
     private var credentialsEpoch = 0
+    /// Selection frequency keyed by `providerID/modelID` for picker ranking.
+    private(set) var modelUsageCounts: [String: Int] = [:]
 
     init(
         defaults: UserDefaults = .standard,
@@ -56,6 +60,7 @@ final class ProviderStore {
         load()
         loadOpenRouterCache()
         loadLiveModelCaches()
+        loadModelUsageCounts()
     }
 
     var enabledProviders: [ConfiguredProvider] {
@@ -160,6 +165,61 @@ final class ProviderStore {
     /// the chosen catalog entry onto the configured provider.
     func rememberOpenRouterModel(_ model: OpenRouterCatalogModel) {
         rememberModel(model.asAIModel, providerID: "openrouter")
+    }
+
+    /// Stable key for a provider/model pair in usage maps.
+    static func modelUsageKey(providerID: String, modelID: String) -> String {
+        "\(providerID)/\(modelID)"
+    }
+
+    func modelUsageCount(providerID: String, modelID: String) -> Int {
+        modelUsageCounts[Self.modelUsageKey(providerID: providerID, modelID: modelID)] ?? 0
+    }
+
+    /// Bumps the selection count when the user chooses a model.
+    func recordModelUsage(providerID: String, modelID: String) {
+        let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
+        modelUsageCounts[key, default: 0] += 1
+        persistModelUsageCounts()
+    }
+
+    /// One-time seed from existing chats so ranking is useful before any new picks.
+    func seedModelUsageFromConversationsIfNeeded(
+        _ pairs: [(providerID: String, modelID: String)]
+    ) {
+        guard !defaults.bool(forKey: modelUsageSeededKey) else { return }
+        defaults.set(true, forKey: modelUsageSeededKey)
+        guard !pairs.isEmpty else {
+            persistModelUsageCounts()
+            return
+        }
+
+        var tallies: [String: Int] = [:]
+        for pair in pairs {
+            let key = Self.modelUsageKey(providerID: pair.providerID, modelID: pair.modelID)
+            tallies[key, default: 0] += 1
+        }
+        for (key, tally) in tallies {
+            modelUsageCounts[key] = max(modelUsageCounts[key] ?? 0, tally)
+        }
+        persistModelUsageCounts()
+    }
+
+    /// Most-used first; preserves original relative order for ties.
+    static func sortedByUsage<T>(
+        _ items: [T],
+        usageCount: (T) -> Int
+    ) -> [T] {
+        items.enumerated()
+            .sorted { lhs, rhs in
+                let leftCount = usageCount(lhs.element)
+                let rightCount = usageCount(rhs.element)
+                if leftCount != rightCount {
+                    return leftCount > rightCount
+                }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
     }
 
     /// Refresh live catalogs for every enabled provider.
@@ -295,5 +355,17 @@ final class ProviderStore {
 
     private func liveModelsCacheDateKey(for providerID: String) -> String {
         liveModelsCacheDateKeyPrefix + providerID
+    }
+
+    private func loadModelUsageCounts() {
+        guard let stored = defaults.dictionary(forKey: modelUsageCountsKey) as? [String: Int] else {
+            modelUsageCounts = [:]
+            return
+        }
+        modelUsageCounts = stored
+    }
+
+    private func persistModelUsageCounts() {
+        defaults.set(modelUsageCounts, forKey: modelUsageCountsKey)
     }
 }
