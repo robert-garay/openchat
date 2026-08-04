@@ -143,7 +143,11 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
     }
 
     private static func looksLikeImageGenModel(_ haystack: String) -> Bool {
-        let markers = ["dall-e", "dalle", "gpt-image", "imagen-", "flux-", "stable-diffusion", "black-forest"]
+        let markers = [
+            "dall-e", "dalle", "gpt-image", "imagen-", "flux-", "stable-diffusion",
+            "black-forest", "flash-image", "image-preview", "riverflow", "seedream",
+            "recraft", "mai-image", "gpt-5-image", "image-gen"
+        ]
         return markers.contains { haystack.contains($0) }
     }
 

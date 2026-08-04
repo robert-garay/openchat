@@ -13,8 +13,18 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
         capabilities.contains(.vision)
     }
 
+    var supportsImageGen: Bool {
+        capabilities.contains(.imageGen)
+    }
+
     var supportsTools: Bool {
         capabilities.contains(.tools)
+    }
+
+    /// OpenRouter-style `modalities` for chat completions. Nil when omitted (text-only default).
+    var chatOutputModalities: [String]? {
+        guard supportsImageGen else { return nil }
+        return ["image", "text"]
     }
 
     init(

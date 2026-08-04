@@ -264,6 +264,7 @@ final class ChatViewModel {
         let baseURL = provider.baseURL
         let modelID = model.id
         let supportsTools = model.supportsTools
+        let supportsImageGen = model.supportsImageGen
         let conversationSystemPrompt = conversation.systemPrompt
         let historyTurns = ChatRequestHistory.turns(
             from: conversation.sortedMessages,
@@ -330,15 +331,23 @@ final class ChatViewModel {
                     )
                 }
 
-                for try await delta in client.streamReply(
+                for try await event in client.streamReply(
                     turns: turns,
                     model: modelID,
                     baseURL: baseURL,
                     apiKey: apiKey,
                     tools: tools,
-                    executeTool: executeTool
+                    executeTool: executeTool,
+                    supportsImageGen: supportsImageGen
                 ) {
-                    assistantMessage.content += delta
+                    switch event {
+                    case .text(let delta):
+                        assistantMessage.content += delta
+                    case .images(let images):
+                        var existing = assistantMessage.imageAttachments
+                        existing.append(contentsOf: images)
+                        assistantMessage.imageAttachments = existing
+                    }
                 }
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)

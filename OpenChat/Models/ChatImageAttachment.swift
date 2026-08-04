@@ -3,7 +3,7 @@ import Foundation
 import UIKit
 #endif
 
-/// An image the user attached to a chat turn (composer pending or persisted message).
+/// An image on a chat turn — user upload or model-generated output.
 struct ChatImageAttachment: Identifiable, Hashable, Sendable, Codable {
     var id: UUID
     var mimeType: String
@@ -17,6 +17,73 @@ struct ChatImageAttachment: Identifiable, Hashable, Sendable, Codable {
 
     var dataURI: String {
         "data:\(mimeType);base64,\(data.base64EncodedString())"
+    }
+}
+
+/// Parses provider image payloads (OpenRouter `images[]`, data URIs, markdown embeds).
+enum GeneratedImageParser {
+    /// `data:image/png;base64,...` → attachment. Returns nil for http(s) URLs or invalid data.
+    static func attachment(fromDataURI string: String) -> ChatImageAttachment? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.lowercased().hasPrefix("data:") else { return nil }
+        guard let comma = trimmed.firstIndex(of: ",") else { return nil }
+
+        let metaStart = trimmed.index(trimmed.startIndex, offsetBy: 5)
+        let meta = trimmed[metaStart..<comma]
+        let payload = String(trimmed[trimmed.index(after: comma)...])
+        guard !payload.isEmpty else { return nil }
+
+        let metaLower = meta.lowercased()
+        let mime = meta.split(separator: ";").first.map(String.init)?.lowercased() ?? "image/png"
+        let normalizedMIME = mime.hasPrefix("image/") ? mime : "image/png"
+
+        let data: Data?
+        if metaLower.contains("base64") {
+            data = Data(base64Encoded: payload, options: [.ignoreUnknownCharacters])
+        } else if let decoded = payload.removingPercentEncoding {
+            data = Data(decoded.utf8)
+        } else {
+            data = nil
+        }
+        guard let data, !data.isEmpty else { return nil }
+        return ChatImageAttachment(mimeType: normalizedMIME, data: data)
+    }
+
+    /// Pulls `![](data:image/...;base64,...)` embeds out of markdown, returning cleaned text + images.
+    static func extractMarkdownDataURIImages(from text: String) -> (text: String, images: [ChatImageAttachment]) {
+        guard text.contains("data:image") else { return (text, []) }
+
+        let pattern = #"!\[[^\]]*\]\((data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+)\)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return (text, [])
+        }
+
+        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+        let matches = regex.matches(in: text, options: [], range: nsRange)
+        guard !matches.isEmpty else { return (text, []) }
+
+        var images: [ChatImageAttachment] = []
+        for match in matches {
+            guard match.numberOfRanges >= 2,
+                  let uriRange = Range(match.range(at: 1), in: text)
+            else { continue }
+            let uri = String(text[uriRange])
+                .replacingOccurrences(of: #"\s+"#, with: "", options: .regularExpression)
+            if let attachment = attachment(fromDataURI: uri) {
+                images.append(attachment)
+            }
+        }
+
+        var cleaned = text
+        for match in matches.reversed() {
+            guard let fullRange = Range(match.range(at: 0), in: cleaned) else { continue }
+            cleaned.replaceSubrange(fullRange, with: "")
+        }
+        cleaned = cleaned
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return (cleaned, images)
     }
 }
 

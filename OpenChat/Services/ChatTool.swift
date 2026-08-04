@@ -20,6 +20,20 @@ struct ChatToolCall: Equatable, Sendable, Identifiable {
 struct ChatCompletionResult: Equatable, Sendable {
     var text: String
     var toolCalls: [ChatToolCall]
+    var images: [ChatImageAttachment]
+
+    init(text: String, toolCalls: [ChatToolCall] = [], images: [ChatImageAttachment] = []) {
+        self.text = text
+        self.toolCalls = toolCalls
+        self.images = images
+    }
 
     var hasToolCalls: Bool { !toolCalls.isEmpty }
+    var hasImages: Bool { !images.isEmpty }
+}
+
+/// Incremental events from a chat completion (text stream and/or generated images).
+enum ChatStreamEvent: Equatable, Sendable {
+    case text(String)
+    case images([ChatImageAttachment])
 }
