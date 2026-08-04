@@ -164,3 +164,5 @@ private struct MemoryEditorSheet: View {
         }
     }
 }
+
+extension MemoryItem: Identifiable {}
