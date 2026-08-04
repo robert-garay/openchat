@@ -21,15 +21,6 @@ struct ProviderDetailView: View {
                     .onChange(of: provider.isEnabled) { _, _ in providerStore.update(provider) }
             }
 
-            Section {
-                TextField("Base URL", text: $provider.baseURL)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .onSubmit { providerStore.update(provider) }
-            } header: {
-                Text("Endpoint")
-            }
-
             if provider.requiresAPIKey {
                 APIKeySettingsSection(
                     placeholder: "Add API key",
