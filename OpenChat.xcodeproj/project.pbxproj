@@ -90,6 +90,7 @@
 		A9001B11E000000000000001 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000001 /* CameraPicker.swift */; };
 		A9001B11E000000000000003 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000003 /* ChatRequestHistory.swift */; };
 		A9001B11E000000000000004 /* ChatRequestHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */; };
+		A9101B11E000000000000001 /* MarkdownContentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9101F11E000000000000001 /* MarkdownContentParserTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -192,6 +193,7 @@
 		A9001F11E000000000000001 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000003 /* ChatRequestHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistory.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistoryTests.swift; sourceTree = "<group>"; };
+		A9101F11E000000000000001 /* MarkdownContentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -391,6 +393,7 @@
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				E55F66718293A4B5C6D7E80F /* MultimodalAttachmentTests.swift */,
 				A9001F11E000000000000004 /* ChatRequestHistoryTests.swift */,
+				A9101F11E000000000000001 /* MarkdownContentParserTests.swift */,
 				F16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift */,
 				8A4C6D03EBF27159C3DA6492 /* OpenRouterModelCatalogTests.swift */,
 				9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */,
@@ -584,6 +587,7 @@
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				A44E55F66718293A4B5C6D70 /* MultimodalAttachmentTests.swift in Sources */,
 				A9001B11E000000000000004 /* ChatRequestHistoryTests.swift in Sources */,
+				A9101B11E000000000000001 /* MarkdownContentParserTests.swift in Sources */,
 				B16A01B2C3D4E5F60718293B /* ModelCapabilityTests.swift in Sources */,
 				5A1E8F24C7B6930D4E2A15F8 /* OpenRouterModelCatalogTests.swift in Sources */,
 				66F3EC121D8254D5437DCEA4 /* ProviderCatalogTests.swift in Sources */,
