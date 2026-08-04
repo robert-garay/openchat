@@ -7,11 +7,18 @@ struct OpenChatApp: App {
     @State private var providerStore = ProviderStore()
     @State private var dataSourceStore = AgentDataSourceStore()
     @State private var webSearchStore = WebSearchStore()
+    @State private var rulesStore = RulesStore()
+    @State private var memoryStore = MemoryStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
         do {
-            modelContainer = try ModelContainer(for: Conversation.self, ChatMessage.self)
+            modelContainer = try ModelContainer(
+                for: Conversation.self,
+                ChatMessage.self,
+                MemoryItem.self,
+                Skill.self
+            )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -23,6 +30,8 @@ struct OpenChatApp: App {
                 .environment(providerStore)
                 .environment(dataSourceStore)
                 .environment(webSearchStore)
+                .environment(rulesStore)
+                .environment(memoryStore)
                 .preferredColorScheme(appearance.colorScheme)
                 .onAppear { appearance.applyToAllWindows() }
                 .onChange(of: appearance) { _, newValue in

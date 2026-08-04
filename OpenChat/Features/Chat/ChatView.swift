@@ -9,8 +9,13 @@ struct ChatView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(WebSearchStore.self) private var webSearchStore
+    @Environment(RulesStore.self) private var rulesStore
+    @Environment(MemoryStore.self) private var memoryStore
+    @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
+    @State private var showingChatRules = false
+    @State private var showingNewSkill = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,9 +41,12 @@ struct ChatView: View {
                     webSearchTintHex: viewModel.webSearchStoreActiveTint,
                     onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
                     onDisableWebSearch: viewModel.disableWebSearchForChat,
-                    onSend: {
-                        viewModel.send()
-                    },
+                    showCompactChip: viewModel.canShowCompact,
+                    canCompact: viewModel.canCompactConversation,
+                    isCompacting: viewModel.isCompacting,
+                    onCompact: viewModel.compactConversation,
+                    skills: skills.map(SkillMatchable.init(skill:)),
+                    onSend: { viewModel.send() },
                     onStop: viewModel.cancelStreaming
                 )
             }
@@ -67,19 +75,40 @@ struct ChatView: View {
                     }
                 }
             }
-            if conversation.messages.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 12) {
+                    if conversation.messages.isEmpty {
+                        Button {
+                            Haptics.light()
+                            onToggleTemporary?()
+                        } label: {
+                            GhostIcon(size: 17, filled: conversation.isTemporary)
+                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                                .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                                .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                        }
+                    }
+
                     Button {
                         Haptics.light()
-                        onToggleTemporary?()
+                        showingChatRules = true
                     } label: {
-                        GhostIcon(size: 17, filled: conversation.isTemporary)
-                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                            .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                            .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                        Image(systemName: "text.alignleft")
+                            .accessibilityLabel("Chat rules")
+                    }
+
+                    Button {
+                        Haptics.light()
+                        showingNewSkill = true
+                    } label: {
+                        Image(systemName: "bolt.badge.plus")
+                            .accessibilityLabel("New Skill")
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showingChatRules) {
+            ChatRulesSheet(conversation: conversation)
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
@@ -89,6 +118,9 @@ struct ChatView: View {
                     onSelect: viewModel.selectModel
                 )
             }
+        }
+        .sheet(isPresented: $showingNewSkill) {
+            SkillEditorView(skill: nil, createdFromChatID: conversation.id)
         }
         .alert(
             "Images not supported",
@@ -119,6 +151,20 @@ struct ChatView: View {
         } message: {
             Text(viewModel?.pendingModelSwitch?.message ?? "")
         }
+        .overlay(alignment: .top) {
+            if let viewModel, let message = viewModel.compactStatusMessage {
+                CompactStatusToast(message: message)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        Task {
+                            try? await Task.sleep(for: .seconds(2.5))
+                            viewModel.dismissCompactStatus()
+                        }
+                    }
+            }
+        }
+        .animation(Theme.springFast, value: viewModel?.compactStatusMessage)
         .task(id: conversation.id) {
             if viewModel == nil {
                 viewModel = ChatViewModel(
@@ -126,7 +172,9 @@ struct ChatView: View {
                     modelContext: modelContext,
                     providerStore: providerStore,
                     dataSourceStore: dataSourceStore,
-                    webSearchStore: webSearchStore
+                    webSearchStore: webSearchStore,
+                    rulesStore: rulesStore,
+                    memoryStore: memoryStore
                 )
             }
         }
@@ -151,6 +199,14 @@ struct ChatView: View {
                             },
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
+                            },
+                            pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
+                            memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
+                            onConfirmMemoryProposals: {
+                                viewModel.confirmMemoryProposals(for: message.id)
+                            },
+                            onDismissMemoryProposals: {
+                                viewModel.dismissMemoryProposals(for: message.id)
                             },
                             onRetry: viewModel.regenerateLastReply
                         )
@@ -184,6 +240,20 @@ struct ChatView: View {
         } else {
             proxy.scrollTo(lastID, anchor: .bottom)
         }
+    }
+}
+
+private struct CompactStatusToast: View {
+    let message: String
+
+    var body: some View {
+        Text(message)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
     }
 }
 

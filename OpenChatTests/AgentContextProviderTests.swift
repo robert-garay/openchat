@@ -125,4 +125,15 @@ final class AgentContextProviderTests: XCTestCase {
         XCTAssertEqual(block?.contains("Meeting"), true)
         XCTAssertEqual(block?.contains("should not appear"), false)
     }
+
+    func testContextProviderIncludesMemoryWhenItemsProvided() async {
+        var provider = AgentContextProvider(dataSourceStore: store)
+        provider.memoryItems = [MemoryItem(content: "Prefers concise answers")]
+
+        let block = await provider.makeContextBlock()
+        XCTAssertNotNil(block)
+        XCTAssertTrue(block!.contains("## Memory"))
+        XCTAssertTrue(block!.contains("Prefers concise answers"))
+        XCTAssertTrue(block!.contains("Memory section"))
+    }
 }

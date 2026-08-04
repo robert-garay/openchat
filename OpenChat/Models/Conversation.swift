@@ -15,6 +15,10 @@ final class Conversation {
     var hasCustomTitle: Bool = false
     /// Pinned chats stay at the top of the sidebar list.
     var isPinned: Bool = false
+    /// Structured summary of compacted older messages.
+    var compactedSummary: String = ""
+    /// Last message ID included in `compactedSummary`.
+    var compactedThroughMessageID: UUID?
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
