@@ -78,4 +78,13 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertTrue(withTools.supportsTools)
         XCTAssertFalse(withoutTools.supportsTools)
     }
+
+    func testMatchesRequiresAllSelectedCapabilities() {
+        let caps: [ModelCapability] = [.vision, .tools, .reasoning]
+        XCTAssertTrue(ModelCapability.matches(caps, filters: []))
+        XCTAssertTrue(ModelCapability.matches(caps, filters: [.vision]))
+        XCTAssertTrue(ModelCapability.matches(caps, filters: [.vision, .tools]))
+        XCTAssertFalse(ModelCapability.matches(caps, filters: [.vision, .search]))
+        XCTAssertFalse(ModelCapability.matches([.vision], filters: [.vision, .tools]))
+    }
 }

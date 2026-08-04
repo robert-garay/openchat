@@ -210,16 +210,27 @@ enum OpenRouterModelCatalog {
         return picked
     }
 
-    static func filtered(models: [OpenRouterCatalogModel], query: String) -> [OpenRouterCatalogModel] {
+    static func filtered(
+        models: [OpenRouterCatalogModel],
+        query: String,
+        capabilities: Set<ModelCapability> = []
+    ) -> [OpenRouterCatalogModel] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let all = searchableModels(from: models)
-        guard !trimmed.isEmpty else { return all }
-        return all.filter {
-            $0.id.localizedCaseInsensitiveContains(trimmed) ||
-            $0.name.localizedCaseInsensitiveContains(trimmed) ||
-            $0.displayName.localizedCaseInsensitiveContains(trimmed) ||
-            $0.organization.localizedCaseInsensitiveContains(trimmed)
+        var results = searchableModels(from: models)
+        if !trimmed.isEmpty {
+            results = results.filter {
+                $0.id.localizedCaseInsensitiveContains(trimmed) ||
+                $0.name.localizedCaseInsensitiveContains(trimmed) ||
+                $0.displayName.localizedCaseInsensitiveContains(trimmed) ||
+                $0.organization.localizedCaseInsensitiveContains(trimmed)
+            }
         }
+        if !capabilities.isEmpty {
+            results = results.filter {
+                ModelCapability.matches($0.capabilities, filters: capabilities)
+            }
+        }
+        return results
     }
 
     private static func isBrowsable(_ model: OpenRouterCatalogModel) -> Bool {

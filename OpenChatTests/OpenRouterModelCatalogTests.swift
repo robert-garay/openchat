@@ -181,6 +181,57 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertEqual(byName.map(\.id), ["meta-llama/llama-4-maverick"])
     }
 
+    func testFilterByCapabilities() {
+        let withTools = OpenRouterCatalogModel(
+            id: "meta-llama/llama-vision-tools",
+            name: "Meta: Llama Vision Tools",
+            created: 20,
+            contextLength: 128_000,
+            huggingFaceID: "meta-llama/Llama-Vision-Tools",
+            promptPrice: 0.0000001,
+            completionPrice: 0.0000002,
+            modality: "text+image->text",
+            inputModalities: ["text", "image"],
+            outputModalities: ["text"],
+            supportedParameters: ["tools"],
+            isAlias: false
+        )
+        let models = sampleModels + [withTools]
+
+        let visionOnly = OpenRouterModelCatalog.filtered(
+            models: models,
+            query: "",
+            capabilities: [.vision]
+        )
+        XCTAssertTrue(visionOnly.contains { $0.id == "meta-llama/llama-4-maverick" })
+        XCTAssertTrue(visionOnly.contains { $0.id == withTools.id })
+        XCTAssertFalse(visionOnly.contains { $0.id == "deepseek/deepseek-chat" })
+        XCTAssertTrue(visionOnly.allSatisfy { $0.capabilities.contains(.vision) })
+
+        let visionAndTools = OpenRouterModelCatalog.filtered(
+            models: models,
+            query: "",
+            capabilities: [.vision, .tools]
+        )
+        XCTAssertEqual(visionAndTools.map(\.id), [withTools.id])
+    }
+
+    func testFilterCombinesQueryAndCapabilities() {
+        let results = OpenRouterModelCatalog.filtered(
+            models: sampleModels,
+            query: "llama",
+            capabilities: [.vision]
+        )
+        XCTAssertEqual(results.map(\.id), ["meta-llama/llama-4-maverick"])
+
+        let noMatch = OpenRouterModelCatalog.filtered(
+            models: sampleModels,
+            query: "deepseek",
+            capabilities: [.vision]
+        )
+        XCTAssertTrue(noMatch.isEmpty)
+    }
+
     func testDisplayNameAndSubtitleFormatting() {
         let free = sampleModels.first { $0.id == "google/gemma-4-31b-it:free" }!
         XCTAssertEqual(free.displayName, "Gemma 4 31B")

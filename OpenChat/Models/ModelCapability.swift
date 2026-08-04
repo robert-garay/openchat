@@ -62,6 +62,13 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         return displayOrder.filter { set.contains($0) }
     }
 
+    /// Whether `modelCapabilities` includes every capability in `filters`.
+    /// An empty filter set matches all models.
+    static func matches(_ modelCapabilities: some Sequence<ModelCapability>, filters: Set<ModelCapability>) -> Bool {
+        guard !filters.isEmpty else { return true }
+        return filters.isSubset(of: Set(modelCapabilities))
+    }
+
     /// Infer badges from OpenRouter modality + parameter metadata.
     static func inferred(
         inputModalities: [String],
