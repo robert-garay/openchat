@@ -18,16 +18,7 @@ struct ModelPickerSheet: View {
         providerStore.enabledProviders.filter { $0.id != "openrouter" }
     }
 
-    private var isSearching: Bool {
-        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    /// Active when the user is text-searching, filtering by capability, or both.
-    private var isFiltering: Bool {
-        isSearching || !selectedCapabilities.isEmpty
-    }
-
-    private var openRouterSearchResults: [OpenRouterCatalogModel] {
+    private var openRouterResults: [OpenRouterCatalogModel] {
         OpenRouterModelCatalog.filtered(
             models: providerStore.openRouterModels,
             query: searchText,
@@ -35,16 +26,15 @@ struct ModelPickerSheet: View {
         )
     }
 
-    private var topOpenSourceModels: [OpenRouterCatalogModel] {
-        OpenRouterModelCatalog.topOpenSource(from: providerStore.openRouterModels)
-    }
-
     private var emptyFilterMessage: String {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
             return "No models match “\(trimmed)”."
         }
-        return "No models match the selected capabilities."
+        if !selectedCapabilities.isEmpty {
+            return "No models match the selected capabilities."
+        }
+        return "No models available right now."
     }
 
     var body: some View {
@@ -126,56 +116,20 @@ struct ModelPickerSheet: View {
             } header: {
                 openRouterHeader(provider)
             }
-        } else if isFiltering {
+        } else {
             Section {
-                if openRouterSearchResults.isEmpty {
+                if openRouterResults.isEmpty {
                     Text(emptyFilterMessage)
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(openRouterSearchResults) { model in
+                    ForEach(openRouterResults) { model in
                         openRouterModelButton(model)
                     }
                 }
             } header: {
                 openRouterHeader(provider)
             } footer: {
-                Text("\(openRouterSearchResults.count) models")
-            }
-        } else {
-            Section {
-                ForEach(topOpenSourceModels) { model in
-                    openRouterModelButton(model)
-                }
-                if topOpenSourceModels.isEmpty {
-                    Text("No open-source models available right now.")
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                Label("Top Open Source", systemImage: "chevron.left.forwardslash.chevron.right")
-            } footer: {
-                Text("Search or filter by capability to browse the full OpenRouter catalog.")
-            }
-
-            savedModelsSection(provider: provider, excluding: topOpenSourceModels)
-        }
-    }
-
-    @ViewBuilder
-    private func savedModelsSection(
-        provider: ConfiguredProvider,
-        excluding highlighted: [OpenRouterCatalogModel]
-    ) -> some View {
-        let saved = provider.models.filter { model in
-            !highlighted.contains { $0.id == model.id }
-        }
-        if !saved.isEmpty {
-            Section {
-                ForEach(saved) { model in
-                    modelButton(providerID: provider.id, model: model)
-                }
-            } header: {
-                Label("Saved", systemImage: provider.symbolName)
-                    .foregroundStyle(Color(hex: provider.tint))
+                Text("\(openRouterResults.count) models")
             }
         }
     }
