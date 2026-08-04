@@ -61,4 +61,11 @@ final class CodeSyntaxHighlighterTests: XCTestCase {
         let attributed = CodeSyntaxHighlighter.highlight(code: code, language: "javascript")
         XCTAssertEqual(String(attributed.characters), code)
     }
+
+    func testRustRawStringPatternCompilesAndMatches() {
+        let code = ##"let s = r#"hello"#;"##
+        let tokens = CodeSyntaxHighlighter.tokens(code: code, language: "rust")
+        XCTAssertTrue(tokens.contains { $0.text == "let" && $0.kind == .keyword })
+        XCTAssertTrue(tokens.contains { $0.kind == .string && $0.text.contains("hello") })
+    }
 }

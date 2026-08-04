@@ -240,7 +240,7 @@ struct LanguageProfile: Equatable {
         lineCommentPattern: cStyleComments.line,
         blockCommentPattern: cStyleComments.block,
         stringPatterns: [
-            #"r#*"[^"]*"#*"#,
+            ##"r#*"[^"]*"#*"##,
             #""(?:\\.|[^"\\])*""#,
             #"'(?:\\.|[^'\\])*'"#,
         ],
