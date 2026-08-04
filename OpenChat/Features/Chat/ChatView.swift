@@ -9,6 +9,7 @@ struct ChatView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(WebSearchStore.self) private var webSearchStore
+    @Environment(MemoryStore.self) private var memoryStore
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
 
@@ -110,7 +111,8 @@ struct ChatView: View {
                     modelContext: modelContext,
                     providerStore: providerStore,
                     dataSourceStore: dataSourceStore,
-                    webSearchStore: webSearchStore
+                    webSearchStore: webSearchStore,
+                    memoryStore: memoryStore
                 )
             }
         }
@@ -133,9 +135,11 @@ struct ChatView: View {
                             onConfirmCalendarActions: {
                                 viewModel.confirmCalendarActions(for: message.id)
                             },
-                            onDismissCalendarActions: {
-                                viewModel.dismissCalendarActions(for: message.id)
-                            },
+                            onDismissCalendarActions: { viewModel.dismissCalendarActions(for: message.id) },
+                            pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
+                            memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
+                            onConfirmMemoryProposals: { viewModel.confirmMemoryProposals(for: message.id) },
+                            onDismissMemoryProposals: { viewModel.dismissMemoryProposals(for: message.id) },
                             onRetry: viewModel.regenerateLastReply
                         )
                         .id(message.id)
