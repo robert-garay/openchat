@@ -63,4 +63,13 @@ final class ConversationRenameTests: XCTestCase {
         XCTAssertEqual(conversation.title, "Temporary Chat")
         XCTAssertFalse(conversation.hasCustomTitle)
     }
+
+    func testTogglePinnedFlipsFlag() {
+        let conversation = Conversation(providerID: "openai", modelID: "gpt-4o")
+        XCTAssertFalse(conversation.isPinned)
+        conversation.togglePinned()
+        XCTAssertTrue(conversation.isPinned)
+        conversation.togglePinned()
+        XCTAssertFalse(conversation.isPinned)
+    }
 }

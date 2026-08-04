@@ -7,6 +7,7 @@ final class ConversationTemporaryChatTests: XCTestCase {
         XCTAssertFalse(conversation.isTemporary)
         XCTAssertEqual(conversation.title, "New Chat")
         XCTAssertFalse(conversation.hasCustomTitle)
+        XCTAssertFalse(conversation.isPinned)
         XCTAssertTrue(conversation.needsAutoTitle)
         XCTAssertFalse(conversation.hasUserMessages)
     }

@@ -13,6 +13,8 @@ final class Conversation {
     var isTemporary: Bool = false
     /// When true, auto title generation must not overwrite a user rename.
     var hasCustomTitle: Bool = false
+    /// Pinned chats stay at the top of the sidebar list.
+    var isPinned: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
@@ -24,7 +26,8 @@ final class Conversation {
         modelID: String,
         systemPrompt: String = "",
         isTemporary: Bool = false,
-        hasCustomTitle: Bool = false
+        hasCustomTitle: Bool = false,
+        isPinned: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -35,6 +38,7 @@ final class Conversation {
         self.systemPrompt = systemPrompt
         self.isTemporary = isTemporary
         self.hasCustomTitle = hasCustomTitle
+        self.isPinned = isPinned
     }
 
     var sortedMessages: [ChatMessage] {
@@ -60,6 +64,10 @@ final class Conversation {
         title = trimmed
         hasCustomTitle = true
         updatedAt = .now
+    }
+
+    func togglePinned() {
+        isPinned.toggle()
     }
 
     /// True when the title is still a default placeholder eligible for auto-naming.

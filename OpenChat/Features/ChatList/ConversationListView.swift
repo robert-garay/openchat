@@ -46,6 +46,14 @@ struct ConversationListView: View {
                             .tag(conversation.id)
                             .contextMenu {
                                 Button {
+                                    togglePin(conversation)
+                                } label: {
+                                    Label(
+                                        conversation.isPinned ? "Unpin" : "Pin",
+                                        systemImage: conversation.isPinned ? "pin.slash" : "pin"
+                                    )
+                                }
+                                Button {
                                     beginRename(conversation)
                                 } label: {
                                     Label("Rename", systemImage: "pencil")
@@ -55,6 +63,17 @@ struct ConversationListView: View {
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button {
+                                    togglePin(conversation)
+                                } label: {
+                                    Label(
+                                        conversation.isPinned ? "Unpin" : "Pin",
+                                        systemImage: conversation.isPinned ? "pin.slash" : "pin"
+                                    )
+                                }
+                                .tint(.orange)
                             }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
@@ -108,6 +127,13 @@ struct ConversationListView: View {
         Haptics.light()
     }
 
+    private func togglePin(_ conversation: Conversation) {
+        Haptics.light()
+        withAnimation(Theme.springFast) {
+            conversation.togglePinned()
+        }
+    }
+
     private func delete(_ conversation: Conversation) {
         Haptics.light()
         withAnimation(Theme.springFast) {
@@ -141,9 +167,17 @@ private struct ConversationRow: View {
             )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(conversation.title)
-                    .font(.body.weight(.medium))
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    if conversation.isPinned {
+                        Image(systemName: "pin.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                    }
+                    Text(conversation.title)
+                        .font(.body.weight(.medium))
+                        .lineLimit(1)
+                }
                 Text(conversation.lastMessagePreview)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -157,5 +191,6 @@ private struct ConversationRow: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
+        .accessibilityLabel(conversation.isPinned ? "Pinned, \(conversation.title)" : conversation.title)
     }
 }
