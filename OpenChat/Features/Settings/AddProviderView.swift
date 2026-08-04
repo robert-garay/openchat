@@ -27,7 +27,7 @@ struct AddProviderView: View {
                 } header: {
                     Text("Model Providers")
                 } footer: {
-                    Text("Connect OpenRouter, DeepSeek, Qwen, Kimi, GLM, OpenAI, Claude, Gemini, or any provider you prefer.")
+                    Text("Connect OpenRouter, DeepSeek, Alibaba Cloud, Moonshot AI, Zhipu AI, OpenAI, Anthropic, Google, or any provider you prefer.")
                 }
 
                 Section {
