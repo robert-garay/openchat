@@ -4,10 +4,7 @@ import SwiftData
 struct RootView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: [
-        SortDescriptor(\Conversation.isPinned, order: .reverse),
-        SortDescriptor(\Conversation.updatedAt, order: .reverse),
-    ]) private var conversations: [Conversation]
+    @Query(sort: \Conversation.updatedAt, order: .reverse) private var conversations: [Conversation]
 
     @State private var selectedConversationID: UUID?
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
@@ -15,11 +12,19 @@ struct RootView: View {
 
     /// Sidebar history: never temporary, never empty (no user messages).
     /// Keep the currently selected empty chat visible so List selection stays stable.
+    /// Pinned chats stay above unpinned, each group by recency.
     private var listConversations: [Conversation] {
-        conversations.filter { conversation in
-            if conversation.isTemporary { return false }
-            return conversation.hasUserMessages || conversation.id == selectedConversationID
-        }
+        conversations
+            .filter { conversation in
+                if conversation.isTemporary { return false }
+                return conversation.hasUserMessages || conversation.id == selectedConversationID
+            }
+            .sorted { lhs, rhs in
+                if lhs.isPinned != rhs.isPinned {
+                    return lhs.isPinned && !rhs.isPinned
+                }
+                return lhs.updatedAt > rhs.updatedAt
+            }
     }
 
     private var selectedConversation: Conversation? {
