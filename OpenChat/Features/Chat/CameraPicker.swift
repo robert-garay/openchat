@@ -45,12 +45,14 @@ struct CameraPicker: UIViewControllerRepresentable {
 }
 
 enum CameraCaptureAvailability {
+    @MainActor
     static var isAvailable: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
     }
 }
 #else
 enum CameraCaptureAvailability {
+    @MainActor
     static var isAvailable: Bool { false }
 }
 #endif
