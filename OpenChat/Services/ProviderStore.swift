@@ -27,29 +27,43 @@ final class ProviderStore {
     private(set) var openRouterModels: [OpenRouterCatalogModel] = []
     private(set) var isLoadingOpenRouterModels = false
     private(set) var openRouterModelsError: String?
+    /// Live catalogs for non-OpenRouter providers, keyed by provider id.
+    private(set) var liveModelsByProviderID: [String: [AIModel]] = [:]
+    private(set) var loadingModelProviderIDs: Set<String> = []
+    private(set) var liveModelErrors: [String: String] = [:]
 
     private let defaultsKey = "com.openchat.configuredProviders"
     private let openRouterCacheKey = "com.openchat.openRouterModelsCache"
     private let openRouterCacheDateKey = "com.openchat.openRouterModelsCacheDate"
-    private let openRouterCacheTTL: TimeInterval = 60 * 60
+    private let liveModelsCacheKeyPrefix = "com.openchat.liveModels."
+    private let liveModelsCacheDateKeyPrefix = "com.openchat.liveModelsDate."
+    private let modelsCacheTTL: TimeInterval = 60 * 60
     private let defaults: UserDefaults
     private let openRouterClient: OpenRouterModelsClient
-    private var openRouterRefreshTask: Task<Void, Never>?
+    private let modelsClient: ProviderModelsClient
+    private var modelRefreshTasks: [String: Task<Void, Never>] = [:]
     /// Bumped when Keychain-backed credentials change so Observation can refresh views.
     private var credentialsEpoch = 0
 
     init(
         defaults: UserDefaults = .standard,
-        openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient()
+        openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient(),
+        modelsClient: ProviderModelsClient = ProviderModelsClient()
     ) {
         self.defaults = defaults
         self.openRouterClient = openRouterClient
+        self.modelsClient = modelsClient
         load()
         loadOpenRouterCache()
+        loadLiveModelCaches()
     }
 
     var enabledProviders: [ConfiguredProvider] {
         providers.filter { $0.isEnabled && hasUsableCredentials($0) }
+    }
+
+    var isLoadingModels: Bool {
+        isLoadingOpenRouterModels || !loadingModelProviderIDs.isEmpty
     }
 
     func hasUsableCredentials(_ provider: ConfiguredProvider) -> Bool {
@@ -98,6 +112,13 @@ final class ProviderStore {
     func remove(_ provider: ConfiguredProvider) {
         providers.removeAll { $0.id == provider.id }
         removeAPIKey(for: provider)
+        liveModelsByProviderID[provider.id] = nil
+        liveModelErrors[provider.id] = nil
+        loadingModelProviderIDs.remove(provider.id)
+        modelRefreshTasks[provider.id]?.cancel()
+        modelRefreshTasks[provider.id] = nil
+        defaults.removeObject(forKey: liveModelsCacheKey(for: provider.id))
+        defaults.removeObject(forKey: liveModelsCacheDateKey(for: provider.id))
         persist()
     }
 
@@ -112,19 +133,44 @@ final class ProviderStore {
         if providerID == "openrouter" {
             return openRouterModels.first(where: { $0.id == modelID })?.asAIModel
         }
-        return nil
+        return liveModelsByProviderID[providerID]?.first(where: { $0.id == modelID })
+    }
+
+    /// Models shown in the picker for a non-OpenRouter provider.
+    /// Prefers the live catalog, falling back to saved/default models.
+    func pickerModels(for provider: ConfiguredProvider) -> [AIModel] {
+        if let live = liveModelsByProviderID[provider.id], !live.isEmpty {
+            return live
+        }
+        return provider.models
+    }
+
+    /// Keeps selections usable after the picker closes by persisting the chosen model.
+    func rememberModel(_ model: AIModel, providerID: String) {
+        guard var provider = provider(withID: providerID) else { return }
+        if let index = provider.models.firstIndex(where: { $0.id == model.id }) {
+            provider.models[index] = model
+        } else {
+            provider.models.insert(model, at: 0)
+        }
+        update(provider)
     }
 
     /// Keeps OpenRouter selections usable after the picker closes by persisting
     /// the chosen catalog entry onto the configured provider.
     func rememberOpenRouterModel(_ model: OpenRouterCatalogModel) {
-        guard var provider = provider(withID: "openrouter") else { return }
-        if let index = provider.models.firstIndex(where: { $0.id == model.id }) {
-            provider.models[index] = model.asAIModel
-        } else {
-            provider.models.insert(model.asAIModel, at: 0)
+        rememberModel(model.asAIModel, providerID: "openrouter")
+    }
+
+    /// Refresh live catalogs for every enabled provider.
+    func refreshModelsIfNeeded(force: Bool = false) {
+        for provider in enabledProviders {
+            if provider.id == "openrouter" {
+                refreshOpenRouterModelsIfNeeded(force: force)
+            } else {
+                refreshProviderModelsIfNeeded(provider, force: force)
+            }
         }
-        update(provider)
     }
 
     func refreshOpenRouterModelsIfNeeded(force: Bool = false) {
@@ -133,13 +179,27 @@ final class ProviderStore {
         if !force,
            !openRouterModels.isEmpty,
            let cachedAt = defaults.object(forKey: openRouterCacheDateKey) as? Date,
-           Date().timeIntervalSince(cachedAt) < openRouterCacheTTL {
+           Date().timeIntervalSince(cachedAt) < modelsCacheTTL {
             return
         }
 
-        openRouterRefreshTask?.cancel()
-        openRouterRefreshTask = Task { [weak self] in
+        modelRefreshTasks["openrouter"]?.cancel()
+        modelRefreshTasks["openrouter"] = Task { [weak self] in
             await self?.fetchOpenRouterModels()
+        }
+    }
+
+    private func refreshProviderModelsIfNeeded(_ provider: ConfiguredProvider, force: Bool) {
+        if !force,
+           let cached = liveModelsByProviderID[provider.id], !cached.isEmpty,
+           let cachedAt = defaults.object(forKey: liveModelsCacheDateKey(for: provider.id)) as? Date,
+           Date().timeIntervalSince(cachedAt) < modelsCacheTTL {
+            return
+        }
+
+        modelRefreshTasks[provider.id]?.cancel()
+        modelRefreshTasks[provider.id] = Task { [weak self] in
+            await self?.fetchProviderModels(provider)
         }
     }
 
@@ -159,6 +219,29 @@ final class ProviderStore {
                 openRouterModelsError = error.localizedDescription
             }
             isLoadingOpenRouterModels = false
+        }
+    }
+
+    private func fetchProviderModels(_ provider: ConfiguredProvider) async {
+        loadingModelProviderIDs.insert(provider.id)
+        liveModelErrors[provider.id] = nil
+
+        do {
+            let fetched = try await modelsClient.fetchModels(
+                for: provider,
+                apiKey: apiKey(for: provider)
+            )
+            guard !Task.isCancelled else { return }
+            let models = ProviderModelsClient.enrich(fetched, using: provider.models)
+            liveModelsByProviderID[provider.id] = models
+            persistLiveModelsCache(models, providerID: provider.id)
+            loadingModelProviderIDs.remove(provider.id)
+        } catch {
+            guard !Task.isCancelled else { return }
+            if liveModelsByProviderID[provider.id]?.isEmpty ?? true {
+                liveModelErrors[provider.id] = error.localizedDescription
+            }
+            loadingModelProviderIDs.remove(provider.id)
         }
     }
 
@@ -187,5 +270,30 @@ final class ProviderStore {
         guard let data = try? JSONEncoder().encode(models) else { return }
         defaults.set(data, forKey: openRouterCacheKey)
         defaults.set(Date(), forKey: openRouterCacheDateKey)
+    }
+
+    private func loadLiveModelCaches() {
+        for provider in providers where provider.id != "openrouter" {
+            let key = liveModelsCacheKey(for: provider.id)
+            guard let data = defaults.data(forKey: key),
+                  let decoded = try? JSONDecoder().decode([AIModel].self, from: data) else {
+                continue
+            }
+            liveModelsByProviderID[provider.id] = decoded
+        }
+    }
+
+    private func persistLiveModelsCache(_ models: [AIModel], providerID: String) {
+        guard let data = try? JSONEncoder().encode(models) else { return }
+        defaults.set(data, forKey: liveModelsCacheKey(for: providerID))
+        defaults.set(Date(), forKey: liveModelsCacheDateKey(for: providerID))
+    }
+
+    private func liveModelsCacheKey(for providerID: String) -> String {
+        liveModelsCacheKeyPrefix + providerID
+    }
+
+    private func liveModelsCacheDateKey(for providerID: String) -> String {
+        liveModelsCacheDateKeyPrefix + providerID
     }
 }

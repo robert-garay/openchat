@@ -10,10 +10,6 @@ struct ModelPickerSheet: View {
     @State private var searchText = ""
     @State private var selectedCapabilities: Set<ModelCapability> = []
 
-    private var openRouterProvider: ConfiguredProvider? {
-        providerStore.enabledProviders.first { $0.id == "openrouter" }
-    }
-
     private var allResults: [PickerModelItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         var items: [PickerModelItem] = []
@@ -29,7 +25,7 @@ struct ModelPickerSheet: View {
                 )
                 items.append(contentsOf: models.map { PickerModelItem(provider: provider, catalogModel: $0) })
             } else {
-                items.append(contentsOf: provider.models.compactMap { model in
+                items.append(contentsOf: providerStore.pickerModels(for: provider).compactMap { model in
                     guard matchesFilters(model: model, providerName: provider.name, query: trimmed) else { return nil }
                     return PickerModelItem(provider: provider, model: model)
                 })
@@ -50,43 +46,56 @@ struct ModelPickerSheet: View {
         return "No models available right now."
     }
 
-    private var isOpenRouterLoading: Bool {
-        openRouterProvider != nil
-            && providerStore.isLoadingOpenRouterModels
-            && providerStore.openRouterModels.isEmpty
+    private var isInitialLoading: Bool {
+        providerStore.isLoadingModels && allResults.isEmpty
     }
 
-    private var openRouterError: String? {
-        guard openRouterProvider != nil,
-              providerStore.openRouterModels.isEmpty,
-              let error = providerStore.openRouterModelsError
-        else { return nil }
-        return error
+    private var fetchErrors: [(providerName: String, message: String)] {
+        var errors: [(String, String)] = []
+        if let message = providerStore.openRouterModelsError,
+           providerStore.openRouterModels.isEmpty,
+           providerStore.enabledProviders.contains(where: { $0.id == "openrouter" }) {
+            errors.append(("OpenRouter", message))
+        }
+        for provider in providerStore.enabledProviders where provider.id != "openrouter" {
+            if let message = providerStore.liveModelErrors[provider.id],
+               providerStore.liveModelsByProviderID[provider.id]?.isEmpty ?? true,
+               provider.models.isEmpty {
+                errors.append((provider.name, message))
+            }
+        }
+        return errors
     }
 
     var body: some View {
         NavigationStack {
             List {
-                if isOpenRouterLoading {
+                if isInitialLoading {
                     Section {
                         HStack(spacing: 10) {
                             ProgressView()
-                            Text("Loading OpenRouter models…")
+                            Text("Loading models…")
                                 .foregroundStyle(.secondary)
                         }
                     }
-                } else if let error = openRouterError {
+                } else if !fetchErrors.isEmpty, allResults.isEmpty {
                     Section {
-                        Text(error)
-                            .foregroundStyle(.secondary)
+                        ForEach(fetchErrors, id: \.providerName) { error in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(error.providerName)
+                                    .font(.subheadline.weight(.semibold))
+                                Text(error.message)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Button("Try Again") {
-                            providerStore.refreshOpenRouterModelsIfNeeded(force: true)
+                            providerStore.refreshModelsIfNeeded(force: true)
                         }
                     }
                 }
 
                 Section {
-                    if allResults.isEmpty, !isOpenRouterLoading {
+                    if allResults.isEmpty, !isInitialLoading {
                         Text(emptyFilterMessage)
                             .foregroundStyle(.secondary)
                     } else {
@@ -107,16 +116,14 @@ struct ModelPickerSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
                 }
-                if openRouterProvider != nil {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            providerStore.refreshOpenRouterModelsIfNeeded(force: true)
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .accessibilityLabel("Refresh OpenRouter models")
-                        .disabled(providerStore.isLoadingOpenRouterModels)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        providerStore.refreshModelsIfNeeded(force: true)
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
                     }
+                    .accessibilityLabel("Refresh models")
+                    .disabled(providerStore.isLoadingModels)
                 }
             }
             .safeAreaInset(edge: .bottom) {
@@ -125,7 +132,7 @@ struct ModelPickerSheet: View {
         }
         .presentationDetents([.medium, .large])
         .task {
-            providerStore.refreshOpenRouterModelsIfNeeded()
+            providerStore.refreshModelsIfNeeded()
         }
     }
 
@@ -147,8 +154,18 @@ struct ModelPickerSheet: View {
     private func modelButton(_ item: PickerModelItem) -> some View {
         Button {
             Haptics.light()
-            if item.providerID == "openrouter", let catalogModel = item.catalogModel {
+            if let catalogModel = item.catalogModel {
                 providerStore.rememberOpenRouterModel(catalogModel)
+            } else {
+                providerStore.rememberModel(
+                    AIModel(
+                        id: item.modelID,
+                        displayName: item.displayName,
+                        subtitle: item.subtitle,
+                        capabilities: item.capabilities
+                    ),
+                    providerID: item.providerID
+                )
             }
             onSelect(item.providerID, item.modelID)
             dismiss()
