@@ -40,12 +40,23 @@ extension ChatCompletionClient {
 
 /// Picks the right wire-format implementation for a configured provider.
 enum ChatService {
+    /// Dedicated session for chat completions. `URLSession.shared` uses a 60s
+    /// request idle timeout, which fails long prompts (slow first token) and
+    /// sparse streaming. Keep resource timeout generous for full replies.
+    static let urlSession: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 600
+        configuration.timeoutIntervalForResource = 3_600
+        configuration.waitsForConnectivity = true
+        return URLSession(configuration: configuration)
+    }()
+
     static func client(for format: APIFormat) -> ChatCompletionClient {
         switch format {
         case .openAI:
-            return OpenAICompatibleClient()
+            return OpenAICompatibleClient(session: urlSession)
         case .anthropic:
-            return AnthropicClient()
+            return AnthropicClient(session: urlSession)
         }
     }
 }

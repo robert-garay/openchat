@@ -31,6 +31,8 @@ enum ServerSentEventStream {
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.finish(throwing: ChatServiceError.cancelled)
+                } catch let urlError as URLError where urlError.code == .timedOut {
+                    continuation.finish(throwing: ChatServiceError.timedOut)
                 } catch {
                     continuation.finish(throwing: error)
                 }
