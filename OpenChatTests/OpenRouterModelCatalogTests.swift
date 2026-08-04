@@ -232,6 +232,50 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertTrue(noMatch.isEmpty)
     }
 
+    func testImageOutputModelsAreBrowsableAndFilterable() {
+        let imageOnly = OpenRouterCatalogModel(
+            id: "black-forest-labs/flux.2-pro",
+            name: "Black Forest Labs: Flux 2 Pro",
+            created: 20,
+            contextLength: 0,
+            huggingFaceID: nil,
+            promptPrice: 0.01,
+            completionPrice: 0,
+            modality: "text+image->image",
+            inputModalities: ["text", "image"],
+            outputModalities: ["image"],
+            isAlias: false
+        )
+        let textAndImage = OpenRouterCatalogModel(
+            id: "google/gemini-2.5-flash-image",
+            name: "Google: Gemini 2.5 Flash Image",
+            created: 21,
+            contextLength: 32_768,
+            huggingFaceID: nil,
+            promptPrice: 0.01,
+            completionPrice: 0.02,
+            modality: "text+image->text+image",
+            inputModalities: ["text", "image"],
+            outputModalities: ["text", "image"],
+            isAlias: false
+        )
+
+        let models = sampleModels + [imageOnly, textAndImage]
+        let searchable = OpenRouterModelCatalog.searchableModels(from: models)
+        XCTAssertTrue(searchable.contains { $0.id == imageOnly.id })
+        XCTAssertTrue(searchable.contains { $0.id == textAndImage.id })
+
+        let imageGen = OpenRouterModelCatalog.filtered(
+            models: models,
+            query: "",
+            capabilities: [.imageGen]
+        )
+        XCTAssertTrue(imageGen.contains { $0.id == imageOnly.id })
+        XCTAssertTrue(imageGen.contains { $0.id == textAndImage.id })
+        XCTAssertEqual(imageOnly.capabilities, [.vision, .imageGen])
+        XCTAssertEqual(textAndImage.capabilities, [.vision, .imageGen])
+    }
+
     func testDisplayNameAndSubtitleFormatting() {
         let free = sampleModels.first { $0.id == "google/gemma-4-31b-it:free" }!
         XCTAssertEqual(free.displayName, "Gemma 4 31B")

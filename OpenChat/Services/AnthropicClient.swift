@@ -10,9 +10,12 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
-        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String
-    ) -> AsyncThrowingStream<String, Error> {
-        AsyncThrowingStream { continuation in
+        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        supportsImageGen: Bool
+    ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
+        // Anthropic Messages API does not return generated bitmaps; ignore supportsImageGen.
+        _ = supportsImageGen
+        return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     if tools.isEmpty {
@@ -57,7 +60,7 @@ struct AnthropicClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         session: URLSession,
-        continuation: AsyncThrowingStream<String, Error>.Continuation
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var workingTurns = turns
         for _ in 0..<WebSearchService.maxToolRounds {
@@ -85,7 +88,7 @@ struct AnthropicClient: ChatCompletionClient {
             }
 
             if !result.text.isEmpty {
-                continuation.yield(result.text)
+                continuation.yield(.text(result.text))
             }
             return
         }
@@ -156,7 +159,7 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         session: URLSession,
-        continuation: AsyncThrowingStream<String, Error>.Continuation
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
@@ -169,7 +172,7 @@ struct AnthropicClient: ChatCompletionClient {
             if event.type == "content_block_delta",
                event.delta?.type == "text_delta",
                let text = event.delta?.text, !text.isEmpty {
-                continuation.yield(text)
+                continuation.yield(.text(text))
             }
         }
     }

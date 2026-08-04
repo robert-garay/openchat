@@ -67,4 +67,33 @@ final class MultimodalAttachmentTests: XCTestCase {
         message.imageAttachments = []
         XCTAssertNil(message.attachmentsData)
     }
+
+    func testGeneratedImageParserDataURI() {
+        let pngBytes = Data([0x89, 0x50, 0x4E, 0x47])
+        let uri = "data:image/png;base64,\(pngBytes.base64EncodedString())"
+        let attachment = GeneratedImageParser.attachment(fromDataURI: uri)
+        XCTAssertEqual(attachment?.mimeType, "image/png")
+        XCTAssertEqual(attachment?.data, pngBytes)
+        XCTAssertNil(GeneratedImageParser.attachment(fromDataURI: "https://example.com/x.png"))
+    }
+
+    func testGeneratedImageParserExtractsMarkdownDataURI() {
+        let pngBytes = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A])
+        let uri = "data:image/png;base64,\(pngBytes.base64EncodedString())"
+        let markdown = "Here you go:\n\n![generated](\(uri))\n\nEnjoy."
+        let result = GeneratedImageParser.extractMarkdownDataURIImages(from: markdown)
+        XCTAssertEqual(result.images.count, 1)
+        XCTAssertEqual(result.images[0].data, pngBytes)
+        XCTAssertFalse(result.text.contains("data:image"))
+        XCTAssertTrue(result.text.contains("Here you go"))
+        XCTAssertTrue(result.text.contains("Enjoy"))
+    }
+
+    func testAssistantMessageCanStoreGeneratedImages() {
+        let image = ChatImageAttachment(mimeType: "image/png", data: Data([1, 2, 3, 4]))
+        let message = ChatMessage(role: .assistant, content: "A cat", imageAttachments: [image])
+        XCTAssertEqual(message.role, .assistant)
+        XCTAssertEqual(message.imageAttachments.count, 1)
+        XCTAssertEqual(message.content, "A cat")
+    }
 }

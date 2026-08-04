@@ -118,6 +118,31 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertFalse(withoutTools.supportsTools)
     }
 
+    func testAIModelSupportsImageGenAndModalities() {
+        let imageModel = AIModel(
+            id: "google/gemini-2.5-flash-image",
+            displayName: "Flash Image",
+            capabilities: [.vision, .imageGen]
+        )
+        XCTAssertTrue(imageModel.supportsImageGen)
+        XCTAssertEqual(imageModel.chatOutputModalities, ["image", "text"])
+
+        let textOnly = AIModel(id: "x", displayName: "X", capabilities: [.tools])
+        XCTAssertFalse(textOnly.supportsImageGen)
+        XCTAssertNil(textOnly.chatOutputModalities)
+    }
+
+    func testImageGenHeuristicFromModelID() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "google/gemini-2.5-flash-image",
+            modelName: "Gemini 2.5 Flash Image"
+        )
+        XCTAssertTrue(caps.contains(.imageGen))
+        XCTAssertTrue(caps.contains(.vision))
+    }
+
     func testMatchesRequiresAllSelectedCapabilities() {
         let caps: [ModelCapability] = [.vision, .tools, .reasoning]
         XCTAssertTrue(ModelCapability.matches(caps, filters: []))

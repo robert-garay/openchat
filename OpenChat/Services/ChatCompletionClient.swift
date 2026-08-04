@@ -1,17 +1,20 @@
 import Foundation
 
 protocol ChatCompletionClient: Sendable {
-    /// Streams incremental text deltas for one assistant reply.
+    /// Streams incremental text and/or generated images for one assistant reply.
     /// When `tools` is non-empty, runs a tool-calling loop (non-streaming rounds
     /// until the model returns text, then yields that text).
+    /// When `supportsImageGen` is true, requests image output modalities and may
+    /// yield `.images` events (typically via a non-streaming completion).
     func streamReply(
         turns: [ChatTurn],
         model: String,
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
-        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String
-    ) -> AsyncThrowingStream<String, Error>
+        executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        supportsImageGen: Bool
+    ) -> AsyncThrowingStream<ChatStreamEvent, Error>
 }
 
 extension ChatCompletionClient {
@@ -20,11 +23,18 @@ extension ChatCompletionClient {
         turns: [ChatTurn],
         model: String,
         baseURL: String,
-        apiKey: String?
-    ) -> AsyncThrowingStream<String, Error> {
-        streamReply(turns: turns, model: model, baseURL: baseURL, apiKey: apiKey, tools: []) { _ in
-            ""
-        }
+        apiKey: String?,
+        supportsImageGen: Bool = false
+    ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
+        streamReply(
+            turns: turns,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            tools: [],
+            executeTool: { _ in "" },
+            supportsImageGen: supportsImageGen
+        )
     }
 }
 

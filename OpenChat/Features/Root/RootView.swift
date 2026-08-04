@@ -12,11 +12,19 @@ struct RootView: View {
 
     /// Sidebar history: never temporary, never empty (no user messages).
     /// Keep the currently selected empty chat visible so List selection stays stable.
+    /// Pinned chats stay above unpinned, each group by recency.
     private var listConversations: [Conversation] {
-        conversations.filter { conversation in
-            if conversation.isTemporary { return false }
-            return conversation.hasUserMessages || conversation.id == selectedConversationID
-        }
+        conversations
+            .filter { conversation in
+                if conversation.isTemporary { return false }
+                return conversation.hasUserMessages || conversation.id == selectedConversationID
+            }
+            .sorted { lhs, rhs in
+                if lhs.isPinned != rhs.isPinned {
+                    return lhs.isPinned && !rhs.isPinned
+                }
+                return lhs.updatedAt > rhs.updatedAt
+            }
     }
 
     private var selectedConversation: Conversation? {
@@ -70,6 +78,9 @@ struct RootView: View {
         }
         .onAppear {
             discardOrphanedEphemeralChats()
+            providerStore.seedModelUsageFromConversationsIfNeeded(
+                conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
+            )
         }
         .onChange(of: selectedConversationID) { previousID, _ in
             discardEphemeralChat(id: previousID)
