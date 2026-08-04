@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/swiftlint
+            /usr/local/Cellar/swiftlint
+          key: brew-swiftlint-${{ runner.os }}-${{ hashFiles('.swiftlint.yml') }}
+          restore-keys: |
+            brew-swiftlint-${{ runner.os }}-
+
+      - name: Install SwiftLint
+        run: |
+          if ! command -v swiftlint >/dev/null 2>&1; then
+            brew install swiftlint
+          fi
+          swiftlint version
+
+      - name: Run SwiftLint
+        run: ./scripts/ci-lint.sh
+
+  test:
+    name: Unit Tests
+    runs-on: macos-15
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          if [[ ! -d "$DEVELOPER_DIR" ]]; then
+            echo "Pinned Xcode not found at $DEVELOPER_DIR; falling back to newest Xcode 16.x"
+            LATEST="$(
+              find /Applications -maxdepth 1 -type d -name 'Xcode_16*.app' 2>/dev/null \
+                | sort -V \
+                | tail -n 1
+            )"
+            if [[ -z "$LATEST" ]]; then
+              echo "No Xcode 16.x app found under /Applications" >&2
+              find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print || true
+              exit 1
+            fi
+            echo "DEVELOPER_DIR=${LATEST}/Contents/Developer" >> "$GITHUB_ENV"
+            sudo xcode-select -s "${LATEST}/Contents/Developer"
+          else
+            sudo xcode-select -s "$DEVELOPER_DIR"
+          fi
+          xcodebuild -version
+
+      - name: Cache Homebrew tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/Cellar/xcbeautify
+            /usr/local/Cellar/xcodegen
+            /usr/local/Cellar/xcbeautify
+          key: brew-xcode-tools-${{ runner.os }}-${{ hashFiles('project.yml', 'scripts/ci-test.sh') }}
+          restore-keys: |
+            brew-xcode-tools-${{ runner.os }}-
+
+      - name: Install build tools
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
+          xcodegen --version
+          xcbeautify --version
+
+      - name: Boot simulator
+        run: |
+          DEVICE="$(
+            xcrun simctl list devices available \
+              | sed -n 's/^[[:space:]]*\(iPhone[^()]*\) (.*/\1/p' \
+              | sed 's/[[:space:]]*$//' \
+              | head -n 1
+          )"
+          if [[ -z "$DEVICE" ]]; then
+            echo "No available iPhone simulator" >&2
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "SIM_NAME=$DEVICE" >> "$GITHUB_ENV"
+          echo "Using simulator: $DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b || xcrun simctl boot "$DEVICE"
+
+      - name: Run unit tests
+        run: ./scripts/ci-test.sh
+        env:
+          RESULT_BUNDLE: TestResults.xcresult
+          DERIVED_DATA: DerivedData/CI
+
+      - name: Summarize coverage
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ -d TestResults.xcresult ]]; then
+            xcrun xccov view --report --only-targets TestResults.xcresult | tee coverage-summary.txt
+          else
+            echo "No TestResults.xcresult present; skipping coverage summary"
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: |
+            TestResults.xcresult
+            coverage-summary.txt
+          if-no-files-found: warn
+          retention-days: 14

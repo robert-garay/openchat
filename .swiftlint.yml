@@ -1,0 +1,67 @@
+# Keep CI lint fast and actionable. Prefer correctness over style nits.
+excluded:
+  - OpenChat.xcodeproj
+  - build
+  - DerivedData
+  - .build
+  - scripts
+
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - first_where
+  - last_where
+  - overridden_super_call
+  - redundant_nil_coalescing
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_whitespace_closing_braces
+  - yoda_condition
+
+disabled_rules:
+  - trailing_whitespace
+  - todo
+
+line_length:
+  warning: 160
+  error: 350
+  ignores_urls: true
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_interpolated_strings: true
+
+file_length:
+  warning: 500
+  error: 1000
+
+type_body_length:
+  warning: 400
+  error: 600
+
+function_body_length:
+  warning: 100
+  error: 200
+
+cyclomatic_complexity:
+  warning: 20
+  error: 35
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  excluded:
+    - id
+    - x
+    - y
+    - i
+    - j
+    - ok
+    - to
+    - on
+
+nesting:
+  type_level: 3
+  function_level: 3
+
+reporter: xcode
