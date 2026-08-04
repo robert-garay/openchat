@@ -28,7 +28,6 @@ struct ProviderDetailView: View {
                     draftKey: $apiKey,
                     helpURL: provider.template?.keyHelpURL,
                     helpProviderName: provider.name,
-                    onSave: saveAPIKey,
                     onRequestReplace: {
                         apiKey = ""
                         showingAddNewKeyDialog = true
@@ -47,6 +46,15 @@ struct ProviderDetailView: View {
         }
         .navigationTitle(provider.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if provider.requiresAPIKey, storedRedactedAPIKey == nil {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveAPIKey() }
+                        .fontWeight(.semibold)
+                        .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
         .overlay {
             if showingAddNewKeyDialog {
                 APIKeyReplaceDialog(
