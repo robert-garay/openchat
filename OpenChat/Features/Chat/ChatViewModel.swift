@@ -12,6 +12,8 @@ final class ChatViewModel {
     private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
+    private(set) var isCompacting = false
+    private(set) var compactStatusMessage: String?
 
     private let conversation: Conversation
     private let modelContext: ModelContext
@@ -113,6 +115,88 @@ final class ChatViewModel {
 
     func dismissCapabilityWarning() {
         capabilityWarning = nil
+    }
+
+    func dismissCompactStatus() {
+        compactStatusMessage = nil
+    }
+
+    var canShowCompact: Bool {
+        CompactConversationSettings.isEnabled() && !conversation.isTemporary
+    }
+
+    var canCompactConversation: Bool {
+        guard canShowCompact, !isStreaming, !isCompacting else { return false }
+        let eligible = ConversationCompactionService.eligibleMessages(
+            from: ConversationCompactionService.snapshots(from: conversation.sortedMessages)
+        )
+        return ConversationCompactionService.canCompact(messageCount: eligible.count)
+    }
+
+    func compactConversation() {
+        guard canShowCompact, !isStreaming, !isCompacting else { return }
+        guard let provider = currentProvider, let model = currentModel else { return }
+        let apiKey = providerStore.apiKey(for: provider)
+        guard !provider.requiresAPIKey || apiKey != nil else { return }
+
+        let snapshots = ConversationCompactionService.snapshots(from: conversation.sortedMessages)
+        guard let plan = ConversationCompactionService.planCompaction(
+            sortedMessages: snapshots,
+            compactedThroughMessageID: conversation.compactedThroughMessageID
+        ) else {
+            compactStatusMessage = "Not enough messages to compact."
+            Haptics.warning()
+            return
+        }
+
+        isCompacting = true
+        let client = ChatService.client(for: provider.apiFormat)
+        let baseURL = provider.baseURL
+        let modelID = model.id
+        let existingSummary = conversation.compactedSummary
+        let transcript = ConversationCompactionService.transcriptForSummarization(
+            existingSummary: existingSummary.isEmpty ? nil : existingSummary,
+            messages: plan.messagesToSummarize
+        )
+        let summarizationTurns = [
+            ChatTurn(role: .system, content: ConversationCompactionService.summarizationSystemPrompt()),
+            ChatTurn(role: .user, content: ConversationCompactionService.summarizationUserPrompt(transcript: transcript))
+        ]
+
+        streamingTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                var summary = ""
+                for try await delta in client.streamReply(
+                    turns: summarizationTurns,
+                    model: modelID,
+                    baseURL: baseURL,
+                    apiKey: apiKey
+                ) {
+                    summary += delta
+                }
+
+                let trimmed = summary.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else {
+                    compactStatusMessage = "Compaction failed: empty summary."
+                    Haptics.warning()
+                    isCompacting = false
+                    return
+                }
+
+                conversation.compactedSummary = trimmed
+                conversation.compactedThroughMessageID = plan.watermarkMessageID
+                conversation.updatedAt = .now
+                compactStatusMessage = "Conversation compacted."
+                Haptics.success()
+            } catch is CancellationError {
+                compactStatusMessage = nil
+            } catch {
+                compactStatusMessage = "Compaction failed: \(error.localizedDescription)"
+                Haptics.warning()
+            }
+            isCompacting = false
+        }
     }
 
     func confirmCalendarActions(for messageID: UUID) {
@@ -219,9 +303,12 @@ final class ChatViewModel {
         let modelID = model.id
         let supportsTools = model.supportsTools
         let conversationSystemPrompt = conversation.systemPrompt
-        let historyTurns: [ChatTurn] = conversation.sortedMessages
-            .filter { $0.id != assistantMessage.id && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty) }
-            .map { ChatTurn(role: $0.role, content: $0.content, images: $0.imageAttachments) }
+        let historyTurns: [ChatTurn] = ConversationCompactionService.apiHistoryTurns(
+            sortedMessages: conversation.sortedMessages,
+            compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
+            compactedThroughMessageID: conversation.compactedThroughMessageID,
+            excludingMessageID: assistantMessage.id
+        )
         let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
         let searchAPIKey = webSearchStore.activeAPIKey()
         let searchProviderName = webSearchStore.activeProviderDisplayName

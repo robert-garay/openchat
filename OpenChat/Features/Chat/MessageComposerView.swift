@@ -32,6 +32,10 @@ struct MessageComposerView: View {
     var webSearchTintHex: String = "007AFF"
     var onSelectWebSearchProvider: ((WebSearchProviderKind) -> Void)? = nil
     var onDisableWebSearch: (() -> Void)? = nil
+    var showCompactChip: Bool = false
+    var canCompact: Bool = false
+    var isCompacting: Bool = false
+    var onCompact: (() -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
 
@@ -42,6 +46,8 @@ struct MessageComposerView: View {
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingWebSearchPicker = false
+    @State private var showingCompactConfirmation = false
+    @State private var showingNotEnoughMessagesAlert = false
 
     private var canSend: Bool {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -113,6 +119,23 @@ struct MessageComposerView: View {
             )
             .presentationCompactAdaptation(.popover)
         }
+        .confirmationDialog(
+            "Compact conversation?",
+            isPresented: $showingCompactConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Compact", role: .destructive) {
+                onCompact?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Older messages will be summarized into context. Your most recent messages stay as-is in the chat.")
+        }
+        .alert("Not enough messages", isPresented: $showingNotEnoughMessagesAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Not enough messages to compact.")
+        }
     }
 
     private var composerField: some View {
@@ -128,6 +151,7 @@ struct MessageComposerView: View {
             HStack(alignment: .center, spacing: 2) {
                 plusMenuButton
                 webSearchButton
+                compactButton
                 Spacer(minLength: 0)
                 sendButton
             }
@@ -212,6 +236,42 @@ struct MessageComposerView: View {
             }
         }
         .frame(width: 34, height: 34)
+    }
+
+    @ViewBuilder
+    private var compactButton: some View {
+        if showCompactChip {
+            Button(action: requestCompact) {
+                Group {
+                    if isCompacting {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(canCompact ? Color.primary : Color(.tertiaryLabel))
+                    }
+                }
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+            }
+            .disabled(isCompacting)
+            .accessibilityLabel("Compact conversation")
+            .accessibilityHint(
+                canCompact
+                    ? "Summarize older messages to save context"
+                    : "Not enough messages to compact"
+            )
+        }
+    }
+
+    private func requestCompact() {
+        guard canCompact else {
+            Haptics.warning()
+            showingNotEnoughMessagesAlert = true
+            return
+        }
+        showingCompactConfirmation = true
     }
 
     private var sendButton: some View {

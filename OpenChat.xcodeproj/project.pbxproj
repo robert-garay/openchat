@@ -88,6 +88,8 @@
 		A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000005 /* SerpAPIClient.swift */; };
 		A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000006 /* WebSearchProviderPicker.swift */; };
 		A9001B11E000000000000001 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000001 /* CameraPicker.swift */; };
+		B2001B11E000000000000002 /* ConversationCompactionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2001F11E000000000000001 /* ConversationCompactionService.swift */; };
+		B2001B11E000000000000004 /* ConversationCompactionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2001F11E000000000000003 /* ConversationCompactionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +190,8 @@
 		A8001F11E000000000000005 /* SerpAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIClient.swift; sourceTree = "<group>"; };
 		A8001F11E000000000000006 /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000001 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		B2001F11E000000000000001 /* ConversationCompactionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionService.swift; sourceTree = "<group>"; };
+		B2001F11E000000000000003 /* ConversationCompactionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -272,6 +276,7 @@
 				438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */,
 				E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */,
 				12CDF1813E984EAC421E082F /* ChatTurn.swift */,
+				B2001F11E000000000000001 /* ConversationCompactionService.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
 				D44E55F66718293A4B5C6D70 /* MultimodalRequestEncoder.swift */,
 				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
@@ -392,6 +397,7 @@
 				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
 				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
 				A7001F11E000000000000007 /* WebSearchServiceTests.swift */,
+				B2001F11E000000000000003 /* ConversationCompactionTests.swift */,
 			);
 			path = OpenChatTests;
 			sourceTree = "<group>";
@@ -563,6 +569,7 @@
 				A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */,
 				A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */,
 				A9001B11E000000000000001 /* CameraPicker.swift in Sources */,
+				B2001B11E000000000000002 /* ConversationCompactionService.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -583,6 +590,7 @@
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				A7001B11E000000000000007 /* WebSearchServiceTests.swift in Sources */,
+				B2001B11E000000000000004 /* ConversationCompactionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

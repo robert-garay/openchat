@@ -36,6 +36,10 @@ struct ChatView: View {
                     webSearchTintHex: viewModel.webSearchStoreActiveTint,
                     onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
                     onDisableWebSearch: viewModel.disableWebSearchForChat,
+                    showCompactChip: viewModel.canShowCompact,
+                    canCompact: viewModel.canCompactConversation,
+                    isCompacting: viewModel.isCompacting,
+                    onCompact: viewModel.compactConversation,
                     onSend: {
                         viewModel.send()
                     },
@@ -103,6 +107,20 @@ struct ChatView: View {
         } message: {
             Text(viewModel?.capabilityWarning ?? "")
         }
+        .overlay(alignment: .top) {
+            if let viewModel, let message = viewModel.compactStatusMessage {
+                CompactStatusToast(message: message)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        Task {
+                            try? await Task.sleep(for: .seconds(2.5))
+                            viewModel.dismissCompactStatus()
+                        }
+                    }
+            }
+        }
+        .animation(Theme.springFast, value: viewModel?.compactStatusMessage)
         .task(id: conversation.id) {
             if viewModel == nil {
                 viewModel = ChatViewModel(
@@ -168,6 +186,20 @@ struct ChatView: View {
         } else {
             proxy.scrollTo(lastID, anchor: .bottom)
         }
+    }
+}
+
+private struct CompactStatusToast: View {
+    let message: String
+
+    var body: some View {
+        Text(message)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
     }
 }
 
