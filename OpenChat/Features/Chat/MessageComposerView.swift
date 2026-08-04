@@ -40,6 +40,7 @@ struct MessageComposerView: View {
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
     @State private var showingWebSearchDisabledAlert = false
+    @State private var showingWebSearchPicker = false
 
     private var canSend: Bool {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -107,43 +108,33 @@ struct MessageComposerView: View {
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
+        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
+            WebSearchProviderPicker(
+                providers: webSearchProviders,
+                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
+                onSelect: { provider in
+                    showingWebSearchPicker = false
+                    onSelectWebSearchProvider?(provider)
+                },
+                onDisable: {
+                    showingWebSearchPicker = false
+                    onDisableWebSearch?()
+                }
+            )
+            .presentationCompactAdaptation(.popover)
+        }
     }
 
     private var webSearchButton: some View {
-        Group {
+        Button {
             if canUseWebSearch {
-                Menu {
-                    Picker(
-                        "Web Search",
-                        selection: Binding(
-                            get: { isWebSearchArmed ? selectedWebSearchProvider : nil },
-                            set: { newValue in
-                                if let newValue {
-                                    onSelectWebSearchProvider?(newValue)
-                                } else {
-                                    onDisableWebSearch?()
-                                }
-                            }
-                        )
-                    ) {
-                        Label("Off", systemImage: "globe")
-                            .tag(Optional<WebSearchProviderKind>.none)
-                        ForEach(webSearchProviders) { provider in
-                            Label(provider.displayName, systemImage: provider.symbolName)
-                                .tag(Optional.some(provider))
-                        }
-                    }
-                } label: {
-                    webSearchIcon
-                }
+                showingWebSearchPicker = true
             } else {
-                Button {
-                    Haptics.warning()
-                    showingWebSearchDisabledAlert = true
-                } label: {
-                    webSearchIcon
-                }
+                Haptics.warning()
+                showingWebSearchDisabledAlert = true
             }
+        } label: {
+            webSearchIcon
         }
         .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
         .accessibilityHint(
