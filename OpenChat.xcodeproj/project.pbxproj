@@ -84,6 +84,7 @@
 		A8001B11E000000000000003 /* BraveSearchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000003 /* BraveSearchClient.swift */; };
 		A8001B11E000000000000004 /* SerperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000004 /* SerperClient.swift */; };
 		A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000005 /* SerpAPIClient.swift */; };
+		A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000006 /* WebSearchProviderPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -180,6 +181,7 @@
 		A8001F11E000000000000003 /* BraveSearchClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BraveSearchClient.swift; sourceTree = "<group>"; };
 		A8001F11E000000000000004 /* SerperClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerperClient.swift; sourceTree = "<group>"; };
 		A8001F11E000000000000005 /* SerpAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIClient.swift; sourceTree = "<group>"; };
+		A8001F11E000000000000006 /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -315,6 +317,7 @@
 				0DA7BF3262C5159168758827 /* MessageComposerView.swift */,
 				7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */,
 				86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */,
+				A8001F11E000000000000006 /* WebSearchProviderPicker.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -548,6 +551,7 @@
 				A8001B11E000000000000003 /* BraveSearchClient.swift in Sources */,
 				A8001B11E000000000000004 /* SerperClient.swift in Sources */,
 				A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */,
+				A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
