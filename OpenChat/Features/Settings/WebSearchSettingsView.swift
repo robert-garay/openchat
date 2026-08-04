@@ -7,7 +7,7 @@ struct WebSearchSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("Add search API keys here. Pick which provider to use from the + menu in chat. Models with tool calling decide when to search; others get results injected automatically.")
+                    Text("Add search API keys here. Pick which provider to use from the web search button in chat. Models with tool calling decide when to search; others get results injected automatically.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -52,7 +52,7 @@ struct WebSearchSettingsView: View {
             } header: {
                 Text("Providers")
             } footer: {
-                Text("Registered providers appear in the chat + menu.")
+                Text("Registered providers appear in the chat web search menu.")
             }
         }
         .navigationTitle("Web Search")
@@ -61,10 +61,10 @@ struct WebSearchSettingsView: View {
 
     private var masterFooter: String {
         if !webSearchStore.hasAnyAPIKey {
-            return "Save a search API key, then choose a provider from the + menu in chat."
+            return "Save a search API key, then choose a provider from the chat web search button."
         }
         if webSearchStore.isActive {
-            return "Using \(webSearchStore.activeProviderDisplayName). Change providers from the + menu in chat."
+            return "Using \(webSearchStore.activeProviderDisplayName). Change providers from the chat web search button."
         }
         if webSearchStore.isEnabled {
             return "Enabled, but no usable provider key is selected. Pick one in chat after saving a key."
