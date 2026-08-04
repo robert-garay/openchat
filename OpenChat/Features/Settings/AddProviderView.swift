@@ -26,8 +26,6 @@ struct AddProviderView: View {
                     }
                 } header: {
                     Text("Model Providers")
-                } footer: {
-                    Text("Connect OpenRouter, DeepSeek, Alibaba Cloud, Moonshot AI, Zhipu AI, OpenAI, Anthropic, Google, or any provider you prefer.")
                 }
 
                 Section {
@@ -69,22 +67,17 @@ struct ProviderTemplateRow: View {
 
     var body: some View {
         Label {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(template.name)
-                        .font(.body.weight(.medium))
-                    if let region = template.region {
-                        Text(region)
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color(hex: template.tint).opacity(0.15), in: Capsule())
-                            .foregroundStyle(Color(hex: template.tint))
-                    }
+            HStack(spacing: 6) {
+                Text(template.name)
+                    .font(.body.weight(.medium))
+                if let region = template.region {
+                    Text(region)
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color(hex: template.tint).opacity(0.15), in: Capsule())
+                        .foregroundStyle(Color(hex: template.tint))
                 }
-                Text(template.defaultModels.first?.displayName ?? "")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         } icon: {
             ProviderLogoView(
