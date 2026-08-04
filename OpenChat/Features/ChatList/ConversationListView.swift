@@ -178,7 +178,7 @@ private struct ConversationRow: View {
                         .font(.body.weight(.medium))
                         .lineLimit(1)
                 }
-                Text(conversation.lastMessagePreview)
+                Text(MarkdownPreviewFormatter.plainText(from: conversation.lastMessagePreview))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
