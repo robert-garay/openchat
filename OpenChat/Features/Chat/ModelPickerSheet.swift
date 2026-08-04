@@ -8,6 +8,7 @@ struct ModelPickerSheet: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
+    @State private var selectedCapabilities: Set<ModelCapability> = []
 
     private var openRouterProvider: ConfiguredProvider? {
         providerStore.enabledProviders.first { $0.id == "openrouter" }
@@ -21,12 +22,29 @@ struct ModelPickerSheet: View {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    /// Active when the user is text-searching, filtering by capability, or both.
+    private var isFiltering: Bool {
+        isSearching || !selectedCapabilities.isEmpty
+    }
+
     private var openRouterSearchResults: [OpenRouterCatalogModel] {
-        OpenRouterModelCatalog.filtered(models: providerStore.openRouterModels, query: searchText)
+        OpenRouterModelCatalog.filtered(
+            models: providerStore.openRouterModels,
+            query: searchText,
+            capabilities: selectedCapabilities
+        )
     }
 
     private var topOpenSourceModels: [OpenRouterCatalogModel] {
         OpenRouterModelCatalog.topOpenSource(from: providerStore.openRouterModels)
+    }
+
+    private var emptyFilterMessage: String {
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            return "No models match “\(trimmed)”."
+        }
+        return "No models match the selected capabilities."
     }
 
     var body: some View {
@@ -77,7 +95,7 @@ struct ModelPickerSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                ModelCapabilityLegend()
+                ModelCapabilityLegend(selectedCapabilities: $selectedCapabilities)
             }
         }
         .presentationDetents([.medium, .large])
@@ -108,10 +126,10 @@ struct ModelPickerSheet: View {
             } header: {
                 openRouterHeader(provider)
             }
-        } else if isSearching {
+        } else if isFiltering {
             Section {
                 if openRouterSearchResults.isEmpty {
-                    Text("No models match “\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))”.")
+                    Text(emptyFilterMessage)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(openRouterSearchResults) { model in
@@ -135,7 +153,7 @@ struct ModelPickerSheet: View {
             } header: {
                 Label("Top Open Source", systemImage: "chevron.left.forwardslash.chevron.right")
             } footer: {
-                Text("Search to browse the full OpenRouter catalog.")
+                Text("Search or filter by capability to browse the full OpenRouter catalog.")
             }
 
             savedModelsSection(provider: provider, excluding: topOpenSourceModels)
@@ -169,11 +187,13 @@ struct ModelPickerSheet: View {
 
     private func filteredModels(for provider: ConfiguredProvider) -> [AIModel] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return provider.models }
-        return provider.models.filter {
-            $0.id.localizedCaseInsensitiveContains(trimmed) ||
-            $0.displayName.localizedCaseInsensitiveContains(trimmed) ||
-            ($0.subtitle?.localizedCaseInsensitiveContains(trimmed) ?? false)
+        return provider.models.filter { model in
+            let matchesText = trimmed.isEmpty
+                || model.id.localizedCaseInsensitiveContains(trimmed)
+                || model.displayName.localizedCaseInsensitiveContains(trimmed)
+                || (model.subtitle?.localizedCaseInsensitiveContains(trimmed) ?? false)
+            let matchesCapabilities = ModelCapability.matches(model.capabilities, filters: selectedCapabilities)
+            return matchesText && matchesCapabilities
         }
     }
 

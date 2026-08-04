@@ -26,26 +26,47 @@ struct ModelCapabilitySigns: View {
     }
 }
 
-/// Compact legend explaining the capability icons.
+/// Compact legend explaining the capability icons. Tapping an item toggles it as a filter.
 struct ModelCapabilityLegend: View {
+    @Binding var selectedCapabilities: Set<ModelCapability>
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(ModelCapability.displayOrder) { capability in
-                    HStack(spacing: 4) {
-                        Image(systemName: capability.symbolName)
-                            .font(.caption2.weight(.semibold))
-                        Text(capability.legendLabel)
-                            .font(.caption2)
+                    let isSelected = selectedCapabilities.contains(capability)
+                    Button {
+                        Haptics.light()
+                        if isSelected {
+                            selectedCapabilities.remove(capability)
+                        } else {
+                            selectedCapabilities.insert(capability)
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: capability.symbolName)
+                                .font(.caption2.weight(.semibold))
+                            Text(capability.legendLabel)
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(capability.legendLabel)
+                    .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+                    .accessibilityHint(
+                        isSelected
+                            ? "Selected. Double tap to remove this filter."
+                            : "Double tap to filter models with this capability."
+                    )
                 }
             }
-            .foregroundStyle(.secondary)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
         .background(.bar)
         .accessibilityElement(children: .contain)
+        .accessibilityLabel("Capability filters")
     }
 }
 
