@@ -45,4 +45,13 @@ final class ProviderCatalogTests: XCTestCase {
             XCTAssertEqual(template.logoAssetName, ProviderLogo.assetName(for: template.id))
         }
     }
+
+    func testProviderLogosMapToCompanyAssets() {
+        XCTAssertEqual(ProviderLogo.assetName(for: "qwen"), "ProviderLogoAlibabaCloud")
+        XCTAssertEqual(ProviderLogo.assetName(for: "moonshot"), "ProviderLogoMoonshot")
+        XCTAssertEqual(ProviderLogo.assetName(for: "google"), "ProviderLogoGoogle")
+        XCTAssertEqual(ProviderLogo.assetName(for: "deepseek"), "ProviderLogoDeepSeek")
+        XCTAssertEqual(ProviderLogo.assetName(for: "openai"), "ProviderLogoOpenAI")
+        XCTAssertEqual(ProviderLogo.assetName(for: "anthropic"), "ProviderLogoAnthropic")
+    }
 }
