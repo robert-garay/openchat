@@ -42,6 +42,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Web Search", systemImage: "globe")
                     }
+                    NavigationLink {
+                        MemorySettingsView()
+                    } label: {
+                        Label("Memory", systemImage: "brain.head.profile")
+                    }
                 }
 
                 Section("Privacy") {

@@ -5,11 +5,15 @@ import Foundation
 @MainActor
 struct AgentContextProvider {
     var dataSourceStore: AgentDataSourceStore
+    var memoryItems: [MemoryItem] = []
     var calendarSection: (CalendarAccessMode) -> String? = { mode in
         CalendarContextReader.contextSection(accessMode: mode)
     }
     var fitnessSection: () async -> String? = {
         await FitnessContextReader.contextSection()
+    }
+    var memorySection: ([MemoryItem]) -> String? = { items in
+        MemoryStore.contextSection(for: items)
     }
 
     func makeContextBlock() async -> String? {
@@ -27,10 +31,14 @@ struct AgentContextProvider {
             sections.append(fitness)
         }
 
+        if !memoryItems.isEmpty, let memory = memorySection(memoryItems) {
+            sections.append(memory)
+        }
+
         guard !sections.isEmpty else { return nil }
 
         return """
-        On-device context the user enabled in OpenChat settings. Use it when relevant. Do not invent calendar events or fitness metrics beyond what appears here. If the user asks about agenda/schedule, prefer the Calendar section. If they ask about steps, heart rate, workouts, sleep, or training, prefer the Fitness section.
+        On-device context the user enabled in OpenChat settings. Use it when relevant. Do not invent calendar events, fitness metrics, or memory facts beyond what appears here. If the user asks about agenda/schedule, prefer the Calendar section. If they ask about steps, heart rate, workouts, sleep, or training, prefer the Fitness section. If they ask about saved preferences or long-term facts, prefer the Memory section.
 
         \(sections.joined(separator: "\n\n"))
         """
