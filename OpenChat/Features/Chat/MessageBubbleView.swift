@@ -15,6 +15,10 @@ struct MessageBubbleView: View {
     var onDismissCalendarActions: (() -> Void)? = nil
     let onRetry: () -> Void
 
+    #if canImport(UIKit)
+    @State private var previewAttachment: ChatImageAttachment?
+    #endif
+
     var body: some View {
         Group {
             switch message.role {
@@ -38,6 +42,13 @@ struct MessageBubbleView: View {
                 }
             }
         }
+        #if canImport(UIKit)
+        .fullScreenCover(item: $previewAttachment) { attachment in
+            if let uiImage = UIImage(data: attachment.data) {
+                ImagePreviewView(image: uiImage)
+            }
+        }
+        #endif
     }
 
     private var userBubble: some View {
@@ -146,11 +157,19 @@ struct MessageBubbleView: View {
             ForEach(attachments) { attachment in
                 #if canImport(UIKit)
                 if let uiImage = UIImage(data: attachment.data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 260, maxHeight: 320)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Button {
+                        Haptics.light()
+                        previewAttachment = attachment
+                    } label: {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 260, maxHeight: 320)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Preview image")
+                    .accessibilityHint("Opens full screen preview with zoom")
                 }
                 #endif
             }

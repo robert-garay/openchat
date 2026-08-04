@@ -88,6 +88,7 @@
 		A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000005 /* SerpAPIClient.swift */; };
 		A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8001F11E000000000000006 /* WebSearchProviderPicker.swift */; };
 		A9001B11E000000000000001 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000001 /* CameraPicker.swift */; };
+		A9001B11E000000000000005 /* ImagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000005 /* ImagePreviewView.swift */; };
 		A9001B11E000000000000003 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9001F11E000000000000003 /* ChatRequestHistory.swift */; };
 		A9301B11E000000000000001 /* ConversationTitleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9301F11E000000000000001 /* ConversationTitleGenerator.swift */; };
 		A9301B11E000000000000002 /* ConversationTitleGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9301F11E000000000000002 /* ConversationTitleGeneratorTests.swift */; };
@@ -198,6 +199,7 @@
 		A8001F11E000000000000005 /* SerpAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIClient.swift; sourceTree = "<group>"; };
 		A8001F11E000000000000006 /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000001 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		A9001F11E000000000000005 /* ImagePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePreviewView.swift; sourceTree = "<group>"; };
 		A9001F11E000000000000003 /* ChatRequestHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistory.swift; sourceTree = "<group>"; };
 		A9301F11E000000000000001 /* ConversationTitleGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTitleGenerator.swift; sourceTree = "<group>"; };
 		A9301F11E000000000000002 /* ConversationTitleGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTitleGeneratorTests.swift; sourceTree = "<group>"; };
@@ -336,6 +338,7 @@
 				BDA240B9011E4CB3828977D4 /* CalendarActionParserTests.swift */,
 				FA8B9EE88D244C7C9DEFCD22 /* AgentContextProviderTests.swift */,
 				A9001F11E000000000000001 /* CameraPicker.swift */,
+				A9001F11E000000000000005 /* ImagePreviewView.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
 				A9201F11E000000000000003 /* CodeLanguageProfile.swift */,
@@ -591,6 +594,7 @@
 				A8001B11E000000000000005 /* SerpAPIClient.swift in Sources */,
 				A8001B11E000000000000006 /* WebSearchProviderPicker.swift in Sources */,
 				A9001B11E000000000000001 /* CameraPicker.swift in Sources */,
+				A9001B11E000000000000005 /* ImagePreviewView.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

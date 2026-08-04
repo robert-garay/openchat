@@ -42,6 +42,9 @@ struct MessageComposerView: View {
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingWebSearchPicker = false
+    #if canImport(UIKit)
+    @State private var previewAttachment: ChatImageAttachment?
+    #endif
 
     private var canSend: Bool {
         let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -113,6 +116,13 @@ struct MessageComposerView: View {
             )
             .presentationCompactAdaptation(.popover)
         }
+        #if canImport(UIKit)
+        .fullScreenCover(item: $previewAttachment) { attachment in
+            if let uiImage = UIImage(data: attachment.data) {
+                ImagePreviewView(image: uiImage)
+            }
+        }
+        #endif
     }
 
     private var composerField: some View {
@@ -233,11 +243,18 @@ struct MessageComposerView: View {
                     ZStack(alignment: .topTrailing) {
                         #if canImport(UIKit)
                         if let uiImage = UIImage(data: attachment.data) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 56, height: 56)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            Button {
+                                Haptics.light()
+                                previewAttachment = attachment
+                            } label: {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 56, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Preview image")
                         }
                         #endif
                         Button {
@@ -249,6 +266,7 @@ struct MessageComposerView: View {
                                 .foregroundStyle(.white, .black.opacity(0.55))
                         }
                         .offset(x: 4, y: -4)
+                        .accessibilityLabel("Remove image")
                     }
                 }
             }
