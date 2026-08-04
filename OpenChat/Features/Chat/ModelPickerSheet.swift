@@ -37,7 +37,9 @@ struct ModelPickerSheet: View {
             }
         }
 
-        return items
+        return ProviderStore.sortedByUsage(items) { item in
+            providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
+        }
     }
 
     private var emptyFilterMessage: String {

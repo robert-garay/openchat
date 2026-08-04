@@ -172,6 +172,7 @@ final class ChatViewModel {
         conversation.providerID = providerID
         conversation.modelID = modelID
         conversation.updatedAt = .now
+        providerStore.recordModelUsage(providerID: providerID, modelID: modelID)
         if clearPendingAttachments {
             pendingAttachments = []
         }

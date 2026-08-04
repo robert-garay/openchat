@@ -98,6 +98,56 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.provider(withID: "openai")?.models.first?.id, "gpt-live-test")
         XCTAssertEqual(store.model(providerID: "openai", modelID: "gpt-live-test")?.displayName, "GPT Live")
     }
+
+    func testRecordModelUsagePersistsAndRanksMostUsedFirst() {
+        store.recordModelUsage(providerID: "openai", modelID: "gpt-4o")
+        store.recordModelUsage(providerID: "openai", modelID: "gpt-4o")
+        store.recordModelUsage(providerID: "anthropic", modelID: "claude-sonnet")
+
+        XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 2)
+        XCTAssertEqual(store.modelUsageCount(providerID: "anthropic", modelID: "claude-sonnet"), 1)
+        XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "unused"), 0)
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(reloaded.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 2)
+
+        let ranked = ProviderStore.sortedByUsage(
+            ["unused", "claude-sonnet", "gpt-4o"]
+        ) { id in
+            switch id {
+            case "gpt-4o": reloaded.modelUsageCount(providerID: "openai", modelID: id)
+            case "claude-sonnet": reloaded.modelUsageCount(providerID: "anthropic", modelID: id)
+            default: 0
+            }
+        }
+        XCTAssertEqual(ranked, ["gpt-4o", "claude-sonnet", "unused"])
+    }
+
+    func testSortedByUsagePreservesStableOrderForTies() {
+        let ranked = ProviderStore.sortedByUsage(["a", "b", "c"]) { _ in 0 }
+        XCTAssertEqual(ranked, ["a", "b", "c"])
+    }
+
+    func testSeedModelUsageFromConversationsRunsOnce() {
+        store.seedModelUsageFromConversationsIfNeeded([
+            (providerID: "openai", modelID: "gpt-4o"),
+            (providerID: "openai", modelID: "gpt-4o"),
+            (providerID: "anthropic", modelID: "claude-sonnet"),
+        ])
+        XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 2)
+        XCTAssertEqual(store.modelUsageCount(providerID: "anthropic", modelID: "claude-sonnet"), 1)
+
+        store.seedModelUsageFromConversationsIfNeeded([
+            (providerID: "openai", modelID: "gpt-4o"),
+            (providerID: "openai", modelID: "gpt-4o"),
+            (providerID: "openai", modelID: "gpt-4o"),
+            (providerID: "openai", modelID: "gpt-4o"),
+        ])
+        XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 2)
+
+        store.recordModelUsage(providerID: "openai", modelID: "gpt-4o")
+        XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 3)
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {
