@@ -6,17 +6,17 @@ final class ProviderStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: ProviderStore!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         defaults = UserDefaults(suiteName: "com.openchat.tests.\(UUID().uuidString)")
         store = ProviderStore(defaults: defaults)
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         for provider in store.providers {
             store.removeAPIKey(for: provider)
         }
-        super.tearDown()
+        try await super.tearDown()
     }
 
     func testAddFromTemplateAddsExactlyOnce() {

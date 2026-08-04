@@ -46,14 +46,15 @@ final class MemoryStore {
     }
 
     func fetchItems(modelContext: ModelContext) throws -> [MemoryItem] {
-        try modelContext.fetch(
-            FetchDescriptor(
-                sortBy: [
-                    SortDescriptor(\.pinned, order: .reverse),
-                    SortDescriptor(\.updatedAt, order: .reverse),
-                ]
+        let items = try modelContext.fetch(
+            FetchDescriptor<MemoryItem>(
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         )
+        return items.sorted { lhs, rhs in
+            if lhs.pinned != rhs.pinned { return lhs.pinned }
+            return lhs.updatedAt > rhs.updatedAt
+        }
     }
 
     @discardableResult

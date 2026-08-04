@@ -6,8 +6,8 @@ final class AgentContextProviderTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: AgentDataSourceStore!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         defaults = UserDefaults(suiteName: "com.openchat.tests.agentcontext.\(UUID().uuidString)")
         store = AgentDataSourceStore(defaults: defaults)
     }

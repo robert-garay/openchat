@@ -37,6 +37,8 @@ targets:
       - path: OpenChat
         excludes:
           - "Resources/Info.plist"
+    dependencies:
+      - sdk: AppIntents.framework
     info:
       path: OpenChat/Resources/Info.plist
       properties:
@@ -85,6 +87,7 @@ targets:
       - path: OpenChatTests
     dependencies:
       - target: OpenChat
+      - sdk: AppIntents.framework
     configFiles:
       Debug: Config/SigningTests.xcconfig
       Release: Config/SigningTests.xcconfig

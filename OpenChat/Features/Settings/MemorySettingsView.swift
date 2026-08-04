@@ -5,13 +5,19 @@ struct MemorySettingsView: View {
     @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [
-        SortDescriptor(\MemoryItem.pinned, order: .reverse),
         SortDescriptor(\MemoryItem.updatedAt, order: .reverse),
     ]) private var items: [MemoryItem]
 
     @State private var showingAddMemory = false
     @State private var editingItem: MemoryItem?
     @State private var showingClearConfirmation = false
+
+    private var sortedItems: [MemoryItem] {
+        items.sorted { lhs, rhs in
+            if lhs.pinned != rhs.pinned { return lhs.pinned }
+            return lhs.updatedAt > rhs.updatedAt
+        }
+    }
 
     var body: some View {
         List {
@@ -30,11 +36,11 @@ struct MemorySettingsView: View {
             }
 
             Section {
-                if items.isEmpty {
+                if sortedItems.isEmpty {
                     Text("No memories yet.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(items) { item in
+                    ForEach(sortedItems) { item in
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.content)
@@ -58,7 +64,7 @@ struct MemorySettingsView: View {
                     }
                     .onDelete { offsets in
                         for index in offsets {
-                            memoryStore.delete(items[index], modelContext: modelContext)
+                            memoryStore.delete(sortedItems[index], modelContext: modelContext)
                         }
                         try? modelContext.save()
                     }
@@ -70,7 +76,7 @@ struct MemorySettingsView: View {
                     Label("Add memory", systemImage: "plus.circle.fill")
                 }
 
-                if !items.isEmpty {
+                if !sortedItems.isEmpty {
                     Button("Clear all", role: .destructive) {
                         showingClearConfirmation = true
                     }

@@ -80,8 +80,8 @@ final class WebSearchStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: WebSearchStore!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         for kind in WebSearchProviderKind.allCases {
@@ -93,7 +93,7 @@ final class WebSearchStoreTests: XCTestCase {
         store = WebSearchStore(defaults: defaults)
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         for kind in WebSearchProviderKind.allCases {
             KeychainStore.remove(kind.keychainAccount)
             if let legacy = kind.legacyKeychainAccount {
@@ -103,7 +103,7 @@ final class WebSearchStoreTests: XCTestCase {
         defaults.removePersistentDomain(forName: suiteName)
         store = nil
         defaults = nil
-        super.tearDown()
+        try await super.tearDown()
     }
 
     func testSetAPIKeyEnablesSearchAndBecomesActive() {

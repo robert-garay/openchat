@@ -6,8 +6,8 @@ final class RulesStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: RulesStore!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         defaults = UserDefaults(suiteName: "com.openchat.tests.rules.\(UUID().uuidString)")
         store = RulesStore(defaults: defaults)
     }
