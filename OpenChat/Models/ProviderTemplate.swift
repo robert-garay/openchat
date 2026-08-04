@@ -39,7 +39,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "qwen",
-            name: "Qwen",
+            name: "Alibaba Cloud",
             symbolName: "wind",
             tint: "#615CED",
             baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -56,7 +56,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "moonshot",
-            name: "Kimi (Moonshot AI)",
+            name: "Moonshot AI",
             symbolName: "moon.stars.fill",
             tint: "#16B998",
             baseURL: "https://api.moonshot.cn/v1",
@@ -72,7 +72,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "zhipu",
-            name: "Zhipu GLM",
+            name: "Zhipu AI",
             symbolName: "cube.transparent.fill",
             tint: "#3859FF",
             baseURL: "https://open.bigmodel.cn/api/paas/v4",
@@ -88,7 +88,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "yi",
-            name: "01.AI (Yi)",
+            name: "01.AI",
             symbolName: "circle.hexagongrid.fill",
             tint: "#0F172A",
             baseURL: "https://api.lingyiwanwu.com/v1",
@@ -132,7 +132,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
         ),
         ProviderTemplate(
             id: "google",
-            name: "Google Gemini",
+            name: "Google",
             symbolName: "diamond.fill",
             tint: "#4285F4",
             baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",

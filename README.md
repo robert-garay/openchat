@@ -26,9 +26,9 @@ On first launch, tap **Connect a Provider**, pick a provider, and paste in an AP
 | Provider | Console |
 |---|---|
 | DeepSeek | platform.deepseek.com |
-| Qwen (Alibaba) | bailian.console.aliyun.com |
-| Kimi (Moonshot) | platform.moonshot.cn |
-| Zhipu GLM | open.bigmodel.cn |
+| Alibaba Cloud | bailian.console.aliyun.com |
+| Moonshot AI | platform.moonshot.cn |
+| Zhipu AI | open.bigmodel.cn |
 | OpenAI | platform.openai.com |
 | Anthropic | console.anthropic.com |
 | OpenRouter | openrouter.ai |
