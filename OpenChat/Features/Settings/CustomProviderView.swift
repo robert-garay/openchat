@@ -8,7 +8,7 @@ struct CustomProviderView: View {
 
     @Environment(ProviderStore.self) private var providerStore
     @State private var name = ""
-    @State private var baseURL = "http://localhost:11434/v1"
+    @State private var baseURL = ""
     @State private var modelsText = ""
     @State private var requiresAPIKey = false
     @State private var apiKey = ""
