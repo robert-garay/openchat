@@ -8,6 +8,7 @@ struct ModelPickerSheet: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
+    @State private var selectedProviderIDs: Set<String> = []
     @State private var selectedCapabilities: Set<ModelCapability> = []
 
     private var allResults: [PickerModelItem] {
@@ -15,6 +16,10 @@ struct ModelPickerSheet: View {
         var items: [PickerModelItem] = []
 
         for provider in providerStore.enabledProviders {
+            if !selectedProviderIDs.isEmpty, !selectedProviderIDs.contains(provider.id) {
+                continue
+            }
+
             if provider.id == "openrouter" {
                 // Searching the provider name should surface that provider's full catalog.
                 let query = matchesProviderName(provider.name, query: trimmed) ? "" : searchText
@@ -39,6 +44,12 @@ struct ModelPickerSheet: View {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
             return "No models match “\(trimmed)”."
+        }
+        if !selectedProviderIDs.isEmpty, !selectedCapabilities.isEmpty {
+            return "No models match the selected filters."
+        }
+        if !selectedProviderIDs.isEmpty {
+            return "No models match the selected providers."
         }
         if !selectedCapabilities.isEmpty {
             return "No models match the selected capabilities."
@@ -127,7 +138,11 @@ struct ModelPickerSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                ModelCapabilityLegend(selectedCapabilities: $selectedCapabilities)
+                ModelPickerFilterBars(
+                    providers: providerStore.enabledProviders,
+                    selectedProviderIDs: $selectedProviderIDs,
+                    selectedCapabilities: $selectedCapabilities
+                )
             }
         }
         .presentationDetents([.medium, .large])
