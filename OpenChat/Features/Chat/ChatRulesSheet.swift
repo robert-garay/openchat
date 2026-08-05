@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct ChatRulesSheet: View {
-    @Bindable var conversation: Conversation
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(RulesStore.self) private var rulesStore
@@ -17,19 +16,6 @@ struct ChatRulesSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    TextEditor(text: $conversation.systemPrompt)
-                        .frame(minHeight: 80)
-                } header: {
-                    Text("Instructions for this chat")
-                } footer: {
-                    if conversation.isTemporary {
-                        Text("Rules apply to this session only and won't persist after you leave this chat.")
-                    } else {
-                        Text("These instructions apply only to this conversation and override global rules when they conflict.")
-                    }
-                }
-
                 Section {
                     if sortedItems.isEmpty {
                         Text("No rules yet.")

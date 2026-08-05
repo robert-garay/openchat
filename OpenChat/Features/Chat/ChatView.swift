@@ -74,31 +74,31 @@ struct ChatView: View {
                     }
                 }
             }
-            if conversation.messages.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 0) {
+                    if conversation.messages.isEmpty {
+                        Button {
+                            Haptics.light()
+                            onToggleTemporary?()
+                        } label: {
+                            GhostIcon(size: 22, filled: conversation.isTemporary)
+                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                        }
+                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                    }
                     Button {
                         Haptics.light()
-                        onToggleTemporary?()
+                        showingNewSkill = true
                     } label: {
-                        GhostIcon(size: 22, filled: conversation.isTemporary)
-                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                        Image(systemName: "bolt.badge.plus")
+                            .accessibilityLabel("New Skill")
                     }
-                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Haptics.light()
-                    showingNewSkill = true
-                } label: {
-                    Image(systemName: "bolt.badge.plus")
-                        .accessibilityLabel("New Skill")
                 }
             }
         }
         .sheet(isPresented: $showingChatRules) {
-            ChatRulesSheet(conversation: conversation)
+            ChatRulesSheet()
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
