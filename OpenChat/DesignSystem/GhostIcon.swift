@@ -44,7 +44,6 @@ private struct PacManEye: View {
 /// Domed head, straight sides, three scalloped flaps — arcade ghost silhouette.
 private struct GhostBody: Shape {
     func path(in rect: CGRect) -> Path {
-        let w = rect.width
         let h = rect.height
         let left = rect.minX
         let right = rect.maxX
