@@ -36,6 +36,9 @@ struct MessageComposerView: View {
     var canCompact: Bool = false
     var isCompacting: Bool = false
     var onCompact: (() -> Void)? = nil
+    /// When true, rules chip uses accent (conversation has a non-empty system prompt).
+    var hasChatRules: Bool = false
+    var onOpenChatRules: (() -> Void)? = nil
     var skills: [SkillMatchable] = []
     let onSend: () -> Void
     let onStop: () -> Void
@@ -161,13 +164,15 @@ struct MessageComposerView: View {
             ComposerTextView(
                 text: $text,
                 placeholder: "Message",
-                minHeight: 24,
+                minHeight: 22,
                 maxHeight: 120
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)
             .padding(.bottom, 8)
-            .frame(minHeight: 24, maxHeight: 120, alignment: .topLeading)
+            // Explicit vertical sizing — `.frame(minHeight:maxHeight:)` expands to
+            // maxHeight inside this VStack even when the field is empty.
+            .fixedSize(horizontal: false, vertical: true)
             #else
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
@@ -180,6 +185,7 @@ struct MessageComposerView: View {
             HStack(alignment: .center, spacing: 2) {
                 plusMenuButton
                 webSearchButton
+                chatRulesButton
                 compactButton
                 Spacer(minLength: 0)
                 sendButton
@@ -265,6 +271,26 @@ struct MessageComposerView: View {
             }
         }
         .frame(width: 34, height: 34)
+    }
+
+    private var chatRulesButton: some View {
+        Button {
+            Haptics.light()
+            onOpenChatRules?()
+        } label: {
+            Image(systemName: "text.alignleft")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(hasChatRules ? Color.accentColor : Color(.tertiaryLabel))
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Chat rules")
+        .accessibilityHint(
+            hasChatRules
+                ? "Edit instructions for this conversation"
+                : "Add instructions for this conversation"
+        )
+        .animation(Theme.springFast, value: hasChatRules)
     }
 
     @ViewBuilder

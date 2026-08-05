@@ -1,6 +1,8 @@
 import XCTest
 @testable import OpenChat
 
+/// Feature gating (useGlobalRules / useChatRules) happens at the ChatViewModel call site
+/// before values are passed into `assemble`.
 final class ChatSystemPromptBuilderTests: XCTestCase {
     func testAssemblesToolsGlobalMiddleAndChatRulesInOrder() {
         let result = ChatSystemPromptBuilder.assemble(

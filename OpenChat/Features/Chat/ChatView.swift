@@ -36,6 +36,12 @@ struct ChatView: View {
                 ChatComposerHost(
                     viewModel: viewModel,
                     skills: skills,
+                    hasChatRules: !conversation.systemPrompt
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .isEmpty,
+                    onOpenChatRules: {
+                        showingChatRules = true
+                    },
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
@@ -79,14 +85,6 @@ struct ChatView: View {
                                 .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
                                 .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                         }
-                    }
-
-                    Button {
-                        Haptics.light()
-                        showingChatRules = true
-                    } label: {
-                        Image(systemName: "text.alignleft")
-                            .accessibilityLabel("Chat rules")
                     }
 
                     Button {
@@ -180,6 +178,8 @@ struct ChatView: View {
 private struct ChatComposerHost: View {
     @Bindable var viewModel: ChatViewModel
     let skills: [Skill]
+    var hasChatRules: Bool = false
+    var onOpenChatRules: (() -> Void)? = nil
     let onSend: () -> Void
 
     var body: some View {
@@ -203,6 +203,8 @@ private struct ChatComposerHost: View {
             canCompact: viewModel.canCompactConversation,
             isCompacting: viewModel.isCompacting,
             onCompact: viewModel.compactConversation,
+            hasChatRules: hasChatRules,
+            onOpenChatRules: onOpenChatRules,
             skills: skills.map(SkillMatchable.init(skill:)),
             onSend: onSend,
             onStop: viewModel.cancelStreaming

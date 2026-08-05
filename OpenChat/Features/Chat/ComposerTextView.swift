@@ -7,7 +7,9 @@ import UIKit
 struct ComposerTextView: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
-    var minHeight: CGFloat = 24
+    /// Single-line floor; empty text always resolves to roughly one body line.
+    var minHeight: CGFloat = 22
+    /// ~5–6 body lines (similar to the old `TextField` `.lineLimit(1...6)`).
     var maxHeight: CGFloat = 120
 
     func makeCoordinator() -> Coordinator {
@@ -26,6 +28,7 @@ struct ComposerTextView: UIViewRepresentable {
         textView.keyboardDismissMode = .interactive
         textView.returnKeyType = .default
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.setContentHuggingPriority(.required, for: .vertical)
         textView.text = text
         textView.textColor = .label
         textView.accessibilityLabel = placeholder
@@ -66,12 +69,37 @@ struct ComposerTextView: UIViewRepresentable {
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
         let width = proposal.width ?? uiView.bounds.width
         guard width.isFinite, width > 0 else {
-            return CGSize(width: proposal.width ?? 0, height: minHeight)
+            return CGSize(width: proposal.width ?? 0, height: Self.singleLineHeight(for: uiView, minHeight: minHeight))
         }
-        let fitting = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-        let height = min(max(fitting.height, minHeight), maxHeight)
-        uiView.isScrollEnabled = fitting.height > maxHeight + 0.5
+        let height = Self.clampedHeight(for: uiView, width: width, minHeight: minHeight, maxHeight: maxHeight)
+        uiView.isScrollEnabled = Self.contentHeight(for: uiView, width: width) > maxHeight + 0.5
         return CGSize(width: width, height: height)
+    }
+
+    /// One body line — empty `UITextView.sizeThatFits` often reports an oversized height.
+    static func singleLineHeight(for textView: UITextView, minHeight: CGFloat) -> CGFloat {
+        let font = textView.font ?? .preferredFont(forTextStyle: .body)
+        return max(minHeight, ceil(font.lineHeight))
+    }
+
+    static func contentHeight(for textView: UITextView, width: CGFloat) -> CGFloat {
+        let text = textView.text ?? ""
+        if text.isEmpty {
+            return singleLineHeight(for: textView, minHeight: 0)
+        }
+        let fitting = textView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+        return max(fitting.height, singleLineHeight(for: textView, minHeight: 0))
+    }
+
+    static func clampedHeight(
+        for textView: UITextView,
+        width: CGFloat,
+        minHeight: CGFloat,
+        maxHeight: CGFloat
+    ) -> CGFloat {
+        let line = singleLineHeight(for: textView, minHeight: minHeight)
+        let content = contentHeight(for: textView, width: width)
+        return min(max(content, line), maxHeight)
     }
 
     final class Coordinator: NSObject, UITextViewDelegate {
@@ -96,9 +124,14 @@ struct ComposerTextView: UIViewRepresentable {
         func recalculateHeight(for textView: UITextView) {
             let width = textView.bounds.width
             guard width > 0 else { return }
-            let fitting = textView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-            let height = min(max(fitting.height, parent.minHeight), parent.maxHeight)
-            textView.isScrollEnabled = fitting.height > parent.maxHeight + 0.5
+            let content = ComposerTextView.contentHeight(for: textView, width: width)
+            let height = ComposerTextView.clampedHeight(
+                for: textView,
+                width: width,
+                minHeight: parent.minHeight,
+                maxHeight: parent.maxHeight
+            )
+            textView.isScrollEnabled = content > parent.maxHeight + 0.5
             guard abs(height - lastReportedHeight) > 0.5 else { return }
             lastReportedHeight = height
             // Invalidate SwiftUI layout when the intrinsic text height changes.
