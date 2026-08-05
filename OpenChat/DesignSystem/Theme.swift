@@ -10,6 +10,4 @@ enum Theme {
     static let userBubble = Color.accentColor
 
     static let springFast = Animation.spring(response: 0.32, dampingFraction: 0.86)
-    /// Softer spring for list reorders (pin/star) so rows glide instead of snapping.
-    static let springSmooth = Animation.spring(response: 0.52, dampingFraction: 0.88)
 }

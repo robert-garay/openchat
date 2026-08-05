@@ -165,7 +165,8 @@ struct ModelPickerSheet: View {
                     }
                 }
             }
-            .animation(Theme.springSmooth, value: providerStore.starredModelKeys)
+            .listStyle(.plain)
+            .animation(Theme.springFast, value: providerStore.starredModelKeys)
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
@@ -283,7 +284,7 @@ struct ModelPickerSheet: View {
                 // Let the swipe action close before the row changes sections.
                 try? await Task.sleep(for: .milliseconds(220))
             }
-            withAnimation(Theme.springSmooth) {
+            withAnimation(Theme.springFast) {
                 providerStore.toggleStarredModel(providerID: providerID, modelID: modelID)
             }
         }
