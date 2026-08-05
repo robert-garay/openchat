@@ -48,7 +48,6 @@ struct MessageComposerView: View {
     @State private var showingPhotoPicker = false
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
-    @State private var showingWebSearchPicker = false
     @State private var showingChatRules = false
     @State private var showingCompactConfirmation = false
     @State private var showingNotEnoughMessagesAlert = false
@@ -217,42 +216,72 @@ struct MessageComposerView: View {
     }
 
     private var webSearchButton: some View {
-        Button {
+        Group {
             if canUseWebSearch {
-                showingWebSearchPicker = true
+                Menu {
+                    ForEach(webSearchProviders) { provider in
+                        Button {
+                            onSelectWebSearchProvider?(provider)
+                        } label: {
+                            HStack(spacing: 12) {
+                                ProviderLogoView(
+                                    logoAssetName: provider.logoAssetName,
+                                    symbolName: provider.symbolName,
+                                    tint: Color(hex: provider.tintHex),
+                                    size: 22,
+                                    cornerRadius: 6
+                                )
+                                Text(provider.displayName)
+                                Spacer(minLength: 12)
+                                if isWebSearchArmed && selectedWebSearchProvider == provider {
+                                    Image(systemName: "checkmark")
+                                        .font(.body.weight(.semibold))
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        }
+                    }
+
+                    Button {
+                        onDisableWebSearch?()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color(.secondaryLabel))
+                                .frame(width: 22, height: 22)
+                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            Text("Off")
+                            Spacer(minLength: 12)
+                            if !isWebSearchArmed {
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+                } label: {
+                    webSearchIcon
+                }
+                .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
+                .accessibilityHint(
+                    isWebSearchArmed
+                        ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
+                        : "Choose a search provider for this chat."
+                )
             } else {
-                Haptics.warning()
-                showingWebSearchDisabledAlert = true
+                Button {
+                    Haptics.warning()
+                    showingWebSearchDisabledAlert = true
+                } label: {
+                    webSearchIcon
+                }
+                .accessibilityLabel("Web search off")
+                .accessibilityHint("Add a search API key in Settings")
             }
-        } label: {
-            webSearchIcon
         }
-        .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
-        .accessibilityHint(
-            canUseWebSearch
-                ? (isWebSearchArmed
-                    ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
-                    : "Choose a search provider for this chat.")
-                : "Add a search API key in Settings"
-        )
         .animation(Theme.springFast, value: isWebSearchArmed)
         .animation(Theme.springFast, value: selectedWebSearchProvider)
-        .sheet(isPresented: $showingWebSearchPicker) {
-            WebSearchProviderPicker(
-                providers: webSearchProviders,
-                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
-                onSelect: { provider in
-                    showingWebSearchPicker = false
-                    onSelectWebSearchProvider?(provider)
-                },
-                onDisable: {
-                    showingWebSearchPicker = false
-                    onDisableWebSearch?()
-                }
-            )
-            .presentationDetents([.height(220)])
-            .presentationCornerRadius(24)
-        }
     }
 
     private var webSearchIcon: some View {
