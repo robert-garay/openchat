@@ -229,6 +229,36 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.lastSelectedModel?.providerID, "openrouter")
         XCTAssertEqual(store.lastSelectedModel?.modelID, "deepseek/deepseek-chat")
     }
+
+    func testAddCustomRejectsDuplicateName() {
+        store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "local ollama", baseURL: "http://127.0.0.1:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomRejectsDuplicateBaseURL() {
+        store.addCustom(name: "Server A", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "Server B", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomRejectsDuplicateBaseURLIgnoringTrailingSlash() {
+        store.addCustom(name: "Server A", baseURL: "http://localhost:11434/v1/", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "Server B", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomAllowsDifferentNameAndURL() {
+        store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        store.addCustom(name: "Remote Server", baseURL: "https://api.example.com/v1", models: [AIModel(id: "gpt-4", displayName: "gpt-4")], requiresAPIKey: true)
+        XCTAssertEqual(store.providers.count, 2)
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {
