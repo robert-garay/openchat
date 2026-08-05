@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import OpenChat
 
@@ -12,24 +13,112 @@ final class RulesStoreTests: XCTestCase {
         store = RulesStore(defaults: defaults)
     }
 
-    func testDefaultsToEmpty() {
-        XCTAssertEqual(store.globalRules, "")
+    func testTogglesDefaultToFalseWhenKeysMissing() {
+        XCTAssertFalse(store.useGlobalRules)
+        XCTAssertFalse(store.useChatRules)
+        XCTAssertNil(defaults.object(forKey: "com.openchat.rules.useGlobalRules"))
+        XCTAssertNil(defaults.object(forKey: "com.openchat.rules.useChatRules"))
+    }
+
+    func testTogglePersistence() {
+        store.setUseGlobalRules(true)
+        store.setUseChatRules(true)
+
+        let reloaded = RulesStore(defaults: defaults)
+        XCTAssertTrue(reloaded.useGlobalRules)
+        XCTAssertTrue(reloaded.useChatRules)
+
+        store.setUseGlobalRules(false)
+        store.setUseChatRules(false)
+        let again = RulesStore(defaults: defaults)
+        XCTAssertFalse(again.useGlobalRules)
+        XCTAssertFalse(again.useChatRules)
+    }
+
+    func testCRUDAndInjectionText() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        let first = try store.save(content: "Be concise.", modelContext: context)
+        let second = try store.save(content: "Prefer metric units.", modelContext: context)
+        try context.save()
+
+        let fetched = try store.fetchItems(modelContext: context)
+        XCTAssertEqual(fetched.count, 2)
+        XCTAssertEqual(
+            RulesStore.injectionText(from: [first, second]),
+            "Be concise.\n\nPrefer metric units."
+        )
+
+        try store.updateContent(first, content: "Be brief.", modelContext: context)
+        XCTAssertEqual(first.content, "Be brief.")
+
+        store.delete(second, modelContext: context)
+        try context.save()
+        XCTAssertEqual(try store.fetchItems(modelContext: context).count, 1)
+
+        try store.clearAll(modelContext: context)
+        try context.save()
+        XCTAssertTrue(try store.fetchItems(modelContext: context).isEmpty)
+    }
+
+    func testSaveRejectsEmptyContent() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        XCTAssertThrowsError(try store.save(content: "   ", modelContext: context))
+    }
+
+    func testMigrateLegacyGlobalRulesCreatesItemAndClearsKey() throws {
+        defaults.set("Legacy global rule text", forKey: RulesStore.globalRulesDefaultsKey)
+
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        store.migrateLegacyGlobalRulesIfNeeded(modelContext: context)
+
+        let items = try store.fetchItems(modelContext: context)
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.first?.content, "Legacy global rule text")
         XCTAssertNil(defaults.string(forKey: RulesStore.globalRulesDefaultsKey))
     }
 
-    func testRoundTripPersistsGlobalRules() {
-        store.globalRules = "Be concise and friendly."
-        let reloaded = RulesStore(defaults: defaults)
-        XCTAssertEqual(reloaded.globalRules, "Be concise and friendly.")
-        XCTAssertEqual(
-            defaults.string(forKey: RulesStore.globalRulesDefaultsKey),
-            "Be concise and friendly."
+    func testMigrateLegacySkipsWhenRulesAlreadyExist() throws {
+        defaults.set("Should not migrate", forKey: RulesStore.globalRulesDefaultsKey)
+
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
+        let context = ModelContext(container)
+        _ = try store.save(content: "Existing rule", modelContext: context)
+        try context.save()
+
+        store.migrateLegacyGlobalRulesIfNeeded(modelContext: context)
+
+        let items = try store.fetchItems(modelContext: context)
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.first?.content, "Existing rule")
+        XCTAssertNil(defaults.string(forKey: RulesStore.globalRulesDefaultsKey))
     }
 
-    func testClearingGlobalRulesPersistsEmptyString() {
-        store.globalRules = "Temporary"
-        store.globalRules = ""
-        XCTAssertEqual(RulesStore(defaults: defaults).globalRules, "")
+    func testMigrateNoopsWhenLegacyEmpty() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        store.migrateLegacyGlobalRulesIfNeeded(modelContext: context)
+
+        XCTAssertTrue(try store.fetchItems(modelContext: context).isEmpty)
     }
 }

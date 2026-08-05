@@ -17,6 +17,7 @@ struct OpenChatApp: App {
                 for: Conversation.self,
                 ChatMessage.self,
                 MemoryItem.self,
+                RuleItem.self,
                 Skill.self
             )
         } catch {

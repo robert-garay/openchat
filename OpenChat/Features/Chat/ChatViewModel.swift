@@ -507,9 +507,20 @@ final class ChatViewModel {
                         "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
                 }
 
+                rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
+
+                let globalRulesText: String
+                if rulesStore.useGlobalRules {
+                    let ruleItems = (try? rulesStore.fetchItems(modelContext: modelContext)) ?? []
+                    globalRulesText = RulesStore.injectionText(from: ruleItems)
+                } else {
+                    globalRulesText = ""
+                }
+                let chatRulesText = rulesStore.useChatRules ? conversationSystemPrompt : ""
+
                 let systemContent = ChatSystemPromptBuilder.assemble(
-                    globalRules: rulesStore.globalRules,
-                    chatRules: conversationSystemPrompt,
+                    globalRules: globalRulesText,
+                    chatRules: chatRulesText,
                     middleSections: middleSections,
                     webSearchToolPrompt: webSearchToolPrompt
                 )
