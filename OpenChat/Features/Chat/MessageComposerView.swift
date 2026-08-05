@@ -39,6 +39,7 @@ struct MessageComposerView: View {
     /// When true, rules chip uses accent (conversation has a non-empty system prompt).
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
+    var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
     let onSend: () -> Void
     let onStop: () -> Void
@@ -325,9 +326,11 @@ struct MessageComposerView: View {
         )
         .animation(Theme.springFast, value: hasChatRules)
         .sheet(isPresented: $showingChatRules) {
-            ChatRulesSheet()
-                .presentationDetents([.height(340), .large])
-                .presentationCornerRadius(24)
+            if let conversation {
+                ChatRulesSheet(conversation: conversation)
+                    .presentationDetents([.height(340), .large])
+                    .presentationCornerRadius(24)
+            }
         }
     }
 

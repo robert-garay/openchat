@@ -516,7 +516,15 @@ final class ChatViewModel {
                 } else {
                     globalRulesText = ""
                 }
-                let chatRulesText = rulesStore.useChatRules ? conversationSystemPrompt : ""
+                let chatRulesText: String
+                if rulesStore.useChatRules {
+                    let perChatRulesText = RulesStore.injectionText(from: conversation.rules)
+                    chatRulesText = [perChatRulesText, conversationSystemPrompt]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: "\n\n")
+                } else {
+                    chatRulesText = ""
+                }
 
                 let systemContent = ChatSystemPromptBuilder.assemble(
                     globalRules: globalRulesText,

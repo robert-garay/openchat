@@ -23,6 +23,9 @@ final class Conversation {
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
 
+    @Relationship(deleteRule: .cascade, inverse: \RuleItem.conversation)
+    var rules: [RuleItem] = []
+
     init(
         id: UUID = UUID(),
         title: String = "New Chat",

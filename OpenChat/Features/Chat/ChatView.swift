@@ -39,6 +39,7 @@ struct ChatView: View {
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                         .isEmpty,
                     canUseChatRules: rulesStore.useChatRules,
+                    conversation: conversation,
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
@@ -165,6 +166,7 @@ private struct ChatComposerHost: View {
     let skills: [Skill]
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
+    var conversation: Conversation? = nil
     let onSend: () -> Void
 
     var body: some View {
@@ -190,6 +192,7 @@ private struct ChatComposerHost: View {
             onCompact: viewModel.compactConversation,
             hasChatRules: hasChatRules,
             canUseChatRules: canUseChatRules,
+            conversation: conversation,
             skills: skills.map(SkillMatchable.init(skill:)),
             onSend: onSend,
             onStop: viewModel.cancelStreaming

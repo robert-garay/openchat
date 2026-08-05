@@ -12,8 +12,9 @@ struct RulesSettingsView: View {
     @State private var editingItem: RuleItem?
     @State private var showingClearConfirmation = false
 
-    private var sortedItems: [RuleItem] {
-        items.sorted { $0.updatedAt > $1.updatedAt }
+    private var globalItems: [RuleItem] {
+        items.filter { $0.conversation == nil }
+            .sorted { $0.updatedAt > $1.updatedAt }
     }
 
     var body: some View {
@@ -34,11 +35,11 @@ struct RulesSettingsView: View {
             }
 
             Section {
-                if sortedItems.isEmpty {
+                if globalItems.isEmpty {
                     Text("No rules yet.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(sortedItems) { item in
+                    ForEach(globalItems) { item in
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.content)
@@ -50,13 +51,20 @@ struct RulesSettingsView: View {
                             Spacer(minLength: 8)
                         }
                         .contentShape(Rectangle())
-                        .onTapGesture { editingItem = item }
-                    }
-                    .onDelete { offsets in
-                        for index in offsets {
-                            rulesStore.delete(sortedItems[index], modelContext: modelContext)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                rulesStore.delete(item, modelContext: modelContext)
+                                try? modelContext.save()
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            Button {
+                                editingItem = item
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(Color.accentColor)
                         }
-                        try? modelContext.save()
                     }
                 }
 
@@ -66,13 +74,13 @@ struct RulesSettingsView: View {
                     Label("Add rule", systemImage: "plus.circle.fill")
                 }
 
-                if !sortedItems.isEmpty {
+                if !globalItems.isEmpty {
                     Button("Clear all", role: .destructive) {
                         showingClearConfirmation = true
                     }
                 }
             } header: {
-                Text("Saved rules")
+                Text("Global rules")
             }
         }
         .navigationTitle("Rules")
@@ -108,7 +116,9 @@ struct RulesSettingsView: View {
             titleVisibility: .visible
         ) {
             Button("Clear all", role: .destructive) {
-                try? rulesStore.clearAll(modelContext: modelContext)
+                for item in globalItems {
+                    rulesStore.delete(item, modelContext: modelContext)
+                }
                 try? modelContext.save()
             }
             Button("Cancel", role: .cancel) {}

@@ -48,14 +48,15 @@ final class RulesStore {
                 sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         )
+        .filter { $0.conversation == nil }
     }
 
     @discardableResult
-    func save(content: String, modelContext: ModelContext) throws -> RuleItem {
+    func save(content: String, modelContext: ModelContext, conversation: Conversation? = nil) throws -> RuleItem {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw RulesStoreError.emptyContent }
 
-        let item = RuleItem(content: trimmed)
+        let item = RuleItem(content: trimmed, conversation: conversation)
         modelContext.insert(item)
         return item
     }
