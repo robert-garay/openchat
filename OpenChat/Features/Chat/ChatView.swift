@@ -16,11 +16,8 @@ struct ChatView: View {
     @State private var showingModelPicker = false
     @State private var showingChatRules = false
     @State private var showingNewSkill = false
-    /// Follow streaming output only while pinned near the latest content.
+    /// Shared with the message list so Send re-attaches follow-to-bottom.
     @State private var stickToBottom = true
-    /// True while the user is dragging/decelerating the message list.
-    @State private var isInteractivelyScrolling = false
-    @State private var followScrollTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,33 +26,20 @@ struct ChatView: View {
             }
 
             if let viewModel {
-                messageList(viewModel: viewModel)
-                MessageComposerView(
-                    text: Bindable(viewModel).composerText,
-                    attachments: Bindable(viewModel).pendingAttachments,
-                    supportsVision: viewModel.supportsVision,
-                    modelDisplayName: viewModel.currentModel?.displayName,
-                    isStreaming: viewModel.isStreaming,
-                    canUseWebSearch: viewModel.canUseWebSearch,
-                    isWebSearchArmed: viewModel.isWebSearchArmed,
-                    webSearchProviders: viewModel.configuredWebSearchProviders,
-                    selectedWebSearchProvider: viewModel.selectedWebSearchProvider,
-                    webSearchProviderName: viewModel.webSearchProviderName,
-                    webSearchLogoAssetName: viewModel.webSearchStoreActiveLogo,
-                    webSearchSymbolName: viewModel.webSearchStoreActiveSymbol,
-                    webSearchTintHex: viewModel.webSearchStoreActiveTint,
-                    onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
-                    onDisableWebSearch: viewModel.disableWebSearchForChat,
-                    showCompactChip: viewModel.canShowCompact,
-                    canCompact: viewModel.canCompactConversation,
-                    isCompacting: viewModel.isCompacting,
-                    onCompact: viewModel.compactConversation,
-                    skills: skills.map(SkillMatchable.init(skill:)),
+                // Isolated so composer keystrokes do not rebuild the message list.
+                ChatMessageListView(
+                    conversation: conversation,
+                    viewModel: viewModel,
+                    stickToBottom: $stickToBottom
+                )
+
+                ChatComposerHost(
+                    viewModel: viewModel,
+                    skills: skills,
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
-                    },
-                    onStop: viewModel.cancelStreaming
+                    }
                 )
             }
         }
@@ -187,12 +171,64 @@ struct ChatView: View {
             }
         }
     }
+}
 
-    @ViewBuilder
-    private func messageList(viewModel: ChatViewModel) -> some View {
+// MARK: - Composer host (isolates composerText observation)
+
+/// Owns bindings into `ChatViewModel` composer state so keystrokes do not
+/// invalidate `ChatMessageListView` or the surrounding `ChatView` chrome.
+private struct ChatComposerHost: View {
+    @Bindable var viewModel: ChatViewModel
+    let skills: [Skill]
+    let onSend: () -> Void
+
+    var body: some View {
+        MessageComposerView(
+            text: $viewModel.composerText,
+            attachments: $viewModel.pendingAttachments,
+            supportsVision: viewModel.supportsVision,
+            modelDisplayName: viewModel.currentModel?.displayName,
+            isStreaming: viewModel.isStreaming,
+            canUseWebSearch: viewModel.canUseWebSearch,
+            isWebSearchArmed: viewModel.isWebSearchArmed,
+            webSearchProviders: viewModel.configuredWebSearchProviders,
+            selectedWebSearchProvider: viewModel.selectedWebSearchProvider,
+            webSearchProviderName: viewModel.webSearchProviderName,
+            webSearchLogoAssetName: viewModel.webSearchStoreActiveLogo,
+            webSearchSymbolName: viewModel.webSearchStoreActiveSymbol,
+            webSearchTintHex: viewModel.webSearchStoreActiveTint,
+            onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
+            onDisableWebSearch: viewModel.disableWebSearchForChat,
+            showCompactChip: viewModel.canShowCompact,
+            canCompact: viewModel.canCompactConversation,
+            isCompacting: viewModel.isCompacting,
+            onCompact: viewModel.compactConversation,
+            skills: skills.map(SkillMatchable.init(skill:)),
+            onSend: onSend,
+            onStop: viewModel.cancelStreaming
+        )
+    }
+}
+
+// MARK: - Message list
+
+private struct ChatMessageListView: View {
+    let conversation: Conversation
+    let viewModel: ChatViewModel
+    @Binding var stickToBottom: Bool
+
+    /// True while the user is dragging/decelerating the message list.
+    @State private var isInteractivelyScrolling = false
+    @State private var followScrollTask: Task<Void, Never>?
+    /// Last observed content height — used to re-pin after tall markdown lays out.
+    @State private var lastContentHeight: CGFloat = 0
+
+    var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
+                // VStack (not LazyVStack): LazyVStack + scrollTo bottom leaves a blank
+                // viewport for tall messages until the user scrolls and forces materialization.
+                VStack(alignment: .leading, spacing: 18) {
                     ForEach(conversation.sortedMessages) { message in
                         let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
@@ -229,8 +265,20 @@ struct ChatView: View {
                 .padding(.horizontal, Theme.contentPadding)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: ChatContentHeightKey.self,
+                            value: geometry.size.height
+                        )
+                    }
+                )
             }
+            .defaultScrollAnchor(.bottom)
             .scrollDismissesKeyboard(.interactively)
+            .onPreferenceChange(ChatContentHeightKey.self) { height in
+                handleContentHeightChange(height, proxy: proxy)
+            }
             .modifier(
                 ChatStickToBottomModifier(
                     stickToBottom: $stickToBottom,
@@ -266,13 +314,27 @@ struct ChatView: View {
             .task(id: conversation.id) {
                 stickToBottom = true
                 isInteractivelyScrolling = false
+                lastContentHeight = 0
                 followScrollTask?.cancel()
+                // Yield so the first layout pass can size tall markdown before pinning.
                 await Task.yield()
                 scrollToBottom(proxy: proxy, animated: false)
-                try? await Task.sleep(for: .milliseconds(50))
-                scrollToBottom(proxy: proxy, animated: false)
+                for delay in [50, 150, 350] as [UInt64] {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                    guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+                    scrollToBottom(proxy: proxy, animated: false)
+                }
             }
         }
+    }
+
+    private func handleContentHeightChange(_ height: CGFloat, proxy: ScrollViewProxy) {
+        guard height > lastContentHeight + 1 else {
+            lastContentHeight = max(lastContentHeight, height)
+            return
+        }
+        lastContentHeight = height
+        scheduleFollowScroll(proxy: proxy)
     }
 
     private func jumpToLatestButton(action: @escaping () -> Void) -> some View {
@@ -366,6 +428,13 @@ private struct ChatStickToBottomModifier: ViewModifier {
                     }
             )
         }
+    }
+}
+
+private struct ChatContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
