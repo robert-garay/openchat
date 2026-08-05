@@ -59,27 +59,15 @@ struct MessageBubbleView: View {
                 }
             }
         }
-        .contextMenu {
-            if !message.content.isEmpty {
-                Button {
-                    #if canImport(UIKit)
-                    UIPasteboard.general.string = message.content
-                    #endif
-                    Haptics.light()
-                } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
-                }
-            }
-        }
     }
 
     private var assistantContent: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: 8) {
             ProviderLogoView(
                 logoAssetName: providerLogoAssetName,
                 symbolName: providerSymbol,
                 tint: providerTint,
-                size: 26
+                size: 22
             )
 
             VStack(alignment: .leading, spacing: 8) {
@@ -127,7 +115,7 @@ struct MessageBubbleView: View {
                     }
                 }
             }
-            Spacer(minLength: 24)
+            Spacer(minLength: 4)
         }
     }
 
@@ -218,27 +206,17 @@ struct MessageBubbleView: View {
 #if canImport(UIKit)
 private struct CopyChip: View {
     let content: String
-    @State private var didCopy = false
 
     var body: some View {
         Button {
             UIPasteboard.general.string = content
             Haptics.light()
-            withAnimation(Theme.springFast) { didCopy = true }
-            Task {
-                try? await Task.sleep(for: .seconds(1.4))
-                withAnimation(Theme.springFast) { didCopy = false }
-            }
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: didCopy ? "checkmark" : "doc.on.doc")
-                Text(didCopy ? "Copied" : "Copy")
-            }
-            .font(.caption.weight(.medium))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Color(.tertiarySystemBackground), in: Capsule())
+            Image(systemName: "doc.on.doc")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Copy message")

@@ -252,7 +252,7 @@ private struct ChatMessageListView: View {
                         .frame(height: 1)
                         .id(ChatScrollAnchor.bottom)
                 }
-                .padding(.horizontal, Theme.contentPadding)
+                .padding(.horizontal, Theme.chatHorizontalPadding)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
                 .background(
@@ -404,8 +404,10 @@ private struct ChatStickToBottomModifier: ViewModifier {
                     }
                 }
         } else {
+            // Use a larger minimum distance so the long-press gesture for text
+            // selection can start before the drag gesture begins.
             content.simultaneousGesture(
-                DragGesture(minimumDistance: 1)
+                DragGesture(minimumDistance: 12)
                     .onChanged { value in
                         isInteractivelyScrolling = true
                         // Finger down → reading older messages → detach follow.

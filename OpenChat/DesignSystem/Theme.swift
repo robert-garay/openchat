@@ -6,6 +6,7 @@ enum Theme {
     static let bubbleCornerRadius: CGFloat = 20
     static let smallCornerRadius: CGFloat = 12
     static let contentPadding: CGFloat = 16
+    static let chatHorizontalPadding: CGFloat = 8
 
     static let userBubble = Color.accentColor
 
