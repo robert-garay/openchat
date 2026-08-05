@@ -14,7 +14,6 @@ struct ChatView: View {
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
-    @State private var showingChatRules = false
     @State private var showingNewSkill = false
     /// Shared with the message list so Send re-attaches follow-to-bottom.
     @State private var stickToBottom = true
@@ -40,9 +39,6 @@ struct ChatView: View {
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                         .isEmpty,
                     canUseChatRules: rulesStore.useChatRules,
-                    onOpenChatRules: {
-                        showingChatRules = true
-                    },
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
@@ -96,9 +92,6 @@ struct ChatView: View {
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingChatRules) {
-            ChatRulesSheet()
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
@@ -180,7 +173,6 @@ private struct ChatComposerHost: View {
     let skills: [Skill]
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
-    var onOpenChatRules: (() -> Void)? = nil
     let onSend: () -> Void
 
     var body: some View {
@@ -206,7 +198,6 @@ private struct ChatComposerHost: View {
             onCompact: viewModel.compactConversation,
             hasChatRules: hasChatRules,
             canUseChatRules: canUseChatRules,
-            onOpenChatRules: onOpenChatRules,
             skills: skills.map(SkillMatchable.init(skill:)),
             onSend: onSend,
             onStop: viewModel.cancelStreaming
