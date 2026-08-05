@@ -134,6 +134,13 @@ final class ChatViewModel {
         providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID)
     }
 
+    /// Provider branding for a message bubble. Assistant turns keep the provider that generated them.
+    func provider(for message: ChatMessage) -> ConfiguredProvider? {
+        guard message.role == .assistant else { return nil }
+        let id = message.providerID ?? conversation.providerID
+        return providerStore.provider(withID: id)
+    }
+
     var supportsVision: Bool {
         currentModel?.supportsVision ?? false
     }
@@ -418,7 +425,13 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
-        let assistantMessage = ChatMessage(role: .assistant, content: "", isStreaming: true)
+        let assistantMessage = ChatMessage(
+            role: .assistant,
+            content: "",
+            isStreaming: true,
+            providerID: provider.id,
+            modelID: model.id
+        )
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
         modelContext.insert(assistantMessage)
