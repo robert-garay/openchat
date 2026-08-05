@@ -46,10 +46,9 @@ private struct GhostBody: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
         let h = rect.height
-        let inset = w * 0.05
-        let left = rect.minX + inset
-        let right = rect.maxX - inset
-        let top = rect.minY + h * 0.02
+        let left = rect.minX
+        let right = rect.maxX
+        let top = rect.minY
         let flapTop = rect.maxY - h * 0.22
         let flapTip = rect.maxY - h * 0.01
         let span = right - left

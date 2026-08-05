@@ -118,7 +118,7 @@ struct RulesSettingsView: View {
     }
 }
 
-private struct RuleEditorSheet: View {
+struct RuleEditorSheet: View {
     let title: String
     let initialText: String
     /// Returns an error message to show, or `nil` on success.

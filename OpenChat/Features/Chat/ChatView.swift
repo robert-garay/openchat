@@ -74,29 +74,26 @@ struct ChatView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 12) {
-                    if conversation.messages.isEmpty {
-                        Button {
-                            Haptics.light()
-                            onToggleTemporary?()
-                        } label: {
-                            GhostIcon(size: 17, filled: conversation.isTemporary)
-                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                                .frame(width: 34, height: 34)
-                                .contentShape(Rectangle())
-                        }
-                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                    }
-
+            if conversation.messages.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Haptics.light()
-                        showingNewSkill = true
+                        onToggleTemporary?()
                     } label: {
-                        Image(systemName: "bolt.badge.plus")
-                            .accessibilityLabel("New Skill")
+                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                     }
+                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Haptics.light()
+                    showingNewSkill = true
+                } label: {
+                    Image(systemName: "bolt.badge.plus")
+                        .accessibilityLabel("New Skill")
                 }
             }
         }
