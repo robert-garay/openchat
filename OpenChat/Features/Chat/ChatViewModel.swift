@@ -52,7 +52,8 @@ final class ChatViewModel {
     private var titleGenerationTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
-    /// even if a provider is configured. Defaults on when search is active.
+    /// even if a provider is configured. Always starts off for a freshly
+    /// opened chat; the user opts in per chat via the composer.
     var isWebSearchEnabledForChat: Bool
 
     init(
@@ -71,7 +72,7 @@ final class ChatViewModel {
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
-        self.isWebSearchEnabledForChat = webSearchStore.isActive
+        self.isWebSearchEnabledForChat = false
     }
 
     private var shouldUseMemory: Bool {
