@@ -317,8 +317,7 @@ struct MessageComposerView: View {
         .sheet(isPresented: $showingChatRules) {
             if let conversation {
                 ChatRulesSheet(conversation: conversation)
-                    .presentationDetents([.height(340), .large])
-                    .presentationCornerRadius(24)
+                    .presentationDetents([.medium, .large])
             }
         }
     }
