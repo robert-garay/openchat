@@ -1,5 +1,6 @@
-// Test target signing. Team comes from Local.xcconfig when present.
+// Test target signing. Unit-test bundles do not need to be signed for local
+// simulator builds; keeping this off avoids "No Account for Team" build errors.
 
-CODE_SIGN_STYLE = Automatic
+CODE_SIGNING_ALLOWED = NO
 
 #include? "Local.xcconfig"
