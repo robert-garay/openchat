@@ -52,7 +52,7 @@ final class ProviderStore {
     private(set) var modelUsageCounts: [String: Int] = [:]
     /// Last model the user explicitly set in any conversation (`providerID/modelID`).
     private(set) var lastSelectedModelUsageKey: String?
-    /// Starred models keyed by `providerID/modelID`; pinned to the top of the unfiltered picker.
+    /// Starred models keyed by `providerID/modelID`; shown in a Starred picker section when not filtering.
     private(set) var starredModelKeys: Set<String> = []
 
     init(
