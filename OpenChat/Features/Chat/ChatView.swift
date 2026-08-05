@@ -70,8 +70,8 @@ struct ChatView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                if conversation.messages.isEmpty {
+            if conversation.messages.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Haptics.light()
                         onToggleTemporary?()
@@ -82,14 +82,6 @@ struct ChatView: View {
                     .buttonStyle(.borderless)
                     .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
                     .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                } else {
-                    Button {
-                        Haptics.light()
-                        showingNewSkill = true
-                    } label: {
-                        Image(systemName: "bolt.badge.plus")
-                            .accessibilityLabel("New Skill")
-                    }
                 }
             }
         }
