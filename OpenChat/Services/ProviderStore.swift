@@ -283,18 +283,30 @@ final class ProviderStore {
             .map(\.element)
     }
 
-    /// Usage ranking, with starred models pinned only when not filtering/searching.
-    static func sortedForModelPicker<T>(
+    /// Splits picker rows into a Starred section and the remaining list.
+    /// While filtering/searching, everything stays in `models` so stars don’t pin.
+    static func partitionForModelPicker<T>(
         _ items: [T],
         isFiltering: Bool,
         isStarred: (T) -> Bool,
         usageCount: (T) -> Int
-    ) -> [T] {
+    ) -> (starred: [T], models: [T]) {
         let ranked = sortedByUsage(items, usageCount: usageCount)
-        guard !isFiltering else { return ranked }
-        let starred = ranked.filter(isStarred)
-        let unstarred = ranked.filter { !isStarred($0) }
-        return starred + unstarred
+        guard !isFiltering else {
+            return (starred: [], models: ranked)
+        }
+        var starred: [T] = []
+        var models: [T] = []
+        starred.reserveCapacity(ranked.count)
+        models.reserveCapacity(ranked.count)
+        for item in ranked {
+            if isStarred(item) {
+                starred.append(item)
+            } else {
+                models.append(item)
+            }
+        }
+        return (starred, models)
     }
 
     /// Refresh live catalogs for every enabled provider.

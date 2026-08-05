@@ -17,7 +17,7 @@ struct ModelPickerSheet: View {
             || !selectedCapabilities.isEmpty
     }
 
-    private var allResults: [PickerModelItem] {
+    private var filteredItems: [PickerModelItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         var items: [PickerModelItem] = []
 
@@ -43,8 +43,12 @@ struct ModelPickerSheet: View {
             }
         }
 
-        return ProviderStore.sortedForModelPicker(
-            items,
+        return items
+    }
+
+    private var partitionedResults: (starred: [PickerModelItem], models: [PickerModelItem]) {
+        ProviderStore.partitionForModelPicker(
+            filteredItems,
             isFiltering: isFiltering,
             isStarred: { item in
                 providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
@@ -53,6 +57,11 @@ struct ModelPickerSheet: View {
                 providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
             }
         )
+    }
+
+    private var totalVisibleCount: Int {
+        let parts = partitionedResults
+        return parts.starred.count + parts.models.count
     }
 
     private var emptyFilterMessage: String {
@@ -73,7 +82,7 @@ struct ModelPickerSheet: View {
     }
 
     private var isInitialLoading: Bool {
-        providerStore.isLoadingModels && allResults.isEmpty
+        providerStore.isLoadingModels && totalVisibleCount == 0
     }
 
     private var fetchErrors: [(providerName: String, message: String)] {
@@ -95,67 +104,69 @@ struct ModelPickerSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollViewReader { proxy in
-                List {
-                    if isInitialLoading {
-                        Section {
-                            HStack(spacing: 10) {
-                                ProgressView()
-                                Text("Loading models…")
+            List {
+                if isInitialLoading {
+                    Section {
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text("Loading models…")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } else if !fetchErrors.isEmpty, totalVisibleCount == 0 {
+                    Section {
+                        ForEach(fetchErrors, id: \.providerName) { error in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(error.providerName)
+                                    .font(.subheadline.weight(.semibold))
+                                Text(error.message)
                                     .foregroundStyle(.secondary)
                             }
                         }
-                    } else if !fetchErrors.isEmpty, allResults.isEmpty {
+                        Button("Try Again") {
+                            providerStore.refreshModelsIfNeeded(force: true)
+                        }
+                    }
+                }
+
+                let parts = partitionedResults
+
+                if totalVisibleCount == 0, !isInitialLoading {
+                    Section {
+                        Text(emptyFilterMessage)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    if !parts.starred.isEmpty {
                         Section {
-                            ForEach(fetchErrors, id: \.providerName) { error in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(error.providerName)
-                                        .font(.subheadline.weight(.semibold))
-                                    Text(error.message)
-                                        .foregroundStyle(.secondary)
-                                }
+                            ForEach(parts.starred) { item in
+                                modelRow(item)
                             }
-                            Button("Try Again") {
-                                providerStore.refreshModelsIfNeeded(force: true)
+                        } header: {
+                            Text("Starred")
+                        } footer: {
+                            if parts.models.isEmpty {
+                                Text("\(totalVisibleCount) models")
                             }
                         }
                     }
 
-                    Section {
-                        if allResults.isEmpty, !isInitialLoading {
-                            Text(emptyFilterMessage)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(allResults) { item in
-                                modelButton(item)
-                                    .id(item.id)
-                                    .swipeActions(edge: .trailing) {
-                                        Button {
-                                            toggleStar(item, scrollProxy: proxy)
-                                        } label: {
-                                            Label(
-                                                providerStore.isModelStarred(
-                                                    providerID: item.providerID,
-                                                    modelID: item.modelID
-                                                ) ? "Unstar" : "Star",
-                                                systemImage: providerStore.isModelStarred(
-                                                    providerID: item.providerID,
-                                                    modelID: item.modelID
-                                                ) ? "star.slash.fill" : "star.fill"
-                                            )
-                                        }
-                                        .tint(.orange)
-                                    }
+                    if !parts.models.isEmpty {
+                        Section {
+                            ForEach(parts.models) { item in
+                                modelRow(item)
                             }
-                        }
-                    } footer: {
-                        if !allResults.isEmpty {
-                            Text("\(allResults.count) models")
+                        } header: {
+                            if !parts.starred.isEmpty {
+                                Text("Models")
+                            }
+                        } footer: {
+                            Text("\(totalVisibleCount) models")
                         }
                     }
                 }
-                .animation(Theme.springSmooth, value: providerStore.starredModelKeys)
             }
+            .animation(Theme.springSmooth, value: providerStore.starredModelKeys)
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
@@ -187,32 +198,6 @@ struct ModelPickerSheet: View {
         }
     }
 
-    /// Stars/unstars with a short settle so the swipe can close before rows glide.
-    private func toggleStar(_ item: PickerModelItem, scrollProxy: ScrollViewProxy) {
-        Haptics.light()
-        let providerID = item.providerID
-        let modelID = item.modelID
-        let itemID = item.id
-        let willReorder = !isFiltering
-        let starring = !providerStore.isModelStarred(providerID: providerID, modelID: modelID)
-
-        Task { @MainActor in
-            if willReorder {
-                // Swipe actions animate closed first; reordering on top of that feels jumpy.
-                try? await Task.sleep(for: .milliseconds(220))
-            }
-            withAnimation(Theme.springSmooth) {
-                providerStore.toggleStarredModel(providerID: providerID, modelID: modelID)
-            }
-            if willReorder, starring {
-                // Keep the starred row on-screen as it settles at the top.
-                withAnimation(Theme.springSmooth) {
-                    scrollProxy.scrollTo(itemID, anchor: .top)
-                }
-            }
-        }
-    }
-
     private func matchesFilters(model: AIModel, providerName: String, query: String) -> Bool {
         let matchesText = query.isEmpty
             || model.id.localizedCaseInsensitiveContains(query)
@@ -228,74 +213,100 @@ struct ModelPickerSheet: View {
         return name.localizedCaseInsensitiveContains(query)
     }
 
-    private func modelButton(_ item: PickerModelItem) -> some View {
-        Button {
-            Haptics.light()
-            if let catalogModel = item.catalogModel {
-                providerStore.rememberOpenRouterModel(catalogModel)
-            } else {
-                providerStore.rememberModel(
-                    AIModel(
-                        id: item.modelID,
-                        displayName: item.displayName,
-                        subtitle: item.subtitle,
-                        capabilities: item.capabilities
-                    ),
-                    providerID: item.providerID
-                )
-            }
-            onSelect(item.providerID, item.modelID)
-            dismiss()
-        } label: {
-            modelRow(item)
-        }
-    }
-
     private func modelRow(_ item: PickerModelItem) -> some View {
         let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
         let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
+
         return HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.displayName)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    ProviderLogoView(
-                        logoAssetName: item.providerLogoAssetName,
-                        symbolName: item.providerSymbolName,
-                        tint: Color(hex: item.providerTint),
-                        size: 14,
-                        cornerRadius: 3
-                    )
-                    Text(providerSubtitle(for: item))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+            Button {
+                select(item)
+            } label: {
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.displayName)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        HStack(spacing: 6) {
+                            ProviderLogoView(
+                                logoAssetName: item.providerLogoAssetName,
+                                symbolName: item.providerSymbolName,
+                                tint: Color(hex: item.providerTint),
+                                size: 14,
+                                cornerRadius: 3
+                            )
+                            Text(providerSubtitle(for: item))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    ModelCapabilitySigns(capabilities: item.capabilities)
+                    if isCurrent {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(Color.accentColor)
+                            .fontWeight(.semibold)
+                    }
                 }
+                .contentShape(Rectangle())
             }
-            Spacer(minLength: 8)
-            ModelCapabilitySigns(capabilities: item.capabilities)
-            if isStarred {
-                Image(systemName: "star.fill")
-                    .foregroundStyle(.orange)
-                    .font(.caption)
-                    .symbolEffect(.bounce, value: isStarred)
-                    .transition(.scale(scale: 0.4).combined(with: .opacity))
-                    .accessibilityHidden(true)
-            }
-            if isCurrent {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-                    .fontWeight(.semibold)
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(item.displayName), \(item.providerName)")
+
+            starButton(for: item, isStarred: isStarred)
+        }
+        .contextMenu {
+            Button {
+                toggleStar(item)
+            } label: {
+                Label(
+                    isStarred ? "Unstar" : "Star",
+                    systemImage: isStarred ? "star.slash.fill" : "star.fill"
+                )
             }
         }
-        .animation(Theme.springFast, value: isStarred)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            isStarred
-                ? "\(item.displayName), \(item.providerName), starred"
-                : "\(item.displayName), \(item.providerName)"
-        )
+    }
+
+    private func starButton(for item: PickerModelItem, isStarred: Bool) -> some View {
+        Button {
+            toggleStar(item)
+        } label: {
+            Image(systemName: isStarred ? "star.fill" : "star")
+                .font(.body)
+                .foregroundStyle(isStarred ? Color.orange : Color.secondary.opacity(0.55))
+                .frame(width: 28, height: 44)
+                .contentShape(Rectangle())
+                .symbolEffect(.bounce, value: isStarred)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(isStarred ? "Unstar" : "Star")
+        .accessibilityAddTraits(isStarred ? .isSelected : [])
+    }
+
+    private func toggleStar(_ item: PickerModelItem) {
+        Haptics.light()
+        withAnimation(Theme.springSmooth) {
+            providerStore.toggleStarredModel(providerID: item.providerID, modelID: item.modelID)
+        }
+    }
+
+    private func select(_ item: PickerModelItem) {
+        Haptics.light()
+        if let catalogModel = item.catalogModel {
+            providerStore.rememberOpenRouterModel(catalogModel)
+        } else {
+            providerStore.rememberModel(
+                AIModel(
+                    id: item.modelID,
+                    displayName: item.displayName,
+                    subtitle: item.subtitle,
+                    capabilities: item.capabilities
+                ),
+                providerID: item.providerID
+            )
+        }
+        onSelect(item.providerID, item.modelID)
+        dismiss()
     }
 
     private func providerSubtitle(for item: PickerModelItem) -> String {
