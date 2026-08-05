@@ -16,7 +16,11 @@ struct ChatView: View {
     @State private var showingModelPicker = false
     @State private var showingChatRules = false
     @State private var showingNewSkill = false
+    /// Follow streaming output only while pinned near the latest content.
     @State private var stickToBottom = true
+    /// True while the user is dragging/decelerating the message list.
+    @State private var isInteractivelyScrolling = false
+    @State private var followScrollTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -227,32 +231,42 @@ struct ChatView: View {
                 .padding(.bottom, 8)
             }
             .scrollDismissesKeyboard(.interactively)
-            .modifier(ChatStickToBottomModifier(stickToBottom: $stickToBottom))
+            .modifier(
+                ChatStickToBottomModifier(
+                    stickToBottom: $stickToBottom,
+                    isInteractivelyScrolling: $isInteractivelyScrolling
+                )
+            )
             .overlay(alignment: .bottomTrailing) {
                 if !stickToBottom && !conversation.sortedMessages.isEmpty {
                     jumpToLatestButton {
                         stickToBottom = true
+                        isInteractivelyScrolling = false
                         Haptics.light()
-                        scrollToBottom(proxy: proxy)
+                        scrollToBottom(proxy: proxy, animated: true)
                     }
                     .padding(.trailing, 16)
                     .padding(.bottom, 12)
                     .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                    .animation(Theme.springFast, value: stickToBottom)
                 }
             }
-            .animation(Theme.springFast, value: stickToBottom)
             .onChange(of: conversation.messages.count) {
-                if stickToBottom {
-                    scrollToBottom(proxy: proxy)
-                }
+                scheduleFollowScroll(proxy: proxy)
             }
             .onChange(of: conversation.sortedMessages.last?.content) {
-                if stickToBottom {
-                    scrollToBottom(proxy: proxy)
+                scheduleFollowScroll(proxy: proxy)
+            }
+            .onChange(of: isInteractivelyScrolling) { _, scrolling in
+                if scrolling {
+                    followScrollTask?.cancel()
+                    followScrollTask = nil
                 }
             }
             .task(id: conversation.id) {
                 stickToBottom = true
+                isInteractivelyScrolling = false
+                followScrollTask?.cancel()
                 await Task.yield()
                 scrollToBottom(proxy: proxy, animated: false)
                 try? await Task.sleep(for: .milliseconds(50))
@@ -273,14 +287,28 @@ struct ChatView: View {
         .accessibilityLabel("Jump to latest message")
     }
 
-    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool = true) {
+    /// Pins to the latest content while following. Coalesces rapid stream tokens
+    /// and never animates — animated scrollTo fights the user's pan gesture.
+    private func scheduleFollowScroll(proxy: ScrollViewProxy) {
+        guard stickToBottom, !isInteractivelyScrolling else { return }
+        followScrollTask?.cancel()
+        followScrollTask = Task { @MainActor in
+            await Task.yield()
+            guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+            scrollToBottom(proxy: proxy, animated: false)
+        }
+    }
+
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
         let action = {
             proxy.scrollTo(ChatScrollAnchor.bottom, anchor: .bottom)
         }
         if animated {
             withAnimation(Theme.springFast, action)
         } else {
-            action()
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction, action)
         }
     }
 }
@@ -289,45 +317,52 @@ private enum ChatScrollAnchor {
     static let bottom = "chat-bottom-anchor"
 }
 
-/// ChatGPT-style stick-to-bottom: follow streaming output while near the end;
-/// scrolling up freezes the viewport; returning near the end resumes follow.
+/// ChatGPT-style stick-to-bottom:
+/// - Suppress follow for the whole user drag/deceleration so pans are not yanked
+/// - Detach when the user scrolls away from the bottom
+/// - Re-attach when they return near the bottom
 private struct ChatStickToBottomModifier: ViewModifier {
     @Binding var stickToBottom: Bool
-    @State private var isUserScrolling = false
+    @Binding var isInteractivelyScrolling: Bool
+
+    private let attachThreshold: CGFloat = 48
+    private let detachThreshold: CGFloat = 72
 
     @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content
                 .onScrollPhaseChange { _, phase in
-                    // Ignore .animating so programmatic follow-scrolls do not detach.
                     switch phase {
                     case .tracking, .interacting, .decelerating:
-                        isUserScrolling = true
+                        isInteractivelyScrolling = true
                     default:
-                        isUserScrolling = false
+                        isInteractivelyScrolling = false
                     }
                 }
-                .onScrollGeometryChange(for: Bool.self) { geometry in
-                    let visibleBottom = geometry.contentOffset.y + geometry.containerSize.height
-                    return visibleBottom >= geometry.contentSize.height - 80
-                } action: { _, isNearBottom in
-                    if isNearBottom {
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.contentSize.height
+                        - geometry.contentOffset.y
+                        - geometry.containerSize.height
+                } action: { _, distanceFromBottom in
+                    if distanceFromBottom <= attachThreshold {
                         stickToBottom = true
-                    } else if isUserScrolling {
-                        // Only detach on user-driven scroll so content growth
-                        // during streaming does not break follow mode.
+                    } else if isInteractivelyScrolling, distanceFromBottom > detachThreshold {
                         stickToBottom = false
                     }
                 }
         } else {
             content.simultaneousGesture(
-                DragGesture(minimumDistance: 8)
+                DragGesture(minimumDistance: 1)
                     .onChanged { value in
-                        // Finger down → content moves up → reading older messages.
-                        if value.translation.height > 12 {
+                        isInteractivelyScrolling = true
+                        // Finger down → reading older messages → detach follow.
+                        if value.translation.height > 8 {
                             stickToBottom = false
                         }
+                    }
+                    .onEnded { _ in
+                        isInteractivelyScrolling = false
                     }
             )
         }
