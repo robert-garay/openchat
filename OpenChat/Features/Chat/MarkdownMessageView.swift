@@ -23,21 +23,19 @@ struct MarkdownMessageView: View, Equatable {
     private func blockView(_ block: MarkdownBlock) -> some View {
         switch block {
         case .heading(let level, let text):
-            SelectableText(
-                attributedString: inlineAttributed(text),
-                foregroundColor: isUserMessage ? .white : .label,
-                linkColor: isUserMessage ? .white : .link,
-                font: headingUIFont(level, weight: level <= 2 ? .bold : .semibold)
-            )
-            .padding(.top, level == 1 ? 4 : 2)
+            Text(inlineAttributed(text))
+                .font(headingFont(level))
+                .fontWeight(level <= 2 ? .bold : .semibold)
+                .textSelection(.enabled)
+                .foregroundStyle(isUserMessage ? .white : .primary)
+                .padding(.top, level == 1 ? 4 : 2)
 
         case .paragraph(let text):
-            SelectableText(
-                attributedString: inlineAttributed(text),
-                foregroundColor: isUserMessage ? .white : .label,
-                linkColor: isUserMessage ? .white : .link
-            )
-            .fixedSize(horizontal: false, vertical: true)
+            Text(inlineAttributed(text))
+                .font(.body)
+                .textSelection(.enabled)
+                .foregroundStyle(isUserMessage ? .white : .primary)
+                .fixedSize(horizontal: false, vertical: true)
 
         case .unorderedList(let items):
             VStack(alignment: .leading, spacing: 6) {
@@ -46,12 +44,11 @@ struct MarkdownMessageView: View, Equatable {
                         Text("•")
                             .font(.body)
                             .foregroundStyle(isUserMessage ? .white.opacity(0.85) : .secondary)
-                        SelectableText(
-                            attributedString: inlineAttributed(item),
-                            foregroundColor: isUserMessage ? .white : .label,
-                            linkColor: isUserMessage ? .white : .link
-                        )
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text(inlineAttributed(item))
+                            .font(.body)
+                            .textSelection(.enabled)
+                            .foregroundStyle(isUserMessage ? .white : .primary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -64,12 +61,11 @@ struct MarkdownMessageView: View, Equatable {
                             .font(.body.monospacedDigit())
                             .foregroundStyle(isUserMessage ? .white.opacity(0.85) : .secondary)
                             .frame(minWidth: 20, alignment: .trailing)
-                        SelectableText(
-                            attributedString: inlineAttributed(item),
-                            foregroundColor: isUserMessage ? .white : .label,
-                            linkColor: isUserMessage ? .white : .link
-                        )
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text(inlineAttributed(item))
+                            .font(.body)
+                            .textSelection(.enabled)
+                            .foregroundStyle(isUserMessage ? .white : .primary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -79,13 +75,12 @@ struct MarkdownMessageView: View, Equatable {
                 RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                     .fill(isUserMessage ? Color.white.opacity(0.45) : Color.secondary.opacity(0.45))
                     .frame(width: 3)
-                SelectableText(
-                    attributedString: inlineAttributed(text),
-                    foregroundColor: isUserMessage ? .white.withAlphaComponent(0.9) : .secondaryLabel,
-                    linkColor: isUserMessage ? .white : .link,
-                    font: .italicBody
-                )
-                .fixedSize(horizontal: false, vertical: true)
+                Text(inlineAttributed(text))
+                    .font(.body)
+                    .italic()
+                    .textSelection(.enabled)
+                    .foregroundStyle(isUserMessage ? .white.opacity(0.9) : .secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, 2)
 
@@ -102,15 +97,13 @@ struct MarkdownMessageView: View, Equatable {
         }
     }
 
-    private func headingUIFont(_ level: Int, weight: UIFont.Weight) -> UIFont {
-        let textStyle: UIFont.TextStyle
+    private func headingFont(_ level: Int) -> Font {
         switch level {
-        case 1: textStyle = .title2
-        case 2: textStyle = .title3
-        case 3: textStyle = .headline
-        default: textStyle = .body
+        case 1: return .title2
+        case 2: return .title3
+        case 3: return .headline
+        default: return .body
         }
-        return UIFont.preferredFont(forTextStyle: textStyle, weight: weight)
     }
 
     private func inlineAttributed(_ text: String) -> AttributedString {
@@ -464,13 +457,11 @@ private struct MarkdownTableView: View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
             GridRow {
                 ForEach(Array(table.headers.enumerated()), id: \.offset) { index, header in
-                    SelectableText(
-                        attributedString: inlineAttributed(header),
-                        foregroundColor: isUserMessage ? .white : .label,
-                        linkColor: isUserMessage ? .white : .link,
-                        font: .preferredFont(forTextStyle: .body, weight: .semibold)
-                    )
-                    .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
+                    Text(inlineAttributed(header))
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(isUserMessage ? .white : .primary)
+                        .textSelection(.enabled)
+                        .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
                 }
             }
 
@@ -482,12 +473,11 @@ private struct MarkdownTableView: View {
             ForEach(Array(table.rows.enumerated()), id: \.offset) { _, row in
                 GridRow {
                     ForEach(Array(row.enumerated()), id: \.offset) { index, cell in
-                        SelectableText(
-                            attributedString: inlineAttributed(cell),
-                            foregroundColor: isUserMessage ? .white : .label,
-                            linkColor: isUserMessage ? .white : .link
-                        )
-                        .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
+                        Text(inlineAttributed(cell))
+                            .font(.body)
+                            .foregroundStyle(isUserMessage ? .white : .primary)
+                            .textSelection(.enabled)
+                            .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
                     }
                 }
             }
@@ -504,115 +494,5 @@ private struct MarkdownTableView: View {
         case .center: return .center
         case .trailing: return .trailing
         }
-    }
-}
-
-// MARK: - Selectable text
-
-/// A non-editable, selectable `UITextView` wrapper that exposes the native iOS
-/// text-selection handles and the full system menu (Copy, Share, Look Up, Translate).
-private struct SelectableText: UIViewRepresentable {
-    let attributedString: AttributedString
-    let foregroundColor: UIColor
-    let linkColor: UIColor
-    let font: UIFont?
-
-    init(
-        attributedString: AttributedString,
-        foregroundColor: UIColor,
-        linkColor: UIColor,
-        font: UIFont? = nil
-    ) {
-        self.attributedString = attributedString
-        self.foregroundColor = foregroundColor
-        self.linkColor = linkColor
-        self.font = font
-    }
-
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.isScrollEnabled = false
-        textView.backgroundColor = .clear
-        textView.textContainerInset = .zero
-        textView.textContainer.lineFragmentPadding = 0
-        textView.textContainer.maximumNumberOfLines = 0
-        textView.dataDetectorTypes = []
-        textView.font = .preferredFont(forTextStyle: .body)
-        textView.adjustsFontForContentSizeCategory = true
-        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textView.setContentHuggingPriority(.required, for: .vertical)
-        return textView
-    }
-
-    func updateUIView(_ textView: UITextView, context: Context) {
-        let ns = NSAttributedString(attributedString)
-        let mutable = NSMutableAttributedString(attributedString: ns)
-
-        // Convert SwiftUI-style inline presentation intents to explicit UIKit font traits
-        // so the non-editable UITextView renders bold, italic, and code consistently.
-        applyInlinePresentationIntents(to: mutable)
-
-        let fullRange = NSRange(location: 0, length: mutable.length)
-        mutable.addAttribute(.foregroundColor, value: foregroundColor, range: fullRange)
-
-        if let font = font {
-            mutable.addAttribute(.font, value: font, range: fullRange)
-        }
-
-        textView.attributedText = mutable
-        textView.linkTextAttributes = [
-            .foregroundColor: linkColor,
-            .underlineStyle: NSUnderlineStyle.single.rawValue,
-        ]
-    }
-
-    private func applyInlinePresentationIntents(to mutable: NSMutableAttributedString) {
-        let fullRange = NSRange(location: 0, length: mutable.length)
-        mutable.enumerateAttribute(.inlinePresentationIntent, in: fullRange, options: []) { value, range, _ in
-            guard let intent = value as? InlinePresentationIntent else { return }
-            let currentFont = mutable.attribute(.font, at: range.location, effectiveRange: nil) as? UIFont
-                ?? .preferredFont(forTextStyle: .body)
-
-            var symbolicTraits: UIFontDescriptor.SymbolicTraits = []
-            if intent.contains(.stronglyEmphasized) {
-                symbolicTraits.insert(.traitBold)
-            }
-            if intent.contains(.emphasized) {
-                symbolicTraits.insert(.traitItalic)
-            }
-
-            if intent.contains(.code) {
-                let monoFont = UIFont.monospacedSystemFont(ofSize: currentFont.pointSize, weight: .regular)
-                mutable.addAttribute(.font, value: monoFont, range: range)
-            } else if !symbolicTraits.isEmpty {
-                let descriptor = currentFont.fontDescriptor.withSymbolicTraits(symbolicTraits)
-                let newFont = UIFont(descriptor: descriptor ?? currentFont.fontDescriptor, size: currentFont.pointSize)
-                mutable.addAttribute(.font, value: newFont, range: range)
-            }
-        }
-    }
-
-    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
-        let width = proposal.width ?? uiView.bounds.width
-        guard width.isFinite, width > 0 else {
-            return nil
-        }
-        let fitting = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-        return CGSize(width: width, height: fitting.height)
-    }
-}
-
-extension UIFont {
-    static func preferredFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight) -> UIFont {
-        let base = UIFont.preferredFont(forTextStyle: style)
-        return UIFont.systemFont(ofSize: base.pointSize, weight: weight)
-    }
-
-    static var italicBody: UIFont {
-        let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-            .withSymbolicTraits(.traitItalic)
-        return UIFont(descriptor: descriptor ?? UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body), size: 0)
     }
 }
