@@ -64,6 +64,7 @@ struct MessageBubbleView: View {
                 }
                 if !message.content.isEmpty {
                     MarkdownMessageView(content: message.content, isUserMessage: true)
+                        .equatable()
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)
                         .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
@@ -91,6 +92,7 @@ struct MessageBubbleView: View {
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
                     MarkdownMessageView(content: displayContent, isUserMessage: false)
+                        .equatable()
                 }
 
                 if !pendingCalendarActions.isEmpty {
@@ -112,6 +114,7 @@ struct MessageBubbleView: View {
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
                         MarkdownMessageView(content: errorMessage, isUserMessage: false)
+                            .equatable()
                         Button("Retry", action: onRetry)
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.bordered)

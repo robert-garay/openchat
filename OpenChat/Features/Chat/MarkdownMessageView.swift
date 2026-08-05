@@ -3,13 +3,17 @@ import UIKit
 
 /// Renders LLM reply content with ChatGPT-style markdown: headings, lists,
 /// blockquotes, inline emphasis/links/code, and fenced code blocks with copy.
-struct MarkdownMessageView: View {
+///
+/// `Equatable` + `.equatable()` lets parents (composer keystrokes, streaming
+/// siblings) refresh without re-parsing unchanged message bodies.
+struct MarkdownMessageView: View, Equatable {
     let content: String
     let isUserMessage: Bool
 
     var body: some View {
+        let blocks = MarkdownContentParser.blocks(from: content)
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(MarkdownContentParser.blocks(from: content).enumerated()), id: \.offset) { _, block in
+            ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 blockView(block)
             }
         }

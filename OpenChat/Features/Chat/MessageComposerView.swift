@@ -40,7 +40,6 @@ struct MessageComposerView: View {
     let onSend: () -> Void
     let onStop: () -> Void
 
-    @FocusState private var isFocused: Bool
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
@@ -53,9 +52,9 @@ struct MessageComposerView: View {
     @State private var previewAttachment: ChatImageAttachment?
     #endif
 
+    /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
-        let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        return hasText || !attachments.isEmpty
+        !attachments.isEmpty || text.contains { !$0.isWhitespace }
     }
 
     private var slashQuery: String? { SkillResolver.slashQuery(from: text) }
@@ -64,14 +63,6 @@ struct MessageComposerView: View {
         return SkillResolver.filter(skills, query: slashQuery)
     }
     private var showSkillPicker: Bool { slashQuery != nil && !matchingSkills.isEmpty }
-
-    private var pasteboardHasImage: Bool {
-        #if canImport(UIKit)
-        UIPasteboard.general.hasImages
-        #else
-        false
-        #endif
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -166,13 +157,25 @@ struct MessageComposerView: View {
                 .padding(.horizontal, 4)
                 .padding(.bottom, 6)
             }
+            #if canImport(UIKit)
+            ComposerTextView(
+                text: $text,
+                placeholder: "Message",
+                minHeight: 24,
+                maxHeight: 120
+            )
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            .frame(minHeight: 24, maxHeight: 120, alignment: .topLeading)
+            #else
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
-                .focused($isFocused)
                 .onSubmit(submitIfPossible)
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
+            #endif
 
             HStack(alignment: .center, spacing: 2) {
                 plusMenuButton
@@ -208,7 +211,6 @@ struct MessageComposerView: View {
             Button(action: pasteFromClipboard) {
                 Label("Paste Image", systemImage: "doc.on.clipboard")
             }
-            .disabled(!pasteboardHasImage)
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 20, weight: .medium))
