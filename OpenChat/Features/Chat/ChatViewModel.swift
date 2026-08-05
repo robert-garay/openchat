@@ -6,6 +6,7 @@ import Observation
 @Observable
 final class ChatViewModel {
     private(set) var isStreaming = false
+    var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
@@ -51,7 +52,8 @@ final class ChatViewModel {
     private var titleGenerationTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
-    /// even if a provider is configured. Defaults on when search is active.
+    /// even if a provider is configured. Always starts off for a freshly
+    /// opened chat; the user opts in per chat via the composer.
     var isWebSearchEnabledForChat: Bool
 
     init(
@@ -70,7 +72,7 @@ final class ChatViewModel {
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
-        self.isWebSearchEnabledForChat = webSearchStore.isActive
+        self.isWebSearchEnabledForChat = false
     }
 
     private var shouldUseMemory: Bool {
@@ -131,6 +133,13 @@ final class ChatViewModel {
 
     var currentModel: AIModel? {
         providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID)
+    }
+
+    /// Provider branding for a message bubble. Assistant turns keep the provider that generated them.
+    func provider(for message: ChatMessage) -> ConfiguredProvider? {
+        guard message.role == .assistant else { return nil }
+        let id = message.providerID ?? conversation.providerID
+        return providerStore.provider(withID: id)
     }
 
     var supportsVision: Bool {
@@ -417,7 +426,13 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
-        let assistantMessage = ChatMessage(role: .assistant, content: "", isStreaming: true)
+        let assistantMessage = ChatMessage(
+            role: .assistant,
+            content: "",
+            isStreaming: true,
+            providerID: provider.id,
+            modelID: model.id
+        )
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
         modelContext.insert(assistantMessage)
@@ -474,9 +489,28 @@ final class ChatViewModel {
                     middleSections.append(injected)
                 }
 
+                rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
+
+                let globalRulesText: String
+                if rulesStore.useGlobalRules {
+                    let ruleItems = (try? rulesStore.fetchItems(modelContext: modelContext)) ?? []
+                    globalRulesText = RulesStore.injectionText(from: ruleItems)
+                } else {
+                    globalRulesText = ""
+                }
+                let chatRulesText: String
+                if rulesStore.useChatRules {
+                    let perChatRulesText = RulesStore.injectionText(from: conversation.rules)
+                    chatRulesText = [perChatRulesText, conversationSystemPrompt]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: "\n\n")
+                } else {
+                    chatRulesText = ""
+                }
+
                 let systemContent = ChatSystemPromptBuilder.assemble(
-                    globalRules: rulesStore.globalRules,
-                    chatRules: conversationSystemPrompt,
+                    globalRules: globalRulesText,
+                    chatRules: chatRulesText,
                     middleSections: middleSections,
                     webSearchToolPrompt: searchResult.toolPrompt
                 )
@@ -546,7 +580,7 @@ final class ChatViewModel {
                 }
             } catch {
                 assistantMessage.isStreaming = false
-                assistantMessage.errorMessage = error.localizedDescription
+                assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
             isStreaming = false

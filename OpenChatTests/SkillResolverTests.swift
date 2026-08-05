@@ -15,6 +15,9 @@ final class SkillResolverTests: XCTestCase {
     func testSlashQuery() {
         XCTAssertEqual(SkillResolver.slashQuery(from: "/fit"), "fit")
         XCTAssertNil(SkillResolver.slashQuery(from: "/fitness-review hello"))
+        XCTAssertNil(SkillResolver.slashQuery(from: "/fit\nmore"))
+        // Large pastes must not be treated as in-progress slash commands.
+        XCTAssertNil(SkillResolver.slashQuery(from: "/" + String(repeating: "a", count: 80)))
     }
 
     func testFilter() {

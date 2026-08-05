@@ -22,6 +22,21 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
 
     static let all: [ProviderTemplate] = [
         ProviderTemplate(
+            id: "openrouter",
+            name: "OpenRouter",
+            symbolName: "point.3.connected.trianglepath.dotted",
+            tint: "#6467F2",
+            baseURL: "https://openrouter.ai/api/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://openrouter.ai/keys"),
+            apiKeyPlaceholder: "sk-or-...",
+            defaultModels: [
+                AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
+                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", capabilities: [.vision]),
+                AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
+            ]
+        ),
+        ProviderTemplate(
             id: "deepseek",
             name: "DeepSeek",
             symbolName: "sparkles",
@@ -136,21 +151,6 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             defaultModels: [
                 AIModel(id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", subtitle: "Flagship", capabilities: [.vision, .tools]),
                 AIModel(id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", subtitle: "Fast", capabilities: [.vision, .tools]),
-            ]
-        ),
-        ProviderTemplate(
-            id: "openrouter",
-            name: "OpenRouter",
-            symbolName: "point.3.connected.trianglepath.dotted",
-            tint: "#6467F2",
-            baseURL: "https://openrouter.ai/api/v1",
-            apiFormat: .openAI,
-            keyHelpURL: URL(string: "https://openrouter.ai/keys"),
-            apiKeyPlaceholder: "sk-or-...",
-            defaultModels: [
-                AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
-                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", capabilities: [.vision]),
-                AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
             ]
         ),
     ]

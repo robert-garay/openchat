@@ -39,6 +39,8 @@ final class ProviderStore {
     private let liveModelsCacheDateKeyPrefix = "com.openchat.liveModelsDate."
     private let modelUsageCountsKey = "com.openchat.modelUsageCounts"
     private let modelUsageSeededKey = "com.openchat.modelUsageSeeded"
+    private let lastSelectedModelKey = "com.openchat.lastSelectedModel"
+    private let starredModelsKey = "com.openchat.starredModels"
     private let modelsCacheTTL: TimeInterval = 60 * 60
     private let defaults: UserDefaults
     private let openRouterClient: OpenRouterModelsClient
@@ -50,6 +52,10 @@ final class ProviderStore {
     private var keychainPresenceCache: [String: Bool] = [:]
     /// Selection frequency keyed by `providerID/modelID` for picker ranking.
     private(set) var modelUsageCounts: [String: Int] = [:]
+    /// Last model the user explicitly set in any conversation (`providerID/modelID`).
+    private(set) var lastSelectedModelUsageKey: String?
+    /// Starred models keyed by `providerID/modelID`; pinned near the top of the unfiltered picker.
+    private(set) var starredModelKeys: Set<String> = []
 
     init(
         defaults: UserDefaults = .standard,
@@ -63,6 +69,8 @@ final class ProviderStore {
         loadOpenRouterCache()
         loadLiveModelCaches()
         loadModelUsageCounts()
+        loadLastSelectedModel()
+        loadStarredModels()
     }
 
     var enabledProviders: [ConfiguredProvider] {
@@ -113,9 +121,34 @@ final class ProviderStore {
         persist()
     }
 
-    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) {
-        providers.append(.customEndpoint(name: name, baseURL: baseURL, models: models, requiresAPIKey: requiresAPIKey))
+    @discardableResult
+    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) -> ConfiguredProvider? {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        var normalizedURL = baseURL.trimmingCharacters(in: .whitespaces)
+        while normalizedURL.hasSuffix("/") {
+            normalizedURL.removeLast()
+        }
+        let nameExists = providers.contains {
+            $0.name.trimmingCharacters(in: .whitespaces)
+                .localizedCaseInsensitiveCompare(trimmedName) == .orderedSame
+        }
+        let urlExists = providers.contains {
+            var existing = $0.baseURL.trimmingCharacters(in: .whitespaces)
+            while existing.hasSuffix("/") {
+                existing.removeLast()
+            }
+            return existing.localizedCaseInsensitiveCompare(normalizedURL) == .orderedSame
+        }
+        guard !nameExists, !urlExists else { return nil }
+        let provider = ConfiguredProvider.customEndpoint(
+            name: trimmedName,
+            baseURL: normalizedURL,
+            models: models,
+            requiresAPIKey: requiresAPIKey
+        )
+        providers.append(provider)
         persist()
+        return provider
     }
 
     func update(_ provider: ConfiguredProvider) {
@@ -191,6 +224,59 @@ final class ProviderStore {
         let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
         modelUsageCounts[key, default: 0] += 1
         persistModelUsageCounts()
+        rememberLastSelectedModel(providerID: providerID, modelID: modelID)
+    }
+
+    /// Last model the user set, if that provider/model is still available.
+    var lastSelectedModel: (providerID: String, modelID: String)? {
+        guard let key = lastSelectedModelUsageKey else { return nil }
+        let parts = key.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+        guard parts.count == 2 else { return nil }
+        return (providerID: String(parts[0]), modelID: String(parts[1]))
+    }
+
+    /// Remembers the model for the next new chat. Existing chats keep their own stored model.
+    func rememberLastSelectedModel(providerID: String, modelID: String) {
+        let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
+        guard lastSelectedModelUsageKey != key else { return }
+        lastSelectedModelUsageKey = key
+        defaults.set(key, forKey: lastSelectedModelKey)
+    }
+
+    /// One-time bootstrap from the most recently updated conversation when nothing is stored yet.
+    func seedLastSelectedModelIfNeeded(providerID: String, modelID: String) {
+        guard lastSelectedModelUsageKey == nil else { return }
+        rememberLastSelectedModel(providerID: providerID, modelID: modelID)
+    }
+
+    /// Provider/model pair to use when creating a new chat.
+    func defaultModelForNewChat() -> (providerID: String, modelID: String)? {
+        if let last = lastSelectedModel,
+           enabledProviders.contains(where: { $0.id == last.providerID }),
+           model(providerID: last.providerID, modelID: last.modelID) != nil {
+            return last
+        }
+        guard let provider = enabledProviders.first,
+              let model = provider.models.first else {
+            return nil
+        }
+        return (providerID: provider.id, modelID: model.id)
+    }
+
+    func isModelStarred(providerID: String, modelID: String) -> Bool {
+        starredModelKeys.contains(Self.modelUsageKey(providerID: providerID, modelID: modelID))
+    }
+
+    func toggleStarredModel(providerID: String, modelID: String) {
+        let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
+        var next = starredModelKeys
+        if next.contains(key) {
+            next.remove(key)
+        } else {
+            next.insert(key)
+        }
+        starredModelKeys = next
+        persistStarredModels()
     }
 
     /// One-time seed from existing chats so ranking is useful before any new picks.
@@ -230,6 +316,42 @@ final class ProviderStore {
                 return lhs.offset < rhs.offset
             }
             .map(\.element)
+    }
+
+    /// Picker order: current selection first, then starred (when not filtering), then usage.
+    static func sortedForModelPicker<T>(
+        _ items: [T],
+        isFiltering: Bool,
+        isCurrent: (T) -> Bool,
+        isStarred: (T) -> Bool,
+        usageCount: (T) -> Int
+    ) -> [T] {
+        let ranked = sortedByUsage(items, usageCount: usageCount)
+        var current: [T] = []
+        var rest: [T] = []
+        current.reserveCapacity(1)
+        rest.reserveCapacity(ranked.count)
+        for item in ranked {
+            if isCurrent(item) {
+                current.append(item)
+            } else {
+                rest.append(item)
+            }
+        }
+        guard !isFiltering else { return current + rest }
+
+        var starred: [T] = []
+        var unstarred: [T] = []
+        starred.reserveCapacity(rest.count)
+        unstarred.reserveCapacity(rest.count)
+        for item in rest {
+            if isStarred(item) {
+                starred.append(item)
+            } else {
+                unstarred.append(item)
+            }
+        }
+        return current + starred + unstarred
     }
 
     /// Refresh live catalogs for every enabled provider.
@@ -377,5 +499,21 @@ final class ProviderStore {
 
     private func persistModelUsageCounts() {
         defaults.set(modelUsageCounts, forKey: modelUsageCountsKey)
+    }
+
+    private func loadLastSelectedModel() {
+        lastSelectedModelUsageKey = defaults.string(forKey: lastSelectedModelKey)
+    }
+
+    private func loadStarredModels() {
+        guard let stored = defaults.array(forKey: starredModelsKey) as? [String] else {
+            starredModelKeys = []
+            return
+        }
+        starredModelKeys = Set(stored)
+    }
+
+    private func persistStarredModels() {
+        defaults.set(Array(starredModelKeys).sorted(), forKey: starredModelsKey)
     }
 }

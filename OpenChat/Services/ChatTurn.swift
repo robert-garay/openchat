@@ -35,6 +35,7 @@ enum ChatServiceError: LocalizedError {
     case http(status: Int, body: String)
     case decoding(String)
     case cancelled
+    case timedOut
     case modelLacksVision
 
     var errorDescription: String? {
@@ -53,8 +54,25 @@ enum ChatServiceError: LocalizedError {
             return "Couldn't read the response: \(reason)"
         case .cancelled:
             return "Request cancelled."
+        case .timedOut:
+            return """
+            The request timed out before the model finished responding. \
+            This often happens with very long prompts, large attachments, or a slow provider. \
+            Try again, shorten the conversation (Compact), or remove large images.
+            """
         case .modelLacksVision:
             return "This model can't process images. Choose a vision-capable model."
         }
+    }
+
+    /// Maps transport / provider failures into a stable string for the chat UI.
+    static func userFacingMessage(for error: Error) -> String {
+        if let serviceError = error as? ChatServiceError {
+            return serviceError.localizedDescription
+        }
+        if let urlError = error as? URLError, urlError.code == .timedOut {
+            return ChatServiceError.timedOut.localizedDescription
+        }
+        return error.localizedDescription
     }
 }

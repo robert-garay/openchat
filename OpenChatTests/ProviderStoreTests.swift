@@ -148,6 +148,140 @@ final class ProviderStoreTests: XCTestCase {
         store.recordModelUsage(providerID: "openai", modelID: "gpt-4o")
         XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 3)
     }
+
+    func testRecordModelUsageRemembersLastSelectedForNewChats() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        store.addFromTemplate(ProviderTemplate.template(for: "anthropic")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "anthropic")!)
+
+        store.recordModelUsage(providerID: "anthropic", modelID: "claude-opus-4-6-20260805")
+
+        let choice = store.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "anthropic")
+        XCTAssertEqual(choice?.modelID, "claude-opus-4-6-20260805")
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(reloaded.lastSelectedModel?.providerID, "anthropic")
+        XCTAssertEqual(reloaded.lastSelectedModel?.modelID, "claude-opus-4-6-20260805")
+    }
+
+    func testDefaultModelForNewChatFallsBackWhenLastSelectedUnavailable() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
+        store.rememberLastSelectedModel(providerID: "missing", modelID: "gone")
+
+        let choice = store.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "openai")
+        XCTAssertEqual(choice?.modelID, store.provider(withID: "openai")?.models.first?.id)
+    }
+
+    func testSeedLastSelectedModelOnlyWhenEmpty() {
+        store.seedLastSelectedModelIfNeeded(providerID: "openai", modelID: "gpt-4o")
+        store.seedLastSelectedModelIfNeeded(providerID: "anthropic", modelID: "claude-sonnet")
+        XCTAssertEqual(store.lastSelectedModel?.providerID, "openai")
+        XCTAssertEqual(store.lastSelectedModel?.modelID, "gpt-4o")
+    }
+
+    func testStarredModelsPersistAndPinOnlyWhenNotFiltering() {
+        store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
+        store.toggleStarredModel(providerID: "anthropic", modelID: "claude-sonnet")
+        XCTAssertTrue(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+
+        store.recordModelUsage(providerID: "openai", modelID: "unused")
+        store.recordModelUsage(providerID: "openai", modelID: "unused")
+
+        let items = ["unused", "claude-sonnet", "gpt-4o"]
+        let unfiltered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: false,
+            isCurrent: { _ in false },
+            isStarred: { id in
+                id == "gpt-4o" || id == "claude-sonnet"
+            },
+            usageCount: { id in
+                id == "unused" ? 2 : 0
+            }
+        )
+        XCTAssertEqual(unfiltered, ["claude-sonnet", "gpt-4o", "unused"])
+
+        let filtered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: true,
+            isCurrent: { _ in false },
+            isStarred: { id in
+                id == "gpt-4o" || id == "claude-sonnet"
+            },
+            usageCount: { id in
+                id == "unused" ? 2 : 0
+            }
+        )
+        XCTAssertEqual(filtered, ["unused", "claude-sonnet", "gpt-4o"])
+
+        store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
+        XCTAssertFalse(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertTrue(reloaded.isModelStarred(providerID: "anthropic", modelID: "claude-sonnet"))
+        XCTAssertFalse(reloaded.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+    }
+
+    func testCurrentSelectionAlwaysLeadsEvenWhenStarred() {
+        let items = ["unused", "claude-sonnet", "gpt-4o", "selected"]
+        let unfiltered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: false,
+            isCurrent: { $0 == "selected" },
+            isStarred: { $0 == "gpt-4o" || $0 == "claude-sonnet" || $0 == "selected" },
+            usageCount: { $0 == "unused" ? 2 : 0 }
+        )
+        XCTAssertEqual(unfiltered, ["selected", "claude-sonnet", "gpt-4o", "unused"])
+
+        let filtered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: true,
+            isCurrent: { $0 == "selected" },
+            isStarred: { $0 == "gpt-4o" },
+            usageCount: { $0 == "unused" ? 2 : 0 }
+        )
+        XCTAssertEqual(filtered, ["selected", "unused", "claude-sonnet", "gpt-4o"])
+    }
+
+    func testLastSelectedModelPreservesSlashesInModelID() {
+        store.rememberLastSelectedModel(providerID: "openrouter", modelID: "deepseek/deepseek-chat")
+        XCTAssertEqual(store.lastSelectedModel?.providerID, "openrouter")
+        XCTAssertEqual(store.lastSelectedModel?.modelID, "deepseek/deepseek-chat")
+    }
+
+    func testAddCustomRejectsDuplicateName() {
+        store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "local ollama", baseURL: "http://127.0.0.1:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomRejectsDuplicateBaseURL() {
+        store.addCustom(name: "Server A", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "Server B", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomRejectsDuplicateBaseURLIgnoringTrailingSlash() {
+        store.addCustom(name: "Server A", baseURL: "http://localhost:11434/v1/", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+
+        store.addCustom(name: "Server B", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "mistral", displayName: "mistral")], requiresAPIKey: false)
+        XCTAssertEqual(store.providers.count, 1)
+    }
+
+    func testAddCustomAllowsDifferentNameAndURL() {
+        store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
+        store.addCustom(name: "Remote Server", baseURL: "https://api.example.com/v1", models: [AIModel(id: "gpt-4", displayName: "gpt-4")], requiresAPIKey: true)
+        XCTAssertEqual(store.providers.count, 2)
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {

@@ -49,17 +49,14 @@ struct SettingsView: View {
                         Label("Memory", systemImage: "brain.head.profile")
                     }
                     NavigationLink {
-                        SkillsSettingsView()
-                    } label: {
-                        Label("Skills", systemImage: "bolt.fill")
-                    }
-                }
-
-                Section {
-                    NavigationLink {
                         RulesSettingsView()
                     } label: {
                         Label("Rules", systemImage: "text.alignleft")
+                    }
+                    NavigationLink {
+                        SkillsSettingsView()
+                    } label: {
+                        Label("Skills", systemImage: "bolt.fill")
                     }
                 }
 

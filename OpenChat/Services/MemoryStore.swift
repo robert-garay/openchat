@@ -46,15 +46,11 @@ final class MemoryStore {
     }
 
     func fetchItems(modelContext: ModelContext) throws -> [MemoryItem] {
-        let items = try modelContext.fetch(
+        try modelContext.fetch(
             FetchDescriptor<MemoryItem>(
                 sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         )
-        return items.sorted { lhs, rhs in
-            if lhs.pinned != rhs.pinned { return lhs.pinned }
-            return lhs.updatedAt > rhs.updatedAt
-        }
     }
 
     @discardableResult
@@ -75,6 +71,7 @@ final class MemoryStore {
 
         let item = MemoryItem(content: trimmed, source: source)
         modelContext.insert(item)
+        try prune(modelContext: modelContext)
         return item
     }
 
@@ -88,9 +85,13 @@ final class MemoryStore {
         }
     }
 
-    func togglePinned(_ item: MemoryItem) {
-        item.pinned.toggle()
-        item.updatedAt = .now
+    private func prune(modelContext: ModelContext) throws {
+        let items = try fetchItems(modelContext: modelContext)
+        guard items.count > Self.maxInjectionItems else { return }
+        let toDelete = items.suffix(items.count - Self.maxInjectionItems)
+        for item in toDelete {
+            modelContext.delete(item)
+        }
     }
 
     func updateContent(_ item: MemoryItem, content: String, modelContext: ModelContext) throws {
@@ -112,10 +113,7 @@ final class MemoryStore {
     func injectionItems(from items: [MemoryItem]) -> [MemoryItem] {
         var selected: [MemoryItem] = []
         var characters = 0
-        let ordered = items.sorted { lhs, rhs in
-            if lhs.pinned != rhs.pinned { return lhs.pinned && !rhs.pinned }
-            return lhs.updatedAt > rhs.updatedAt
-        }
+        let ordered = items.sorted { $0.updatedAt > $1.updatedAt }
         for item in ordered {
             guard selected.count < Self.maxInjectionItems else { break }
             let line = "- \(item.content)"

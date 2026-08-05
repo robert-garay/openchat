@@ -36,26 +36,27 @@ struct MessageComposerView: View {
     var canCompact: Bool = false
     var isCompacting: Bool = false
     var onCompact: (() -> Void)? = nil
+    /// When true, rules chip uses accent (conversation has a non-empty system prompt).
+    var hasChatRules: Bool = false
+    var canUseChatRules: Bool = true
+    var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
     let onSend: () -> Void
     let onStop: () -> Void
 
-    @FocusState private var isFocused: Bool
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
-    @State private var showingWebSearchPicker = false
-    @State private var showingCompactConfirmation = false
-    @State private var showingNotEnoughMessagesAlert = false
+    @State private var showingChatRules = false
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     #endif
 
+    /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
-        let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        return hasText || !attachments.isEmpty
+        !attachments.isEmpty || text.contains { !$0.isWhitespace }
     }
 
     private var slashQuery: String? { SkillResolver.slashQuery(from: text) }
@@ -64,14 +65,6 @@ struct MessageComposerView: View {
         return SkillResolver.filter(skills, query: slashQuery)
     }
     private var showSkillPicker: Bool { slashQuery != nil && !matchingSkills.isEmpty }
-
-    private var pasteboardHasImage: Bool {
-        #if canImport(UIKit)
-        UIPasteboard.general.hasImages
-        #else
-        false
-        #endif
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -115,38 +108,6 @@ struct MessageComposerView: View {
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
-        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
-            WebSearchProviderPicker(
-                providers: webSearchProviders,
-                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
-                onSelect: { provider in
-                    showingWebSearchPicker = false
-                    onSelectWebSearchProvider?(provider)
-                },
-                onDisable: {
-                    showingWebSearchPicker = false
-                    onDisableWebSearch?()
-                }
-            )
-            .presentationCompactAdaptation(.popover)
-        }
-        .confirmationDialog(
-            "Compact conversation?",
-            isPresented: $showingCompactConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Compact", role: .destructive) {
-                onCompact?()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Older messages will be summarized into context. Your most recent messages stay as-is in the chat.")
-        }
-        .alert("Not enough messages", isPresented: $showingNotEnoughMessagesAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Not enough messages to compact.")
-        }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
@@ -166,17 +127,34 @@ struct MessageComposerView: View {
                 .padding(.horizontal, 4)
                 .padding(.bottom, 6)
             }
+            #if canImport(UIKit)
+            ComposerTextView(
+                text: $text,
+                placeholder: "Message",
+                minHeight: 22,
+                maxHeight: 120
+            )
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            // Explicit vertical sizing — `.frame(minHeight:maxHeight:)` expands to
+            // maxHeight inside this VStack even when the field is empty.
+            .fixedSize(horizontal: false, vertical: true)
+            #else
             TextField("Message", text: $text, axis: .vertical)
                 .lineLimit(1...6)
-                .focused($isFocused)
                 .onSubmit(submitIfPossible)
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
+            #endif
 
             HStack(alignment: .center, spacing: 2) {
                 plusMenuButton
                 webSearchButton
+                if canUseChatRules {
+                    chatRulesButton
+                }
                 compactButton
                 Spacer(minLength: 0)
                 sendButton
@@ -208,7 +186,6 @@ struct MessageComposerView: View {
             Button(action: pasteFromClipboard) {
                 Label("Paste Image", systemImage: "doc.on.clipboard")
             }
-            .disabled(!pasteboardHasImage)
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 20, weight: .medium))
@@ -220,25 +197,79 @@ struct MessageComposerView: View {
         .accessibilityHint("Attach a photo or paste an image")
     }
 
+    /// Explicit web search provider menu order: Tavily first, Exa second, then any remaining providers in their original order, with Off at the bottom.
+    private var orderedWebSearchProviders: [WebSearchProviderKind] {
+        let prioritized: [WebSearchProviderKind] = [.tavily, .exa]
+        let prioritizedProviders = prioritized.filter { webSearchProviders.contains($0) }
+        let remainingProviders = webSearchProviders.filter { !prioritized.contains($0) }
+        return prioritizedProviders + remainingProviders
+    }
+
     private var webSearchButton: some View {
-        Button {
+        Group {
             if canUseWebSearch {
-                showingWebSearchPicker = true
+                Menu {
+                    ForEach(orderedWebSearchProviders) { provider in
+                        Button {
+                            onSelectWebSearchProvider?(provider)
+                        } label: {
+                            HStack(spacing: 12) {
+                                ProviderLogoView(
+                                    logoAssetName: provider.logoAssetName,
+                                    symbolName: provider.symbolName,
+                                    tint: Color(hex: provider.tintHex),
+                                    size: 22,
+                                    cornerRadius: 6
+                                )
+                                Text(provider.displayName)
+                                Spacer(minLength: 12)
+                                if isWebSearchArmed && selectedWebSearchProvider == provider {
+                                    Image(systemName: "checkmark")
+                                        .font(.body.weight(.semibold))
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        }
+                    }
+
+                    Button {
+                        onDisableWebSearch?()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color(.secondaryLabel))
+                                .frame(width: 22, height: 22)
+                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            Text("Off")
+                            Spacer(minLength: 12)
+                            if !isWebSearchArmed {
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+                } label: {
+                    webSearchIcon
+                }
+                .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
+                .accessibilityHint(
+                    isWebSearchArmed
+                        ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
+                        : "Choose a search provider for this chat."
+                )
             } else {
-                Haptics.warning()
-                showingWebSearchDisabledAlert = true
+                Button {
+                    Haptics.warning()
+                    showingWebSearchDisabledAlert = true
+                } label: {
+                    webSearchIcon
+                }
+                .accessibilityLabel("Web search off")
+                .accessibilityHint("Add a search API key in Settings")
             }
-        } label: {
-            webSearchIcon
         }
-        .accessibilityLabel(isWebSearchArmed ? "Web search on" : "Web search off")
-        .accessibilityHint(
-            canUseWebSearch
-                ? (isWebSearchArmed
-                    ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
-                    : "Choose a search provider for this chat.")
-                : "Add a search API key in Settings"
-        )
         .animation(Theme.springFast, value: isWebSearchArmed)
         .animation(Theme.springFast, value: selectedWebSearchProvider)
     }
@@ -265,10 +296,44 @@ struct MessageComposerView: View {
         .frame(width: 34, height: 34)
     }
 
+    private var chatRulesButton: some View {
+        Button {
+            Haptics.light()
+            showingChatRules = true
+        } label: {
+            Image(systemName: "text.alignleft")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(hasChatRules ? Color.accentColor : Color(.tertiaryLabel))
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Chat rules")
+        .accessibilityHint(
+            hasChatRules
+                ? "Edit instructions for this conversation"
+                : "Add instructions for this conversation"
+        )
+        .animation(Theme.springFast, value: hasChatRules)
+        .sheet(isPresented: $showingChatRules) {
+            if let conversation {
+                ChatRulesSheet(conversation: conversation)
+                    .presentationDetents([.medium, .large])
+            }
+        }
+    }
+
     @ViewBuilder
     private var compactButton: some View {
         if showCompactChip {
-            Button(action: requestCompact) {
+            Menu {
+                Button(role: .destructive) {
+                    Haptics.light()
+                    onCompact?()
+                } label: {
+                    Label("Compact conversation", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(!canCompact || isCompacting)
+            } label: {
                 Group {
                     if isCompacting {
                         ProgressView()
@@ -290,15 +355,6 @@ struct MessageComposerView: View {
                     : "Not enough messages to compact"
             )
         }
-    }
-
-    private func requestCompact() {
-        guard canCompact else {
-            Haptics.warning()
-            showingNotEnoughMessagesAlert = true
-            return
-        }
-        showingCompactConfirmation = true
     }
 
     private var sendButton: some View {

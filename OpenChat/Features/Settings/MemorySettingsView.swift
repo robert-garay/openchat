@@ -13,10 +13,7 @@ struct MemorySettingsView: View {
     @State private var showingClearConfirmation = false
 
     private var sortedItems: [MemoryItem] {
-        items.sorted { lhs, rhs in
-            if lhs.pinned != rhs.pinned { return lhs.pinned }
-            return lhs.updatedAt > rhs.updatedAt
-        }
+        items.sorted { $0.updatedAt > $1.updatedAt }
     }
 
     var body: some View {
@@ -50,14 +47,6 @@ struct MemorySettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer(minLength: 8)
-                            Button {
-                                memoryStore.togglePinned(item)
-                                try? modelContext.save()
-                            } label: {
-                                Image(systemName: item.pinned ? "pin.fill" : "pin")
-                                    .foregroundStyle(item.pinned ? Color.accentColor : Color.secondary)
-                            }
-                            .buttonStyle(.plain)
                         }
                         .contentShape(Rectangle())
                         .onTapGesture { editingItem = item }

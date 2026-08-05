@@ -42,6 +42,8 @@ struct AnthropicClient: ChatCompletionClient {
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.finish(throwing: ChatServiceError.cancelled)
+                } catch let urlError as URLError where urlError.code == .timedOut {
+                    continuation.finish(throwing: ChatServiceError.timedOut)
                 } catch {
                     continuation.finish(throwing: error)
                 }
@@ -190,6 +192,7 @@ struct AnthropicClient: ChatCompletionClient {
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         if let apiKey, !apiKey.isEmpty {

@@ -18,10 +18,12 @@ struct MessageBubbleView: View {
     var memoryActionStatus: String? = nil
     var onConfirmMemoryProposals: (() -> Void)? = nil
     var onDismissMemoryProposals: (() -> Void)? = nil
+    var isLastMessage: Bool = false
     let onRetry: () -> Void
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
+    @State private var showingTextSelection = false
     #endif
 
     var body: some View {
@@ -35,23 +37,14 @@ struct MessageBubbleView: View {
                 EmptyView()
             }
         }
-        .contextMenu {
-            if !message.content.isEmpty {
-                Button {
-                    #if canImport(UIKit)
-                    UIPasteboard.general.string = message.content
-                    #endif
-                    Haptics.light()
-                } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
-                }
-            }
-        }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
                 ImagePreviewView(image: uiImage)
             }
+        }
+        .sheet(isPresented: $showingTextSelection) {
+            TextSelectionSheet(text: displayContent)
         }
         #endif
     }
@@ -65,6 +58,7 @@ struct MessageBubbleView: View {
                 }
                 if !message.content.isEmpty {
                     MarkdownMessageView(content: message.content, isUserMessage: true)
+                        .equatable()
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)
                         .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
@@ -74,12 +68,12 @@ struct MessageBubbleView: View {
     }
 
     private var assistantContent: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: 8) {
             ProviderLogoView(
                 logoAssetName: providerLogoAssetName,
                 symbolName: providerSymbol,
                 tint: providerTint,
-                size: 26
+                size: 22
             )
 
             VStack(alignment: .leading, spacing: 8) {
@@ -92,7 +86,20 @@ struct MessageBubbleView: View {
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
                     MarkdownMessageView(content: displayContent, isUserMessage: false, isStreaming: isStreaming)
+                        .equatable()
                 }
+
+                #if canImport(UIKit)
+                if !displayContent.isEmpty {
+                    HStack(spacing: 4) {
+                        CopyChip(content: message.content)
+                        SelectChip(isPresented: $showingTextSelection)
+                        if isLastMessage && !message.isStreaming {
+                            RegenerateChip(action: onRetry)
+                        }
+                    }
+                }
+                #endif
 
                 if !pendingCalendarActions.isEmpty {
                     calendarConfirmationCard
@@ -111,19 +118,16 @@ struct MessageBubbleView: View {
                 }
 
                 if let errorMessage = message.errorMessage {
-                    HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                        Text(errorMessage)
-                            .font(.caption)
+                    VStack(alignment: .leading, spacing: 10) {
+                        MarkdownMessageView(content: errorMessage, isUserMessage: false)
+                            .equatable()
                         Button("Retry", action: onRetry)
-                            .font(.caption.weight(.semibold))
+                            .font(.subheadline.weight(.semibold))
+                            .buttonStyle(.bordered)
                     }
-                    .foregroundStyle(.red)
-                    .padding(.top, 2)
                 }
             }
-            Spacer(minLength: 24)
+            Spacer(minLength: 4)
         }
     }
 
@@ -214,3 +218,102 @@ struct MessageBubbleView: View {
         }
     }
 }
+
+#if canImport(UIKit)
+private struct CopyChip: View {
+    let content: String
+
+    var body: some View {
+        Button {
+            UIPasteboard.general.string = content
+            Haptics.light()
+        } label: {
+            Image(systemName: "doc.on.doc")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Copy message")
+    }
+}
+
+private struct RegenerateChip: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            action()
+        } label: {
+            Image(systemName: "arrow.clockwise")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Regenerate response")
+    }
+}
+
+private struct SelectChip: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            isPresented = true
+        } label: {
+            Image(systemName: "text.cursor")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Select text")
+    }
+}
+
+private struct TextSelectionSheet: View {
+    let text: String
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            PlainTextSelectionView(text: text)
+                .navigationTitle("Select Text")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                }
+        }
+    }
+}
+
+private struct PlainTextSelectionView: UIViewRepresentable {
+    let text: String
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.text = text
+        textView.font = .preferredFont(forTextStyle: .body)
+        textView.adjustsFontForContentSizeCategory = true
+        textView.backgroundColor = .clear
+        if #available(iOS 18.1, *) {
+            textView.writingToolsBehavior = .none
+        }
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        textView.text = text
+    }
+}
+#endif

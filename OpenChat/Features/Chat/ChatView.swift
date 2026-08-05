@@ -13,10 +13,10 @@ struct ChatView: View {
     @Environment(MemoryStore.self) private var memoryStore
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
-    @State private var composerText = ""
     @State private var showingModelPicker = false
-    @State private var showingChatRules = false
     @State private var showingNewSkill = false
+    /// Shared with the message list so Send re-attaches follow-to-bottom.
+    @State private var stickToBottom = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,33 +25,27 @@ struct ChatView: View {
             }
 
             if let viewModel {
-                messageList(viewModel: viewModel)
-                MessageComposerView(
-                    text: $composerText,
-                    attachments: Bindable(viewModel).pendingAttachments,
-                    supportsVision: viewModel.supportsVision,
-                    modelDisplayName: viewModel.currentModel?.displayName,
-                    isStreaming: viewModel.isStreaming,
-                    canUseWebSearch: viewModel.canUseWebSearch,
-                    isWebSearchArmed: viewModel.isWebSearchArmed,
-                    webSearchProviders: viewModel.configuredWebSearchProviders,
-                    selectedWebSearchProvider: viewModel.selectedWebSearchProvider,
-                    webSearchProviderName: viewModel.webSearchProviderName,
-                    webSearchLogoAssetName: viewModel.webSearchStoreActiveLogo,
-                    webSearchSymbolName: viewModel.webSearchStoreActiveSymbol,
-                    webSearchTintHex: viewModel.webSearchStoreActiveTint,
-                    onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
-                    onDisableWebSearch: viewModel.disableWebSearchForChat,
-                    showCompactChip: viewModel.canShowCompact,
-                    canCompact: viewModel.canCompactConversation,
-                    isCompacting: viewModel.isCompacting,
-                    onCompact: viewModel.compactConversation,
-                    skills: skills.map(SkillMatchable.init(skill:)),
+                // Isolated so composer keystrokes do not rebuild the message list.
+                ChatMessageListView(
+                    conversation: conversation,
+                    viewModel: viewModel,
+                    stickToBottom: $stickToBottom
+                )
+
+                ChatComposerHost(
+                    viewModel: viewModel,
+                    skills: skills,
+                    hasChatRules: !conversation.systemPrompt
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .isEmpty,
+                    canUseChatRules: rulesStore.useChatRules,
+                    conversation: conversation,
                     onSend: {
-                        viewModel.send(text: composerText)
-                        composerText = ""
-                    },
-                    onStop: viewModel.cancelStreaming
+                        stickToBottom = true
+                        let text = viewModel.composerText
+                        viewModel.composerText = ""
+                        viewModel.send(text: text)
+                    }
                 )
             }
         }
@@ -80,39 +74,19 @@ struct ChatView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 12) {
-                    if conversation.messages.isEmpty {
-                        Button {
-                            Haptics.light()
-                            onToggleTemporary?()
-                        } label: {
-                            GhostIcon(size: 17, filled: conversation.isTemporary)
-                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                                .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                                .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                        }
-                    }
-
+                if conversation.messages.isEmpty {
                     Button {
                         Haptics.light()
-                        showingChatRules = true
+                        onToggleTemporary?()
                     } label: {
-                        Image(systemName: "text.alignleft")
-                            .accessibilityLabel("Chat rules")
+                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                     }
-
-                    Button {
-                        Haptics.light()
-                        showingNewSkill = true
-                    } label: {
-                        Image(systemName: "bolt.badge.plus")
-                            .accessibilityLabel("New Skill")
-                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
             }
-        }
-        .sheet(isPresented: $showingChatRules) {
-            ChatRulesSheet(conversation: conversation)
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
@@ -186,19 +160,80 @@ struct ChatView: View {
             viewModel?.cancelStreaming()
         }
     }
+}
 
-    @ViewBuilder
-    private func messageList(viewModel: ChatViewModel) -> some View {
+// MARK: - Composer host (isolates composerText observation)
+
+/// Owns bindings into `ChatViewModel` composer state so keystrokes do not
+/// invalidate `ChatMessageListView` or the surrounding `ChatView` chrome.
+private struct ChatComposerHost: View {
+    @Bindable var viewModel: ChatViewModel
+    let skills: [Skill]
+    var hasChatRules: Bool = false
+    var canUseChatRules: Bool = true
+    var conversation: Conversation? = nil
+    let onSend: () -> Void
+
+    var body: some View {
+        MessageComposerView(
+            text: $viewModel.composerText,
+            attachments: $viewModel.pendingAttachments,
+            supportsVision: viewModel.supportsVision,
+            modelDisplayName: viewModel.currentModel?.displayName,
+            isStreaming: viewModel.isStreaming,
+            canUseWebSearch: viewModel.canUseWebSearch,
+            isWebSearchArmed: viewModel.isWebSearchArmed,
+            webSearchProviders: viewModel.configuredWebSearchProviders,
+            selectedWebSearchProvider: viewModel.selectedWebSearchProvider,
+            webSearchProviderName: viewModel.webSearchProviderName,
+            webSearchLogoAssetName: viewModel.webSearchStoreActiveLogo,
+            webSearchSymbolName: viewModel.webSearchStoreActiveSymbol,
+            webSearchTintHex: viewModel.webSearchStoreActiveTint,
+            onSelectWebSearchProvider: viewModel.selectWebSearchProvider,
+            onDisableWebSearch: viewModel.disableWebSearchForChat,
+            showCompactChip: viewModel.canShowCompact,
+            canCompact: viewModel.canCompactConversation,
+            isCompacting: viewModel.isCompacting,
+            onCompact: viewModel.compactConversation,
+            hasChatRules: hasChatRules,
+            canUseChatRules: canUseChatRules,
+            conversation: conversation,
+            skills: skills.map(SkillMatchable.init(skill:)),
+            onSend: onSend,
+            onStop: viewModel.cancelStreaming
+        )
+    }
+}
+
+// MARK: - Message list
+
+private struct ChatMessageListView: View {
+    let conversation: Conversation
+    let viewModel: ChatViewModel
+    @Binding var stickToBottom: Bool
+
+    /// True while the user is dragging/decelerating the message list.
+    @State private var isInteractivelyScrolling = false
+    @State private var followScrollTask: Task<Void, Never>?
+    /// Last observed content height — used to re-pin after tall markdown lays out.
+    @State private var lastContentHeight: CGFloat = 0
+
+    var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(conversation.sortedMessages) { message in
+                // VStack (not LazyVStack): LazyVStack + scrollTo bottom leaves a blank
+                // viewport for tall messages until the user scrolls and forces materialization.
+                VStack(alignment: .leading, spacing: 18) {
+                    let sortedMessages = conversation.sortedMessages
+                    let lastMessageID = sortedMessages.last?.id
+                    ForEach(sortedMessages) { message in
+                        let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
                             isStreaming: message.isStreaming,
-                            providerTint: viewModel.currentProvider.map { Color(hex: $0.tint) } ?? .accentColor,
-                            providerSymbol: viewModel.currentProvider?.symbolName ?? "sparkles",
-                            providerLogoAssetName: viewModel.currentProvider?.logoAssetName,
+                            providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
+                            providerSymbol: messageProvider?.symbolName ?? "sparkles",
+                            providerLogoAssetName: messageProvider?.logoAssetName,
                             pendingCalendarActions: viewModel.pendingCalendarActionsByMessageID[message.id] ?? [],
                             calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
                             isApplyingCalendarActions: viewModel.isApplyingCalendarActions,
@@ -216,46 +251,191 @@ struct ChatView: View {
                             onDismissMemoryProposals: {
                                 viewModel.dismissMemoryProposals(for: message.id)
                             },
+                            isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply
                         )
                         .id(message.id)
                     }
+
+                    Color.clear
+                        .frame(height: 1)
+                        .id(ChatScrollAnchor.bottom)
                 }
-                .padding(.horizontal, Theme.contentPadding)
+                .padding(.horizontal, Theme.chatHorizontalPadding)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: ChatContentHeightKey.self,
+                            value: geometry.size.height
+                        )
+                    }
+                )
             }
+            .defaultScrollAnchor(.bottom)
             .scrollDismissesKeyboard(.interactively)
+            .onPreferenceChange(ChatContentHeightKey.self) { height in
+                handleContentHeightChange(height, proxy: proxy)
+            }
+            .modifier(
+                ChatStickToBottomModifier(
+                    stickToBottom: $stickToBottom,
+                    isInteractivelyScrolling: $isInteractivelyScrolling
+                )
+            )
+            .overlay(alignment: .bottomTrailing) {
+                if !stickToBottom && !conversation.sortedMessages.isEmpty {
+                    jumpToLatestButton {
+                        stickToBottom = true
+                        isInteractivelyScrolling = false
+                        Haptics.light()
+                        scrollToBottom(proxy: proxy, animated: true)
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 12)
+                    .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                    .animation(Theme.springFast, value: stickToBottom)
+                }
+            }
             .onChange(of: conversation.messages.count) {
-                throttledScrollToBottom(proxy: proxy)
+                scheduleFollowScroll(proxy: proxy)
+            }
+            .onChange(of: conversation.sortedMessages.last?.content) {
+                scheduleFollowScroll(proxy: proxy)
+            }
+            .onChange(of: isInteractivelyScrolling) { _, scrolling in
+                if scrolling {
+                    followScrollTask?.cancel()
+                    followScrollTask = nil
+                }
             }
             .task(id: conversation.id) {
+                stickToBottom = true
+                isInteractivelyScrolling = false
+                lastContentHeight = 0
+                followScrollTask?.cancel()
+                // Yield so the first layout pass can size tall markdown before pinning.
                 await Task.yield()
                 scrollToBottom(proxy: proxy, animated: false)
-                try? await Task.sleep(for: .milliseconds(50))
-                scrollToBottom(proxy: proxy, animated: false)
+                for delay in [50, 150, 350] as [UInt64] {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                    guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+                    scrollToBottom(proxy: proxy, animated: false)
+                }
             }
         }
     }
 
-    @State private var scrollThrottleTask: Task<Void, Never>?
+    private func handleContentHeightChange(_ height: CGFloat, proxy: ScrollViewProxy) {
+        guard height > lastContentHeight + 1 else {
+            lastContentHeight = max(lastContentHeight, height)
+            return
+        }
+        lastContentHeight = height
+        scheduleFollowScroll(proxy: proxy)
+    }
 
-    private func throttledScrollToBottom(proxy: ScrollViewProxy) {
-        scrollThrottleTask?.cancel()
-        scrollThrottleTask = Task {
-            try? await Task.sleep(for: .milliseconds(120))
-            guard !Task.isCancelled else { return }
-            scrollToBottom(proxy: proxy)
+    private func jumpToLatestButton(action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "chevron.down")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.primary)
+                .frame(width: 36, height: 36)
+                .background(.bar, in: Circle())
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
+        }
+        .accessibilityLabel("Jump to latest message")
+    }
+
+    /// Pins to the latest content while following. Coalesces rapid stream tokens
+    /// and never animates — animated scrollTo fights the user's pan gesture.
+    private func scheduleFollowScroll(proxy: ScrollViewProxy) {
+        guard stickToBottom, !isInteractivelyScrolling else { return }
+        followScrollTask?.cancel()
+        followScrollTask = Task { @MainActor in
+            await Task.yield()
+            guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+            scrollToBottom(proxy: proxy, animated: false)
         }
     }
 
-    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool = true) {
-        guard let lastID = conversation.sortedMessages.last?.id else { return }
-        if animated {
-            withAnimation(Theme.springFast) { proxy.scrollTo(lastID, anchor: .bottom) }
-        } else {
-            proxy.scrollTo(lastID, anchor: .bottom)
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
+        let action = {
+            proxy.scrollTo(ChatScrollAnchor.bottom, anchor: .bottom)
         }
+        if animated {
+            withAnimation(Theme.springFast, action)
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction, action)
+        }
+    }
+}
+
+private enum ChatScrollAnchor {
+    static let bottom = "chat-bottom-anchor"
+}
+
+/// ChatGPT-style stick-to-bottom:
+/// - Suppress follow for the whole user drag/deceleration so pans are not yanked
+/// - Detach when the user scrolls away from the bottom
+/// - Re-attach when they return near the bottom
+private struct ChatStickToBottomModifier: ViewModifier {
+    @Binding var stickToBottom: Bool
+    @Binding var isInteractivelyScrolling: Bool
+
+    private let attachThreshold: CGFloat = 48
+    private let detachThreshold: CGFloat = 72
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content
+                .onScrollPhaseChange { _, phase in
+                    switch phase {
+                    case .tracking, .interacting, .decelerating:
+                        isInteractivelyScrolling = true
+                    default:
+                        isInteractivelyScrolling = false
+                    }
+                }
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.contentSize.height
+                        - geometry.contentOffset.y
+                        - geometry.containerSize.height
+                } action: { _, distanceFromBottom in
+                    if distanceFromBottom <= attachThreshold {
+                        stickToBottom = true
+                    } else if isInteractivelyScrolling, distanceFromBottom > detachThreshold {
+                        stickToBottom = false
+                    }
+                }
+        } else {
+            // Use a larger minimum distance so the long-press gesture for text
+            // selection can start before the drag gesture begins.
+            content.simultaneousGesture(
+                DragGesture(minimumDistance: 12)
+                    .onChanged { value in
+                        isInteractivelyScrolling = true
+                        // Finger down → reading older messages → detach follow.
+                        if value.translation.height > 8 {
+                            stickToBottom = false
+                        }
+                    }
+                    .onEnded { _ in
+                        isInteractivelyScrolling = false
+                    }
+            )
+        }
+    }
+}
+
+private struct ChatContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
@@ -278,7 +458,7 @@ private struct TemporaryChatBanner: View {
         VStack(spacing: 4) {
             Text("Temporary Chat")
                 .font(.subheadline.weight(.semibold))
-            Text("This chat won’t appear in history.")
+            Text("This chat won't appear in history.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

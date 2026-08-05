@@ -33,10 +33,14 @@ enum SkillResolver {
         return value
     }
 
+    /// Returns the in-progress slash token while the user is typing a skill.
+    /// Bails out cheaply for large pastes so the composer never scans megabytes.
     static func slashQuery(from text: String) -> String? {
-        guard text.hasPrefix("/") else { return nil }
+        guard text.first == "/" else { return nil }
+        // Skill names are short; anything longer is not an in-progress invoke.
+        guard text.count <= 64 else { return nil }
         let afterSlash = text.dropFirst()
-        if afterSlash.contains(" ") { return nil }
+        if afterSlash.contains(where: { $0 == " " || $0.isNewline }) { return nil }
         return String(afterSlash)
     }
 

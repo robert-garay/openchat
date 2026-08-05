@@ -59,6 +59,8 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.finish(throwing: ChatServiceError.cancelled)
+                } catch let urlError as URLError where urlError.code == .timedOut {
+                    continuation.finish(throwing: ChatServiceError.timedOut)
                 } catch {
                     continuation.finish(throwing: error)
                 }
@@ -294,6 +296,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let apiKey, !apiKey.isEmpty {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
