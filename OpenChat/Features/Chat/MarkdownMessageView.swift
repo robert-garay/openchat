@@ -515,7 +515,19 @@ private struct SelectableText: UIViewRepresentable {
     let attributedString: AttributedString
     let foregroundColor: UIColor
     let linkColor: UIColor
-    let font: UIFont? = nil
+    let font: UIFont?
+
+    init(
+        attributedString: AttributedString,
+        foregroundColor: UIColor,
+        linkColor: UIColor,
+        font: UIFont? = nil
+    ) {
+        self.attributedString = attributedString
+        self.foregroundColor = foregroundColor
+        self.linkColor = linkColor
+        self.font = font
+    }
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
