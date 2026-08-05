@@ -283,40 +283,48 @@ final class ProviderStore {
             .map(\.element)
     }
 
-    /// Picker order: current selection first, then starred (when not filtering), then usage.
-    static func sortedForModelPicker<T>(
+    /// Splits picker rows into a Starred section and the rest.
+    /// Current selection leads its section. While filtering, everything stays in `models`.
+    static func partitionForModelPicker<T>(
         _ items: [T],
         isFiltering: Bool,
         isCurrent: (T) -> Bool,
         isStarred: (T) -> Bool,
         usageCount: (T) -> Int
-    ) -> [T] {
+    ) -> (starred: [T], models: [T]) {
         let ranked = sortedByUsage(items, usageCount: usageCount)
-        var current: [T] = []
-        var rest: [T] = []
-        current.reserveCapacity(1)
-        rest.reserveCapacity(ranked.count)
-        for item in ranked {
-            if isCurrent(item) {
-                current.append(item)
-            } else {
-                rest.append(item)
+
+        func leadingWithCurrent(_ list: [T]) -> [T] {
+            var current: [T] = []
+            var rest: [T] = []
+            current.reserveCapacity(1)
+            rest.reserveCapacity(list.count)
+            for item in list {
+                if isCurrent(item) {
+                    current.append(item)
+                } else {
+                    rest.append(item)
+                }
             }
+            return current + rest
         }
-        guard !isFiltering else { return current + rest }
+
+        guard !isFiltering else {
+            return (starred: [], models: leadingWithCurrent(ranked))
+        }
 
         var starred: [T] = []
-        var unstarred: [T] = []
-        starred.reserveCapacity(rest.count)
-        unstarred.reserveCapacity(rest.count)
-        for item in rest {
+        var models: [T] = []
+        starred.reserveCapacity(ranked.count)
+        models.reserveCapacity(ranked.count)
+        for item in ranked {
             if isStarred(item) {
                 starred.append(item)
             } else {
-                unstarred.append(item)
+                models.append(item)
             }
         }
-        return current + starred + unstarred
+        return (leadingWithCurrent(starred), leadingWithCurrent(models))
     }
 
     /// Refresh live catalogs for every enabled provider.

@@ -46,8 +46,8 @@ struct ModelPickerSheet: View {
         return items
     }
 
-    private var allResults: [PickerModelItem] {
-        ProviderStore.sortedForModelPicker(
+    private var partitionedResults: (starred: [PickerModelItem], models: [PickerModelItem]) {
+        ProviderStore.partitionForModelPicker(
             filteredItems,
             isFiltering: isFiltering,
             isCurrent: { item in
@@ -60,6 +60,11 @@ struct ModelPickerSheet: View {
                 providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
             }
         )
+    }
+
+    private var totalVisibleCount: Int {
+        let parts = partitionedResults
+        return parts.starred.count + parts.models.count
     }
 
     private var emptyFilterMessage: String {
@@ -80,7 +85,7 @@ struct ModelPickerSheet: View {
     }
 
     private var isInitialLoading: Bool {
-        providerStore.isLoadingModels && allResults.isEmpty
+        providerStore.isLoadingModels && totalVisibleCount == 0
     }
 
     private var fetchErrors: [(providerName: String, message: String)] {
@@ -111,7 +116,7 @@ struct ModelPickerSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                } else if !fetchErrors.isEmpty, allResults.isEmpty {
+                } else if !fetchErrors.isEmpty, totalVisibleCount == 0 {
                     Section {
                         ForEach(fetchErrors, id: \.providerName) { error in
                             VStack(alignment: .leading, spacing: 4) {
@@ -127,35 +132,36 @@ struct ModelPickerSheet: View {
                     }
                 }
 
-                Section {
-                    if allResults.isEmpty, !isInitialLoading {
+                let parts = partitionedResults
+
+                if totalVisibleCount == 0, !isInitialLoading {
+                    Section {
                         Text(emptyFilterMessage)
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(allResults) { item in
-                            modelButton(item)
-                                .swipeActions(edge: .trailing) {
-                                    Button {
-                                        toggleStar(item)
-                                    } label: {
-                                        Label(
-                                            providerStore.isModelStarred(
-                                                providerID: item.providerID,
-                                                modelID: item.modelID
-                                            ) ? "Unstar" : "Star",
-                                            systemImage: providerStore.isModelStarred(
-                                                providerID: item.providerID,
-                                                modelID: item.modelID
-                                            ) ? "star.slash.fill" : "star.fill"
-                                        )
-                                    }
-                                    .tint(.orange)
-                                }
+                    }
+                } else {
+                    if !parts.starred.isEmpty {
+                        Section {
+                            ForEach(parts.starred) { item in
+                                modelRow(item)
+                            }
+                        } header: {
+                            Text("Starred")
+                        } footer: {
+                            if parts.models.isEmpty {
+                                Text("\(totalVisibleCount) models")
+                            }
                         }
                     }
-                } footer: {
-                    if !allResults.isEmpty {
-                        Text("\(allResults.count) models")
+
+                    if !parts.models.isEmpty {
+                        Section {
+                            ForEach(parts.models) { item in
+                                modelRow(item)
+                            }
+                        } footer: {
+                            Text("\(totalVisibleCount) models")
+                        }
                     }
                 }
             }
@@ -206,66 +212,75 @@ struct ModelPickerSheet: View {
         return name.localizedCaseInsensitiveContains(query)
     }
 
-    private func modelButton(_ item: PickerModelItem) -> some View {
-        Button {
-            select(item)
-        } label: {
-            modelRow(item)
-        }
-    }
-
+    @ViewBuilder
     private func modelRow(_ item: PickerModelItem) -> some View {
         let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
         let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
-        return HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.displayName)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    ProviderLogoView(
-                        logoAssetName: item.providerLogoAssetName,
-                        symbolName: item.providerSymbolName,
-                        tint: Color(hex: item.providerTint),
-                        size: 14,
-                        cornerRadius: 3
-                    )
-                    Text(providerSubtitle(for: item))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+
+        Button {
+            select(item)
+        } label: {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.displayName)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
+                    HStack(spacing: 6) {
+                        ProviderLogoView(
+                            logoAssetName: item.providerLogoAssetName,
+                            symbolName: item.providerSymbolName,
+                            tint: Color(hex: item.providerTint),
+                            size: 14,
+                            cornerRadius: 3
+                        )
+                        Text(providerSubtitle(for: item))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 8)
+                ModelCapabilitySigns(capabilities: item.capabilities)
+                // Star marker only outside the Starred section (section already implies it).
+                if isStarred, isFiltering {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                        .accessibilityHidden(true)
+                }
+                if isCurrent {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.accentColor)
+                        .fontWeight(.semibold)
                 }
             }
-            Spacer(minLength: 8)
-            ModelCapabilitySigns(capabilities: item.capabilities)
-            if isStarred {
-                Image(systemName: "star.fill")
-                    .foregroundStyle(.orange)
-                    .font(.caption)
-                    .accessibilityHidden(true)
-            }
-            if isCurrent {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-                    .fontWeight(.semibold)
-            }
         }
-        .accessibilityElement(children: .combine)
         .accessibilityLabel(
             isStarred
                 ? "\(item.displayName), \(item.providerName), starred"
                 : "\(item.displayName), \(item.providerName)"
         )
+        .swipeActions(edge: .trailing) {
+            Button {
+                toggleStar(item)
+            } label: {
+                Label(
+                    isStarred ? "Unstar" : "Star",
+                    systemImage: isStarred ? "star.slash.fill" : "star.fill"
+                )
+            }
+            .tint(.orange)
+        }
     }
 
     private func toggleStar(_ item: PickerModelItem) {
         Haptics.light()
         let providerID = item.providerID
         let modelID = item.modelID
-        let willReorder = !isFiltering
+        let willMoveSections = !isFiltering
         Task { @MainActor in
-            if willReorder {
-                // Let the swipe action close before rows glide.
+            if willMoveSections {
+                // Let the swipe action close before the row changes sections.
                 try? await Task.sleep(for: .milliseconds(220))
             }
             withAnimation(Theme.springSmooth) {
