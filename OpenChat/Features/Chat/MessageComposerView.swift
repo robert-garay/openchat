@@ -51,7 +51,6 @@ struct MessageComposerView: View {
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     @State private var showingCompactConfirmation = false
-    @State private var showingNotEnoughMessagesAlert = false
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     #endif
@@ -122,11 +121,7 @@ struct MessageComposerView: View {
         } message: {
             Text("Older messages will be summarized into context. Your most recent messages stay as-is in the chat.")
         }
-        .alert("Not enough messages", isPresented: $showingNotEnoughMessagesAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Not enough messages to compact.")
-        }
+
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
@@ -345,7 +340,15 @@ struct MessageComposerView: View {
     @ViewBuilder
     private var compactButton: some View {
         if showCompactChip {
-            Button(action: requestCompact) {
+            Menu {
+                Button(role: .destructive) {
+                    Haptics.light()
+                    showingCompactConfirmation = true
+                } label: {
+                    Label("Compact conversation", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(!canCompact || isCompacting)
+            } label: {
                 Group {
                     if isCompacting {
                         ProgressView()
@@ -367,15 +370,6 @@ struct MessageComposerView: View {
                     : "Not enough messages to compact"
             )
         }
-    }
-
-    private func requestCompact() {
-        guard canCompact else {
-            Haptics.warning()
-            showingNotEnoughMessagesAlert = true
-            return
-        }
-        showingCompactConfirmation = true
     }
 
     private var sendButton: some View {
