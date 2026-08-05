@@ -219,7 +219,9 @@ private struct ChatMessageListView: View {
                 // VStack (not LazyVStack): LazyVStack + scrollTo bottom leaves a blank
                 // viewport for tall messages until the user scrolls and forces materialization.
                 VStack(alignment: .leading, spacing: 18) {
-                    ForEach(conversation.sortedMessages) { message in
+                    let sortedMessages = conversation.sortedMessages
+                    let lastMessageID = sortedMessages.last?.id
+                    ForEach(sortedMessages) { message in
                         let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
@@ -243,6 +245,7 @@ private struct ChatMessageListView: View {
                             onDismissMemoryProposals: {
                                 viewModel.dismissMemoryProposals(for: message.id)
                             },
+                            isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply
                         )
                         .id(message.id)
