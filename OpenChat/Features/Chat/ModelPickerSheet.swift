@@ -46,8 +46,8 @@ struct ModelPickerSheet: View {
         return items
     }
 
-    private var partitionedResults: (starred: [PickerModelItem], models: [PickerModelItem]) {
-        ProviderStore.partitionForModelPicker(
+    private var allResults: [PickerModelItem] {
+        ProviderStore.sortedForModelPicker(
             filteredItems,
             isFiltering: isFiltering,
             isStarred: { item in
@@ -57,11 +57,6 @@ struct ModelPickerSheet: View {
                 providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
             }
         )
-    }
-
-    private var totalVisibleCount: Int {
-        let parts = partitionedResults
-        return parts.starred.count + parts.models.count
     }
 
     private var emptyFilterMessage: String {
@@ -82,7 +77,7 @@ struct ModelPickerSheet: View {
     }
 
     private var isInitialLoading: Bool {
-        providerStore.isLoadingModels && totalVisibleCount == 0
+        providerStore.isLoadingModels && allResults.isEmpty
     }
 
     private var fetchErrors: [(providerName: String, message: String)] {
@@ -113,7 +108,7 @@ struct ModelPickerSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                } else if !fetchErrors.isEmpty, totalVisibleCount == 0 {
+                } else if !fetchErrors.isEmpty, allResults.isEmpty {
                     Section {
                         ForEach(fetchErrors, id: \.providerName) { error in
                             VStack(alignment: .leading, spacing: 4) {
@@ -129,40 +124,18 @@ struct ModelPickerSheet: View {
                     }
                 }
 
-                let parts = partitionedResults
-
-                if totalVisibleCount == 0, !isInitialLoading {
-                    Section {
+                Section {
+                    if allResults.isEmpty, !isInitialLoading {
                         Text(emptyFilterMessage)
                             .foregroundStyle(.secondary)
-                    }
-                } else {
-                    if !parts.starred.isEmpty {
-                        Section {
-                            ForEach(parts.starred) { item in
-                                modelRow(item)
-                            }
-                        } header: {
-                            Text("Starred")
-                        } footer: {
-                            if parts.models.isEmpty {
-                                Text("\(totalVisibleCount) models")
-                            }
+                    } else {
+                        ForEach(allResults) { item in
+                            modelRow(item)
                         }
                     }
-
-                    if !parts.models.isEmpty {
-                        Section {
-                            ForEach(parts.models) { item in
-                                modelRow(item)
-                            }
-                        } header: {
-                            if !parts.starred.isEmpty {
-                                Text("Models")
-                            }
-                        } footer: {
-                            Text("\(totalVisibleCount) models")
-                        }
+                } footer: {
+                    if !allResults.isEmpty {
+                        Text("\(allResults.count) models")
                     }
                 }
             }
