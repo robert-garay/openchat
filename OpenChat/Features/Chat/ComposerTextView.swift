@@ -11,6 +11,7 @@ struct ComposerTextView: UIViewRepresentable {
     var minHeight: CGFloat = 22
     /// ~5–6 body lines (similar to the old `TextField` `.lineLimit(1...6)`).
     var maxHeight: CGFloat = 120
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -52,6 +53,11 @@ struct ComposerTextView: UIViewRepresentable {
     }
 
     func updateUIView(_ textView: UITextView, context: Context) {
+        textView.isEditable = isEnabled
+        textView.textColor = isEnabled ? .label : .secondaryLabel
+        if !isEnabled {
+            textView.resignFirstResponder()
+        }
         context.coordinator.parent = self
         if textView.text != text {
             let selected = textView.selectedRange
