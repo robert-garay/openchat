@@ -50,7 +50,6 @@ struct MessageComposerView: View {
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
-    @State private var showingCompactConfirmation = false
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     #endif
@@ -109,19 +108,6 @@ struct MessageComposerView: View {
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
-        .confirmationDialog(
-            "Compact conversation?",
-            isPresented: $showingCompactConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Compact", role: .destructive) {
-                onCompact?()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Older messages will be summarized into context. Your most recent messages stay as-is in the chat.")
-        }
-
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
@@ -343,7 +329,7 @@ struct MessageComposerView: View {
             Menu {
                 Button(role: .destructive) {
                     Haptics.light()
-                    showingCompactConfirmation = true
+                    onCompact?()
                 } label: {
                     Label("Compact conversation", systemImage: "arrow.triangle.2.circlepath")
                 }
