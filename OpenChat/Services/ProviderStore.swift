@@ -234,11 +234,13 @@ final class ProviderStore {
 
     func toggleStarredModel(providerID: String, modelID: String) {
         let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
-        if starredModelKeys.contains(key) {
-            starredModelKeys.remove(key)
+        var next = starredModelKeys
+        if next.contains(key) {
+            next.remove(key)
         } else {
-            starredModelKeys.insert(key)
+            next.insert(key)
         }
+        starredModelKeys = next
         persistStarredModels()
     }
 
