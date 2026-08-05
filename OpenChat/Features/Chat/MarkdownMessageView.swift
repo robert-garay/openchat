@@ -110,6 +110,9 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         textView.adjustsFontForContentSizeCategory = true
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.required, for: .vertical)
+        if #available(iOS 18.1, *) {
+            textView.writingToolsBehavior = .none
+        }
         return textView
     }
 
