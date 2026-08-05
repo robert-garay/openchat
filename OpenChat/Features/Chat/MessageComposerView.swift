@@ -39,7 +39,6 @@ struct MessageComposerView: View {
     /// When true, rules chip uses accent (conversation has a non-empty system prompt).
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
-    var onOpenChatRules: (() -> Void)? = nil
     var skills: [SkillMatchable] = []
     let onSend: () -> Void
     let onStop: () -> Void
@@ -50,6 +49,7 @@ struct MessageComposerView: View {
     @State private var showingCamera = false
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingWebSearchPicker = false
+    @State private var showingChatRules = false
     @State private var showingCompactConfirmation = false
     @State private var showingNotEnoughMessagesAlert = false
     #if canImport(UIKit)
@@ -109,21 +109,6 @@ struct MessageComposerView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
-        }
-        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
-            WebSearchProviderPicker(
-                providers: webSearchProviders,
-                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
-                onSelect: { provider in
-                    showingWebSearchPicker = false
-                    onSelectWebSearchProvider?(provider)
-                },
-                onDisable: {
-                    showingWebSearchPicker = false
-                    onDisableWebSearch?()
-                }
-            )
-            .presentationCompactAdaptation(.popover)
         }
         .confirmationDialog(
             "Compact conversation?",
@@ -252,6 +237,21 @@ struct MessageComposerView: View {
         )
         .animation(Theme.springFast, value: isWebSearchArmed)
         .animation(Theme.springFast, value: selectedWebSearchProvider)
+        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
+            WebSearchProviderPicker(
+                providers: webSearchProviders,
+                selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
+                onSelect: { provider in
+                    showingWebSearchPicker = false
+                    onSelectWebSearchProvider?(provider)
+                },
+                onDisable: {
+                    showingWebSearchPicker = false
+                    onDisableWebSearch?()
+                }
+            )
+            .presentationCompactAdaptation(.popover)
+        }
     }
 
     private var webSearchIcon: some View {
@@ -279,7 +279,7 @@ struct MessageComposerView: View {
     private var chatRulesButton: some View {
         Button {
             Haptics.light()
-            onOpenChatRules?()
+            showingChatRules = true
         } label: {
             Image(systemName: "text.alignleft")
                 .font(.system(size: 17, weight: .semibold))
@@ -294,6 +294,10 @@ struct MessageComposerView: View {
                 : "Add instructions for this conversation"
         )
         .animation(Theme.springFast, value: hasChatRules)
+        .popover(isPresented: $showingChatRules, arrowEdge: .bottom) {
+            ChatRulesSheet()
+                .presentationCompactAdaptation(.popover)
+        }
     }
 
     @ViewBuilder

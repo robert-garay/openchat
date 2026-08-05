@@ -49,8 +49,8 @@ private struct GhostBody: Shape {
         let left = rect.minX
         let right = rect.maxX
         let top = rect.minY
-        let flapTop = rect.maxY - h * 0.22
-        let flapTip = rect.maxY - h * 0.01
+        let flapTop = rect.maxY - h * 0.20
+        let flapTip = rect.maxY
         let span = right - left
         let radius = span * 0.5
         let domeCenterY = top + radius
