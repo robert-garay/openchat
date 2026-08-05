@@ -110,16 +110,12 @@ struct MessageBubbleView: View {
                 }
 
                 if let errorMessage = message.errorMessage {
-                    HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                        Text(errorMessage)
-                            .font(.caption)
+                    VStack(alignment: .leading, spacing: 10) {
+                        MarkdownMessageView(content: errorMessage, isUserMessage: false)
                         Button("Retry", action: onRetry)
-                            .font(.caption.weight(.semibold))
+                            .font(.subheadline.weight(.semibold))
+                            .buttonStyle(.bordered)
                     }
-                    .foregroundStyle(.red)
-                    .padding(.top, 2)
                 }
             }
             Spacer(minLength: 24)

@@ -542,7 +542,7 @@ final class ChatViewModel {
                 assistantMessage.isStreaming = false
             } catch {
                 assistantMessage.isStreaming = false
-                assistantMessage.errorMessage = error.localizedDescription
+                assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
             isStreaming = false
