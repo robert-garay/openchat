@@ -237,7 +237,7 @@ struct MessageComposerView: View {
         )
         .animation(Theme.springFast, value: isWebSearchArmed)
         .animation(Theme.springFast, value: selectedWebSearchProvider)
-        .popover(isPresented: $showingWebSearchPicker, arrowEdge: .bottom) {
+        .sheet(isPresented: $showingWebSearchPicker) {
             WebSearchProviderPicker(
                 providers: webSearchProviders,
                 selectedProvider: isWebSearchArmed ? selectedWebSearchProvider : nil,
@@ -250,7 +250,8 @@ struct MessageComposerView: View {
                     onDisableWebSearch?()
                 }
             )
-            .presentationCompactAdaptation(.popover)
+            .presentationDetents([.height(220)])
+            .presentationCornerRadius(24)
         }
     }
 
@@ -294,9 +295,10 @@ struct MessageComposerView: View {
                 : "Add instructions for this conversation"
         )
         .animation(Theme.springFast, value: hasChatRules)
-        .popover(isPresented: $showingChatRules, arrowEdge: .bottom) {
+        .sheet(isPresented: $showingChatRules) {
             ChatRulesSheet()
-                .presentationCompactAdaptation(.popover)
+                .presentationDetents([.height(340), .large])
+                .presentationCornerRadius(24)
         }
     }
 

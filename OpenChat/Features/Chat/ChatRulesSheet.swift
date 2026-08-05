@@ -57,8 +57,7 @@ struct ChatRulesSheet: View {
                 }
             }
         }
-        .frame(minWidth: 340, minHeight: 200)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(minWidth: 340)
         .sheet(isPresented: $showingAddRule) {
             RuleEditorSheet(title: "Add rule", initialText: "") { content in
                 do {
