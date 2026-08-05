@@ -41,28 +41,17 @@ enum CodeSyntaxHighlighter {
 
     // MARK: - Regex Cache
 
-    /// Thread-safe cache wrapping the mutable dictionary so the static
-    /// `regexCache` reference can be a `let` and satisfy Swift 6 concurrency
-    /// checks. `NSRegularExpression` instances are immutable.
-    private final class RegexCache: @unchecked Sendable {
-        private let lock = NSLock()
-        private var cache: [String: NSRegularExpression] = [:]
-
-        func regex(pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
-            let key = "\(pattern)|\(options.rawValue)"
-            lock.lock()
-            defer { lock.unlock() }
-            if let cached = cache[key] { return cached }
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
-            cache[key] = regex
-            return regex
-        }
-    }
-
-    private static let regexCache = RegexCache()
+    private static let regexCacheLock = NSLock()
+    private static var regexCache: [String: NSRegularExpression] = [:]
 
     private static func cachedRegex(pattern: String, options: NSRegularExpression.Options = []) -> NSRegularExpression? {
-        regexCache.regex(pattern: pattern, options: options)
+        let key = "\(pattern)|\(options.rawValue)"
+        regexCacheLock.lock()
+        defer { regexCacheLock.unlock() }
+        if let cached = regexCache[key] { return cached }
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
+        regexCache[key] = regex
+        return regex
     }
 
     // MARK: - Tokenization
