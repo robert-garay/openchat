@@ -190,11 +190,12 @@ struct ChatView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(conversation.sortedMessages) { message in
+                        let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
-                            providerTint: viewModel.currentProvider.map { Color(hex: $0.tint) } ?? .accentColor,
-                            providerSymbol: viewModel.currentProvider?.symbolName ?? "sparkles",
-                            providerLogoAssetName: viewModel.currentProvider?.logoAssetName,
+                            providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
+                            providerSymbol: messageProvider?.symbolName ?? "sparkles",
+                            providerLogoAssetName: messageProvider?.logoAssetName,
                             pendingCalendarActions: viewModel.pendingCalendarActionsByMessageID[message.id] ?? [],
                             calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
                             isApplyingCalendarActions: viewModel.isApplyingCalendarActions,

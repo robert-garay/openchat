@@ -17,6 +17,10 @@ final class ChatMessage {
     var createdAt: Date
     var isStreaming: Bool
     var errorMessage: String?
+    /// Provider that generated this assistant turn. Nil for user/system or legacy rows.
+    var providerID: String?
+    /// Model that generated this assistant turn. Nil for user/system or legacy rows.
+    var modelID: String?
     /// JSON-encoded `[ChatImageAttachment]` for multimodal user or assistant turns.
     var attachmentsData: Data?
     var conversation: Conversation?
@@ -47,6 +51,8 @@ final class ChatMessage {
         createdAt: Date = .now,
         isStreaming: Bool = false,
         errorMessage: String? = nil,
+        providerID: String? = nil,
+        modelID: String? = nil,
         imageAttachments: [ChatImageAttachment] = []
     ) {
         self.id = id
@@ -55,6 +61,8 @@ final class ChatMessage {
         self.createdAt = createdAt
         self.isStreaming = isStreaming
         self.errorMessage = errorMessage
+        self.providerID = providerID
+        self.modelID = modelID
         if imageAttachments.isEmpty {
             self.attachmentsData = nil
         } else {
