@@ -81,6 +81,15 @@ struct RootView: View {
             providerStore.seedModelUsageFromConversationsIfNeeded(
                 conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
             )
+            if let recent = conversations.first(where: { conversation in
+                providerStore.enabledProviders.contains(where: { $0.id == conversation.providerID })
+                    && providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID) != nil
+            }) {
+                providerStore.seedLastSelectedModelIfNeeded(
+                    providerID: recent.providerID,
+                    modelID: recent.modelID
+                )
+            }
         }
         .onChange(of: selectedConversationID) { previousID, _ in
             discardEphemeralChat(id: previousID)
@@ -99,10 +108,9 @@ struct RootView: View {
            providerStore.model(providerID: source.providerID, modelID: source.modelID) != nil {
             providerID = source.providerID
             modelID = source.modelID
-        } else if let provider = providerStore.enabledProviders.first,
-                  let model = provider.models.first {
-            providerID = provider.id
-            modelID = model.id
+        } else if let choice = providerStore.defaultModelForNewChat() {
+            providerID = choice.providerID
+            modelID = choice.modelID
         } else {
             return
         }
