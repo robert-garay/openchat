@@ -431,6 +431,9 @@ final class ChatViewModel {
         guard editingMessageID == message.id, !isStreaming else { return }
         let trimmed = newText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty || !message.imageAttachments.isEmpty else { return }
+        guard let provider = currentProvider, let model = currentModel else { return }
+        let apiKey = providerStore.apiKey(for: provider)
+        guard !provider.requiresAPIKey || apiKey != nil else { return }
 
         message.content = trimmed
 
@@ -440,6 +443,12 @@ final class ChatViewModel {
             modelContext.delete(trailing)
         }
         conversation.messages.removeAll { trailingIDs.contains($0.id) }
+
+        if let watermark = conversation.compactedThroughMessageID,
+           trailingIDs.contains(watermark) {
+            conversation.compactedThroughMessageID = nil
+            conversation.compactedSummary = ""
+        }
 
         conversation.updatedAt = .now
         editingMessageID = nil
