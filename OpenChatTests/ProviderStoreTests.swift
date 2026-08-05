@@ -183,7 +183,7 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.lastSelectedModel?.modelID, "gpt-4o")
     }
 
-    func testStarredModelsPersistAndPartitionOnlyWhenNotFiltering() {
+    func testStarredModelsPersistAndPinOnlyWhenNotFiltering() {
         store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
         store.toggleStarredModel(providerID: "anthropic", modelID: "claude-sonnet")
         XCTAssertTrue(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
@@ -192,7 +192,7 @@ final class ProviderStoreTests: XCTestCase {
         store.recordModelUsage(providerID: "openai", modelID: "unused")
 
         let items = ["unused", "claude-sonnet", "gpt-4o"]
-        let unfiltered = ProviderStore.partitionForModelPicker(
+        let unfiltered = ProviderStore.sortedForModelPicker(
             items,
             isFiltering: false,
             isCurrent: { _ in false },
@@ -203,10 +203,9 @@ final class ProviderStoreTests: XCTestCase {
                 id == "unused" ? 2 : 0
             }
         )
-        XCTAssertEqual(unfiltered.starred, ["claude-sonnet", "gpt-4o"])
-        XCTAssertEqual(unfiltered.models, ["unused"])
+        XCTAssertEqual(unfiltered, ["claude-sonnet", "gpt-4o", "unused"])
 
-        let filtered = ProviderStore.partitionForModelPicker(
+        let filtered = ProviderStore.sortedForModelPicker(
             items,
             isFiltering: true,
             isCurrent: { _ in false },
@@ -217,8 +216,7 @@ final class ProviderStoreTests: XCTestCase {
                 id == "unused" ? 2 : 0
             }
         )
-        XCTAssertTrue(filtered.starred.isEmpty)
-        XCTAssertEqual(filtered.models, ["unused", "claude-sonnet", "gpt-4o"])
+        XCTAssertEqual(filtered, ["unused", "claude-sonnet", "gpt-4o"])
 
         store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
         XCTAssertFalse(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
@@ -228,37 +226,25 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertFalse(reloaded.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
     }
 
-    func testCurrentSelectionLeadsItsPartition() {
+    func testCurrentSelectionAlwaysLeadsEvenWhenStarred() {
         let items = ["unused", "claude-sonnet", "gpt-4o", "selected"]
-        let unfiltered = ProviderStore.partitionForModelPicker(
+        let unfiltered = ProviderStore.sortedForModelPicker(
             items,
             isFiltering: false,
             isCurrent: { $0 == "selected" },
-            isStarred: { $0 == "gpt-4o" || $0 == "claude-sonnet" },
+            isStarred: { $0 == "gpt-4o" || $0 == "claude-sonnet" || $0 == "selected" },
             usageCount: { $0 == "unused" ? 2 : 0 }
         )
-        XCTAssertEqual(unfiltered.starred, ["claude-sonnet", "gpt-4o"])
-        XCTAssertEqual(unfiltered.models, ["selected", "unused"])
+        XCTAssertEqual(unfiltered, ["selected", "claude-sonnet", "gpt-4o", "unused"])
 
-        let starredCurrent = ProviderStore.partitionForModelPicker(
-            items,
-            isFiltering: false,
-            isCurrent: { $0 == "gpt-4o" },
-            isStarred: { $0 == "gpt-4o" || $0 == "claude-sonnet" },
-            usageCount: { $0 == "unused" ? 2 : 0 }
-        )
-        XCTAssertEqual(starredCurrent.starred, ["gpt-4o", "claude-sonnet"])
-        XCTAssertEqual(starredCurrent.models, ["unused"])
-
-        let filtered = ProviderStore.partitionForModelPicker(
+        let filtered = ProviderStore.sortedForModelPicker(
             items,
             isFiltering: true,
             isCurrent: { $0 == "selected" },
             isStarred: { $0 == "gpt-4o" },
             usageCount: { $0 == "unused" ? 2 : 0 }
         )
-        XCTAssertTrue(filtered.starred.isEmpty)
-        XCTAssertEqual(filtered.models, ["selected", "unused", "claude-sonnet", "gpt-4o"])
+        XCTAssertEqual(filtered, ["selected", "unused", "claude-sonnet", "gpt-4o"])
     }
 
     func testLastSelectedModelPreservesSlashesInModelID() {
