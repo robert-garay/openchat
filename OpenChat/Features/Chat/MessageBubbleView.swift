@@ -17,6 +17,7 @@ struct MessageBubbleView: View {
     var memoryActionStatus: String? = nil
     var onConfirmMemoryProposals: (() -> Void)? = nil
     var onDismissMemoryProposals: (() -> Void)? = nil
+    var isLastMessage: Bool = false
     let onRetry: () -> Void
 
     #if canImport(UIKit)
@@ -85,7 +86,12 @@ struct MessageBubbleView: View {
 
                 #if canImport(UIKit)
                 if !displayContent.isEmpty {
-                    CopyChip(content: message.content)
+                    HStack(spacing: 4) {
+                        CopyChip(content: message.content)
+                        if isLastMessage && !message.isStreaming {
+                            RegenerateChip(action: onRetry)
+                        }
+                    }
                 }
                 #endif
 
@@ -220,6 +226,25 @@ private struct CopyChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Copy message")
+    }
+}
+
+private struct RegenerateChip: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            action()
+        } label: {
+            Image(systemName: "arrow.clockwise")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Regenerate response")
     }
 }
 #endif
