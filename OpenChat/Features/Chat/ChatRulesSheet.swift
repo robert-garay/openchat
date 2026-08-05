@@ -6,7 +6,7 @@ struct ChatRulesSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(RulesStore.self) private var rulesStore
-    @Query(sort: [SortDescriptor(\.updatedAt, order: .reverse)]) private var items: [RuleItem]
+    @Query(sort: [SortDescriptor(\RuleItem.updatedAt, order: .reverse)]) private var items: [RuleItem]
 
     @State private var showingAddRule = false
     @State private var editingItem: RuleItem?
