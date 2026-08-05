@@ -6,7 +6,7 @@ struct ChatRulesSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(RulesStore.self) private var rulesStore
-    @Query(sort: [SortDescriptor(\.RuleItem.updatedAt, order: .reverse)]) private var items: [RuleItem]
+    @Query(sort: [SortDescriptor(\.updatedAt, order: .reverse)]) private var items: [RuleItem]
 
     @State private var showingAddRule = false
     @State private var editingItem: RuleItem?
@@ -19,9 +19,11 @@ struct ChatRulesSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Instructions for this chat") {
+                Section {
                     TextEditor(text: $conversation.systemPrompt)
                         .frame(minHeight: 80)
+                } header: {
+                    Text("Instructions for this chat")
                 } footer: {
                     if conversation.isTemporary {
                         Text("Rules apply to this session only and won't persist after you leave this chat.")
