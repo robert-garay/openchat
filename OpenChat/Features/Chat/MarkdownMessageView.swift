@@ -515,7 +515,7 @@ private struct SelectableText: UIViewRepresentable {
     let attributedString: AttributedString
     let foregroundColor: UIColor
     let linkColor: UIColor
-    let font: UIFont?
+    let font: UIFont? = nil
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -559,7 +559,7 @@ private struct SelectableText: UIViewRepresentable {
     private func applyInlinePresentationIntents(to mutable: NSMutableAttributedString) {
         let fullRange = NSRange(location: 0, length: mutable.length)
         mutable.enumerateAttribute(.inlinePresentationIntent, in: fullRange, options: []) { value, range, _ in
-            guard let intent = value as? NSInlinePresentationIntent else { return }
+            guard let intent = value as? InlinePresentationIntent else { return }
             let currentFont = mutable.attribute(.font, at: range.location, effectiveRange: nil) as? UIFont
                 ?? .preferredFont(forTextStyle: .body)
 
