@@ -95,64 +95,66 @@ struct ModelPickerSheet: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if isInitialLoading {
-                    Section {
-                        HStack(spacing: 10) {
-                            ProgressView()
-                            Text("Loading models…")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } else if !fetchErrors.isEmpty, allResults.isEmpty {
-                    Section {
-                        ForEach(fetchErrors, id: \.providerName) { error in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(error.providerName)
-                                    .font(.subheadline.weight(.semibold))
-                                Text(error.message)
+            ScrollViewReader { proxy in
+                List {
+                    if isInitialLoading {
+                        Section {
+                            HStack(spacing: 10) {
+                                ProgressView()
+                                Text("Loading models…")
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        Button("Try Again") {
-                            providerStore.refreshModelsIfNeeded(force: true)
-                        }
-                    }
-                }
-
-                Section {
-                    if allResults.isEmpty, !isInitialLoading {
-                        Text(emptyFilterMessage)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(allResults) { item in
-                            modelButton(item)
-                                .swipeActions(edge: .trailing) {
-                                    Button {
-                                        Haptics.light()
-                                        providerStore.toggleStarredModel(
-                                            providerID: item.providerID,
-                                            modelID: item.modelID
-                                        )
-                                    } label: {
-                                        let starred = providerStore.isModelStarred(
-                                            providerID: item.providerID,
-                                            modelID: item.modelID
-                                        )
-                                        Label(
-                                            starred ? "Unstar" : "Star",
-                                            systemImage: starred ? "star.slash.fill" : "star.fill"
-                                        )
-                                    }
-                                    .tint(.orange)
+                    } else if !fetchErrors.isEmpty, allResults.isEmpty {
+                        Section {
+                            ForEach(fetchErrors, id: \.providerName) { error in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(error.providerName)
+                                        .font(.subheadline.weight(.semibold))
+                                    Text(error.message)
+                                        .foregroundStyle(.secondary)
                                 }
+                            }
+                            Button("Try Again") {
+                                providerStore.refreshModelsIfNeeded(force: true)
+                            }
                         }
                     }
-                } footer: {
-                    if !allResults.isEmpty {
-                        Text("\(allResults.count) models")
+
+                    Section {
+                        if allResults.isEmpty, !isInitialLoading {
+                            Text(emptyFilterMessage)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(allResults) { item in
+                                modelButton(item)
+                                    .id(item.id)
+                                    .swipeActions(edge: .trailing) {
+                                        Button {
+                                            toggleStar(item, scrollProxy: proxy)
+                                        } label: {
+                                            Label(
+                                                providerStore.isModelStarred(
+                                                    providerID: item.providerID,
+                                                    modelID: item.modelID
+                                                ) ? "Unstar" : "Star",
+                                                systemImage: providerStore.isModelStarred(
+                                                    providerID: item.providerID,
+                                                    modelID: item.modelID
+                                                ) ? "star.slash.fill" : "star.fill"
+                                            )
+                                        }
+                                        .tint(.orange)
+                                    }
+                            }
+                        }
+                    } footer: {
+                        if !allResults.isEmpty {
+                            Text("\(allResults.count) models")
+                        }
                     }
                 }
+                .animation(Theme.springSmooth, value: providerStore.starredModelKeys)
             }
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
@@ -182,6 +184,32 @@ struct ModelPickerSheet: View {
         .presentationDetents([.medium, .large])
         .task {
             providerStore.refreshModelsIfNeeded()
+        }
+    }
+
+    /// Stars/unstars with a short settle so the swipe can close before rows glide.
+    private func toggleStar(_ item: PickerModelItem, scrollProxy: ScrollViewProxy) {
+        Haptics.light()
+        let providerID = item.providerID
+        let modelID = item.modelID
+        let itemID = item.id
+        let willReorder = !isFiltering
+        let starring = !providerStore.isModelStarred(providerID: providerID, modelID: modelID)
+
+        Task { @MainActor in
+            if willReorder {
+                // Swipe actions animate closed first; reordering on top of that feels jumpy.
+                try? await Task.sleep(for: .milliseconds(220))
+            }
+            withAnimation(Theme.springSmooth) {
+                providerStore.toggleStarredModel(providerID: providerID, modelID: modelID)
+            }
+            if willReorder, starring {
+                // Keep the starred row on-screen as it settles at the top.
+                withAnimation(Theme.springSmooth) {
+                    scrollProxy.scrollTo(itemID, anchor: .top)
+                }
+            }
         }
     }
 
@@ -251,6 +279,8 @@ struct ModelPickerSheet: View {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.orange)
                     .font(.caption)
+                    .symbolEffect(.bounce, value: isStarred)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
                     .accessibilityHidden(true)
             }
             if isCurrent {
@@ -259,6 +289,7 @@ struct ModelPickerSheet: View {
                     .fontWeight(.semibold)
             }
         }
+        .animation(Theme.springFast, value: isStarred)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             isStarred
