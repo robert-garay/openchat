@@ -70,26 +70,27 @@ struct ChatView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 0) {
-                    if conversation.messages.isEmpty {
-                        Button {
-                            Haptics.light()
-                            onToggleTemporary?()
-                        } label: {
-                            GhostIcon(size: 22, filled: conversation.isTemporary)
-                                .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                        }
-                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                    }
+            if conversation.messages.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Haptics.light()
-                        showingNewSkill = true
+                        onToggleTemporary?()
                     } label: {
-                        Image(systemName: "bolt.badge.plus")
-                            .accessibilityLabel("New Skill")
+                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Haptics.light()
+                    showingNewSkill = true
+                } label: {
+                    Image(systemName: "bolt.badge.plus")
+                        .accessibilityLabel("New Skill")
                 }
             }
         }
