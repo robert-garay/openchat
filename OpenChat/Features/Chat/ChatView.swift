@@ -42,7 +42,9 @@ struct ChatView: View {
                     conversation: conversation,
                     onSend: {
                         stickToBottom = true
-                        viewModel.send()
+                        let text = viewModel.composerText
+                        viewModel.composerText = ""
+                        viewModel.send(text: text)
                     }
                 )
             }
@@ -154,6 +156,9 @@ struct ChatView: View {
                 )
             }
         }
+        .onDisappear {
+            viewModel?.cancelStreaming()
+        }
     }
 }
 
@@ -225,6 +230,7 @@ private struct ChatMessageListView: View {
                         let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
+                            isStreaming: message.isStreaming,
                             providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: messageProvider?.symbolName ?? "sparkles",
                             providerLogoAssetName: messageProvider?.logoAssetName,
@@ -452,7 +458,7 @@ private struct TemporaryChatBanner: View {
         VStack(spacing: 4) {
             Text("Temporary Chat")
                 .font(.subheadline.weight(.semibold))
-            Text("This chat won’t appear in history.")
+            Text("This chat won't appear in history.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

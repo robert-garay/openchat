@@ -329,8 +329,8 @@ final class ChatViewModel {
         Haptics.light()
     }
 
-    func send() {
-        let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+    func send(text: String) {
+        let rawText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
         guard (!rawText.isEmpty || !images.isEmpty), !isStreaming else { return }
 
@@ -341,30 +341,30 @@ final class ChatViewModel {
 
         let skills = fetchSkillMatches()
         let resolution = SkillResolver.resolve(text: rawText, skills: skills)
-        let text = resolution?.storedMessage ?? rawText
+        let resolvedText = resolution?.storedMessage ?? rawText
         pendingSkillSystemBlock = resolution.map { SkillResolver.systemBlock(for: $0.skill) }
-        guard !text.isEmpty || !images.isEmpty || resolution != nil else {
+        guard !resolvedText.isEmpty || !images.isEmpty || resolution != nil else {
             pendingSkillSystemBlock = nil
             return
         }
 
-        composerText = ""
         pendingAttachments = []
 
-        let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images)
+        let userMessage = ChatMessage(role: .user, content: resolvedText, imageAttachments: images)
         userMessage.conversation = conversation
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
+        conversation.updateDenormalizedPreview()
 
         let isFirstUserMessage = conversation.messages.filter { $0.role == .user }.count == 1
         if isFirstUserMessage, !conversation.isTemporary, !conversation.hasCustomTitle {
             let provisional = ConversationTitleGenerator.fallbackTitle(
-                for: text,
+                for: resolvedText,
                 hasImages: !images.isEmpty
             )
             conversation.title = provisional
-            if !text.isEmpty {
-                requestTitleGeneration(from: text, provisionalTitle: provisional)
+            if !resolvedText.isEmpty {
+                requestTitleGeneration(from: resolvedText, provisionalTitle: provisional)
             }
         }
         conversation.updatedAt = .now
@@ -466,45 +466,27 @@ final class ChatViewModel {
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
+                // Build context concurrently so the network request can start ASAP.
+                async let memoryTask: String? = buildMemoryContext()
+                async let agentContextTask: String? = buildAgentContext(skillSystemBlock: skillSystemBlock)
+                async let searchTask: (injected: String?, toolPrompt: String?, tools: [ChatToolDefinition]) = buildSearchContext(
+                    searchMode: searchMode,
+                    searchAPIKey: searchAPIKey,
+                    searchClient: searchClient,
+                    latestUserText: latestUserText,
+                    searchProviderName: searchProviderName
+                )
+
                 var middleSections: [String] = []
-
-                if shouldUseMemory {
-                    let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
-                    let injectionItems = memoryStore.injectionItems(from: items)
-                    if let memorySection = MemoryStore.contextSection(for: injectionItems) {
-                        middleSections.append(memorySection)
-                    }
-                    middleSections.append(MemoryStore.modelInstruction())
+                if let memorySection = await memoryTask {
+                    middleSections.append(memorySection)
                 }
-
-                if let skillSystemBlock, !skillSystemBlock.isEmpty {
-                    middleSections.append(skillSystemBlock)
+                if let agentSection = await agentContextTask {
+                    middleSections.append(agentSection)
                 }
-
-                dataSourceStore.refreshAuthorizationStatuses()
-                if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    middleSections.append(agentContext)
-                }
-
-                var tools: [ChatToolDefinition] = []
-                var webSearchToolPrompt: String?
-                if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
-                    do {
-                        let injected = try await WebSearchService.makeInjectedContext(
-                            query: latestUserText,
-                            apiKey: searchAPIKey,
-                            client: searchClient
-                        )
-                        middleSections.append(injected)
-                    } catch {
-                        middleSections.append(
-                            "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
-                        )
-                    }
-                } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
-                    tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-                    webSearchToolPrompt =
-                        "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
+                let searchResult = await searchTask
+                if let injected = searchResult.injected {
+                    middleSections.append(injected)
                 }
 
                 rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
@@ -530,7 +512,7 @@ final class ChatViewModel {
                     globalRules: globalRulesText,
                     chatRules: chatRulesText,
                     middleSections: middleSections,
-                    webSearchToolPrompt: webSearchToolPrompt
+                    webSearchToolPrompt: searchResult.toolPrompt
                 )
 
                 var turns: [ChatTurn] = []
@@ -550,35 +532,119 @@ final class ChatViewModel {
                     )
                 }
 
+                // Coalesce deltas to avoid mutating SwiftData on every token.
+                var contentBuffer = ""
+                var lastFlush = ContinuousClock().now
+                let flushInterval: Duration = .milliseconds(80)
+
                 for try await event in client.streamReply(
                     turns: turns,
                     model: modelID,
                     baseURL: baseURL,
                     apiKey: apiKey,
-                    tools: tools,
+                    tools: searchResult.tools,
                     executeTool: executeTool,
                     supportsImageGen: supportsImageGen
                 ) {
                     switch event {
                     case .text(let delta):
-                        assistantMessage.content += delta
+                        contentBuffer += delta
+                        let now = ContinuousClock().now
+                        if now >= lastFlush + flushInterval {
+                            assistantMessage.content += contentBuffer
+                            contentBuffer = ""
+                            lastFlush = now
+                        }
                     case .images(let images):
                         var existing = assistantMessage.imageAttachments
                         existing.append(contentsOf: images)
                         assistantMessage.imageAttachments = existing
                     }
                 }
+
+                // Flush any remaining buffered content.
+                if !contentBuffer.isEmpty {
+                    assistantMessage.content += contentBuffer
+                }
+
                 assistantMessage.isStreaming = false
+                conversation.updateDenormalizedPreview()
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
+                // Drop empty assistant bubbles so cancel never looks like a failure.
+                if assistantMessage.content.isEmpty, assistantMessage.imageAttachments.isEmpty {
+                    modelContext.delete(assistantMessage)
+                    conversation.messages.removeAll { $0.id == assistantMessage.id }
+                }
             } catch {
                 assistantMessage.isStreaming = false
                 assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
             isStreaming = false
+            try? modelContext.save()
+        }
+    }
+
+    private func buildMemoryContext() async -> String? {
+        guard shouldUseMemory else { return nil }
+        let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
+        let injectionItems = memoryStore.injectionItems(from: items)
+        var parts: [String] = []
+        if let memorySection = MemoryStore.contextSection(for: injectionItems) {
+            parts.append(memorySection)
+        }
+        parts.append(MemoryStore.modelInstruction())
+        return parts.joined(separator: "\n\n")
+    }
+
+    private func buildAgentContext(skillSystemBlock: String?) async -> String? {
+        var sections: [String] = []
+        if let skillSystemBlock, !skillSystemBlock.isEmpty {
+            sections.append(skillSystemBlock)
+        }
+        dataSourceStore.refreshAuthorizationStatuses()
+        if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+            sections.append(agentContext)
+        }
+        guard !sections.isEmpty else { return nil }
+        return sections.joined(separator: "\n\n")
+    }
+
+    private func buildSearchContext(
+        searchMode: WebSearchMode?,
+        searchAPIKey: String?,
+        searchClient: (any WebSearchClient)?,
+        latestUserText: String,
+        searchProviderName: String
+    ) async -> (injected: String?, toolPrompt: String?, tools: [ChatToolDefinition]) {
+        guard let searchMode else {
+            return (nil, nil, [])
+        }
+        switch searchMode {
+        case .inject:
+            guard let searchAPIKey, let searchClient, !latestUserText.isEmpty else {
+                return (nil, nil, [])
+            }
+            do {
+                let injected = try await WebSearchService.makeInjectedContext(
+                    query: latestUserText,
+                    apiKey: searchAPIKey,
+                    client: searchClient
+                )
+                return (injected, nil, [])
+            } catch {
+                let fallback = "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
+                return (fallback, nil, [])
+            }
+        case .toolCalling:
+            guard searchAPIKey != nil, searchClient != nil else {
+                return (nil, nil, [])
+            }
+            let prompt = "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
+            return (nil, prompt, [WebSearchService.toolDefinition(providerName: searchProviderName)])
         }
     }
 
