@@ -39,6 +39,7 @@ struct ChatView: View {
                     hasChatRules: !conversation.systemPrompt
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                         .isEmpty,
+                    canUseChatRules: rulesStore.useChatRules,
                     onOpenChatRules: {
                         showingChatRules = true
                     },
@@ -82,9 +83,11 @@ struct ChatView: View {
                         } label: {
                             GhostIcon(size: 17, filled: conversation.isTemporary)
                                 .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                                .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                                .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                                .frame(width: 34, height: 34)
+                                .contentShape(Rectangle())
                         }
+                        .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                        .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                     }
 
                     Button {
@@ -179,6 +182,7 @@ private struct ChatComposerHost: View {
     @Bindable var viewModel: ChatViewModel
     let skills: [Skill]
     var hasChatRules: Bool = false
+    var canUseChatRules: Bool = true
     var onOpenChatRules: (() -> Void)? = nil
     let onSend: () -> Void
 
@@ -204,6 +208,7 @@ private struct ChatComposerHost: View {
             isCompacting: viewModel.isCompacting,
             onCompact: viewModel.compactConversation,
             hasChatRules: hasChatRules,
+            canUseChatRules: canUseChatRules,
             onOpenChatRules: onOpenChatRules,
             skills: skills.map(SkillMatchable.init(skill:)),
             onSend: onSend,
