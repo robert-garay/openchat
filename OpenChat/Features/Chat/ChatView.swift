@@ -84,7 +84,6 @@ struct ChatView: View {
                     .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
             }
-            }
         }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
