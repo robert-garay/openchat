@@ -39,32 +39,6 @@ enum CodeSyntaxHighlighter {
         }
     }
 
-    // MARK: - Regex Cache
-
-    /// Thread-safe cache wrapping the mutable dictionary so the static
-    /// `regexCache` reference can be a `let` and satisfy Swift 6 concurrency
-    /// checks. `NSRegularExpression` instances are immutable.
-    private final class RegexCache: @unchecked Sendable {
-        private let lock = NSLock()
-        private var cache: [String: NSRegularExpression] = [:]
-
-        func regex(pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
-            let key = "\(pattern)|\(options.rawValue)"
-            lock.lock()
-            defer { lock.unlock() }
-            if let cached = cache[key] { return cached }
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
-            cache[key] = regex
-            return regex
-        }
-    }
-
-    private static let regexCache = RegexCache()
-
-    private static func cachedRegex(pattern: String, options: NSRegularExpression.Options = []) -> NSRegularExpression? {
-        regexCache.regex(pattern: pattern, options: options)
-    }
-
     // MARK: - Tokenization
 
     private struct Span {
@@ -89,26 +63,26 @@ enum CodeSyntaxHighlighter {
 
         // Comments first so keywords inside them stay muted.
         if let pattern = profile.blockCommentPattern,
-           let regex = cachedRegex(pattern: pattern) {
+           let regex = try? NSRegularExpression(pattern: pattern) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .comment)
             }
         }
         if let pattern = profile.lineCommentPattern,
-           let regex = cachedRegex(pattern: pattern) {
+           let regex = try? NSRegularExpression(pattern: pattern) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .comment)
             }
         }
 
         for pattern in profile.stringPatterns {
-            guard let regex = cachedRegex(pattern: pattern) else { continue }
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .string)
             }
         }
 
-        if let regex = cachedRegex(pattern: #"\b\d+(\.\d+)?([eE][+-]?\d+)?\b"#) {
+        if let regex = try? NSRegularExpression(pattern: #"\b\d+(\.\d+)?([eE][+-]?\d+)?\b"#) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .number)
             }
@@ -120,7 +94,7 @@ enum CodeSyntaxHighlighter {
                 .map(NSRegularExpression.escapedPattern(for:))
                 .joined(separator: "|")
             let options: NSRegularExpression.Options = profile.caseInsensitiveKeywords ? .caseInsensitive : []
-            if let regex = cachedRegex(pattern: "\\b(?:\(alternation))\\b", options: options) {
+            if let regex = try? NSRegularExpression(pattern: "\\b(?:\(alternation))\\b", options: options) {
                 for match in regex.matches(in: code, range: full) {
                     claim(match.range, as: .keyword)
                 }
@@ -133,7 +107,7 @@ enum CodeSyntaxHighlighter {
                 .map(NSRegularExpression.escapedPattern(for:))
                 .joined(separator: "|")
             let options: NSRegularExpression.Options = profile.caseInsensitiveKeywords ? .caseInsensitive : []
-            if let regex = cachedRegex(pattern: "\\b(?:\(alternation))\\b", options: options) {
+            if let regex = try? NSRegularExpression(pattern: "\\b(?:\(alternation))\\b", options: options) {
                 for match in regex.matches(in: code, range: full) {
                     claim(match.range, as: .typeName)
                 }
@@ -142,7 +116,7 @@ enum CodeSyntaxHighlighter {
 
         // Capitalized identifiers often denote types in Swift/Kotlin/Java/Go/Rust.
         if profile.highlightCapitalizedTypes,
-           let regex = cachedRegex(pattern: #"\b[A-Z][A-Za-z0-9_]+\b"#) {
+           let regex = try? NSRegularExpression(pattern: #"\b[A-Z][A-Za-z0-9_]+\b"#) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .typeName)
             }
