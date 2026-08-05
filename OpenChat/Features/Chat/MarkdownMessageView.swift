@@ -122,7 +122,9 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             if index > 0 {
                 mutable.append(NSAttributedString(string: "\n"))
             }
-            mutable.append(attributedString(for: block))
+            let isFirst = index == 0
+            let isLast = index == blocks.count - 1
+            mutable.append(attributedString(for: block, isFirstBlock: isFirst, isLastBlock: isLast))
         }
         textView.attributedText = mutable
         textView.linkTextAttributes = [
@@ -140,7 +142,11 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         return CGSize(width: width, height: fitting.height)
     }
 
-    private func attributedString(for block: MarkdownBlock) -> NSAttributedString {
+    private func attributedString(
+        for block: MarkdownBlock,
+        isFirstBlock: Bool,
+        isLastBlock: Bool
+    ) -> NSAttributedString {
         switch block {
         case .heading(let level, let text):
             let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: text))
@@ -148,6 +154,11 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
             applyFont(mutable, font: headingUIFont(level, weight: level <= 2 ? .bold : .semibold))
             applyInlinePresentationIntents(to: mutable)
+            applyParagraphSpacing(
+                mutable,
+                before: isFirstBlock ? 0 : (level == 1 ? 4 : 2),
+                after: isLastBlock ? 0 : 10
+            )
             return mutable
 
         case .paragraph(let text):
@@ -156,6 +167,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
             applyFont(mutable, font: .preferredFont(forTextStyle: .body))
             applyInlinePresentationIntents(to: mutable)
+            applyParagraphSpacing(mutable, before: 0, after: isLastBlock ? 0 : 10)
             return mutable
 
         case .unorderedList(let items):
@@ -164,6 +176,8 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
                 if index > 0 {
                     result.append(NSAttributedString(string: "\n"))
                 }
+                let isLastItem = index == items.count - 1
+                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
                 let bullet = NSAttributedString(string: "• ", attributes: [
                     .font: UIFont.preferredFont(forTextStyle: .body),
                     .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
@@ -174,6 +188,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
                 applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
                 applyFont(mutable, font: .preferredFont(forTextStyle: .body))
                 applyInlinePresentationIntents(to: mutable)
+                applyParagraphSpacing(mutable, before: 0, after: spacingAfter)
                 result.append(mutable)
             }
             return result
@@ -184,6 +199,8 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
                 if index > 0 {
                     result.append(NSAttributedString(string: "\n"))
                 }
+                let isLastItem = index == items.count - 1
+                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
                 let number = NSAttributedString(string: "\(index + 1). ", attributes: [
                     .font: UIFont.preferredFont(forTextStyle: .body),
                     .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
@@ -194,6 +211,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
                 applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
                 applyFont(mutable, font: .preferredFont(forTextStyle: .body))
                 applyInlinePresentationIntents(to: mutable)
+                applyParagraphSpacing(mutable, before: 0, after: spacingAfter)
                 result.append(mutable)
             }
             return result
@@ -204,6 +222,11 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyForegroundColor(mutable, color: isUserMessage ? UIColor.white.withAlphaComponent(0.9) : UIColor.secondaryLabel)
             applyFont(mutable, font: .italicBody)
             applyInlinePresentationIntents(to: mutable)
+            applyParagraphSpacing(
+                mutable,
+                before: isFirstBlock ? 0 : 2,
+                after: isLastBlock ? 0 : 10
+            )
             return mutable
 
         case .code, .table, .thematicBreak:
@@ -221,6 +244,15 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         let fullRange = NSRange(location: 0, length: mutable.length)
         guard fullRange.length > 0 else { return }
         mutable.addAttribute(.font, value: font, range: fullRange)
+    }
+
+    private func applyParagraphSpacing(_ mutable: NSMutableAttributedString, before: CGFloat, after: CGFloat) {
+        let fullRange = NSRange(location: 0, length: mutable.length)
+        guard fullRange.length > 0 else { return }
+        let style = NSMutableParagraphStyle()
+        style.paragraphSpacingBefore = before
+        style.paragraphSpacing = after
+        mutable.addAttribute(.paragraphStyle, value: style, range: fullRange)
     }
 
     private func applyInlinePresentationIntents(to mutable: NSMutableAttributedString) {
