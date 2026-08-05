@@ -22,6 +22,7 @@ struct MessageBubbleView: View {
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
+    @State private var showingTextSelection = false
     #endif
 
     var body: some View {
@@ -40,6 +41,9 @@ struct MessageBubbleView: View {
             if let uiImage = UIImage(data: attachment.data) {
                 ImagePreviewView(image: uiImage)
             }
+        }
+        .sheet(isPresented: $showingTextSelection) {
+            TextSelectionSheet(text: displayContent)
         }
         #endif
     }
@@ -88,6 +92,7 @@ struct MessageBubbleView: View {
                 if !displayContent.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
+                        SelectChip(isPresented: $showingTextSelection)
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
                         }
@@ -245,6 +250,65 @@ private struct RegenerateChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Regenerate response")
+    }
+}
+
+private struct SelectChip: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            isPresented = true
+        } label: {
+            Image(systemName: "text.cursor")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Select text")
+    }
+}
+
+private struct TextSelectionSheet: View {
+    let text: String
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            PlainTextSelectionView(text: text)
+                .navigationTitle("Select Text")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                }
+        }
+    }
+}
+
+private struct PlainTextSelectionView: UIViewRepresentable {
+    let text: String
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.text = text
+        textView.font = .preferredFont(forTextStyle: .body)
+        textView.adjustsFontForContentSizeCategory = true
+        textView.backgroundColor = .clear
+        if #available(iOS 18.1, *) {
+            textView.writingToolsBehavior = .none
+        }
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        textView.text = text
     }
 }
 #endif

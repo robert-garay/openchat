@@ -80,9 +80,9 @@ private enum BlockGroup {
 private extension MarkdownBlock {
     var isTextBlock: Bool {
         switch self {
-        case .heading, .paragraph, .unorderedList, .orderedList, .blockquote, .table, .thematicBreak:
+        case .heading, .paragraph, .unorderedList, .orderedList, .blockquote:
             return true
-        case .code:
+        case .code, .table, .thematicBreak:
             return false
         }
     }
@@ -206,58 +206,9 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyInlinePresentationIntents(to: mutable)
             return mutable
 
-        case .thematicBreak:
-            return NSAttributedString(
-                string: "———",
-                attributes: [
-                    .font: UIFont.preferredFont(forTextStyle: .body),
-                    .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.5) : UIColor.secondaryLabel,
-                ]
-            )
-
-        case .table(let table):
-            return attributedString(for: table)
-
-        case .code:
+        case .code, .table, .thematicBreak:
             return NSAttributedString()
         }
-    }
-
-    private func attributedString(for table: MarkdownTable) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let columnCount = table.headers.count
-        guard columnCount > 0 else { return result }
-
-        let baseFont = UIFont.preferredFont(forTextStyle: .body)
-        let headerColor: UIColor = isUserMessage ? .white : .label
-        let cellColor: UIColor = isUserMessage ? .white : .label
-        let separatorColor: UIColor = isUserMessage ? .white.withAlphaComponent(0.5) : .secondaryLabel
-
-        func appendRow(_ cells: [String], color: UIColor, weight: UIFont.Weight) {
-            let rowFont = UIFont.systemFont(ofSize: baseFont.pointSize, weight: weight)
-            let rowString = "| " + cells.joined(separator: " | ") + " |"
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: rowFont,
-                .foregroundColor: color,
-            ]
-            result.append(NSAttributedString(string: rowString, attributes: attrs))
-        }
-
-        appendRow(table.headers, color: headerColor, weight: .semibold)
-        result.append(NSAttributedString(string: "\n"))
-
-        let separator = "| " + Array(repeating: "---", count: columnCount).joined(separator: " | ") + " |"
-        result.append(NSAttributedString(string: separator, attributes: [
-            .font: baseFont,
-            .foregroundColor: separatorColor,
-        ]))
-
-        for row in table.rows {
-            result.append(NSAttributedString(string: "\n"))
-            appendRow(row, color: cellColor, weight: .regular)
-        }
-
-        return result
     }
 
     private func applyForegroundColor(_ mutable: NSMutableAttributedString, color: UIColor) {
