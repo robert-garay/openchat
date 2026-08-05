@@ -56,6 +56,16 @@ final class Conversation {
         messages.contains { $0.role == .user }
     }
 
+    /// Messages strictly after `message` in conversation order.
+    /// Empty if `message` is the last message or isn't found.
+    func messages(after message: ChatMessage) -> [ChatMessage] {
+        let sorted = sortedMessages
+        guard let index = sorted.firstIndex(where: { $0.id == message.id }) else { return [] }
+        let next = sorted.index(after: index)
+        guard next < sorted.endIndex else { return [] }
+        return Array(sorted[next...])
+    }
+
     /// Toggle temporary mode on the same chat (avoids recreate/selection races).
     func toggleTemporaryMode() {
         isTemporary.toggle()
