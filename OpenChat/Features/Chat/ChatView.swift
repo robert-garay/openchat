@@ -197,6 +197,7 @@ private struct ChatComposerHost: View {
             onSend: onSend,
             onStop: viewModel.cancelStreaming
         )
+        .disabled(viewModel.editingMessageID != nil)
     }
 }
 
@@ -246,7 +247,18 @@ private struct ChatMessageListView: View {
                                 viewModel.dismissMemoryProposals(for: message.id)
                             },
                             isLastMessage: message.id == lastMessageID,
-                            onRetry: viewModel.regenerateLastReply
+                            onRetry: viewModel.regenerateLastReply,
+                            isEditing: viewModel.editingMessageID == message.id,
+                            canEdit: !viewModel.isStreaming,
+                            onBeginEdit: {
+                                viewModel.beginEditing(message)
+                            },
+                            onCancelEdit: {
+                                viewModel.cancelEditing()
+                            },
+                            onSaveEdit: { newText in
+                                viewModel.saveEdit(message, newText: newText)
+                            }
                         )
                         .id(message.id)
                     }
