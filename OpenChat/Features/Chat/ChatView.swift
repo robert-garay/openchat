@@ -13,6 +13,7 @@ struct ChatView: View {
     @Environment(MemoryStore.self) private var memoryStore
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
+    @State private var composerText = ""
     @State private var showingModelPicker = false
     @State private var showingChatRules = false
     @State private var showingNewSkill = false
@@ -26,7 +27,7 @@ struct ChatView: View {
             if let viewModel {
                 messageList(viewModel: viewModel)
                 MessageComposerView(
-                    text: Bindable(viewModel).composerText,
+                    text: $composerText,
                     attachments: Bindable(viewModel).pendingAttachments,
                     supportsVision: viewModel.supportsVision,
                     modelDisplayName: viewModel.currentModel?.displayName,
@@ -46,7 +47,10 @@ struct ChatView: View {
                     isCompacting: viewModel.isCompacting,
                     onCompact: viewModel.compactConversation,
                     skills: skills.map(SkillMatchable.init(skill:)),
-                    onSend: { viewModel.send() },
+                    onSend: {
+                        viewModel.send(text: composerText)
+                        composerText = ""
+                    },
                     onStop: viewModel.cancelStreaming
                 )
             }
@@ -178,6 +182,9 @@ struct ChatView: View {
                 )
             }
         }
+        .onDisappear {
+            viewModel?.cancelStreaming()
+        }
     }
 
     @ViewBuilder
@@ -188,6 +195,7 @@ struct ChatView: View {
                     ForEach(conversation.sortedMessages) { message in
                         MessageBubbleView(
                             message: message,
+                            isStreaming: message.isStreaming,
                             providerTint: viewModel.currentProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: viewModel.currentProvider?.symbolName ?? "sparkles",
                             providerLogoAssetName: viewModel.currentProvider?.logoAssetName,
@@ -219,10 +227,7 @@ struct ChatView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: conversation.messages.count) {
-                scrollToBottom(proxy: proxy)
-            }
-            .onChange(of: conversation.sortedMessages.last?.content) {
-                scrollToBottom(proxy: proxy)
+                throttledScrollToBottom(proxy: proxy)
             }
             .task(id: conversation.id) {
                 await Task.yield()
@@ -230,6 +235,17 @@ struct ChatView: View {
                 try? await Task.sleep(for: .milliseconds(50))
                 scrollToBottom(proxy: proxy, animated: false)
             }
+        }
+    }
+
+    @State private var scrollThrottleTask: Task<Void, Never>?
+
+    private func throttledScrollToBottom(proxy: ScrollViewProxy) {
+        scrollThrottleTask?.cancel()
+        scrollThrottleTask = Task {
+            try? await Task.sleep(for: .milliseconds(120))
+            guard !Task.isCancelled else { return }
+            scrollToBottom(proxy: proxy)
         }
     }
 

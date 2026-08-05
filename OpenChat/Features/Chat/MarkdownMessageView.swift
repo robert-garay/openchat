@@ -6,11 +6,21 @@ import UIKit
 struct MarkdownMessageView: View {
     let content: String
     let isUserMessage: Bool
+    var isStreaming: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(MarkdownContentParser.blocks(from: content).enumerated()), id: \.offset) { _, block in
-                blockView(block)
+        if isStreaming {
+            // Cheap plain-text path while tokens are arriving.
+            Text(content)
+                .font(.body)
+                .textSelection(.enabled)
+                .foregroundStyle(isUserMessage ? .white : .primary)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(MarkdownContentParser.blocks(from: content).enumerated()), id: \.offset) { _, block in
+                    blockView(block)
+                }
             }
         }
     }

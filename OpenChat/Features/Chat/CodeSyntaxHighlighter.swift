@@ -39,6 +39,18 @@ enum CodeSyntaxHighlighter {
         }
     }
 
+    // MARK: - Regex Cache
+
+    private static var regexCache: [String: NSRegularExpression] = [:]
+
+    private static func cachedRegex(pattern: String, options: NSRegularExpression.Options = []) -> NSRegularExpression? {
+        let key = "\(pattern)|\(options.rawValue)"
+        if let cached = regexCache[key] { return cached }
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
+        regexCache[key] = regex
+        return regex
+    }
+
     // MARK: - Tokenization
 
     private struct Span {
@@ -63,26 +75,26 @@ enum CodeSyntaxHighlighter {
 
         // Comments first so keywords inside them stay muted.
         if let pattern = profile.blockCommentPattern,
-           let regex = try? NSRegularExpression(pattern: pattern) {
+           let regex = cachedRegex(pattern: pattern) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .comment)
             }
         }
         if let pattern = profile.lineCommentPattern,
-           let regex = try? NSRegularExpression(pattern: pattern) {
+           let regex = cachedRegex(pattern: pattern) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .comment)
             }
         }
 
         for pattern in profile.stringPatterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+            guard let regex = cachedRegex(pattern: pattern) else { continue }
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .string)
             }
         }
 
-        if let regex = try? NSRegularExpression(pattern: #"\b\d+(\.\d+)?([eE][+-]?\d+)?\b"#) {
+        if let regex = cachedRegex(pattern: #"\b\d+(\.\d+)?([eE][+-]?\d+)?\b"#) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .number)
             }
@@ -94,7 +106,7 @@ enum CodeSyntaxHighlighter {
                 .map(NSRegularExpression.escapedPattern(for:))
                 .joined(separator: "|")
             let options: NSRegularExpression.Options = profile.caseInsensitiveKeywords ? .caseInsensitive : []
-            if let regex = try? NSRegularExpression(pattern: "\\b(?:\(alternation))\\b", options: options) {
+            if let regex = cachedRegex(pattern: "\\b(?:\(alternation))\\b", options: options) {
                 for match in regex.matches(in: code, range: full) {
                     claim(match.range, as: .keyword)
                 }
@@ -107,7 +119,7 @@ enum CodeSyntaxHighlighter {
                 .map(NSRegularExpression.escapedPattern(for:))
                 .joined(separator: "|")
             let options: NSRegularExpression.Options = profile.caseInsensitiveKeywords ? .caseInsensitive : []
-            if let regex = try? NSRegularExpression(pattern: "\\b(?:\(alternation))\\b", options: options) {
+            if let regex = cachedRegex(pattern: "\\b(?:\(alternation))\\b", options: options) {
                 for match in regex.matches(in: code, range: full) {
                     claim(match.range, as: .typeName)
                 }
@@ -116,7 +128,7 @@ enum CodeSyntaxHighlighter {
 
         // Capitalized identifiers often denote types in Swift/Kotlin/Java/Go/Rust.
         if profile.highlightCapitalizedTypes,
-           let regex = try? NSRegularExpression(pattern: #"\b[A-Z][A-Za-z0-9_]+\b"#) {
+           let regex = cachedRegex(pattern: #"\b[A-Z][A-Za-z0-9_]+\b"#) {
             for match in regex.matches(in: code, range: full) {
                 claim(match.range, as: .typeName)
             }

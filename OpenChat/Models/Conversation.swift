@@ -19,6 +19,8 @@ final class Conversation {
     var compactedSummary: String = ""
     /// Last message ID included in `compactedSummary`.
     var compactedThroughMessageID: UUID?
+    /// Denormalized preview so sidebar rows never have to sort messages.
+    var previewText: String = ""
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
@@ -46,11 +48,13 @@ final class Conversation {
     }
 
     var sortedMessages: [ChatMessage] {
-        messages.sorted { $0.createdAt < $1.createdAt }
-    }
-
-    var hasUserMessages: Bool {
-        messages.contains { $0.role == .user }
+        guard messages.count > 1 else { return messages }
+        for i in 1..<messages.count {
+            if messages[i].createdAt < messages[i - 1].createdAt {
+                return messages.sorted { $0.createdAt < $1.createdAt }
+            }
+        }
+        return messages
     }
 
     /// Toggle temporary mode on the same chat (avoids recreate/selection races).
@@ -79,7 +83,15 @@ final class Conversation {
         !isTemporary && !hasCustomTitle && (title == "New Chat" || title == "Temporary Chat")
     }
 
+    var hasUserMessages: Bool {
+        messages.contains { $0.role == .user }
+    }
+
     var lastMessagePreview: String {
+        if !previewText.isEmpty {
+            return previewText
+        }
+        // Fallback for existing conversations before migration.
         guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
             return "No messages yet"
         }
@@ -87,5 +99,18 @@ final class Conversation {
             return last.content
         }
         return last.imageAttachments.count == 1 ? "Photo" : "Photos"
+    }
+
+    /// Update denormalized sidebar fields after a message is added or changed.
+    func updateDenormalizedPreview() {
+        guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
+            previewText = ""
+            return
+        }
+        if !last.content.isEmpty {
+            previewText = last.content
+        } else {
+            previewText = last.imageAttachments.count == 1 ? "Photo" : "Photos"
+        }
     }
 }

@@ -77,6 +77,12 @@ struct RootView: View {
             SettingsView()
         }
         .onAppear {
+            // Lightweight migration: populate denormalized preview for existing rows.
+            for conversation in conversations where conversation.previewText.isEmpty && !conversation.messages.isEmpty {
+                conversation.updateDenormalizedPreview()
+            }
+            try? modelContext.save()
+
             discardOrphanedEphemeralChats()
             providerStore.seedModelUsageFromConversationsIfNeeded(
                 conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }

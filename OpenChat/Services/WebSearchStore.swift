@@ -11,6 +11,8 @@ final class WebSearchStore {
     private let defaults: UserDefaults
     /// Bumped when Keychain-backed credentials change so Observation can refresh views.
     private var credentialsEpoch = 0
+    /// In-memory cache of keychain presence to avoid repeated SecItemCopyMatching calls.
+    private var keychainPresenceCache: [String: Bool] = [:]
 
     private(set) var isEnabled: Bool
     private(set) var activeProvider: WebSearchProviderKind
@@ -64,13 +66,19 @@ final class WebSearchStore {
 
     func apiKey(for kind: WebSearchProviderKind) -> String? {
         _ = credentialsEpoch
+        if let cached = keychainPresenceCache[kind.keychainAccount], !cached {
+            return nil
+        }
         if let key = KeychainStore.get(kind.keychainAccount), !key.isEmpty {
+            keychainPresenceCache[kind.keychainAccount] = true
             return key
         }
         if let legacy = kind.legacyKeychainAccount,
            let key = KeychainStore.get(legacy), !key.isEmpty {
+            keychainPresenceCache[legacy] = true
             return key
         }
+        keychainPresenceCache[kind.keychainAccount] = false
         return nil
     }
 
@@ -92,6 +100,10 @@ final class WebSearchStore {
             KeychainStore.remove(legacy)
         }
         credentialsEpoch &+= 1
+        keychainPresenceCache[kind.keychainAccount] = true
+        if let legacy = kind.legacyKeychainAccount {
+            keychainPresenceCache[legacy] = nil
+        }
 
         if !isEnabled || activeAPIKey() == nil {
             setActiveProvider(kind)
@@ -105,6 +117,10 @@ final class WebSearchStore {
             KeychainStore.remove(legacy)
         }
         credentialsEpoch &+= 1
+        keychainPresenceCache[kind.keychainAccount] = false
+        if let legacy = kind.legacyKeychainAccount {
+            keychainPresenceCache[legacy] = false
+        }
 
         if activeProvider == kind {
             if let next = configuredProviders.first {

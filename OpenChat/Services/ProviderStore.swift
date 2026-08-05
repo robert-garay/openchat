@@ -46,6 +46,8 @@ final class ProviderStore {
     private var modelRefreshTasks: [String: Task<Void, Never>] = [:]
     /// Bumped when Keychain-backed credentials change so Observation can refresh views.
     private var credentialsEpoch = 0
+    /// In-memory cache of keychain presence to avoid SecItemCopyMatching on every read.
+    private var keychainPresenceCache: [String: Bool] = [:]
     /// Selection frequency keyed by `providerID/modelID` for picker ranking.
     private(set) var modelUsageCounts: [String: Int] = [:]
 
@@ -72,13 +74,19 @@ final class ProviderStore {
     }
 
     func hasUsableCredentials(_ provider: ConfiguredProvider) -> Bool {
-        !provider.requiresAPIKey || apiKey(for: provider) != nil
+        if !provider.requiresAPIKey { return true }
+        if let cached = keychainPresenceCache[provider.id] { return cached }
+        let present = apiKey(for: provider) != nil
+        keychainPresenceCache[provider.id] = present
+        return present
     }
 
     func apiKey(for provider: ConfiguredProvider) -> String? {
         _ = credentialsEpoch
         let key = KeychainStore.get(provider.id)
-        return (key?.isEmpty ?? true) ? nil : key
+        let result = (key?.isEmpty ?? true) ? nil : key
+        keychainPresenceCache[provider.id] = result != nil
+        return result
     }
 
     /// Redacted key for Settings rows, or `nil` when no key is stored.
@@ -90,11 +98,13 @@ final class ProviderStore {
     func setAPIKey(_ apiKey: String, for provider: ConfiguredProvider) {
         KeychainStore.set(apiKey, forKey: provider.id)
         credentialsEpoch &+= 1
+        keychainPresenceCache[provider.id] = true
     }
 
     func removeAPIKey(for provider: ConfiguredProvider) {
         KeychainStore.remove(provider.id)
         credentialsEpoch &+= 1
+        keychainPresenceCache[provider.id] = false
     }
 
     func addFromTemplate(_ template: ProviderTemplate) {
