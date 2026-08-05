@@ -283,27 +283,40 @@ final class ProviderStore {
             .map(\.element)
     }
 
-    /// Usage ranking, with starred models pinned to the top only when not filtering/searching.
+    /// Picker order: current selection first, then starred (when not filtering), then usage.
     static func sortedForModelPicker<T>(
         _ items: [T],
         isFiltering: Bool,
+        isCurrent: (T) -> Bool,
         isStarred: (T) -> Bool,
         usageCount: (T) -> Int
     ) -> [T] {
         let ranked = sortedByUsage(items, usageCount: usageCount)
-        guard !isFiltering else { return ranked }
+        var current: [T] = []
+        var rest: [T] = []
+        current.reserveCapacity(1)
+        rest.reserveCapacity(ranked.count)
+        for item in ranked {
+            if isCurrent(item) {
+                current.append(item)
+            } else {
+                rest.append(item)
+            }
+        }
+        guard !isFiltering else { return current + rest }
+
         var starred: [T] = []
         var unstarred: [T] = []
-        starred.reserveCapacity(ranked.count)
-        unstarred.reserveCapacity(ranked.count)
-        for item in ranked {
+        starred.reserveCapacity(rest.count)
+        unstarred.reserveCapacity(rest.count)
+        for item in rest {
             if isStarred(item) {
                 starred.append(item)
             } else {
                 unstarred.append(item)
             }
         }
-        return starred + unstarred
+        return current + starred + unstarred
     }
 
     /// Refresh live catalogs for every enabled provider.

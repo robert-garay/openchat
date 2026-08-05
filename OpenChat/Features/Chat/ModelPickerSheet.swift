@@ -50,6 +50,9 @@ struct ModelPickerSheet: View {
         ProviderStore.sortedForModelPicker(
             filteredItems,
             isFiltering: isFiltering,
+            isCurrent: { item in
+                item.providerID == currentProviderID && item.modelID == currentModelID
+            },
             isStarred: { item in
                 providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
             },
@@ -130,7 +133,24 @@ struct ModelPickerSheet: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(allResults) { item in
-                            modelRow(item)
+                            modelButton(item)
+                                .swipeActions(edge: .trailing) {
+                                    Button {
+                                        toggleStar(item)
+                                    } label: {
+                                        Label(
+                                            providerStore.isModelStarred(
+                                                providerID: item.providerID,
+                                                modelID: item.modelID
+                                            ) ? "Unstar" : "Star",
+                                            systemImage: providerStore.isModelStarred(
+                                                providerID: item.providerID,
+                                                modelID: item.modelID
+                                            ) ? "star.slash.fill" : "star.fill"
+                                        )
+                                    }
+                                    .tint(.orange)
+                                }
                         }
                     }
                 } footer: {
@@ -186,80 +206,71 @@ struct ModelPickerSheet: View {
         return name.localizedCaseInsensitiveContains(query)
     }
 
-    private func modelRow(_ item: PickerModelItem) -> some View {
-        let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
-        let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
-
-        return HStack(spacing: 10) {
-            Button {
-                select(item)
-            } label: {
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.displayName)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        HStack(spacing: 6) {
-                            ProviderLogoView(
-                                logoAssetName: item.providerLogoAssetName,
-                                symbolName: item.providerSymbolName,
-                                tint: Color(hex: item.providerTint),
-                                size: 14,
-                                cornerRadius: 3
-                            )
-                            Text(providerSubtitle(for: item))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                    Spacer(minLength: 8)
-                    ModelCapabilitySigns(capabilities: item.capabilities)
-                    if isCurrent {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(Color.accentColor)
-                            .fontWeight(.semibold)
-                    }
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("\(item.displayName), \(item.providerName)")
-
-            starButton(for: item, isStarred: isStarred)
-        }
-        .contextMenu {
-            Button {
-                toggleStar(item)
-            } label: {
-                Label(
-                    isStarred ? "Unstar" : "Star",
-                    systemImage: isStarred ? "star.slash.fill" : "star.fill"
-                )
-            }
+    private func modelButton(_ item: PickerModelItem) -> some View {
+        Button {
+            select(item)
+        } label: {
+            modelRow(item)
         }
     }
 
-    private func starButton(for item: PickerModelItem, isStarred: Bool) -> some View {
-        Button {
-            toggleStar(item)
-        } label: {
-            Image(systemName: isStarred ? "star.fill" : "star")
-                .font(.body)
-                .foregroundStyle(isStarred ? Color.orange : Color.secondary.opacity(0.55))
-                .frame(width: 28, height: 44)
-                .contentShape(Rectangle())
-                .symbolEffect(.bounce, value: isStarred)
+    private func modelRow(_ item: PickerModelItem) -> some View {
+        let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
+        let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
+        return HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.displayName)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    ProviderLogoView(
+                        logoAssetName: item.providerLogoAssetName,
+                        symbolName: item.providerSymbolName,
+                        tint: Color(hex: item.providerTint),
+                        size: 14,
+                        cornerRadius: 3
+                    )
+                    Text(providerSubtitle(for: item))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 8)
+            ModelCapabilitySigns(capabilities: item.capabilities)
+            if isStarred {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.orange)
+                    .font(.caption)
+                    .accessibilityHidden(true)
+            }
+            if isCurrent {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(Color.accentColor)
+                    .fontWeight(.semibold)
+            }
         }
-        .buttonStyle(.borderless)
-        .accessibilityLabel(isStarred ? "Unstar" : "Star")
-        .accessibilityAddTraits(isStarred ? .isSelected : [])
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            isStarred
+                ? "\(item.displayName), \(item.providerName), starred"
+                : "\(item.displayName), \(item.providerName)"
+        )
     }
 
     private func toggleStar(_ item: PickerModelItem) {
         Haptics.light()
-        withAnimation(Theme.springSmooth) {
-            providerStore.toggleStarredModel(providerID: item.providerID, modelID: item.modelID)
+        let providerID = item.providerID
+        let modelID = item.modelID
+        let willReorder = !isFiltering
+        Task { @MainActor in
+            if willReorder {
+                // Let the swipe action close before rows glide.
+                try? await Task.sleep(for: .milliseconds(220))
+            }
+            withAnimation(Theme.springSmooth) {
+                providerStore.toggleStarredModel(providerID: providerID, modelID: modelID)
+            }
         }
     }
 
