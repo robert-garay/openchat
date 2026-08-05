@@ -35,6 +35,8 @@
 	<string>OpenChat uses the camera so agents can analyze photos or documents you capture.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>OpenChat reads only fitness-related Apple Health data you enable—steps, heart rate, workouts, energy, exercise time, walking/running distance, and sleep—for coaching insights. It does not access clinical records. This is not medical advice.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>OpenChat does not write health data to Apple Health. This string is required because the app references HealthKit for read-only fitness coaching features.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OpenChat uses the microphone for voice input and transcription when you enable it.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
