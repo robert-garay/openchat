@@ -52,7 +52,7 @@ final class ProviderStore {
     private(set) var modelUsageCounts: [String: Int] = [:]
     /// Last model the user explicitly set in any conversation (`providerID/modelID`).
     private(set) var lastSelectedModelUsageKey: String?
-    /// Starred models keyed by `providerID/modelID`; shown in a Starred picker section when not filtering.
+    /// Starred models keyed by `providerID/modelID`; pinned near the top of the unfiltered picker.
     private(set) var starredModelKeys: Set<String> = []
 
     init(
@@ -308,48 +308,40 @@ final class ProviderStore {
             .map(\.element)
     }
 
-    /// Splits picker rows into a Starred section and the rest.
-    /// Current selection leads its section. While filtering, everything stays in `models`.
-    static func partitionForModelPicker<T>(
+    /// Picker order: current selection first, then starred (when not filtering), then usage.
+    static func sortedForModelPicker<T>(
         _ items: [T],
         isFiltering: Bool,
         isCurrent: (T) -> Bool,
         isStarred: (T) -> Bool,
         usageCount: (T) -> Int
-    ) -> (starred: [T], models: [T]) {
+    ) -> [T] {
         let ranked = sortedByUsage(items, usageCount: usageCount)
-
-        func leadingWithCurrent(_ list: [T]) -> [T] {
-            var current: [T] = []
-            var rest: [T] = []
-            current.reserveCapacity(1)
-            rest.reserveCapacity(list.count)
-            for item in list {
-                if isCurrent(item) {
-                    current.append(item)
-                } else {
-                    rest.append(item)
-                }
+        var current: [T] = []
+        var rest: [T] = []
+        current.reserveCapacity(1)
+        rest.reserveCapacity(ranked.count)
+        for item in ranked {
+            if isCurrent(item) {
+                current.append(item)
+            } else {
+                rest.append(item)
             }
-            return current + rest
         }
-
-        guard !isFiltering else {
-            return (starred: [], models: leadingWithCurrent(ranked))
-        }
+        guard !isFiltering else { return current + rest }
 
         var starred: [T] = []
-        var models: [T] = []
-        starred.reserveCapacity(ranked.count)
-        models.reserveCapacity(ranked.count)
-        for item in ranked {
+        var unstarred: [T] = []
+        starred.reserveCapacity(rest.count)
+        unstarred.reserveCapacity(rest.count)
+        for item in rest {
             if isStarred(item) {
                 starred.append(item)
             } else {
-                models.append(item)
+                unstarred.append(item)
             }
         }
-        return (leadingWithCurrent(starred), leadingWithCurrent(models))
+        return current + starred + unstarred
     }
 
     /// Refresh live catalogs for every enabled provider.
