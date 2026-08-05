@@ -41,10 +41,13 @@ enum CodeSyntaxHighlighter {
 
     // MARK: - Regex Cache
 
+    private static let regexCacheLock = NSLock()
     private static var regexCache: [String: NSRegularExpression] = [:]
 
     private static func cachedRegex(pattern: String, options: NSRegularExpression.Options = []) -> NSRegularExpression? {
         let key = "\(pattern)|\(options.rawValue)"
+        regexCacheLock.lock()
+        defer { regexCacheLock.unlock() }
         if let cached = regexCache[key] { return cached }
         guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
         regexCache[key] = regex
