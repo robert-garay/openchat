@@ -17,7 +17,7 @@ struct ModelPickerSheet: View {
             || !selectedCapabilities.isEmpty
     }
 
-    private var allResults: [PickerModelItem] {
+    private var filteredItems: [PickerModelItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         var items: [PickerModelItem] = []
 
@@ -43,8 +43,12 @@ struct ModelPickerSheet: View {
             }
         }
 
-        return ProviderStore.sortedForModelPicker(
-            items,
+        return items
+    }
+
+    private var partitionedResults: (starred: [PickerModelItem], models: [PickerModelItem]) {
+        ProviderStore.partitionForModelPicker(
+            filteredItems,
             isFiltering: isFiltering,
             isStarred: { item in
                 providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
@@ -53,6 +57,11 @@ struct ModelPickerSheet: View {
                 providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
             }
         )
+    }
+
+    private var totalVisibleCount: Int {
+        let parts = partitionedResults
+        return parts.starred.count + parts.models.count
     }
 
     private var emptyFilterMessage: String {
@@ -73,7 +82,7 @@ struct ModelPickerSheet: View {
     }
 
     private var isInitialLoading: Bool {
-        providerStore.isLoadingModels && allResults.isEmpty
+        providerStore.isLoadingModels && totalVisibleCount == 0
     }
 
     private var fetchErrors: [(providerName: String, message: String)] {
@@ -104,7 +113,7 @@ struct ModelPickerSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                } else if !fetchErrors.isEmpty, allResults.isEmpty {
+                } else if !fetchErrors.isEmpty, totalVisibleCount == 0 {
                     Section {
                         ForEach(fetchErrors, id: \.providerName) { error in
                             VStack(alignment: .leading, spacing: 4) {
@@ -120,40 +129,44 @@ struct ModelPickerSheet: View {
                     }
                 }
 
-                Section {
-                    if allResults.isEmpty, !isInitialLoading {
+                let parts = partitionedResults
+
+                if totalVisibleCount == 0, !isInitialLoading {
+                    Section {
                         Text(emptyFilterMessage)
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(allResults) { item in
-                            modelButton(item)
-                                .swipeActions(edge: .trailing) {
-                                    Button {
-                                        Haptics.light()
-                                        providerStore.toggleStarredModel(
-                                            providerID: item.providerID,
-                                            modelID: item.modelID
-                                        )
-                                    } label: {
-                                        let starred = providerStore.isModelStarred(
-                                            providerID: item.providerID,
-                                            modelID: item.modelID
-                                        )
-                                        Label(
-                                            starred ? "Unstar" : "Star",
-                                            systemImage: starred ? "star.slash.fill" : "star.fill"
-                                        )
-                                    }
-                                    .tint(.orange)
-                                }
+                    }
+                } else {
+                    if !parts.starred.isEmpty {
+                        Section {
+                            ForEach(parts.starred) { item in
+                                modelRow(item)
+                            }
+                        } header: {
+                            Text("Starred")
+                        } footer: {
+                            if parts.models.isEmpty {
+                                Text("\(totalVisibleCount) models")
+                            }
                         }
                     }
-                } footer: {
-                    if !allResults.isEmpty {
-                        Text("\(allResults.count) models")
+
+                    if !parts.models.isEmpty {
+                        Section {
+                            ForEach(parts.models) { item in
+                                modelRow(item)
+                            }
+                        } header: {
+                            if !parts.starred.isEmpty {
+                                Text("Models")
+                            }
+                        } footer: {
+                            Text("\(totalVisibleCount) models")
+                        }
                     }
                 }
             }
+            .animation(Theme.springSmooth, value: providerStore.starredModelKeys)
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
@@ -200,71 +213,100 @@ struct ModelPickerSheet: View {
         return name.localizedCaseInsensitiveContains(query)
     }
 
-    private func modelButton(_ item: PickerModelItem) -> some View {
-        Button {
-            Haptics.light()
-            if let catalogModel = item.catalogModel {
-                providerStore.rememberOpenRouterModel(catalogModel)
-            } else {
-                providerStore.rememberModel(
-                    AIModel(
-                        id: item.modelID,
-                        displayName: item.displayName,
-                        subtitle: item.subtitle,
-                        capabilities: item.capabilities
-                    ),
-                    providerID: item.providerID
-                )
-            }
-            onSelect(item.providerID, item.modelID)
-            dismiss()
-        } label: {
-            modelRow(item)
-        }
-    }
-
     private func modelRow(_ item: PickerModelItem) -> some View {
         let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
         let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
+
         return HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.displayName)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    ProviderLogoView(
-                        logoAssetName: item.providerLogoAssetName,
-                        symbolName: item.providerSymbolName,
-                        tint: Color(hex: item.providerTint),
-                        size: 14,
-                        cornerRadius: 3
-                    )
-                    Text(providerSubtitle(for: item))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+            Button {
+                select(item)
+            } label: {
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.displayName)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        HStack(spacing: 6) {
+                            ProviderLogoView(
+                                logoAssetName: item.providerLogoAssetName,
+                                symbolName: item.providerSymbolName,
+                                tint: Color(hex: item.providerTint),
+                                size: 14,
+                                cornerRadius: 3
+                            )
+                            Text(providerSubtitle(for: item))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    ModelCapabilitySigns(capabilities: item.capabilities)
+                    if isCurrent {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(Color.accentColor)
+                            .fontWeight(.semibold)
+                    }
                 }
+                .contentShape(Rectangle())
             }
-            Spacer(minLength: 8)
-            ModelCapabilitySigns(capabilities: item.capabilities)
-            if isStarred {
-                Image(systemName: "star.fill")
-                    .foregroundStyle(.orange)
-                    .font(.caption)
-                    .accessibilityHidden(true)
-            }
-            if isCurrent {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-                    .fontWeight(.semibold)
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(item.displayName), \(item.providerName)")
+
+            starButton(for: item, isStarred: isStarred)
+        }
+        .contextMenu {
+            Button {
+                toggleStar(item)
+            } label: {
+                Label(
+                    isStarred ? "Unstar" : "Star",
+                    systemImage: isStarred ? "star.slash.fill" : "star.fill"
+                )
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            isStarred
-                ? "\(item.displayName), \(item.providerName), starred"
-                : "\(item.displayName), \(item.providerName)"
-        )
+    }
+
+    private func starButton(for item: PickerModelItem, isStarred: Bool) -> some View {
+        Button {
+            toggleStar(item)
+        } label: {
+            Image(systemName: isStarred ? "star.fill" : "star")
+                .font(.body)
+                .foregroundStyle(isStarred ? Color.orange : Color.secondary.opacity(0.55))
+                .frame(width: 28, height: 44)
+                .contentShape(Rectangle())
+                .symbolEffect(.bounce, value: isStarred)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(isStarred ? "Unstar" : "Star")
+        .accessibilityAddTraits(isStarred ? .isSelected : [])
+    }
+
+    private func toggleStar(_ item: PickerModelItem) {
+        Haptics.light()
+        withAnimation(Theme.springSmooth) {
+            providerStore.toggleStarredModel(providerID: item.providerID, modelID: item.modelID)
+        }
+    }
+
+    private func select(_ item: PickerModelItem) {
+        Haptics.light()
+        if let catalogModel = item.catalogModel {
+            providerStore.rememberOpenRouterModel(catalogModel)
+        } else {
+            providerStore.rememberModel(
+                AIModel(
+                    id: item.modelID,
+                    displayName: item.displayName,
+                    subtitle: item.subtitle,
+                    capabilities: item.capabilities
+                ),
+                providerID: item.providerID
+            )
+        }
+        onSelect(item.providerID, item.modelID)
+        dismiss()
     }
 
     private func providerSubtitle(for item: PickerModelItem) -> String {
