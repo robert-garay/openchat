@@ -118,14 +118,6 @@ struct MarkdownMessageView: View, Equatable {
     }
 }
 
-extension UIFont {
-    static var italicBody: UIFont {
-        let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-            .withSymbolicTraits(.traitItalic)
-        return UIFont(descriptor: descriptor ?? UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body), size: 0)
-    }
-}
-
 // MARK: - Parsing
 
 enum MarkdownBlock: Equatable {
