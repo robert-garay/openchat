@@ -19,10 +19,16 @@ struct MessageBubbleView: View {
     var onDismissMemoryProposals: (() -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
+    var isEditing: Bool = false
+    var canEdit: Bool = false
+    var onBeginEdit: (() -> Void)? = nil
+    var onCancelEdit: (() -> Void)? = nil
+    var onSaveEdit: ((String) -> Void)? = nil
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     #endif
+    @State private var draftText: String = ""
 
     var body: some View {
         Group {
@@ -51,13 +57,53 @@ struct MessageBubbleView: View {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .trailing)
                 }
-                if !message.content.isEmpty {
-                    MarkdownMessageView(content: message.content, isUserMessage: true)
-                        .equatable()
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 11)
-                        .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
+                if isEditing {
+                    editingBubble
+                } else {
+                    if !message.content.isEmpty {
+                        MarkdownMessageView(content: message.content, isUserMessage: true)
+                            .equatable()
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 11)
+                            .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
+                    }
+                    #if canImport(UIKit)
+                    if canEdit {
+                        EditChip {
+                            draftText = message.content
+                            onBeginEdit?()
+                        }
+                    }
+                    #endif
                 }
+            }
+        }
+    }
+
+    private var editingBubble: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            TextField("Edit message", text: $draftText, axis: .vertical)
+                .textFieldStyle(.plain)
+                .foregroundStyle(.white)
+                .tint(.white)
+                .lineLimit(1...8)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 11)
+                .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
+
+            HStack(spacing: 10) {
+                Button("Cancel") {
+                    Haptics.light()
+                    onCancelEdit?()
+                }
+                .buttonStyle(.bordered)
+
+                Button("Save · Send") {
+                    Haptics.light()
+                    onSaveEdit?(draftText)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && message.imageAttachments.isEmpty)
             }
         }
     }
@@ -226,6 +272,25 @@ private struct CopyChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Copy message")
+    }
+}
+
+private struct EditChip: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            action()
+        } label: {
+            Image(systemName: "pencil")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Edit message")
     }
 }
 
