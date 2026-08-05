@@ -14,6 +14,8 @@ final class ChatMessage {
     var id: UUID
     var roleRaw: String
     var content: String
+    /// Model reasoning / extended thinking for assistant turns. Empty when absent.
+    var reasoningContent: String = ""
     var createdAt: Date
     var isStreaming: Bool
     var errorMessage: String?
@@ -48,6 +50,7 @@ final class ChatMessage {
         id: UUID = UUID(),
         role: MessageRole,
         content: String,
+        reasoningContent: String = "",
         createdAt: Date = .now,
         isStreaming: Bool = false,
         errorMessage: String? = nil,
@@ -58,6 +61,7 @@ final class ChatMessage {
         self.id = id
         self.roleRaw = role.rawValue
         self.content = content
+        self.reasoningContent = reasoningContent
         self.createdAt = createdAt
         self.isStreaming = isStreaming
         self.errorMessage = errorMessage

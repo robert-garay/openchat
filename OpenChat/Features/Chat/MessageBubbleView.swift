@@ -45,6 +45,16 @@ struct MessageBubbleView: View {
                     Label("Copy", systemImage: "doc.on.doc")
                 }
             }
+            if !message.reasoningContent.isEmpty {
+                Button {
+                    #if canImport(UIKit)
+                    UIPasteboard.general.string = message.reasoningContent
+                    #endif
+                    Haptics.light()
+                } label: {
+                    Label("Copy Thinking", systemImage: "brain")
+                }
+            }
         }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
@@ -87,7 +97,18 @@ struct MessageBubbleView: View {
                     attachmentGallery(message.imageAttachments, alignment: .leading)
                 }
 
-                if message.content.isEmpty && message.isStreaming && message.imageAttachments.isEmpty {
+                if !message.reasoningContent.isEmpty {
+                    ThinkingDisclosureView(
+                        reasoning: message.reasoningContent,
+                        isStreaming: message.isStreaming,
+                        answerStarted: !message.content.isEmpty
+                    )
+                }
+
+                if message.content.isEmpty
+                    && message.reasoningContent.isEmpty
+                    && message.isStreaming
+                    && message.imageAttachments.isEmpty {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {

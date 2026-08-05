@@ -13,6 +13,9 @@
 		0BCBFA92DCCCB56ABBB0AE7F /* MemoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14F0680AC3183CE199CC8CE /* MemoryItem.swift */; };
 		0CF4B4340A3465AD1A9D0616 /* ConversationTitleGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36873DF3796EB11DDF4BC482 /* ConversationTitleGeneratorTests.swift */; };
 		0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */; };
+		D9B8953CEAAF4E5496FB03BA /* ReasoningTextExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED0B77DA07744C8B896AFAF /* ReasoningTextExtractor.swift */; };
+		9C047292884942E3B074B19E /* ThinkingDisclosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5233F885B3D4F2580CE242D /* ThinkingDisclosureView.swift */; };
+		6E01895D28024E06A1439D77 /* ReasoningTextExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115753FB816B49CAAC46438F /* ReasoningTextExtractorTests.swift */; };
 		11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */; };
 		16DDB874A737E57AEEE32F31 /* SkillPickerDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26950C0C2D7B04D4495A70CF /* SkillPickerDropdown.swift */; };
 		181D255939B9C8B0DD94E22E /* AddProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3022C85CF36B100C7663857D /* AddProviderView.swift */; };
@@ -214,6 +217,9 @@
 		A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStream.swift; sourceTree = "<group>"; };
 		A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillResolverTests.swift; sourceTree = "<group>"; };
 		A5A14605EAD30408A540304F /* RulesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStore.swift; sourceTree = "<group>"; };
+		5ED0B77DA07744C8B896AFAF /* ReasoningTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningTextExtractor.swift; sourceTree = "<group>"; };
+		E5233F885B3D4F2580CE242D /* ThinkingDisclosureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingDisclosureView.swift; sourceTree = "<group>"; };
+		115753FB816B49CAAC46438F /* ReasoningTextExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningTextExtractorTests.swift; sourceTree = "<group>"; };
 		A5E2B3F07C8CAA647B75A396 /* CalendarAccessMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarAccessMode.swift; sourceTree = "<group>"; };
 		A6F56102C2F347322FC70314 /* ConversationCompactionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionTests.swift; sourceTree = "<group>"; };
 		A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
@@ -399,6 +405,7 @@
 				7B872EF3985BB7AC0BF86840 /* ProviderModelsClient.swift */,
 				8278B52A14134A4DE0197F82 /* ProviderStore.swift */,
 				A5A14605EAD30408A540304F /* RulesStore.swift */,
+				5ED0B77DA07744C8B896AFAF /* ReasoningTextExtractor.swift */,
 				701D582B715E1A1CE50EEBF8 /* SerpAPIClient.swift */,
 				AA243D85F91C1806E98CD232 /* SerperClient.swift */,
 				A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */,
@@ -438,6 +445,7 @@
 				0DA7BF3262C5159168758827 /* MessageComposerView.swift */,
 				7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */,
 				26950C0C2D7B04D4495A70CF /* SkillPickerDropdown.swift */,
+				E5233F885B3D4F2580CE242D /* ThinkingDisclosureView.swift */,
 				86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */,
 				52E97518312D6A634ECD090A /* WebSearchProviderPicker.swift */,
 			);
@@ -519,6 +527,7 @@
 				5C52BECF01BEA49A4D0DCAC5 /* ProviderModelsClientTests.swift */,
 				9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */,
 				A042DB0EEA4500DD5C09F3C3 /* RulesStoreTests.swift */,
+				115753FB816B49CAAC46438F /* ReasoningTextExtractorTests.swift */,
 				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
 				A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */,
 				D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */,
@@ -699,6 +708,7 @@
 				8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */,
 				769CFBBCD9C98B17EDF59F02 /* RulesSettingsView.swift in Sources */,
 				67FDD5C2DE8870264E8B55A3 /* RulesStore.swift in Sources */,
+				D9B8953CEAAF4E5496FB03BA /* ReasoningTextExtractor.swift in Sources */,
 				6B98CE2DF1DAD66D158901F2 /* SerpAPIClient.swift in Sources */,
 				B24319D981158A155F418CCF /* SerperClient.swift in Sources */,
 				D323D94CBA175F7AB0248CDA /* ServerSentEventStream.swift in Sources */,
@@ -710,6 +720,7 @@
 				AA12B6FA7EA44E0F7B71B9F7 /* SkillsSettingsView.swift in Sources */,
 				C0F6A6DE9AF73452136885C7 /* TavilyClient.swift in Sources */,
 				1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */,
+				9C047292884942E3B074B19E /* ThinkingDisclosureView.swift in Sources */,
 				5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */,
 				20E6A96BC77CE2F67D90B820 /* WebSearchProviderKind.swift in Sources */,
 				CD96425A0CCDC7AF1D5E058E /* WebSearchProviderPicker.swift in Sources */,
@@ -745,6 +756,7 @@
 				365AA8D4049F2F5E65740B64 /* ProviderModelsClientTests.swift in Sources */,
 				D3042A5EF20B73ED1C7D358F /* ProviderStoreTests.swift in Sources */,
 				03C73E93BA6EF5F268205973 /* RulesStoreTests.swift in Sources */,
+				6E01895D28024E06A1439D77 /* ReasoningTextExtractorTests.swift in Sources */,
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */,
 				B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */,

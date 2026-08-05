@@ -15,7 +15,8 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
-        supportsImageGen: Bool
+        supportsImageGen: Bool,
+        supportsReasoning: Bool
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -30,6 +31,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             apiKey: apiKey,
                             tools: [],
                             supportsImageGen: true,
+                            supportsReasoning: supportsReasoning,
                             session: session,
                             continuation: continuation
                         )
@@ -40,6 +42,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             baseURL: baseURL,
                             apiKey: apiKey,
                             supportsImageGen: false,
+                            supportsReasoning: supportsReasoning,
                             session: session,
                             continuation: continuation
                         )
@@ -52,6 +55,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             tools: tools,
                             executeTool: executeTool,
                             supportsImageGen: supportsImageGen,
+                            supportsReasoning: supportsReasoning,
                             session: session,
                             continuation: continuation
                         )
@@ -79,6 +83,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         supportsImageGen: Bool,
+        supportsReasoning: Bool,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -92,6 +97,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 apiKey: apiKey,
                 tools: tools,
                 supportsImageGen: supportsImageGen,
+                supportsReasoning: supportsReasoning,
                 session: session
             )
 
@@ -121,6 +127,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 apiKey: apiKey,
                 tools: [],
                 supportsImageGen: true,
+                supportsReasoning: supportsReasoning,
                 session: session,
                 continuation: continuation
             )
@@ -131,6 +138,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 baseURL: baseURL,
                 apiKey: apiKey,
                 supportsImageGen: false,
+                supportsReasoning: supportsReasoning,
                 session: session,
                 continuation: continuation
             )
@@ -146,6 +154,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         supportsImageGen: Bool,
+        supportsReasoning: Bool,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -156,6 +165,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             apiKey: apiKey,
             tools: tools,
             supportsImageGen: supportsImageGen,
+            supportsReasoning: supportsReasoning,
             session: session
         )
         try yieldCompletion(result, to: continuation)
@@ -167,6 +177,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
     ) throws {
         try Task.checkCancellation()
         var text = result.text
+        var reasoning = result.reasoning
         var images = result.images
 
         if images.isEmpty {
@@ -175,6 +186,14 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             images = extracted.images
         }
 
+        if reasoning.isEmpty, let split = ReasoningTextExtractor.extract(from: text) {
+            reasoning = split.reasoning
+            text = split.content
+        }
+
+        if !reasoning.isEmpty {
+            continuation.yield(.reasoning(reasoning))
+        }
         if !text.isEmpty {
             continuation.yield(.text(text))
         }
@@ -190,6 +209,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         supportsImageGen: Bool,
+        supportsReasoning: Bool,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
@@ -198,7 +218,8 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             messages: turns.map(encodeMessage),
             stream: false,
             tools: tools.isEmpty ? nil : tools.map(encodeTool),
-            modalities: supportsImageGen ? ["image", "text"] : nil
+            modalities: supportsImageGen ? ["image", "text"] : nil,
+            includeReasoning: supportsReasoning ? true : nil
         )
         request.httpBody = try JSONEncoder().encode(body)
 
@@ -234,6 +255,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
 
         return ChatCompletionResult(
             text: message.content.text,
+            reasoning: message.reasoningText,
             toolCalls: toolCalls,
             images: images
         )
@@ -247,6 +269,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         supportsImageGen: Bool,
+        supportsReasoning: Bool,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -256,18 +279,31 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             messages: turns.map(encodeMessage),
             stream: true,
             tools: nil,
-            modalities: supportsImageGen ? ["image", "text"] : nil
+            modalities: supportsImageGen ? ["image", "text"] : nil,
+            includeReasoning: supportsReasoning ? true : nil
         )
         request.httpBody = try JSONEncoder().encode(body)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
+        var thinkSplitter = ThinkTagStreamSplitter()
         let upstream = ServerSentEventStream.dataPayloads(for: request, session: session)
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
             guard let chunk = try? JSONDecoder().decode(Chunk.self, from: data) else { continue }
             let delta = chunk.choices?.first?.delta
-            if let text = delta?.content.text, !text.isEmpty {
-                continuation.yield(.text(text))
+            if let reasoning = delta?.reasoningText, !reasoning.isEmpty {
+                continuation.yield(.reasoning(reasoning))
+            }
+            if let rawText = delta?.content.text, !rawText.isEmpty {
+                // Prefer wire-format reasoning fields; still split `<think>` tags in content
+                // for open models that embed thinking in the answer stream.
+                let slice = thinkSplitter.push(rawText)
+                if !slice.reasoning.isEmpty {
+                    continuation.yield(.reasoning(slice.reasoning))
+                }
+                if !slice.content.isEmpty {
+                    continuation.yield(.text(slice.content))
+                }
             }
             var streamImages: [ChatImageAttachment] = []
             for image in delta?.images ?? [] {
@@ -280,6 +316,13 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             if !streamImages.isEmpty {
                 continuation.yield(.images(streamImages))
             }
+        }
+        let trailing = thinkSplitter.finish()
+        if !trailing.reasoning.isEmpty {
+            continuation.yield(.reasoning(trailing.reasoning))
+        }
+        if !trailing.content.isEmpty {
+            continuation.yield(.text(trailing.content))
         }
     }
 
@@ -370,6 +413,13 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         var stream: Bool
         var tools: [ToolPayload]?
         var modalities: [String]?
+        /// OpenRouter / some OpenAI-compatible gateways expose reasoning when set.
+        var includeReasoning: Bool?
+
+        enum CodingKeys: String, CodingKey {
+            case model, messages, stream, tools, modalities
+            case includeReasoning = "include_reasoning"
+        }
     }
 
     private struct RequestMessage: Encodable {
@@ -429,8 +479,15 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         struct Choice: Decodable {
             struct Message: Decodable {
                 var content: FlexibleMessageContent
+                var reasoningContent: String?
+                var reasoning: String?
                 var toolCalls: [ToolCallDTO]?
                 var images: [GeneratedImageDTO]?
+
+                var reasoningText: String {
+                    let primary = reasoningContent ?? reasoning ?? ""
+                    return primary
+                }
 
                 init(from decoder: Decoder) throws {
                     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -440,12 +497,16 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                     } else {
                         content = FlexibleMessageContent()
                     }
+                    reasoningContent = try container.decodeIfPresent(String.self, forKey: .reasoningContent)
+                    reasoning = try container.decodeIfPresent(String.self, forKey: .reasoning)
                     toolCalls = try container.decodeIfPresent([ToolCallDTO].self, forKey: .toolCalls)
                     images = try container.decodeIfPresent([GeneratedImageDTO].self, forKey: .images)
                 }
 
                 enum CodingKeys: String, CodingKey {
                     case content
+                    case reasoningContent = "reasoning_content"
+                    case reasoning
                     case toolCalls = "tool_calls"
                     case images
                 }
@@ -530,7 +591,15 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         struct Choice: Decodable {
             struct Delta: Decodable {
                 var content: FlexibleMessageContent
+                var reasoningContent: String?
+                var reasoning: String?
                 var images: [GeneratedImageDTO]?
+
+                var reasoningText: String? {
+                    let value = reasoningContent ?? reasoning
+                    guard let value, !value.isEmpty else { return nil }
+                    return value
+                }
 
                 init(from decoder: Decoder) throws {
                     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -540,11 +609,14 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                     } else {
                         content = FlexibleMessageContent()
                     }
+                    reasoningContent = try container.decodeIfPresent(String.self, forKey: .reasoningContent)
+                    reasoning = try container.decodeIfPresent(String.self, forKey: .reasoning)
                     images = try container.decodeIfPresent([GeneratedImageDTO].self, forKey: .images)
                 }
 
                 enum CodingKeys: String, CodingKey {
-                    case content, images
+                    case content, images, reasoning
+                    case reasoningContent = "reasoning_content"
                 }
             }
             var delta: Delta?

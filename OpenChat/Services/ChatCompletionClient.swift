@@ -6,6 +6,8 @@ protocol ChatCompletionClient: Sendable {
     /// until the model returns text, then yields that text).
     /// When `supportsImageGen` is true, requests image output modalities and may
     /// yield `.images` events (typically via a non-streaming completion).
+    /// When `supportsReasoning` is true, requests extended thinking where the
+    /// provider requires an explicit opt-in and yields `.reasoning` deltas.
     func streamReply(
         turns: [ChatTurn],
         model: String,
@@ -13,7 +15,8 @@ protocol ChatCompletionClient: Sendable {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
-        supportsImageGen: Bool
+        supportsImageGen: Bool,
+        supportsReasoning: Bool
     ) -> AsyncThrowingStream<ChatStreamEvent, Error>
 }
 
@@ -24,7 +27,8 @@ extension ChatCompletionClient {
         model: String,
         baseURL: String,
         apiKey: String?,
-        supportsImageGen: Bool = false
+        supportsImageGen: Bool = false,
+        supportsReasoning: Bool = false
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         streamReply(
             turns: turns,
@@ -33,7 +37,8 @@ extension ChatCompletionClient {
             apiKey: apiKey,
             tools: [],
             executeTool: { _ in "" },
-            supportsImageGen: supportsImageGen
+            supportsImageGen: supportsImageGen,
+            supportsReasoning: supportsReasoning
         )
     }
 }

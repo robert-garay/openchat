@@ -19,21 +19,31 @@ struct ChatToolCall: Equatable, Sendable, Identifiable {
 /// Outcome of one non-streaming completion used during the tool-calling loop.
 struct ChatCompletionResult: Equatable, Sendable {
     var text: String
+    var reasoning: String
     var toolCalls: [ChatToolCall]
     var images: [ChatImageAttachment]
 
-    init(text: String, toolCalls: [ChatToolCall] = [], images: [ChatImageAttachment] = []) {
+    init(
+        text: String,
+        reasoning: String = "",
+        toolCalls: [ChatToolCall] = [],
+        images: [ChatImageAttachment] = []
+    ) {
         self.text = text
+        self.reasoning = reasoning
         self.toolCalls = toolCalls
         self.images = images
     }
 
     var hasToolCalls: Bool { !toolCalls.isEmpty }
     var hasImages: Bool { !images.isEmpty }
+    var hasReasoning: Bool { !reasoning.isEmpty }
 }
 
 /// Incremental events from a chat completion (text stream and/or generated images).
 enum ChatStreamEvent: Equatable, Sendable {
     case text(String)
+    /// Model chain-of-thought / extended thinking (separate from the visible answer).
+    case reasoning(String)
     case images([ChatImageAttachment])
 }

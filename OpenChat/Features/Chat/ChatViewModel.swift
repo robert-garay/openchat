@@ -444,6 +444,7 @@ final class ChatViewModel {
         let supportsTools = model.supportsTools
         let supportsVision = model.supportsVision
         let supportsImageGen = model.supportsImageGen
+        let supportsReasoning = model.supportsReasoning
         let conversationSystemPrompt = conversation.systemPrompt
         let skillSystemBlock = pendingSkillSystemBlock
         pendingSkillSystemBlock = nil
@@ -538,29 +539,45 @@ final class ChatViewModel {
                     apiKey: apiKey,
                     tools: tools,
                     executeTool: executeTool,
-                    supportsImageGen: supportsImageGen
+                    supportsImageGen: supportsImageGen,
+                    supportsReasoning: supportsReasoning
                 ) {
                     switch event {
                     case .text(let delta):
                         assistantMessage.content += delta
+                    case .reasoning(let delta):
+                        assistantMessage.reasoningContent += delta
                     case .images(let images):
                         var existing = assistantMessage.imageAttachments
                         existing.append(contentsOf: images)
                         assistantMessage.imageAttachments = existing
                     }
                 }
+                Self.finalizeReasoningContent(on: assistantMessage)
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
             } catch is CancellationError {
+                Self.finalizeReasoningContent(on: assistantMessage)
                 assistantMessage.isStreaming = false
             } catch {
+                Self.finalizeReasoningContent(on: assistantMessage)
                 assistantMessage.isStreaming = false
                 assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
             isStreaming = false
         }
+    }
+
+    /// Splits leftover `<think>` tags out of the answer when the provider only
+    /// embedded reasoning in content (no separate reasoning field).
+    private static func finalizeReasoningContent(on message: ChatMessage) {
+        guard message.reasoningContent.isEmpty,
+              let split = ReasoningTextExtractor.extract(from: message.content)
+        else { return }
+        message.reasoningContent = split.reasoning
+        message.content = split.content
     }
 
     private func captureCalendarProposals(from message: ChatMessage) {

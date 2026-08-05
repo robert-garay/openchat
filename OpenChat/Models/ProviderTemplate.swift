@@ -120,8 +120,8 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://console.anthropic.com/settings/keys"),
             apiKeyPlaceholder: "sk-ant-...",
             defaultModels: [
-                AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6", subtitle: "Most capable", capabilities: [.vision, .tools]),
-                AIModel(id: "claude-sonnet-4-6-20260805", displayName: "Claude Sonnet 4.6", subtitle: "Balanced", capabilities: [.vision, .tools]),
+                AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6", subtitle: "Most capable", capabilities: [.vision, .tools, .reasoning]),
+                AIModel(id: "claude-sonnet-4-6-20260805", displayName: "Claude Sonnet 4.6", subtitle: "Balanced", capabilities: [.vision, .tools, .reasoning]),
             ]
         ),
         ProviderTemplate(

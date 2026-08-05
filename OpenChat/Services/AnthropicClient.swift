@@ -4,6 +4,12 @@ import Foundation
 struct AnthropicClient: ChatCompletionClient {
     var session: URLSession = .shared
 
+    /// Default thinking token budget when extended thinking is enabled.
+    private static let thinkingBudgetTokens = 8_000
+    /// Must exceed `thinkingBudgetTokens` per Anthropic's API rules.
+    private static let maxTokensWithThinking = 16_000
+    private static let maxTokensDefault = 8_192
+
     func streamReply(
         turns: [ChatTurn],
         model: String,
@@ -11,7 +17,8 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
-        supportsImageGen: Bool
+        supportsImageGen: Bool,
+        supportsReasoning: Bool
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         // Anthropic Messages API does not return generated bitmaps; ignore supportsImageGen.
         _ = supportsImageGen
@@ -24,6 +31,7 @@ struct AnthropicClient: ChatCompletionClient {
                             model: model,
                             baseURL: baseURL,
                             apiKey: apiKey,
+                            supportsReasoning: supportsReasoning,
                             session: session,
                             continuation: continuation
                         )
@@ -35,6 +43,7 @@ struct AnthropicClient: ChatCompletionClient {
                             apiKey: apiKey,
                             tools: tools,
                             executeTool: executeTool,
+                            supportsReasoning: supportsReasoning,
                             session: session,
                             continuation: continuation
                         )
@@ -61,6 +70,7 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        supportsReasoning: Bool,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -73,6 +83,7 @@ struct AnthropicClient: ChatCompletionClient {
                 baseURL: baseURL,
                 apiKey: apiKey,
                 tools: tools,
+                supportsReasoning: supportsReasoning,
                 session: session
             )
 
@@ -89,9 +100,7 @@ struct AnthropicClient: ChatCompletionClient {
                 continue
             }
 
-            if !result.text.isEmpty {
-                continuation.yield(.text(result.text))
-            }
+            try yieldCompletion(result, to: continuation)
             return
         }
 
@@ -100,9 +109,23 @@ struct AnthropicClient: ChatCompletionClient {
             model: model,
             baseURL: baseURL,
             apiKey: apiKey,
+            supportsReasoning: supportsReasoning,
             session: session,
             continuation: continuation
         )
+    }
+
+    private static func yieldCompletion(
+        _ result: ChatCompletionResult,
+        to continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
+    ) throws {
+        try Task.checkCancellation()
+        if !result.reasoning.isEmpty {
+            continuation.yield(.reasoning(result.reasoning))
+        }
+        if !result.text.isEmpty {
+            continuation.yield(.text(result.text))
+        }
     }
 
     // MARK: - Non-streaming completion
@@ -113,10 +136,17 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        supportsReasoning: Bool,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
-        let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools)
+        let body = try encodeBody(
+            turns: turns,
+            model: model,
+            stream: false,
+            tools: tools,
+            supportsReasoning: supportsReasoning
+        )
         request.httpBody = body
 
         let (data, response) = try await session.data(for: request)
@@ -127,6 +157,7 @@ struct AnthropicClient: ChatCompletionClient {
 
         let decoded = try JSONDecoder().decode(MessagesResponse.self, from: data)
         var textParts: [String] = []
+        var reasoningParts: [String] = []
         var toolCalls: [ChatToolCall] = []
 
         for block in decoded.content ?? [] {
@@ -134,6 +165,10 @@ struct AnthropicClient: ChatCompletionClient {
             case "text":
                 if let text = block.text, !text.isEmpty {
                     textParts.append(text)
+                }
+            case "thinking":
+                if let thinking = block.thinking, !thinking.isEmpty {
+                    reasoningParts.append(thinking)
                 }
             case "tool_use":
                 if let id = block.id, let name = block.name {
@@ -150,7 +185,11 @@ struct AnthropicClient: ChatCompletionClient {
             }
         }
 
-        return ChatCompletionResult(text: textParts.joined(), toolCalls: toolCalls)
+        return ChatCompletionResult(
+            text: textParts.joined(),
+            reasoning: reasoningParts.joined(),
+            toolCalls: toolCalls
+        )
     }
 
     // MARK: - Streaming text
@@ -160,21 +199,36 @@ struct AnthropicClient: ChatCompletionClient {
         model: String,
         baseURL: String,
         apiKey: String?,
+        supportsReasoning: Bool,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: [])
+        request.httpBody = try encodeBody(
+            turns: turns,
+            model: model,
+            stream: true,
+            tools: [],
+            supportsReasoning: supportsReasoning
+        )
 
         let upstream = ServerSentEventStream.dataPayloads(for: request, session: session)
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
             guard let event = try? JSONDecoder().decode(StreamEvent.self, from: data) else { continue }
-            if event.type == "content_block_delta",
-               event.delta?.type == "text_delta",
-               let text = event.delta?.text, !text.isEmpty {
-                continuation.yield(.text(text))
+            guard event.type == "content_block_delta" else { continue }
+            switch event.delta?.type {
+            case "text_delta":
+                if let text = event.delta?.text, !text.isEmpty {
+                    continuation.yield(.text(text))
+                }
+            case "thinking_delta":
+                if let thinking = event.delta?.thinking, !thinking.isEmpty {
+                    continuation.yield(.reasoning(thinking))
+                }
+            default:
+                continue
             }
         }
     }
@@ -205,7 +259,8 @@ struct AnthropicClient: ChatCompletionClient {
         turns: [ChatTurn],
         model: String,
         stream: Bool,
-        tools: [ChatToolDefinition]
+        tools: [ChatToolDefinition],
+        supportsReasoning: Bool
     ) throws -> Data {
         let systemPrompt = turns
             .filter { $0.role == .system }
@@ -216,14 +271,18 @@ struct AnthropicClient: ChatCompletionClient {
         let conversationTurns = turns.filter { $0.role != .system }
         let messages = try encodeMessages(conversationTurns)
         let toolPayloads: [ToolPayload]? = tools.isEmpty ? nil : try tools.map(encodeTool)
+        let thinking: ThinkingPayload? = supportsReasoning
+            ? ThinkingPayload(type: "enabled", budgetTokens: thinkingBudgetTokens)
+            : nil
 
         let body = RequestBody(
             model: model,
-            maxTokens: 8192,
+            maxTokens: supportsReasoning ? maxTokensWithThinking : maxTokensDefault,
             system: systemPrompt.isEmpty ? nil : systemPrompt,
             messages: messages,
             stream: stream,
-            tools: toolPayloads
+            tools: toolPayloads,
+            thinking: thinking
         )
         return try JSONEncoder().encode(body)
     }
@@ -311,10 +370,21 @@ struct AnthropicClient: ChatCompletionClient {
         var messages: [RequestMessage]
         var stream: Bool
         var tools: [ToolPayload]?
+        var thinking: ThinkingPayload?
 
         enum CodingKeys: String, CodingKey {
-            case model, system, messages, stream, tools
+            case model, system, messages, stream, tools, thinking
             case maxTokens = "max_tokens"
+        }
+    }
+
+    private struct ThinkingPayload: Encodable {
+        var type: String
+        var budgetTokens: Int
+
+        enum CodingKeys: String, CodingKey {
+            case type
+            case budgetTokens = "budget_tokens"
         }
     }
 
@@ -391,6 +461,7 @@ struct AnthropicClient: ChatCompletionClient {
         struct ContentBlock: Decodable {
             var type: String
             var text: String?
+            var thinking: String?
             var id: String?
             var name: String?
             var input: AnyCodableJSON?
@@ -401,6 +472,7 @@ struct AnthropicClient: ChatCompletionClient {
         struct Delta: Decodable {
             var type: String?
             var text: String?
+            var thinking: String?
         }
         var type: String
         var delta: Delta?
