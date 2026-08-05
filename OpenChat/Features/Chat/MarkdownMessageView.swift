@@ -87,6 +87,9 @@ struct MarkdownMessageView: View, Equatable {
         case .code(let language, let code):
             CodeBlockView(language: language, code: code)
 
+        case .table(let table):
+            MarkdownTableView(table: table, isUserMessage: isUserMessage)
+
         case .thematicBreak:
             Divider()
                 .padding(.vertical, 4)
@@ -118,6 +121,22 @@ enum MarkdownBlock: Equatable {
     case blockquote(String)
     case code(language: String?, code: String)
     case thematicBreak
+    case table(MarkdownTable)
+}
+
+enum MarkdownTableAlignment: Equatable {
+    case leading, center, trailing
+}
+
+struct MarkdownTable: Equatable {
+    let headers: [String]
+    let rows: [[String]]
+    let alignments: [MarkdownTableAlignment]
+
+    func alignment(at index: Int) -> MarkdownTableAlignment {
+        guard index >= 0, index < alignments.count else { return .leading }
+        return alignments[index]
+    }
 }
 
 enum MarkdownContentParser {
@@ -150,6 +169,66 @@ enum MarkdownContentParser {
         return .code(language: language, code: code.trimmingCharacters(in: .newlines))
     }
 
+    private static func parseTable(from lines: [String], start: Int) -> (table: MarkdownTable, nextIndex: Int)? {
+        var index = start
+        var rawRows: [[String]] = []
+
+        while index < lines.count {
+            let line = lines[index]
+            guard line.contains("|") else { break }
+            rawRows.append(cells(from: line))
+            index += 1
+        }
+
+        guard rawRows.count >= 2 else { return nil }
+        let separator = rawRows[1]
+        guard isTableSeparator(separator) else { return nil }
+
+        let headers = rawRows[0]
+        let columnCount = headers.count
+        guard columnCount > 0,
+              separator.count == columnCount,
+              rawRows.dropFirst(2).allSatisfy({ $0.count == columnCount }) else {
+            return nil
+        }
+
+        let alignments = separator.map { alignment(from: $0) }
+        let rows = Array(rawRows.dropFirst(2))
+
+        return (MarkdownTable(headers: headers, rows: rows, alignments: alignments), index)
+    }
+
+    private static func cells(from line: String) -> [String] {
+        var parts = line.components(separatedBy: "|")
+        if parts.first?.trimmingCharacters(in: .whitespaces).isEmpty == true, line.hasPrefix("|") {
+            parts.removeFirst()
+        }
+        if parts.last?.trimmingCharacters(in: .whitespaces).isEmpty == true, line.hasSuffix("|") {
+            parts.removeLast()
+        }
+        return parts.map { $0.trimmingCharacters(in: .whitespaces) }
+    }
+
+    private static func isTableSeparator(_ cells: [String]) -> Bool {
+        cells.allSatisfy { cell in
+            let trimmed = cell.trimmingCharacters(in: .whitespaces)
+            guard trimmed.count >= 3 else { return false }
+            let hasLeadingColon = trimmed.hasPrefix(":")
+            let hasTrailingColon = trimmed.hasSuffix(":")
+            let body = trimmed.dropFirst(hasLeadingColon ? 1 : 0).dropLast(hasTrailingColon ? 1 : 0)
+            return body.allSatisfy { $0 == "-" || $0 == "_" }
+        }
+    }
+
+    private static func alignment(from cell: String) -> MarkdownTableAlignment {
+        let trimmed = cell.trimmingCharacters(in: .whitespaces)
+        let hasLeadingColon = trimmed.hasPrefix(":")
+        let hasTrailingColon = trimmed.hasSuffix(":")
+        if hasLeadingColon && hasTrailingColon { return .center }
+        if hasTrailingColon { return .trailing }
+        return .leading
+    }
+
     private static func parseTextBlocks(_ text: String) -> [MarkdownBlock] {
         let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var blocks: [MarkdownBlock] = []
@@ -179,6 +258,9 @@ enum MarkdownContentParser {
             } else if trimmed.hasPrefix(">") {
                 let parsed = consumeBlockquote(from: lines, start: index, firstLine: trimmed)
                 blocks.append(.blockquote(parsed.text))
+                index = parsed.nextIndex
+            } else if let parsed = parseTable(from: lines, start: index) {
+                blocks.append(.table(parsed.table))
                 index = parsed.nextIndex
             } else {
                 let parsed = consumeParagraph(from: lines, start: index, firstLine: trimmed)
@@ -234,6 +316,7 @@ enum MarkdownContentParser {
         while index < lines.count {
             let next = lines[index].trimmingCharacters(in: .whitespaces)
             if next.isEmpty || startsNewBlock(next) { break }
+            if next.contains("|"), parseTable(from: lines, start: index) != nil { break }
             paragraphLines.append(next)
             index += 1
         }
@@ -361,5 +444,55 @@ private struct CodeBlockView: View {
             RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
                 .strokeBorder(Color(.separator).opacity(0.3))
         )
+    }
+}
+
+// MARK: - Table
+
+private struct MarkdownTableView: View {
+    let table: MarkdownTable
+    let isUserMessage: Bool
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+            GridRow {
+                ForEach(Array(table.headers.enumerated()), id: \.offset) { index, header in
+                    Text(inlineAttributed(header))
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(isUserMessage ? .white : .primary)
+                        .textSelection(.enabled)
+                        .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
+                }
+            }
+
+            GridRow {
+                Divider()
+                    .gridCellColumns(table.headers.count)
+            }
+
+            ForEach(Array(table.rows.enumerated()), id: \.offset) { _, row in
+                GridRow {
+                    ForEach(Array(row.enumerated()), id: \.offset) { index, cell in
+                        Text(inlineAttributed(cell))
+                            .font(.body)
+                            .foregroundStyle(isUserMessage ? .white : .primary)
+                            .textSelection(.enabled)
+                            .gridColumnAlignment(columnAlignment(for: table.alignment(at: index)))
+                    }
+                }
+            }
+        }
+    }
+
+    private func inlineAttributed(_ text: String) -> AttributedString {
+        MarkdownInlineFormatter.attributed(from: text)
+    }
+
+    private func columnAlignment(for alignment: MarkdownTableAlignment) -> HorizontalAlignment {
+        switch alignment {
+        case .leading: return .leading
+        case .center: return .center
+        case .trailing: return .trailing
+        }
     }
 }

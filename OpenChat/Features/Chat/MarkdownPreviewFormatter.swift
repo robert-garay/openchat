@@ -23,6 +23,10 @@ enum MarkdownPreviewFormatter {
             return code
         case .thematicBreak:
             return nil
+        case .table(let table):
+            let headers = table.headers.map(plainInlineText).joined(separator: ", ")
+            let rows = table.rows.map { $0.map(plainInlineText).joined(separator: ", ") }.joined(separator: ", ")
+            return [headers, rows].filter { !$0.isEmpty }.joined(separator: ", ")
         }
     }
 

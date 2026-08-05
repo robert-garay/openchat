@@ -216,11 +216,19 @@ struct MessageComposerView: View {
         .accessibilityHint("Attach a photo or paste an image")
     }
 
+    /// Explicit web search provider menu order: Tavily first, Exa second, then any remaining providers in their original order, with Off at the bottom.
+    private var orderedWebSearchProviders: [WebSearchProviderKind] {
+        let prioritized: [WebSearchProviderKind] = [.tavily, .exa]
+        let prioritizedProviders = prioritized.filter { webSearchProviders.contains($0) }
+        let remainingProviders = webSearchProviders.filter { !prioritized.contains($0) }
+        return prioritizedProviders + remainingProviders
+    }
+
     private var webSearchButton: some View {
         Group {
             if canUseWebSearch {
                 Menu {
-                    ForEach(webSearchProviders) { provider in
+                    ForEach(orderedWebSearchProviders) { provider in
                         Button {
                             onSelectWebSearchProvider?(provider)
                         } label: {

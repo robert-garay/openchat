@@ -147,20 +147,6 @@ struct ModelPickerSheet: View {
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        providerStore.refreshModelsIfNeeded(force: true)
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .accessibilityLabel("Refresh models")
-                    .disabled(providerStore.isLoadingModels)
-                }
-            }
             .safeAreaInset(edge: .bottom) {
                 ModelPickerFilterBars(
                     providers: providerStore.enabledProviders,
@@ -171,7 +157,7 @@ struct ModelPickerSheet: View {
         }
         .presentationDetents([.medium, .large])
         .task {
-            providerStore.refreshModelsIfNeeded()
+            providerStore.refreshModelsIfNeeded(force: true)
         }
     }
 

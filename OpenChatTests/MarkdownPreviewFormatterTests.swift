@@ -26,4 +26,13 @@ final class MarkdownPreviewFormatterTests: XCTestCase {
         XCTAssertFalse(plain.contains("\n"))
         XCTAssertEqual(plain, "Line one Line two")
     }
+
+    func testStripsTableMarkers() {
+        let plain = MarkdownPreviewFormatter.plainText(from: """
+        | Name | Value |
+        |------|-------|
+        | A    | 1     |
+        """)
+        XCTAssertEqual(plain, "Name, Value, A, 1")
+    }
 }
