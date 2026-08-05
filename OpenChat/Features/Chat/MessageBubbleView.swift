@@ -5,7 +5,6 @@ import UIKit
 
 struct MessageBubbleView: View {
     let message: ChatMessage
-    var isStreaming: Bool = false
     let providerTint: Color
     let providerSymbol: String
     var providerLogoAssetName: String? = nil
@@ -85,7 +84,7 @@ struct MessageBubbleView: View {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
-                    MarkdownMessageView(content: displayContent, isUserMessage: false, isStreaming: isStreaming)
+                    MarkdownMessageView(content: displayContent, isUserMessage: false)
                         .equatable()
                 }
 
@@ -132,11 +131,7 @@ struct MessageBubbleView: View {
     }
 
     private var displayContent: String {
-        // Skip expensive fence-stripping regex while streaming; do it only when done.
-        if isStreaming {
-            return message.content
-        }
-        return MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+        MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
     }
 
     private var calendarConfirmationCard: some View {
