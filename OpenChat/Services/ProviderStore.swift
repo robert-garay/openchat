@@ -111,9 +111,34 @@ final class ProviderStore {
         persist()
     }
 
-    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) {
-        providers.append(.customEndpoint(name: name, baseURL: baseURL, models: models, requiresAPIKey: requiresAPIKey))
+    @discardableResult
+    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) -> ConfiguredProvider? {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        var normalizedURL = baseURL.trimmingCharacters(in: .whitespaces)
+        while normalizedURL.hasSuffix("/") {
+            normalizedURL.removeLast()
+        }
+        let nameExists = providers.contains {
+            $0.name.trimmingCharacters(in: .whitespaces)
+                .localizedCaseInsensitiveCompare(trimmedName) == .orderedSame
+        }
+        let urlExists = providers.contains {
+            var existing = $0.baseURL.trimmingCharacters(in: .whitespaces)
+            while existing.hasSuffix("/") {
+                existing.removeLast()
+            }
+            return existing.localizedCaseInsensitiveCompare(normalizedURL) == .orderedSame
+        }
+        guard !nameExists, !urlExists else { return nil }
+        let provider = ConfiguredProvider.customEndpoint(
+            name: trimmedName,
+            baseURL: normalizedURL,
+            models: models,
+            requiresAPIKey: requiresAPIKey
+        )
+        providers.append(provider)
         persist()
+        return provider
     }
 
     func update(_ provider: ConfiguredProvider) {
