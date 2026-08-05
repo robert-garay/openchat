@@ -70,8 +70,8 @@ struct ChatView: View {
                     }
                 }
             }
-            if conversation.messages.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
+                if conversation.messages.isEmpty {
                     Button {
                         Haptics.light()
                         onToggleTemporary?()
@@ -83,6 +83,7 @@ struct ChatView: View {
                     .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
                     .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
+            }
             }
         }
         .sheet(isPresented: $showingModelPicker) {
