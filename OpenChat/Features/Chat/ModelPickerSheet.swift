@@ -11,6 +11,12 @@ struct ModelPickerSheet: View {
     @State private var selectedProviderIDs: Set<String> = []
     @State private var selectedCapabilities: Set<ModelCapability> = []
 
+    private var isFiltering: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !selectedProviderIDs.isEmpty
+            || !selectedCapabilities.isEmpty
+    }
+
     private var allResults: [PickerModelItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         var items: [PickerModelItem] = []
@@ -37,9 +43,16 @@ struct ModelPickerSheet: View {
             }
         }
 
-        return ProviderStore.sortedByUsage(items) { item in
-            providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
-        }
+        return ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: isFiltering,
+            isStarred: { item in
+                providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
+            },
+            usageCount: { item in
+                providerStore.modelUsageCount(providerID: item.providerID, modelID: item.modelID)
+            }
+        )
     }
 
     private var emptyFilterMessage: String {
@@ -114,6 +127,25 @@ struct ModelPickerSheet: View {
                     } else {
                         ForEach(allResults) { item in
                             modelButton(item)
+                                .swipeActions(edge: .trailing) {
+                                    Button {
+                                        Haptics.light()
+                                        providerStore.toggleStarredModel(
+                                            providerID: item.providerID,
+                                            modelID: item.modelID
+                                        )
+                                    } label: {
+                                        let starred = providerStore.isModelStarred(
+                                            providerID: item.providerID,
+                                            modelID: item.modelID
+                                        )
+                                        Label(
+                                            starred ? "Unstar" : "Star",
+                                            systemImage: starred ? "star.slash.fill" : "star.fill"
+                                        )
+                                    }
+                                    .tint(.orange)
+                                }
                         }
                     }
                 } footer: {
@@ -192,7 +224,9 @@ struct ModelPickerSheet: View {
     }
 
     private func modelRow(_ item: PickerModelItem) -> some View {
-        HStack(spacing: 10) {
+        let isStarred = providerStore.isModelStarred(providerID: item.providerID, modelID: item.modelID)
+        let isCurrent = item.providerID == currentProviderID && item.modelID == currentModelID
+        return HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.displayName)
                     .foregroundStyle(.primary)
@@ -213,14 +247,24 @@ struct ModelPickerSheet: View {
             }
             Spacer(minLength: 8)
             ModelCapabilitySigns(capabilities: item.capabilities)
-            if item.providerID == currentProviderID && item.modelID == currentModelID {
+            if isStarred {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.orange)
+                    .font(.caption)
+                    .accessibilityHidden(true)
+            }
+            if isCurrent {
                 Image(systemName: "checkmark")
                     .foregroundStyle(Color.accentColor)
                     .fontWeight(.semibold)
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(item.displayName), \(item.providerName)")
+        .accessibilityLabel(
+            isStarred
+                ? "\(item.displayName), \(item.providerName), starred"
+                : "\(item.displayName), \(item.providerName)"
+        )
     }
 
     private func providerSubtitle(for item: PickerModelItem) -> String {

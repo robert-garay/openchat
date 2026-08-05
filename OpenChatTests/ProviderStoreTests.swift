@@ -148,6 +148,87 @@ final class ProviderStoreTests: XCTestCase {
         store.recordModelUsage(providerID: "openai", modelID: "gpt-4o")
         XCTAssertEqual(store.modelUsageCount(providerID: "openai", modelID: "gpt-4o"), 3)
     }
+
+    func testRecordModelUsageRemembersLastSelectedForNewChats() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        store.addFromTemplate(ProviderTemplate.template(for: "anthropic")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "anthropic")!)
+
+        store.recordModelUsage(providerID: "anthropic", modelID: "claude-opus-4-6-20260805")
+
+        let choice = store.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "anthropic")
+        XCTAssertEqual(choice?.modelID, "claude-opus-4-6-20260805")
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(reloaded.lastSelectedModel?.providerID, "anthropic")
+        XCTAssertEqual(reloaded.lastSelectedModel?.modelID, "claude-opus-4-6-20260805")
+    }
+
+    func testDefaultModelForNewChatFallsBackWhenLastSelectedUnavailable() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
+        store.rememberLastSelectedModel(providerID: "missing", modelID: "gone")
+
+        let choice = store.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "openai")
+        XCTAssertEqual(choice?.modelID, store.provider(withID: "openai")?.models.first?.id)
+    }
+
+    func testSeedLastSelectedModelOnlyWhenEmpty() {
+        store.seedLastSelectedModelIfNeeded(providerID: "openai", modelID: "gpt-4o")
+        store.seedLastSelectedModelIfNeeded(providerID: "anthropic", modelID: "claude-sonnet")
+        XCTAssertEqual(store.lastSelectedModel?.providerID, "openai")
+        XCTAssertEqual(store.lastSelectedModel?.modelID, "gpt-4o")
+    }
+
+    func testStarredModelsPersistAndPinOnlyWhenNotFiltering() {
+        store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
+        store.toggleStarredModel(providerID: "anthropic", modelID: "claude-sonnet")
+        XCTAssertTrue(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+
+        store.recordModelUsage(providerID: "openai", modelID: "unused")
+        store.recordModelUsage(providerID: "openai", modelID: "unused")
+
+        let items = ["unused", "claude-sonnet", "gpt-4o"]
+        let unfiltered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: false,
+            isStarred: { id in
+                id == "gpt-4o" || id == "claude-sonnet"
+            },
+            usageCount: { id in
+                id == "unused" ? 2 : 0
+            }
+        )
+        XCTAssertEqual(unfiltered, ["claude-sonnet", "gpt-4o", "unused"])
+
+        let filtered = ProviderStore.sortedForModelPicker(
+            items,
+            isFiltering: true,
+            isStarred: { id in
+                id == "gpt-4o" || id == "claude-sonnet"
+            },
+            usageCount: { id in
+                id == "unused" ? 2 : 0
+            }
+        )
+        XCTAssertEqual(filtered, ["unused", "claude-sonnet", "gpt-4o"])
+
+        store.toggleStarredModel(providerID: "openai", modelID: "gpt-4o")
+        XCTAssertFalse(store.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertTrue(reloaded.isModelStarred(providerID: "anthropic", modelID: "claude-sonnet"))
+        XCTAssertFalse(reloaded.isModelStarred(providerID: "openai", modelID: "gpt-4o"))
+    }
+
+    func testLastSelectedModelPreservesSlashesInModelID() {
+        store.rememberLastSelectedModel(providerID: "openrouter", modelID: "deepseek/deepseek-chat")
+        XCTAssertEqual(store.lastSelectedModel?.providerID, "openrouter")
+        XCTAssertEqual(store.lastSelectedModel?.modelID, "deepseek/deepseek-chat")
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {
