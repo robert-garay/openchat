@@ -14,54 +14,74 @@ struct ChatRulesSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    if sortedItems.isEmpty {
-                        Text("No rules yet.")
+        VStack(alignment: .leading, spacing: 0) {
+            if sortedItems.isEmpty {
+                Text("No rules yet.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+            } else {
+                ForEach(Array(sortedItems.enumerated()), id: \.element.id) { index, item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.content)
+                            .font(.body)
+                            .lineLimit(3)
+                            .foregroundStyle(.primary)
+                        Text(item.updatedAt.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(sortedItems) { item in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.content)
-                                    .lineLimit(3)
-                                Text(item.updatedAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Button {
-                        showingAddRule = true
-                    } label: {
-                        Label("Add rule", systemImage: "plus.circle.fill")
+                    if index < sortedItems.count - 1 {
+                        Divider()
+                            .padding(.leading, 16)
                     }
-                } header: {
-                    Text("Saved rules")
                 }
             }
-            .navigationTitle("Chat Rules")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+
+            if !sortedItems.isEmpty {
+                Divider()
+                    .padding(.leading, 16)
+            }
+
+            Button {
+                showingAddRule = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.accentColor)
+                    Text("Add rule")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
             }
-            .sheet(isPresented: $showingAddRule) {
-                RuleEditorSheet(title: "Add rule", initialText: "") { content in
-                    do {
-                        try rulesStore.save(content: content, modelContext: modelContext)
-                        try modelContext.save()
-                    } catch {
-                        return error.localizedDescription
-                    }
-                    return nil
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 8)
+        .frame(minWidth: 260, minHeight: 120)
+        .fixedSize(horizontal: false, vertical: true)
+        .sheet(isPresented: $showingAddRule) {
+            RuleEditorSheet(title: "Add rule", initialText: "") { content in
+                do {
+                    try rulesStore.save(content: content, modelContext: modelContext)
+                    try modelContext.save()
+                } catch {
+                    return error.localizedDescription
                 }
+                return nil
             }
-            .onAppear {
-                rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
-            }
+        }
+        .onAppear {
+            rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
         }
     }
 }
