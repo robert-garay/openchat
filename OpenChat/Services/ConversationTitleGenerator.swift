@@ -40,14 +40,19 @@ enum ConversationTitleGenerator {
         title = title.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let quoteScalars = CharacterSet(charactersIn: "\"'`“”‘’«»")
-        while let scalar = title.unicodeScalars.first, quoteScalars.contains(scalar) {
-            title.removeFirst()
+        let punctuationScalars = CharacterSet(charactersIn: ".!?。…")
+        var previous = ""
+        while previous != title {
+            previous = title
+            while let scalar = title.unicodeScalars.first, quoteScalars.contains(scalar) {
+                title.removeFirst()
+            }
+            while let scalar = title.unicodeScalars.last, quoteScalars.contains(scalar) {
+                title.removeLast()
+            }
+            title = title.trimmingCharacters(in: punctuationScalars)
+            title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        while let scalar = title.unicodeScalars.last, quoteScalars.contains(scalar) {
-            title.removeLast()
-        }
-        title = title.trimmingCharacters(in: CharacterSet(charactersIn: ".!?。…"))
-        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let lower = title.lowercased()
         for prefix in ["title:", "chat title:", "conversation title:"] {
