@@ -38,6 +38,7 @@ struct MessageComposerView: View {
     var onCompact: (() -> Void)? = nil
     /// When true, rules chip uses accent (conversation has a non-empty system prompt).
     var hasChatRules: Bool = false
+    var canUseChatRules: Bool = true
     var onOpenChatRules: (() -> Void)? = nil
     var skills: [SkillMatchable] = []
     let onSend: () -> Void
@@ -185,7 +186,9 @@ struct MessageComposerView: View {
             HStack(alignment: .center, spacing: 2) {
                 plusMenuButton
                 webSearchButton
-                chatRulesButton
+                if canUseChatRules {
+                    chatRulesButton
+                }
                 compactButton
                 Spacer(minLength: 0)
                 sendButton
