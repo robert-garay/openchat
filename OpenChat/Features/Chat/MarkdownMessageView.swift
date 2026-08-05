@@ -12,102 +12,262 @@ struct MarkdownMessageView: View, Equatable {
 
     var body: some View {
         let blocks = MarkdownContentParser.blocks(from: content)
+        let groups = groupedBlocks(blocks)
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
-                blockView(block)
+            ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                groupView(group)
             }
         }
     }
 
     @ViewBuilder
-    private func blockView(_ block: MarkdownBlock) -> some View {
+    private func groupView(_ group: BlockGroup) -> some View {
+        switch group {
+        case .text(let blocks):
+            MarkdownTextBlockView(blocks: blocks, isUserMessage: isUserMessage)
+        case .single(let block):
+            singleBlockView(block)
+        }
+    }
+
+    @ViewBuilder
+    private func singleBlockView(_ block: MarkdownBlock) -> some View {
         switch block {
-        case .heading(let level, let text):
-            Text(inlineAttributed(text))
-                .font(headingFont(level))
-                .fontWeight(level <= 2 ? .bold : .semibold)
-                .textSelection(.enabled)
-                .foregroundStyle(isUserMessage ? .white : .primary)
-                .padding(.top, level == 1 ? 4 : 2)
-
-        case .paragraph(let text):
-            Text(inlineAttributed(text))
-                .font(.body)
-                .textSelection(.enabled)
-                .foregroundStyle(isUserMessage ? .white : .primary)
-                .fixedSize(horizontal: false, vertical: true)
-
-        case .unorderedList(let items):
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("•")
-                            .font(.body)
-                            .foregroundStyle(isUserMessage ? .white.opacity(0.85) : .secondary)
-                        Text(inlineAttributed(item))
-                            .font(.body)
-                            .textSelection(.enabled)
-                            .foregroundStyle(isUserMessage ? .white : .primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-
-        case .orderedList(let items):
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("\(index + 1).")
-                            .font(.body.monospacedDigit())
-                            .foregroundStyle(isUserMessage ? .white.opacity(0.85) : .secondary)
-                            .frame(minWidth: 20, alignment: .trailing)
-                        Text(inlineAttributed(item))
-                            .font(.body)
-                            .textSelection(.enabled)
-                            .foregroundStyle(isUserMessage ? .white : .primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-
-        case .blockquote(let text):
-            HStack(alignment: .top, spacing: 10) {
-                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                    .fill(isUserMessage ? Color.white.opacity(0.45) : Color.secondary.opacity(0.45))
-                    .frame(width: 3)
-                Text(inlineAttributed(text))
-                    .font(.body)
-                    .italic()
-                    .textSelection(.enabled)
-                    .foregroundStyle(isUserMessage ? .white.opacity(0.9) : .secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.vertical, 2)
-
         case .code(let language, let code):
             CodeBlockView(language: language, code: code)
-
         case .table(let table):
             MarkdownTableView(table: table, isUserMessage: isUserMessage)
-
         case .thematicBreak:
             Divider()
                 .padding(.vertical, 4)
                 .opacity(isUserMessage ? 0.35 : 1)
+        default:
+            EmptyView()
         }
     }
 
-    private func headingFont(_ level: Int) -> Font {
-        switch level {
-        case 1: return .title2
-        case 2: return .title3
-        case 3: return .headline
-        default: return .body
+    private func groupedBlocks(_ blocks: [MarkdownBlock]) -> [BlockGroup] {
+        var groups: [BlockGroup] = []
+        var currentTextBlocks: [MarkdownBlock] = []
+
+        for block in blocks {
+            if block.isTextBlock {
+                currentTextBlocks.append(block)
+            } else {
+                if !currentTextBlocks.isEmpty {
+                    groups.append(.text(currentTextBlocks))
+                    currentTextBlocks = []
+                }
+                groups.append(.single(block))
+            }
         }
+        if !currentTextBlocks.isEmpty {
+            groups.append(.text(currentTextBlocks))
+        }
+        return groups
     }
 
     private func inlineAttributed(_ text: String) -> AttributedString {
         MarkdownInlineFormatter.attributed(from: text)
+    }
+}
+
+private enum BlockGroup {
+    case text([MarkdownBlock])
+    case single(MarkdownBlock)
+}
+
+private extension MarkdownBlock {
+    var isTextBlock: Bool {
+        switch self {
+        case .heading, .paragraph, .unorderedList, .orderedList, .blockquote:
+            return true
+        case .code, .table, .thematicBreak:
+            return false
+        }
+    }
+}
+
+// MARK: - Selectable text block
+
+/// Renders a contiguous group of markdown text blocks in a single non-editable,
+/// selectable `UITextView`. This gives the native iOS text-selection handles and
+/// lets the user drag the selection across paragraphs, list items, and headings.
+private struct MarkdownTextBlockView: UIViewRepresentable {
+    let blocks: [MarkdownBlock]
+    let isUserMessage: Bool
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.textContainerInset = .zero
+        textView.textContainer.lineFragmentPadding = 0
+        textView.textContainer.maximumNumberOfLines = 0
+        textView.dataDetectorTypes = []
+        textView.adjustsFontForContentSizeCategory = true
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.setContentHuggingPriority(.required, for: .vertical)
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        let mutable = NSMutableAttributedString()
+        for (index, block) in blocks.enumerated() {
+            if index > 0 {
+                mutable.append(NSAttributedString(string: "\n"))
+            }
+            mutable.append(attributedString(for: block))
+        }
+        textView.attributedText = mutable
+        textView.linkTextAttributes = [
+            .foregroundColor: isUserMessage ? UIColor.white : UIColor.link,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+        ]
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
+        let width = proposal.width ?? uiView.bounds.width
+        guard width.isFinite, width > 0 else {
+            return nil
+        }
+        let fitting = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+        return CGSize(width: width, height: fitting.height)
+    }
+
+    private func attributedString(for block: MarkdownBlock) -> NSAttributedString {
+        switch block {
+        case .heading(let level, let text):
+            let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: text))
+            let mutable = NSMutableAttributedString(attributedString: ns)
+            applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
+            applyFont(mutable, font: headingUIFont(level, weight: level <= 2 ? .bold : .semibold))
+            applyInlinePresentationIntents(to: mutable)
+            return mutable
+
+        case .paragraph(let text):
+            let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: text))
+            let mutable = NSMutableAttributedString(attributedString: ns)
+            applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
+            applyFont(mutable, font: .preferredFont(forTextStyle: .body))
+            applyInlinePresentationIntents(to: mutable)
+            return mutable
+
+        case .unorderedList(let items):
+            let result = NSMutableAttributedString()
+            for (index, item) in items.enumerated() {
+                if index > 0 {
+                    result.append(NSAttributedString(string: "\n"))
+                }
+                let bullet = NSAttributedString(string: "• ", attributes: [
+                    .font: UIFont.preferredFont(forTextStyle: .body),
+                    .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
+                ])
+                result.append(bullet)
+                let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: item))
+                let mutable = NSMutableAttributedString(attributedString: ns)
+                applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
+                applyFont(mutable, font: .preferredFont(forTextStyle: .body))
+                applyInlinePresentationIntents(to: mutable)
+                result.append(mutable)
+            }
+            return result
+
+        case .orderedList(let items):
+            let result = NSMutableAttributedString()
+            for (index, item) in items.enumerated() {
+                if index > 0 {
+                    result.append(NSAttributedString(string: "\n"))
+                }
+                let number = NSAttributedString(string: "\(index + 1). ", attributes: [
+                    .font: UIFont.preferredFont(forTextStyle: .body),
+                    .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
+                ])
+                result.append(number)
+                let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: item))
+                let mutable = NSMutableAttributedString(attributedString: ns)
+                applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
+                applyFont(mutable, font: .preferredFont(forTextStyle: .body))
+                applyInlinePresentationIntents(to: mutable)
+                result.append(mutable)
+            }
+            return result
+
+        case .blockquote(let text):
+            let ns = NSAttributedString(MarkdownInlineFormatter.attributed(from: text))
+            let mutable = NSMutableAttributedString(attributedString: ns)
+            applyForegroundColor(mutable, color: isUserMessage ? UIColor.white.withAlphaComponent(0.9) : UIColor.secondaryLabel)
+            applyFont(mutable, font: .italicBody)
+            applyInlinePresentationIntents(to: mutable)
+            return mutable
+
+        case .code, .table, .thematicBreak:
+            return NSAttributedString()
+        }
+    }
+
+    private func applyForegroundColor(_ mutable: NSMutableAttributedString, color: UIColor) {
+        let fullRange = NSRange(location: 0, length: mutable.length)
+        guard fullRange.length > 0 else { return }
+        mutable.addAttribute(.foregroundColor, value: color, range: fullRange)
+    }
+
+    private func applyFont(_ mutable: NSMutableAttributedString, font: UIFont) {
+        let fullRange = NSRange(location: 0, length: mutable.length)
+        guard fullRange.length > 0 else { return }
+        mutable.addAttribute(.font, value: font, range: fullRange)
+    }
+
+    private func applyInlinePresentationIntents(to mutable: NSMutableAttributedString) {
+        let fullRange = NSRange(location: 0, length: mutable.length)
+        mutable.enumerateAttribute(.inlinePresentationIntent, in: fullRange, options: []) { value, range, _ in
+            guard let intent = value as? InlinePresentationIntent else { return }
+            let currentFont = mutable.attribute(.font, at: range.location, effectiveRange: nil) as? UIFont
+                ?? .preferredFont(forTextStyle: .body)
+
+            var symbolicTraits: UIFontDescriptor.SymbolicTraits = []
+            if intent.contains(.stronglyEmphasized) {
+                symbolicTraits.insert(.traitBold)
+            }
+            if intent.contains(.emphasized) {
+                symbolicTraits.insert(.traitItalic)
+            }
+
+            if intent.contains(.code) {
+                let monoFont = UIFont.monospacedSystemFont(ofSize: currentFont.pointSize, weight: .regular)
+                mutable.addAttribute(.font, value: monoFont, range: range)
+            } else if !symbolicTraits.isEmpty {
+                let descriptor = currentFont.fontDescriptor.withSymbolicTraits(symbolicTraits)
+                let newFont = UIFont(descriptor: descriptor ?? currentFont.fontDescriptor, size: currentFont.pointSize)
+                mutable.addAttribute(.font, value: newFont, range: range)
+            }
+        }
+    }
+}
+
+private func headingUIFont(_ level: Int, weight: UIFont.Weight) -> UIFont {
+    let textStyle: UIFont.TextStyle
+    switch level {
+    case 1: textStyle = .title2
+    case 2: textStyle = .title3
+    case 3: textStyle = .headline
+    default: textStyle = .body
+    }
+    return UIFont.preferredFont(forTextStyle: textStyle, weight: weight)
+}
+
+extension UIFont {
+    static func preferredFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight) -> UIFont {
+        let base = UIFont.preferredFont(forTextStyle: style)
+        return UIFont.systemFont(ofSize: base.pointSize, weight: weight)
+    }
+
+    static var italicBody: UIFont {
+        let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
+            .withSymbolicTraits(.traitItalic)
+        return UIFont(descriptor: descriptor ?? UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body), size: 0)
     }
 }
 
