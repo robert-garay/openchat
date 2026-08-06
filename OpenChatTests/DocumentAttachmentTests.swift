@@ -42,4 +42,17 @@ final class DocumentAttachmentTests: XCTestCase {
         message.documentAttachments = []
         XCTAssertNil(message.documentAttachmentsData)
     }
+
+    func testChatTurnHasDocuments() {
+        let document = ChatDocumentAttachment(filename: "a.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let turn = ChatTurn(role: .user, content: "check", documents: [document])
+        XCTAssertTrue(turn.hasDocuments)
+        XCTAssertFalse(ChatTurn(role: .user, content: "hi").hasDocuments)
+    }
+
+    func testFilesCapabilityErrorMessage() {
+        let message = ChatServiceError.modelLacksFiles.errorDescription
+        XCTAssertNotNil(message)
+        XCTAssertTrue(message?.localizedCaseInsensitiveContains("document") == true)
+    }
 }
