@@ -78,6 +78,35 @@ final class ChatViewModel {
         self.memoryStore = memoryStore
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
+        restoreComposerState()
+    }
+
+    private func restoreComposerState() {
+        composerText = conversation.draftMessage
+        pendingAttachments = conversation.draftAttachments
+
+        if let raw = conversation.lastUsedWebSearchProviderID,
+           let kind = WebSearchProviderKind(rawValue: raw),
+           webSearchStore.hasAPIKey(for: kind) {
+            webSearchStore.setActiveProvider(kind)
+            webSearchStore.setEnabled(true)
+            isWebSearchEnabledForChat = true
+        }
+    }
+
+    private var persistTask: Task<Void, Never>?
+
+    func persistComposerState() {
+        conversation.draftMessage = composerText
+        conversation.draftAttachments = pendingAttachments
+        conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
+
+        persistTask?.cancel()
+        persistTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, !Task.isCancelled else { return }
+            try? modelContext.save()
+        }
     }
 
     private var shouldUseMemory: Bool {
@@ -365,6 +394,9 @@ final class ChatViewModel {
 
         composerText = ""
         pendingAttachments = []
+        conversation.draftMessage = ""
+        conversation.draftAttachments = []
+        conversation.lastUsedWebSearchProviderID = nil
 
         // Explicit /slash-name invocation pins its instructions into the conversation
         // immediately, synchronously, before the user's message — same-turn, same as
