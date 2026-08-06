@@ -39,6 +39,8 @@
 	<string>OpenChat does not write health data to Apple Health. This string is required because the app references HealthKit for read-only fitness coaching features.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OpenChat uses the microphone for voice input and transcription when you enable it.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>OpenChat saves images to your photo library when you choose Save to Photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>OpenChat accesses photos you select so agents can analyze images.</string>
 	<key>UILaunchScreen</key>
