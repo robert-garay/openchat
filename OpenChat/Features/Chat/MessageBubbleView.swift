@@ -33,6 +33,7 @@ struct MessageBubbleView: View {
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     @State private var showingTextSelection = false
+    @State private var selectionText: String = ""
     @State private var shareAttachment: ChatImageAttachment?
     #endif
     @State private var draftText: String = ""
@@ -56,7 +57,7 @@ struct MessageBubbleView: View {
             }
         }
         .sheet(isPresented: $showingTextSelection) {
-            TextSelectionSheet(text: displayContent)
+            TextSelectionSheet(text: selectionText)
         }
         .sheet(item: $shareAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
@@ -75,21 +76,38 @@ struct MessageBubbleView: View {
                 }
                 if isEditing {
                     editingBubble
-                } else {
-                    if !message.content.isEmpty {
-                        userBubbleText
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 11)
-                            .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
-                    }
-                    #if canImport(UIKit)
-                    if canEdit {
-                        EditChip {
-                            draftText = message.content
-                            onBeginEdit?()
+                } else if !message.content.isEmpty {
+                    userBubbleText
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 11)
+                        .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
+                        #if canImport(UIKit)
+                        .contextMenu {
+                            Button {
+                                UIPasteboard.general.string = message.content
+                                Haptics.light()
+                            } label: {
+                                Label("Copy", systemImage: "doc.on.doc")
+                            }
+
+                            if canEdit {
+                                Button {
+                                    draftText = message.content
+                                    onBeginEdit?()
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                            }
+
+                            Button {
+                                Haptics.light()
+                                selectionText = message.content
+                                showingTextSelection = true
+                            } label: {
+                                Label("Select", systemImage: "text.cursor")
+                            }
                         }
-                    }
-                    #endif
+                        #endif
                 }
             }
         }
@@ -180,7 +198,10 @@ struct MessageBubbleView: View {
                 if !displayContent.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
-                        SelectChip(isPresented: $showingTextSelection)
+                        SelectChip {
+                            selectionText = displayContent
+                            showingTextSelection = true
+                        }
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
                         }
@@ -362,6 +383,15 @@ struct MessageBubbleView: View {
                         } label: {
                             Label("Save to Photos", systemImage: "square.and.arrow.down")
                         }
+
+                        if message.role == .user && message.content.isEmpty && canEdit {
+                            Button {
+                                draftText = message.content
+                                onBeginEdit?()
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                        }
                     }
                 }
                 #endif
@@ -408,25 +438,6 @@ private struct CopyChip: View {
     }
 }
 
-private struct EditChip: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.light()
-            action()
-        } label: {
-            Image(systemName: "pencil")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(4)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Edit message")
-    }
-}
-
 private struct RegenerateChip: View {
     let action: () -> Void
 
@@ -447,12 +458,12 @@ private struct RegenerateChip: View {
 }
 
 private struct SelectChip: View {
-    @Binding var isPresented: Bool
+    let action: () -> Void
 
     var body: some View {
         Button {
             Haptics.light()
-            isPresented = true
+            action()
         } label: {
             Image(systemName: "text.cursor")
                 .font(.caption)
