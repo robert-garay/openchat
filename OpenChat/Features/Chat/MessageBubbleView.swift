@@ -130,7 +130,7 @@ struct MessageBubbleView: View {
             .font(.body)
             .textSelection(.enabled)
         } else {
-            MarkdownMessageView(content: message.content, isUserMessage: true)
+            MarkdownMessageView(content: message.content, isUserMessage: true, isStreaming: message.isStreaming)
                 .equatable()
         }
     }
@@ -190,7 +190,7 @@ struct MessageBubbleView: View {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
-                    MarkdownMessageView(content: displayContent, isUserMessage: false)
+                    MarkdownMessageView(content: displayContent, isUserMessage: false, isStreaming: message.isStreaming)
                         .equatable()
                 }
 
