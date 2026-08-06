@@ -26,11 +26,33 @@ final class SkillResolverTests: XCTestCase {
 
     func testResolveOnSend() {
         let r = SkillResolver.resolve(text: "/fitness-review check workout", skills: sampleSkills)
-        XCTAssertEqual(r?.storedMessage, "check workout")
+        XCTAssertEqual(r?.storedMessage, "/fitness-review check workout")
         XCTAssertEqual(r?.skill.instructions, "Analyze workouts.")
+    }
+
+    func testResolveUnknownSlashName() {
+        XCTAssertNil(SkillResolver.resolve(text: "/unknown-skill hello", skills: sampleSkills))
     }
 
     func testApplySelection() {
         XCTAssertEqual(SkillResolver.applySelection(skill: sampleSkills[0], to: "/fit"), "/fitness-review ")
+    }
+
+    func testIsReservedSlashName() {
+        XCTAssertTrue(SkillResolver.isReservedSlashName("skill-builder"))
+        XCTAssertFalse(SkillResolver.isReservedSlashName("fitness-review"))
+    }
+
+    func testWithBuiltIns() {
+        let all = SkillResolver.withBuiltIns(sampleSkills)
+        XCTAssertEqual(all.first?.slashName, SkillResolver.skillBuilderSlashName)
+        XCTAssertEqual(all.count, sampleSkills.count + 1)
+    }
+
+    func testResolveSkillBuilder() {
+        let all = SkillResolver.withBuiltIns(sampleSkills)
+        let r = SkillResolver.resolve(text: "/skill-builder", skills: all)
+        XCTAssertEqual(r?.skill.slashName, SkillResolver.skillBuilderSlashName)
+        XCTAssertEqual(r?.storedMessage, "/skill-builder")
     }
 }

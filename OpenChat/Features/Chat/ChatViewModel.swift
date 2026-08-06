@@ -16,6 +16,8 @@ final class ChatViewModel {
     private(set) var isApplyingCalendarActions = false
     private(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
     private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
+    private(set) var skillActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -48,8 +50,8 @@ final class ChatViewModel {
     private let webSearchStore: WebSearchStore
     private let rulesStore: RulesStore
     private let memoryStore: MemoryStore
+    private let skillsStore: SkillsStore
     private var streamingTask: Task<Void, Never>?
-    private var pendingSkillSystemBlock: String?
     private var titleGenerationTask: Task<Void, Never>?
 
     /// Per-chat override. When false, this conversation will not call search
@@ -64,7 +66,8 @@ final class ChatViewModel {
         dataSourceStore: AgentDataSourceStore,
         webSearchStore: WebSearchStore,
         rulesStore: RulesStore,
-        memoryStore: MemoryStore
+        memoryStore: MemoryStore,
+        skillsStore: SkillsStore
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
@@ -73,6 +76,7 @@ final class ChatViewModel {
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
+        self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
     }
 
@@ -330,6 +334,20 @@ final class ChatViewModel {
         Haptics.light()
     }
 
+    /// Clears a pending skill proposal after the user saved it via the review sheet
+    /// (SkillEditorView performs the actual save; this only clears the bookkeeping).
+    func clearSkillProposalAfterReview(for messageID: UUID) {
+        pendingSkillProposalsByMessageID[messageID] = nil
+        skillActionStatusByMessageID[messageID] = "Skill saved."
+        Haptics.success()
+    }
+
+    func dismissSkillProposals(for messageID: UUID) {
+        pendingSkillProposalsByMessageID[messageID] = nil
+        skillActionStatusByMessageID[messageID] = "Skill discarded."
+        Haptics.light()
+    }
+
     func send() {
         let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
@@ -343,14 +361,17 @@ final class ChatViewModel {
         let skills = fetchSkillMatches()
         let resolution = SkillResolver.resolve(text: rawText, skills: skills)
         let text = resolution?.storedMessage ?? rawText
-        pendingSkillSystemBlock = resolution.map { SkillResolver.systemBlock(for: $0.skill) }
-        guard !text.isEmpty || !images.isEmpty || resolution != nil else {
-            pendingSkillSystemBlock = nil
-            return
-        }
+        guard !text.isEmpty || !images.isEmpty else { return }
 
         composerText = ""
         pendingAttachments = []
+
+        // Explicit /slash-name invocation pins its instructions into the conversation
+        // immediately, synchronously, before the user's message — same-turn, same as
+        // an auto-invoked skill lands next-turn once persisted by requestAssistantReply().
+        if let resolution {
+            insertSkillSystemMessage(for: resolution.skill)
+        }
 
         let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images)
         userMessage.conversation = conversation
@@ -373,9 +394,18 @@ final class ChatViewModel {
         requestAssistantReply()
     }
 
+    /// Empty when the Skills feature is off — callers never need a separate enabled check.
     private func fetchSkillMatches() -> [SkillMatchable] {
+        guard skillsStore.isEnabled else { return [] }
         let skills = (try? modelContext.fetch(FetchDescriptor<Skill>())) ?? []
-        return skills.map(SkillMatchable.init(skill:))
+        return SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:)))
+    }
+
+    private func insertSkillSystemMessage(for skill: SkillMatchable) {
+        let message = ChatMessage(role: .system, content: SkillResolver.systemBlock(for: skill))
+        message.conversation = conversation
+        conversation.messages.append(message)
+        modelContext.insert(message)
     }
 
     private func requestTitleGeneration(from text: String, provisionalTitle: String) {
@@ -484,8 +514,9 @@ final class ChatViewModel {
         let supportsVision = model.supportsVision
         let supportsImageGen = model.supportsImageGen
         let conversationSystemPrompt = conversation.systemPrompt
-        let skillSystemBlock = pendingSkillSystemBlock
-        pendingSkillSystemBlock = nil
+        let skillMatches = fetchSkillMatches()
+        let skillToolsEnabled = skillsStore.isEnabled && supportsTools
+        let skillIndex = skillToolsEnabled ? SkillResolver.index(from: skillMatches) : nil
         let historyTurns = ConversationCompactionService.apiHistoryTurns(
             sortedMessages: conversation.sortedMessages,
             compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
@@ -516,8 +547,8 @@ final class ChatViewModel {
                     middleSections.append(MemoryStore.modelInstruction())
                 }
 
-                if let skillSystemBlock, !skillSystemBlock.isEmpty {
-                    middleSections.append(skillSystemBlock)
+                if let skillIndex, !skillIndex.isEmpty {
+                    middleSections.append(skillIndex)
                 }
 
                 dataSourceStore.refreshAuthorizationStatuses()
@@ -544,6 +575,11 @@ final class ChatViewModel {
                     tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
                     webSearchToolPrompt =
                         "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
+                }
+
+                if skillToolsEnabled {
+                    tools.append(SkillToolService.invokeToolDefinition())
+                    tools.append(SkillToolService.createToolDefinition())
                 }
 
                 rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
@@ -578,15 +614,33 @@ final class ChatViewModel {
                 }
                 turns.append(contentsOf: historyTurns)
 
+                let skillCollector = SkillInvocationCollector()
                 let executeTool: @Sendable (ChatToolCall) async throws -> String = { call in
-                    guard let searchAPIKey, let searchClient else {
-                        return "Search API key is not configured."
+                    switch call.name {
+                    case SkillToolService.invokeToolName:
+                        guard let slashName = SkillToolService.slashName(fromInvokeArguments: call.argumentsJSON),
+                              let matched = skillMatches.first(where: { $0.slashName == SkillResolver.normalizeSlashName(slashName) })
+                        else {
+                            return "No skill found with that slash name."
+                        }
+                        await skillCollector.recordInvoke(matched)
+                        return SkillResolver.systemBlock(for: matched)
+                    case SkillToolService.createToolName:
+                        guard let proposal = SkillToolService.proposal(fromCreateArguments: call.argumentsJSON) else {
+                            return "Could not parse the skill draft — name, slash_name, and instructions must be non-empty."
+                        }
+                        await skillCollector.recordProposal(proposal)
+                        return "Draft captured. The user will review \"\(proposal.name)\" (/\(proposal.slashName)) before it's saved."
+                    default:
+                        guard let searchAPIKey, let searchClient else {
+                            return "Search API key is not configured."
+                        }
+                        return try await WebSearchService.executeToolCall(
+                            call,
+                            apiKey: searchAPIKey,
+                            client: searchClient
+                        )
                     }
-                    return try await WebSearchService.executeToolCall(
-                        call,
-                        apiKey: searchAPIKey,
-                        client: searchClient
-                    )
                 }
 
                 for try await event in client.streamReply(
@@ -610,6 +664,12 @@ final class ChatViewModel {
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
+                let invokedSkills = await skillCollector.invokedSkills
+                for skill in invokedSkills {
+                    insertSkillSystemMessage(for: skill)
+                }
+                let skillProposals = await skillCollector.proposals
+                captureSkillProposals(skillProposals, messageID: assistantMessage.id)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
             } catch {
@@ -654,5 +714,54 @@ final class ChatViewModel {
             try? modelContext.save()
             memoryActionStatusByMessageID[messageID] = "Memory updated."
         }
+    }
+
+    private func captureSkillProposals(_ proposals: [SkillProposal], messageID: UUID) {
+        guard !proposals.isEmpty else { return }
+        if skillsStore.requireConfirmation {
+            pendingSkillProposalsByMessageID[messageID] = proposals
+        } else {
+            saveSkillProposals(proposals, messageID: messageID)
+        }
+    }
+
+    private func saveSkillProposals(_ proposals: [SkillProposal], messageID: UUID) {
+        var saved = 0
+        for proposal in proposals {
+            do {
+                _ = try skillsStore.save(
+                    name: proposal.name,
+                    slashName: proposal.slashName,
+                    skillDescription: proposal.description,
+                    instructions: proposal.instructions,
+                    createdFromChatID: conversation.id,
+                    modelContext: modelContext
+                )
+                saved += 1
+            } catch {
+                skillActionStatusByMessageID[messageID] = error.localizedDescription
+                return
+            }
+        }
+        if saved > 0 {
+            try? modelContext.save()
+            skillActionStatusByMessageID[messageID] = "Skill saved."
+        }
+    }
+}
+
+/// Sendable-safe side channel for the non-isolated `executeTool` closure to record
+/// skill tool calls into, since it cannot touch MainActor-isolated state directly.
+/// Drained back on the MainActor after streaming completes.
+private actor SkillInvocationCollector {
+    private(set) var invokedSkills: [SkillMatchable] = []
+    private(set) var proposals: [SkillProposal] = []
+
+    func recordInvoke(_ skill: SkillMatchable) {
+        invokedSkills.append(skill)
+    }
+
+    func recordProposal(_ proposal: SkillProposal) {
+        proposals.append(proposal)
     }
 }
