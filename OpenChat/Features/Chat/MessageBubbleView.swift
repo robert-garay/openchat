@@ -28,6 +28,7 @@ struct MessageBubbleView: View {
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     @State private var showingTextSelection = false
+    @State private var shareAttachment: ChatImageAttachment?
     #endif
     @State private var draftText: String = ""
 
@@ -50,6 +51,11 @@ struct MessageBubbleView: View {
         }
         .sheet(isPresented: $showingTextSelection) {
             TextSelectionSheet(text: displayContent)
+        }
+        .sheet(item: $shareAttachment) { attachment in
+            if let uiImage = UIImage(data: attachment.data) {
+                ActivityShareSheet(activityItems: [uiImage])
+            }
         }
         #endif
     }
@@ -255,6 +261,20 @@ struct MessageBubbleView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Preview image")
                     .accessibilityHint("Opens full screen preview with zoom")
+                    .contextMenu {
+                        Button {
+                            UIPasteboard.general.image = uiImage
+                            Haptics.light()
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+
+                        Button {
+                            shareAttachment = attachment
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
                 }
                 #endif
             }
@@ -377,5 +397,15 @@ private struct PlainTextSelectionView: UIViewRepresentable {
     func updateUIView(_ textView: UITextView, context: Context) {
         textView.text = text
     }
+}
+
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 #endif
