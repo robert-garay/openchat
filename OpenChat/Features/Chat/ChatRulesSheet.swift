@@ -86,30 +86,35 @@ struct ChatRulesSheet: View {
 
     private var addRuleBar: some View {
         VStack(spacing: 0) {
-            Divider()
-                .opacity(0.5)
-            HStack(spacing: 12) {
+            HStack(alignment: .bottom, spacing: 12) {
                 TextField("Add rule", text: $newRuleText, axis: .vertical)
                     .lineLimit(1...4)
-                    .textFieldStyle(.roundedBorder)
                     .onSubmit(addRule)
+
                 Button {
                     addRule()
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(
-                            newRuleText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? Color(.tertiaryLabel)
-                                : Color.accentColor
-                        )
+                        .font(.system(size: 30))
+                        .foregroundStyle(canAddRule ? Color.accentColor : Color(.tertiaryLabel))
                 }
-                .disabled(newRuleText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!canAddRule)
+                .animation(Theme.springFast, value: canAddRule)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                Color(.secondarySystemBackground),
+                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+            )
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(.bar)
+    }
+
+    private var canAddRule: Bool {
+        !newRuleText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private func addRule() {
