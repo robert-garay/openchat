@@ -2,6 +2,28 @@ import SwiftUI
 #if canImport(UIKit)
 import UIKit
 
+/// UITextView subclass that intercepts paste commands for images so the composer
+/// can attach them without the user leaving the text input.
+///
+/// Text paste keeps the default behavior. Documents are left as a TODO so the
+/// same interception path can be extended once the app adds file attachments.
+private final class PasteInterceptingTextView: UITextView {
+    /// Called when the pasteboard contains one or more images.
+    var onPasteImages: (([UIImage]) -> Void)?
+
+    override func paste(_ sender: Any?) {
+        if let images = UIPasteboard.general.images, !images.isEmpty, let onPasteImages {
+            onPasteImages(images)
+            return
+        }
+
+        // Future document support: inspect UIPasteboard.general.itemProviders
+        // for UTType.pdf / UTType.fileURL and emit `.document(Data)` here.
+
+        super.paste(sender)
+    }
+}
+
 /// UITextView-backed composer field. SwiftUI `TextField`/`TextEditor` re-layout
 /// the full string on every keystroke and become unusable for large pastes.
 struct ComposerTextView: UIViewRepresentable {
@@ -11,6 +33,9 @@ struct ComposerTextView: UIViewRepresentable {
     var minHeight: CGFloat = 22
     /// ~5–6 body lines (similar to the old `TextField` `.lineLimit(1...6)`).
     var maxHeight: CGFloat = 120
+    /// Called when the user pastes images into the composer. Text paste still
+    /// uses the default UITextView behavior.
+    var onPasteImages: (([UIImage]) -> Void)?
     @Environment(\.isEnabled) private var isEnabled
 
     func makeCoordinator() -> Coordinator {
@@ -18,7 +43,7 @@ struct ComposerTextView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
+        let textView = PasteInterceptingTextView()
         textView.delegate = context.coordinator
         textView.backgroundColor = .clear
         textView.textContainerInset = .zero
@@ -53,6 +78,9 @@ struct ComposerTextView: UIViewRepresentable {
     }
 
     func updateUIView(_ textView: UITextView, context: Context) {
+        if let pasteView = textView as? PasteInterceptingTextView {
+            pasteView.onPasteImages = onPasteImages
+        }
         textView.isEditable = isEnabled
         textView.textColor = isEnabled ? .label : .secondaryLabel
         if !isEnabled {
