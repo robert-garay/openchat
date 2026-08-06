@@ -11,6 +11,7 @@ struct ChatView: View {
     @Environment(WebSearchStore.self) private var webSearchStore
     @Environment(RulesStore.self) private var rulesStore
     @Environment(MemoryStore.self) private var memoryStore
+    @Environment(SkillsStore.self) private var skillsStore
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
@@ -34,7 +35,7 @@ struct ChatView: View {
 
                 ChatComposerHost(
                     viewModel: viewModel,
-                    skills: skills,
+                    skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
                     hasChatRules: !conversation.systemPrompt
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                         .isEmpty,
@@ -150,7 +151,8 @@ struct ChatView: View {
                     dataSourceStore: dataSourceStore,
                     webSearchStore: webSearchStore,
                     rulesStore: rulesStore,
-                    memoryStore: memoryStore
+                    memoryStore: memoryStore,
+                    skillsStore: skillsStore
                 )
             }
         }
@@ -163,7 +165,7 @@ struct ChatView: View {
 /// invalidate `ChatMessageListView` or the surrounding `ChatView` chrome.
 private struct ChatComposerHost: View {
     @Bindable var viewModel: ChatViewModel
-    let skills: [Skill]
+    let skills: [SkillMatchable]
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
@@ -193,7 +195,7 @@ private struct ChatComposerHost: View {
             hasChatRules: hasChatRules,
             canUseChatRules: canUseChatRules,
             conversation: conversation,
-            skills: skills.map(SkillMatchable.init(skill:)),
+            skills: skills,
             onSend: onSend,
             onStop: viewModel.cancelStreaming
         )
@@ -245,6 +247,14 @@ private struct ChatMessageListView: View {
                             },
                             onDismissMemoryProposals: {
                                 viewModel.dismissMemoryProposals(for: message.id)
+                            },
+                            pendingSkillProposals: viewModel.pendingSkillProposalsByMessageID[message.id] ?? [],
+                            skillActionStatus: viewModel.skillActionStatusByMessageID[message.id],
+                            onDismissSkillProposals: {
+                                viewModel.dismissSkillProposals(for: message.id)
+                            },
+                            onSkillProposalSaved: {
+                                viewModel.clearSkillProposalAfterReview(for: message.id)
                             },
                             isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply,

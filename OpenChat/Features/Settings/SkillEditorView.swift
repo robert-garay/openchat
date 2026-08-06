@@ -6,6 +6,12 @@ struct SkillEditorView: View {
     @Environment(\.dismiss) private var dismiss
     let skill: Skill?
     var createdFromChatID: UUID? = nil
+    /// Pre-fills the form from a model-drafted proposal (`create_skill`) awaiting review.
+    /// Ignored when `skill` is non-nil (editing an existing skill takes priority).
+    var proposal: SkillProposal? = nil
+    /// Called after a successful save, in addition to dismissing — lets callers clear
+    /// proposal-review state that lives outside this view.
+    var onSaved: (() -> Void)? = nil
     @State private var name = ""
     @State private var slashInput = ""
     @State private var skillDescription = ""
@@ -33,7 +39,11 @@ struct SkillEditorView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Save") { save() }.disabled(!canSave) }
             }
             .onAppear {
-                if let skill { name = skill.name; slashInput = skill.slashName; skillDescription = skill.skillDescription; instructions = skill.instructions }
+                if let skill {
+                    name = skill.name; slashInput = skill.slashName; skillDescription = skill.skillDescription; instructions = skill.instructions
+                } else if let proposal {
+                    name = proposal.name; slashInput = proposal.slashName; skillDescription = proposal.description; instructions = proposal.instructions
+                }
                 validateSlashName()
             }
         }
@@ -42,6 +52,10 @@ struct SkillEditorView: View {
     private func validateSlashName() {
         let normalized = normalizedSlashName
         guard !normalized.isEmpty else { slashNameError = nil; return }
+        if SkillResolver.isReservedSlashName(normalized) {
+            slashNameError = "This slash name is reserved for the built-in skill-builder."
+            return
+        }
         let existing = (try? modelContext.fetch(FetchDescriptor<Skill>())) ?? []
         slashNameError = existing.contains { $0.slashName == normalized && $0.id != skill?.id } ? "A skill with this slash name already exists." : nil
     }
@@ -57,6 +71,6 @@ struct SkillEditorView: View {
         } else {
             modelContext.insert(Skill(name: trimmedName, slashName: normalized, skillDescription: skillDescription.trimmingCharacters(in: .whitespacesAndNewlines), instructions: instructions.trimmingCharacters(in: .whitespacesAndNewlines), createdFromChatID: createdFromChatID))
         }
-        Haptics.success(); dismiss()
+        Haptics.success(); onSaved?(); dismiss()
     }
 }

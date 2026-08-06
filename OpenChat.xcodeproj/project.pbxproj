@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		00AC8B0D500AF62EB674FD3E /* ComposerTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2AF4F55AFA1992CFFDAA5A /* ComposerTextView.swift */; };
+		3B4D9F2D3AAD413890398E15 /* SkillsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FF91C8062846DFA1F85021 /* SkillsStore.swift */; };
+		F9EAAEBFA2334821851A6291 /* SkillToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */; };
 		03C73E93BA6EF5F268205973 /* RulesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A042DB0EEA4500DD5C09F3C3 /* RulesStoreTests.swift */; };
 		0567563958B93427B534AE05 /* MemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */; };
 		070822C35B99FB130C2A81BD /* SkillEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E72FD85D74B168B65225CC /* SkillEditorView.swift */; };
@@ -140,6 +142,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F6FF91C8062846DFA1F85021 /* SkillsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsStore.swift; sourceTree = "<group>"; };
+		83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillToolService.swift; sourceTree = "<group>"; };
 		001515E7D612955EE697BC2B /* CalendarContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarContextReader.swift; sourceTree = "<group>"; };
 		0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationEditMessageTests.swift; sourceTree = "<group>"; };
 		01E9ED4DCFD6273748937FE8 /* MemorySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySettingsView.swift; sourceTree = "<group>"; };
@@ -411,6 +415,8 @@
 				AA243D85F91C1806E98CD232 /* SerperClient.swift */,
 				A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */,
 				1B0A810AD421E91E40BB0B4F /* SkillResolver.swift */,
+				F6FF91C8062846DFA1F85021 /* SkillsStore.swift */,
+				83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */,
 				E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */,
 				5511B19A73D8EA300E939F07 /* WebSearchService.swift */,
 				C3C3A8E2A36B3BE2D0ED99C3 /* WebSearchStore.swift */,
@@ -721,6 +727,8 @@
 				16DDB874A737E57AEEE32F31 /* SkillPickerDropdown.swift in Sources */,
 				668CBCEE1FF90906B77F7C4D /* SkillResolver.swift in Sources */,
 				AA12B6FA7EA44E0F7B71B9F7 /* SkillsSettingsView.swift in Sources */,
+				3B4D9F2D3AAD413890398E15 /* SkillsStore.swift in Sources */,
+				F9EAAEBFA2334821851A6291 /* SkillToolService.swift in Sources */,
 				C0F6A6DE9AF73452136885C7 /* TavilyClient.swift in Sources */,
 				1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */,
 				5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */,

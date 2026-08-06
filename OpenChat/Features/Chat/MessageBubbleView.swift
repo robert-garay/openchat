@@ -18,6 +18,10 @@ struct MessageBubbleView: View {
     var memoryActionStatus: String? = nil
     var onConfirmMemoryProposals: (() -> Void)? = nil
     var onDismissMemoryProposals: (() -> Void)? = nil
+    var pendingSkillProposals: [SkillProposal] = []
+    var skillActionStatus: String? = nil
+    var onDismissSkillProposals: (() -> Void)? = nil
+    var onSkillProposalSaved: (() -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
     var isEditing: Bool = false
@@ -32,6 +36,7 @@ struct MessageBubbleView: View {
     @State private var shareAttachment: ChatImageAttachment?
     #endif
     @State private var draftText: String = ""
+    @State private var reviewingSkillProposal: SkillProposal?
 
     var body: some View {
         Group {
@@ -72,8 +77,7 @@ struct MessageBubbleView: View {
                     editingBubble
                 } else {
                     if !message.content.isEmpty {
-                        MarkdownMessageView(content: message.content, isUserMessage: true)
-                            .equatable()
+                        userBubbleText
                             .padding(.horizontal, 16)
                             .padding(.vertical, 11)
                             .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
@@ -89,6 +93,37 @@ struct MessageBubbleView: View {
                 }
             }
         }
+    }
+
+    /// Renders full markdown normally, except for an explicit `/slash-name` invocation
+    /// (which is stored verbatim in `message.content`) — there, the leading token is
+    /// tinted to mark it as a skill invocation, and the rest is plain text.
+    @ViewBuilder
+    private var userBubbleText: some View {
+        if let token = leadingSlashToken {
+            let remainder = String(message.content.dropFirst(token.count + 1))
+            (
+                Text("/\(token)")
+                    .foregroundStyle(Color.yellow)
+                    .fontWeight(.semibold)
+                + Text(remainder)
+                    .foregroundStyle(.white)
+            )
+            .font(.body)
+            .textSelection(.enabled)
+        } else {
+            MarkdownMessageView(content: message.content, isUserMessage: true)
+                .equatable()
+        }
+    }
+
+    private var leadingSlashToken: String? {
+        guard message.content.first == "/" else { return nil }
+        let afterSlash = message.content.dropFirst()
+        let tokenEnd = afterSlash.firstIndex(where: { $0 == " " || $0.isNewline }) ?? afterSlash.endIndex
+        let token = afterSlash[afterSlash.startIndex..<tokenEnd]
+        guard !token.isEmpty, token.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" }) else { return nil }
+        return String(token)
     }
 
     private var editingBubble: some View {
@@ -171,6 +206,14 @@ struct MessageBubbleView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if !pendingSkillProposals.isEmpty {
+                    skillProposalCard
+                } else if let skillActionStatus, !skillActionStatus.isEmpty {
+                    Text(skillActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
                         MarkdownMessageView(content: errorMessage, isUserMessage: false)
@@ -242,6 +285,44 @@ struct MessageBubbleView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var skillProposalCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("New skill drafted", systemImage: "bolt.fill")
+                .font(.subheadline.weight(.semibold))
+            ForEach(pendingSkillProposals) { proposal in
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(proposal.name)
+                            .font(.caption.weight(.semibold))
+                        Spacer()
+                        Text("/\(proposal.slashName)")
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.secondary)
+                    }
+                    if !proposal.description.isEmpty {
+                        Text(proposal.description)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            HStack {
+                Button("Review") {
+                    reviewingSkillProposal = pendingSkillProposals.first
+                }
+                .buttonStyle(.borderedProminent)
+                Button("Discard") { onDismissSkillProposals?() }
+                    .buttonStyle(.bordered)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .sheet(item: $reviewingSkillProposal) { proposal in
+            SkillEditorView(skill: nil, proposal: proposal, onSaved: onSkillProposalSaved)
+        }
     }
 
     private func attachmentGallery(_ attachments: [ChatImageAttachment], alignment: HorizontalAlignment) -> some View {
