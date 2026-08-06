@@ -48,7 +48,6 @@ struct MessageComposerView: View {
     @State private var showingVisionAlert = false
     @State private var showingPhotoPicker = false
     @State private var showingCamera = false
-    @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
@@ -102,11 +101,6 @@ struct MessageComposerView: View {
             } else {
                 Text("This model can’t process images. Choose a model marked with an eye to attach or paste photos.")
             }
-        }
-        .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
         }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
@@ -198,19 +192,11 @@ struct MessageComposerView: View {
         .accessibilityHint("Attach a photo or paste an image")
     }
 
-    /// Explicit web search provider menu order: Tavily first, Exa second, then any remaining providers in their original order, with Off at the bottom.
-    private var orderedWebSearchProviders: [WebSearchProviderKind] {
-        let prioritized: [WebSearchProviderKind] = [.tavily, .exa]
-        let prioritizedProviders = prioritized.filter { webSearchProviders.contains($0) }
-        let remainingProviders = webSearchProviders.filter { !prioritized.contains($0) }
-        return prioritizedProviders + remainingProviders
-    }
-
     private var webSearchButton: some View {
         Group {
             if canUseWebSearch {
                 Menu {
-                    ForEach(orderedWebSearchProviders) { provider in
+                    ForEach(webSearchProviders) { provider in
                         Button {
                             onSelectWebSearchProvider?(provider)
                         } label: {
@@ -260,15 +246,6 @@ struct MessageComposerView: View {
                         ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
                         : "Choose a search provider for this chat."
                 )
-            } else {
-                Button {
-                    Haptics.warning()
-                    showingWebSearchDisabledAlert = true
-                } label: {
-                    webSearchIcon
-                }
-                .accessibilityLabel("Web search off")
-                .accessibilityHint("Add a search API key in Settings")
             }
         }
         .animation(Theme.springFast, value: isWebSearchArmed)
@@ -291,7 +268,6 @@ struct MessageComposerView: View {
                     .foregroundStyle(Color(.tertiaryLabel))
                     .frame(width: 34, height: 34)
                     .contentShape(Rectangle())
-                    .opacity(canUseWebSearch ? 1 : 0.85)
             }
         }
         .frame(width: 34, height: 34)
