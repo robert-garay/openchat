@@ -110,7 +110,7 @@ struct ChatRulesSheet: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(.bar)
+        .background(Color(.tertiarySystemBackground))
     }
 
     private var canAddRule: Bool {
