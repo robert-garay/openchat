@@ -35,6 +35,35 @@ final class RulesStoreTests: XCTestCase {
         XCTAssertFalse(again.useChatRules)
     }
 
+    func testRuleProposalTogglesDefaultWhenKeysMissing() {
+        XCTAssertFalse(store.allowProposalsFromChat)
+        XCTAssertTrue(store.requireConfirmation)
+        XCTAssertNil(defaults.object(forKey: "com.openchat.rules.allowProposalsFromChat"))
+        XCTAssertNil(defaults.object(forKey: "com.openchat.rules.requireConfirmation"))
+    }
+
+    func testRuleProposalTogglePersistence() {
+        store.setAllowProposalsFromChat(true)
+        store.setRequireConfirmation(false)
+
+        let reloaded = RulesStore(defaults: defaults)
+        XCTAssertTrue(reloaded.allowProposalsFromChat)
+        XCTAssertFalse(reloaded.requireConfirmation)
+    }
+
+    func testShouldAllowRuleProposals() {
+        XCTAssertTrue(RulesStore.shouldAllowRuleProposals(isTemporary: false, allowProposalsFromChat: true))
+        XCTAssertFalse(RulesStore.shouldAllowRuleProposals(isTemporary: true, allowProposalsFromChat: true))
+        XCTAssertFalse(RulesStore.shouldAllowRuleProposals(isTemporary: false, allowProposalsFromChat: false))
+        XCTAssertFalse(RulesStore.shouldAllowRuleProposals(isTemporary: true, allowProposalsFromChat: false))
+    }
+
+    func testModelInstructionMentionsFenceAndScope() {
+        let instruction = RulesStore.modelInstruction()
+        XCTAssertTrue(instruction.contains("openchat-rule"))
+        XCTAssertTrue(instruction.contains("scope"))
+    }
+
     func testCRUDAndInjectionText() throws {
         let container = try ModelContainer(
             for: RuleItem.self,

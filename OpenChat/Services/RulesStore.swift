@@ -11,12 +11,16 @@ final class RulesStore {
 
     private let useGlobalRulesKey = "com.openchat.rules.useGlobalRules"
     private let useChatRulesKey = "com.openchat.rules.useChatRules"
+    private let allowProposalsFromChatKey = "com.openchat.rules.allowProposalsFromChat"
+    private let requireConfirmationKey = "com.openchat.rules.requireConfirmation"
 
     @ObservationIgnored
     private let defaults: UserDefaults
 
     private(set) var useGlobalRules: Bool
     private(set) var useChatRules: Bool
+    private(set) var allowProposalsFromChat: Bool
+    private(set) var requireConfirmation: Bool
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -30,6 +34,16 @@ final class RulesStore {
         } else {
             useChatRules = defaults.bool(forKey: useChatRulesKey)
         }
+        if defaults.object(forKey: allowProposalsFromChatKey) == nil {
+            allowProposalsFromChat = false
+        } else {
+            allowProposalsFromChat = defaults.bool(forKey: allowProposalsFromChatKey)
+        }
+        if defaults.object(forKey: requireConfirmationKey) == nil {
+            requireConfirmation = true
+        } else {
+            requireConfirmation = defaults.bool(forKey: requireConfirmationKey)
+        }
     }
 
     func setUseGlobalRules(_ value: Bool) {
@@ -40,6 +54,16 @@ final class RulesStore {
     func setUseChatRules(_ value: Bool) {
         useChatRules = value
         defaults.set(value, forKey: useChatRulesKey)
+    }
+
+    func setAllowProposalsFromChat(_ value: Bool) {
+        allowProposalsFromChat = value
+        defaults.set(value, forKey: allowProposalsFromChatKey)
+    }
+
+    func setRequireConfirmation(_ value: Bool) {
+        requireConfirmation = value
+        defaults.set(value, forKey: requireConfirmationKey)
     }
 
     func fetchItems(modelContext: ModelContext) throws -> [RuleItem] {
@@ -84,6 +108,20 @@ final class RulesStore {
             .map { $0.content.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
+    }
+
+    nonisolated static func shouldAllowRuleProposals(isTemporary: Bool, allowProposalsFromChat: Bool) -> Bool {
+        allowProposalsFromChat && !isTemporary
+    }
+
+    nonisolated static func modelInstruction() -> String {
+        """
+        The user enabled rule proposals in OpenChat. If you want to establish a standing \
+        instruction, propose it using ```openchat-rule\\n{"content":"...","scope":"global"|"chat"}\\n```. \
+        Always include scope — if it's not clear from context whether this should apply to just \
+        this chat or to every chat, ask the user before proposing it. Saved after confirmation \
+        unless disabled.
+        """
     }
 
     /// One-time: if the pre–RuleItem UserDefaults string is non-empty and there are no
