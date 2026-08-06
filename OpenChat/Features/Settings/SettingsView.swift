@@ -37,7 +37,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("Tools") {
+                Section {
                     NavigationLink {
                         WebSearchSettingsView()
                     } label: {
@@ -58,12 +58,9 @@ struct SettingsView: View {
                     } label: {
                         Label("Skills", systemImage: "bolt.fill")
                     }
-                }
-
-                Section {
-                    Toggle("Enable Compact", isOn: $compactEnabled)
+                    Toggle("Compact Context", isOn: $compactEnabled)
                 } header: {
-                    Text("Context")
+                    Text("Tools")
                 } footer: {
                     Text("When enabled, a compact button appears in chat to summarize older messages and reduce context sent to the model.")
                 }
