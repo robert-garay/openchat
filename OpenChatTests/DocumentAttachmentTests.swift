@@ -55,4 +55,11 @@ final class DocumentAttachmentTests: XCTestCase {
         XCTAssertNotNil(message)
         XCTAssertTrue(message?.localizedCaseInsensitiveContains("document") == true)
     }
+
+    func testAIModelSupportsFiles() {
+        let withFiles = AIModel(id: "m1", displayName: "M1", capabilities: [.files])
+        let withoutFiles = AIModel(id: "m2", displayName: "M2", capabilities: [.vision])
+        XCTAssertTrue(withFiles.supportsFiles)
+        XCTAssertFalse(withoutFiles.supportsFiles)
+    }
 }
