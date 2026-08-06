@@ -132,7 +132,8 @@ struct MessageComposerView: View {
                 text: $text,
                 placeholder: "Message",
                 minHeight: 22,
-                maxHeight: 120
+                maxHeight: 120,
+                onPasteImages: handlePastedImages
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -455,6 +456,19 @@ struct MessageComposerView: View {
         }
         guard let image = UIPasteboard.general.image else { return }
         appendImage(image)
+        #endif
+    }
+
+    private func handlePastedImages(_ images: [UIImage]) {
+        #if canImport(UIKit)
+        guard supportsVision else {
+            Haptics.warning()
+            showingVisionAlert = true
+            return
+        }
+        for image in images {
+            appendImage(image)
+        }
         #endif
     }
 
