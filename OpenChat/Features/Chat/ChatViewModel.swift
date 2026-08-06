@@ -114,9 +114,9 @@ final class ChatViewModel {
         webSearchStore.configuredProviders
     }
 
-    /// True when at least one search provider has a key (menu can open).
+    /// True when web search is enabled in Settings and at least one provider has a key.
     var canUseWebSearch: Bool {
-        webSearchStore.hasAnyAPIKey
+        webSearchStore.isEnabled && webSearchStore.hasAnyAPIKey
     }
 
     func selectWebSearchProvider(_ kind: WebSearchProviderKind) {
