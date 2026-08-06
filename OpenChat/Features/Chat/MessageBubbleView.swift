@@ -1,6 +1,7 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
+import Photos
 #endif
 
 struct MessageBubbleView: View {
@@ -274,12 +275,36 @@ struct MessageBubbleView: View {
                         } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
+
+                        Button {
+                            saveToPhotos(uiImage)
+                        } label: {
+                            Label("Save to Photos", systemImage: "square.and.arrow.down")
+                        }
                     }
                 }
                 #endif
             }
         }
     }
+
+    #if canImport(UIKit)
+    private func saveToPhotos(_ image: UIImage) {
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized || status == .limited else {
+                Task { @MainActor in Haptics.error() }
+                return
+            }
+            PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            } completionHandler: { success, _ in
+                Task { @MainActor in
+                    success ? Haptics.success() : Haptics.error()
+                }
+            }
+        }
+    }
+    #endif
 }
 
 #if canImport(UIKit)
