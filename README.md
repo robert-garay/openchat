@@ -1,86 +1,54 @@
 # OpenChat
 
-A native iOS chat app for talking to any LLM — OpenAI, Claude, Gemini, OpenRouter, and leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Zhipu GLM, 01.AI) — plus any custom OpenAI-compatible endpoint (Ollama, LM Studio, vLLM). Built with SwiftUI + SwiftData, no third-party dependencies, no backend server: the app talks directly to whichever provider you configure, and your API keys stay in the iOS Keychain on your device.
+A native iOS chat app for talking to any LLM — OpenAI, Claude, Gemini, OpenRouter, and leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Zhipu GLM, 01.AI) — plus any custom OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
 
-## Requirements
+No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
 
-- macOS with Xcode 16+
-- An Apple Developer account (free is enough to run on your own device; a paid account is required for TestFlight)
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+## Features
 
-## Build
+- **Any provider, one app** — switch between OpenAI, Anthropic, Gemini, OpenRouter, Chinese model providers, or a self-hosted/custom OpenAI-compatible endpoint, all from the same chat UI.
+- **Private by design** — API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
+- **Web search** — attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
+- **Rules** — steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.
+- **Memory** — the app can remember facts across chats; review, edit, pin, or delete anything it's stored at any time.
+- **Skills** — define reusable prompts and invoke them instantly with a `/` slash command while composing a message.
+- **Rich chat rendering** — Markdown, tables, syntax-highlighted code blocks, selectable message text, and image attachments (camera or photo library, for vision-capable models).
+
+## Connecting a provider
+
+On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Get keys here:
+
+| Provider | Console |
+|---|---|
+| OpenAI | platform.openai.com |
+| Anthropic | console.anthropic.com |
+| OpenRouter | openrouter.ai |
+| DeepSeek | platform.deepseek.com |
+| Alibaba Cloud (Qwen) | bailian.console.aliyun.com |
+| Moonshot AI (Kimi) | platform.moonshot.cn |
+| Zhipu AI (GLM) | open.bigmodel.cn |
+
+You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
+
+## Web search
+
+Settings → Web Search → add a key for one or more search providers (Tavily, Exa, Brave Search, Serper, SerpAPI). In chat, tap the web search button to pick a registered provider or turn search off. Search keys are stored in the iOS Keychain, same as provider keys.
+
+## Privacy
+
+OpenChat has no backend, no analytics, and no third-party dependencies — it's built with SwiftUI + SwiftData only. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally on-device. See the [privacy policy](docs/privacy-policy.html) for the full details on optional calendar/health data access.
+
+## Building from source
+
+Requires macOS with Xcode 16+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen):
 
 ```bash
 xcodegen generate      # regenerates OpenChat.xcodeproj from project.yml
 open OpenChat.xcodeproj
 ```
 
-The `.xcodeproj` is committed to the repo, so you can also just open it directly — only re-run `xcodegen generate` after pulling changes to `project.yml` or adding/removing files.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup, testing, and release instructions.
 
-Signing defaults to bundle id `com.genion.openchat`. Set your Apple Team ID once by copying `Config/Local.xcconfig.example` → `Config/Local.xcconfig` (gitignored) and filling in `DEVELOPMENT_TEAM`.
+## License
 
-## CI
-
-GitHub Actions (`.github/workflows/ci.yml`) runs SwiftLint and unit tests on every PR / push to `main`.
-
-```bash
-./scripts/validate-ci.sh   # config checks (Linux-safe)
-./scripts/ci-lint.sh       # SwiftLint (macOS; brew install swiftlint)
-./scripts/ci-test.sh       # xcodebuild test + coverage (macOS + Xcode 16+)
-```
-
-## Adding a model
-
-On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Get keys here:
-
-| Provider | Console |
-|---|---|
-| DeepSeek | platform.deepseek.com |
-| Alibaba Cloud | bailian.console.aliyun.com |
-| Moonshot AI | platform.moonshot.cn |
-| Zhipu AI | open.bigmodel.cn |
-| OpenAI | platform.openai.com |
-| Anthropic | console.anthropic.com |
-| OpenRouter | openrouter.ai |
-
-You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
-
-## Web search (optional)
-
-Settings → Web Search → add keys for one or more search providers:
-
-| Provider | Console |
-|---|---|
-| Tavily | app.tavily.com |
-| Exa | dashboard.exa.ai |
-| Brave Search | api-dashboard.search.brave.com |
-| Serper | serper.dev |
-| SerpAPI | serpapi.com |
-
-In chat, tap the **web search** button to pick a registered provider (logo when active) or turn search off (globe). No crawl/extract.
-
-- **Tool-capable models** use native function/tool calling (`web_search`)
-- **All other models** fall back to injecting search results into the prompt
-
-Search keys are stored in the iOS Keychain, same as provider keys.
-
-## Ship to TestFlight
-
-1. In Xcode: **Product → Archive** (requires a physical device or "Any iOS Device" build target, not the simulator).
-2. In the Organizer window that opens, select the archive → **Distribute App → App Store Connect → Upload**.
-3. In [App Store Connect](https://appstoreconnect.apple.com), create the app record (if it doesn't exist yet) matching your bundle ID, then open **TestFlight** for that app once the build finishes processing.
-4. Add yourself (and other testers) under **Internal Testing**, attach the build, and install via the TestFlight app.
-
-Bump `CURRENT_PROJECT_VERSION` in `project.yml` (or directly in the target's build settings) before each new TestFlight upload — App Store Connect rejects duplicate build numbers.
-
-## Project layout
-
-```
-OpenChat/
-  App/            App entry point
-  Models/         Provider/model catalog, SwiftData models (Conversation, ChatMessage)
-  Services/       Networking (OpenAI-compatible + Anthropic streaming clients), Keychain, ProviderStore
-  Features/       Onboarding, Chat, Chat List, Settings — one folder per screen
-  DesignSystem/   Shared colors, spacing, animation, haptics
-OpenChatTests/    Unit tests for the provider catalog, Keychain, SSE parsing, and provider storage
-```
+MIT — see [LICENSE](LICENSE).
