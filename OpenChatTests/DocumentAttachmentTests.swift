@@ -33,4 +33,13 @@ final class DocumentAttachmentTests: XCTestCase {
         oversized.append(Data(count: DocumentAttachmentEncoder.maxByteCount))
         XCTAssertNil(DocumentAttachmentEncoder.makeAttachment(from: oversized, filename: "huge.pdf"))
     }
+
+    func testChatMessageStoresDocumentAttachments() {
+        let document = ChatDocumentAttachment(filename: "spec.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let message = ChatMessage(role: .user, content: "review this", documentAttachments: [document])
+        XCTAssertEqual(message.documentAttachments.count, 1)
+        XCTAssertEqual(message.documentAttachments[0].filename, "spec.pdf")
+        message.documentAttachments = []
+        XCTAssertNil(message.documentAttachmentsData)
+    }
 }

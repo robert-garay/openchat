@@ -23,6 +23,8 @@ final class ChatMessage {
     var modelID: String?
     /// JSON-encoded `[ChatImageAttachment]` for multimodal user or assistant turns.
     var attachmentsData: Data?
+    /// JSON-encoded `[ChatDocumentAttachment]` for PDF-bearing user turns.
+    var documentAttachmentsData: Data?
     var conversation: Conversation?
 
     var role: MessageRole {
@@ -44,6 +46,20 @@ final class ChatMessage {
         }
     }
 
+    var documentAttachments: [ChatDocumentAttachment] {
+        get {
+            guard let documentAttachmentsData else { return [] }
+            return (try? JSONDecoder().decode([ChatDocumentAttachment].self, from: documentAttachmentsData)) ?? []
+        }
+        set {
+            if newValue.isEmpty {
+                documentAttachmentsData = nil
+            } else {
+                documentAttachmentsData = try? JSONEncoder().encode(newValue)
+            }
+        }
+    }
+
     init(
         id: UUID = UUID(),
         role: MessageRole,
@@ -53,7 +69,8 @@ final class ChatMessage {
         errorMessage: String? = nil,
         providerID: String? = nil,
         modelID: String? = nil,
-        imageAttachments: [ChatImageAttachment] = []
+        imageAttachments: [ChatImageAttachment] = [],
+        documentAttachments: [ChatDocumentAttachment] = []
     ) {
         self.id = id
         self.roleRaw = role.rawValue
@@ -67,6 +84,11 @@ final class ChatMessage {
             self.attachmentsData = nil
         } else {
             self.attachmentsData = try? JSONEncoder().encode(imageAttachments)
+        }
+        if documentAttachments.isEmpty {
+            self.documentAttachmentsData = nil
+        } else {
+            self.documentAttachmentsData = try? JSONEncoder().encode(documentAttachments)
         }
     }
 }
