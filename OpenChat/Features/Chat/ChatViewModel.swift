@@ -643,6 +643,11 @@ final class ChatViewModel {
                     }
                 }
 
+                // Coalesce deltas so we don't mutate SwiftData / redraw the message view on every token.
+                var contentBuffer = ""
+                var lastFlush = ContinuousClock().now
+                let flushInterval: Duration = .milliseconds(80)
+
                 for try await event in client.streamReply(
                     turns: turns,
                     model: modelID,
@@ -654,12 +659,23 @@ final class ChatViewModel {
                 ) {
                     switch event {
                     case .text(let delta):
-                        assistantMessage.content += delta
+                        contentBuffer += delta
+                        let now = ContinuousClock().now
+                        if now >= lastFlush + flushInterval {
+                            assistantMessage.content += contentBuffer
+                            contentBuffer = ""
+                            lastFlush = now
+                        }
                     case .images(let images):
                         var existing = assistantMessage.imageAttachments
                         existing.append(contentsOf: images)
                         assistantMessage.imageAttachments = existing
                     }
+                }
+
+                // Flush any remaining buffered content.
+                if !contentBuffer.isEmpty {
+                    assistantMessage.content += contentBuffer
                 }
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)
