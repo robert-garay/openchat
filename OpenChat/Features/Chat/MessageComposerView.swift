@@ -196,7 +196,31 @@ struct MessageComposerView: View {
         Group {
             if canUseWebSearch {
                 Menu {
-                    ForEach(webSearchProviders) { provider in
+                    // The composer sits at the bottom of the screen, so this menu always
+                    // opens upward. UIKit keeps the first item closest to the button,
+                    // which flips the visual top-to-bottom order — so the item order here
+                    // is reversed to make "Off" land at the bottom and providers read in
+                    // Settings order from top to bottom on screen.
+                    Button {
+                        onDisableWebSearch?()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color(.secondaryLabel))
+                                .frame(width: 22, height: 22)
+                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            Text("Off")
+                            Spacer(minLength: 12)
+                            if !isWebSearchArmed {
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+
+                    ForEach(webSearchProviders.reversed()) { provider in
                         Button {
                             onSelectWebSearchProvider?(provider)
                         } label: {
@@ -215,25 +239,6 @@ struct MessageComposerView: View {
                                         .font(.body.weight(.semibold))
                                         .foregroundStyle(Color.accentColor)
                                 }
-                            }
-                        }
-                    }
-
-                    Button {
-                        onDisableWebSearch?()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "globe")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(Color(.secondaryLabel))
-                                .frame(width: 22, height: 22)
-                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            Text("Off")
-                            Spacer(minLength: 12)
-                            if !isWebSearchArmed {
-                                Image(systemName: "checkmark")
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
                             }
                         }
                     }
