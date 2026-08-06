@@ -143,6 +143,8 @@ struct MessageBubbleView: View {
                             RegenerateChip(action: onRetry)
                         }
                     }
+                } else if isLastMessage && !message.isStreaming {
+                    RegenerateChip(action: onRetry)
                 }
                 #endif
 
