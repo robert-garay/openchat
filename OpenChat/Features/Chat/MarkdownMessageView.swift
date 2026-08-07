@@ -9,23 +9,13 @@ import UIKit
 struct MarkdownMessageView: View, Equatable {
     let content: String
     let isUserMessage: Bool
-    var isStreaming: Bool = false
 
     var body: some View {
-        if isStreaming {
-            // Cheap plain-text path while tokens are arriving so the UI keeps up.
-            Text(content)
-                .font(.body)
-                .textSelection(.enabled)
-                .foregroundStyle(isUserMessage ? .white : .primary)
-                .fixedSize(horizontal: false, vertical: true)
-        } else {
-            let blocks = MarkdownContentParser.blocks(from: content)
-            let groups = groupedBlocks(blocks)
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
-                    groupView(group)
-                }
+        let blocks = MarkdownContentParser.blocks(from: content)
+        let groups = groupedBlocks(blocks)
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                groupView(group)
             }
         }
     }
