@@ -136,10 +136,6 @@ struct ModelPickerSheet: View {
                             modelRow(item)
                         }
                     }
-                } footer: {
-                    if !allResults.isEmpty {
-                        Text("\(allResults.count) models")
-                    }
                 }
             }
             .listStyle(.plain)
