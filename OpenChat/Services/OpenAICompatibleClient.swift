@@ -3,7 +3,7 @@ import Foundation
 /// Speaks the OpenAI `/chat/completions` wire format, which is what the
 /// overwhelming majority of hosted and self-hosted models use today:
 /// OpenAI, DeepSeek, Qwen (DashScope compatible mode), Kimi/Moonshot,
-/// Zhipu GLM, 01.AI Yi, OpenRouter, Google Gemini's OpenAI shim, and any
+/// Z.ai GLM, 01.AI Yi, OpenRouter, Google Gemini's OpenAI shim, and any
 /// local Ollama / LM Studio / vLLM server.
 struct OpenAICompatibleClient: ChatCompletionClient {
     var session: URLSession = .shared

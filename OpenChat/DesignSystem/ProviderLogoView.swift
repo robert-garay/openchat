@@ -41,7 +41,7 @@ enum ProviderLogo {
         case "mistral": return "ProviderLogoMistral"
         case "qwen": return "ProviderLogoAlibabaCloud"
         case "moonshot": return "ProviderLogoMoonshot"
-        case "zhipu": return "ProviderLogoZhipu"
+        case "zhipu": return "ProviderLogoZai"
         case "yi": return "ProviderLogoYi"
         case "openai": return "ProviderLogoOpenAI"
         case "anthropic": return "ProviderLogoAnthropic"
