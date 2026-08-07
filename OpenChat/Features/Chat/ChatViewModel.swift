@@ -662,6 +662,7 @@ final class ChatViewModel {
                     }
                 }
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
                 let invokedSkills = await skillCollector.invokedSkills
@@ -672,8 +673,10 @@ final class ChatViewModel {
                 captureSkillProposals(skillProposals, messageID: assistantMessage.id)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
             } catch {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
