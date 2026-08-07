@@ -25,12 +25,12 @@ final class EffortLevelTests: XCTestCase {
     }
 
     func testEffortLevelDisplayNames() {
-        XCTAssertEqual(EffortLevel.none.displayName, "Off")
+        XCTAssertEqual(EffortLevel.none.displayName, "None")
         XCTAssertEqual(EffortLevel.minimal.displayName, "Minimal")
         XCTAssertEqual(EffortLevel.low.displayName, "Low")
         XCTAssertEqual(EffortLevel.medium.displayName, "Medium")
         XCTAssertEqual(EffortLevel.high.displayName, "High")
-        XCTAssertEqual(EffortLevel.xhigh.displayName, "Max+")
+        XCTAssertEqual(EffortLevel.xhigh.displayName, "xHigh")
         XCTAssertEqual(EffortLevel.max.displayName, "Max")
     }
 
@@ -68,7 +68,6 @@ final class EffortLevelTests: XCTestCase {
 
     func testAIModelSupportedEffortLevels() {
         let model = AIModel(id: "gpt-5.6-sol", displayName: "GPT-5.6 Sol", capabilities: [.effort])
-        XCTAssertTrue(model.canDisableReasoning)
         XCTAssertEqual(model.supportedEffortLevels, [.none, .low, .medium, .high, .xhigh, .max])
     }
 }

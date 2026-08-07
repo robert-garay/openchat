@@ -13,12 +13,12 @@ struct EffortGaugeIcon: View {
 
     var body: some View {
         Canvas { context, canvasSize in
-            let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height * 0.82)
-            let radius = canvasSize.width * 0.40
-            let lineWidth = size * 0.14
-            let tickWidth = size * 0.08
-            let needleWidth = size * 0.10
-            let pivotRadius = size * 0.08
+            let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height * 0.85)
+            let radius = min(canvasSize.width, canvasSize.height) * 0.46
+            let lineWidth = max(1.5, size * 0.12)
+            let tickWidth = max(1.5, size * 0.06)
+            let needleWidth = max(2, size * 0.08)
+            let pivotRadius = max(1.5, size * 0.06)
 
             // Top semicircular arc.
             let arcPath = Path { path in
@@ -35,8 +35,8 @@ struct EffortGaugeIcon: View {
             // Ticks along the arc.
             for index in 0..<tickCount {
                 let angle = tickAngle(for: index)
-                let inner = point(center: center, radius: radius * 0.72, angle: angle)
-                let outer = point(center: center, radius: radius * 0.95, angle: angle)
+                let inner = point(center: center, radius: radius * 0.75, angle: angle)
+                let outer = point(center: center, radius: radius * 0.96, angle: angle)
                 let tickPath = Path { path in
                     path.move(to: inner)
                     path.addLine(to: outer)
@@ -46,8 +46,8 @@ struct EffortGaugeIcon: View {
 
             // Needle pointing to the current level.
             let needleAngle = tickAngle(for: levelIndex)
-            let needleInner = point(center: center, radius: radius * 0.12, angle: needleAngle)
-            let needleOuter = point(center: center, radius: radius * 0.88, angle: needleAngle)
+            let needleInner = point(center: center, radius: radius * 0.14, angle: needleAngle)
+            let needleOuter = point(center: center, radius: radius * 0.90, angle: needleAngle)
             let needlePath = Path { path in
                 path.move(to: needleInner)
                 path.addLine(to: needleOuter)

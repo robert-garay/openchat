@@ -68,11 +68,8 @@ final class ChatViewModel {
     /// even if a provider is configured. Always starts off for a freshly
     /// opened chat; the user opts in per chat via the composer.
     var isWebSearchEnabledForChat: Bool
-    /// Per-chat desired effort level when reasoning/thinking is enabled.
+    /// Per-chat effort level. A value of `none` turns reasoning off for models that support it.
     var effortLevel: EffortLevel
-    /// Per-chat toggle for reasoning/thinking. When false and the model supports
-    /// an explicit `none` effort level, the API receives the lowest/off effort.
-    var isReasoningEnabled: Bool
 
     init(
         conversation: Conversation,
@@ -94,7 +91,6 @@ final class ChatViewModel {
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
         self.effortLevel = conversation.effortLevel
-        self.isReasoningEnabled = conversation.isReasoningEnabled
         restoreComposerState()
     }
 
@@ -102,7 +98,6 @@ final class ChatViewModel {
         composerText = conversation.draftMessage
         pendingAttachments = conversation.draftAttachments
         effortLevel = conversation.effortLevel
-        isReasoningEnabled = conversation.isReasoningEnabled
 
         if let raw = conversation.lastUsedWebSearchProviderID,
            let kind = WebSearchProviderKind(rawValue: raw),
@@ -120,7 +115,6 @@ final class ChatViewModel {
         conversation.draftAttachments = pendingAttachments
         conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
         conversation.effortLevel = effortLevel
-        conversation.isReasoningEnabled = isReasoningEnabled
 
         persistTask?.cancel()
         persistTask = Task { [weak self] in
@@ -220,40 +214,15 @@ final class ChatViewModel {
         currentModel?.supportedEffortLevels ?? []
     }
 
-    var canDisableReasoning: Bool {
-        currentModel?.canDisableReasoning ?? false
-    }
-
-    /// The effort level actually sent to the API: the user's desired level when
-    /// reasoning is enabled, or `none` when reasoning is toggled off on a model
-    /// that supports disabling it.
+    /// The effort level sent to the API, clamped to the model's supported set.
     var effectiveEffortLevel: EffortLevel {
         guard supportsEffort, !supportedEffortLevels.isEmpty else { return .default }
-        if isReasoningEnabled {
-            return supportedEffortLevels.contains(effortLevel) ? effortLevel : (supportedEffortLevels.last ?? .default)
-        }
-        return supportedEffortLevels.contains(.none) ? .none : (supportedEffortLevels.first ?? .default)
+        return supportedEffortLevels.contains(effortLevel) ? effortLevel : (supportedEffortLevels.last ?? .default)
     }
 
     func setEffortLevel(_ level: EffortLevel) {
         effortLevel = level
         conversation.effortLevel = level
-        if level != .none, !isReasoningEnabled {
-            isReasoningEnabled = true
-            conversation.isReasoningEnabled = true
-        }
-        persistTask?.cancel()
-        persistTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(300))
-            guard let self, !Task.isCancelled else { return }
-            try? modelContext.save()
-        }
-        Haptics.light()
-    }
-
-    func setReasoningEnabled(_ enabled: Bool) {
-        isReasoningEnabled = enabled
-        conversation.isReasoningEnabled = enabled
         persistTask?.cancel()
         persistTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
@@ -408,12 +377,6 @@ final class ChatViewModel {
         if clearPendingAttachments {
             pendingAttachments = []
             pendingDocumentAttachments = []
-        }
-        // If the new model cannot disable reasoning, ensure the toggle stays on.
-        let model = providerStore.model(providerID: providerID, modelID: modelID)
-        if let model, !model.canDisableReasoning {
-            conversation.isReasoningEnabled = true
-            isReasoningEnabled = true
         }
     }
 

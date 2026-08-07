@@ -17,14 +17,16 @@ enum EffortLevel: String, Codable, CaseIterable, Identifiable, Hashable, Sendabl
     /// Full ordered ladder (left to right / least to most reasoning).
     static var ordered: [EffortLevel] { [.none, .minimal, .low, .medium, .high, .xhigh, .max] }
 
+    /// Display name matching the provider API terminology as closely as possible
+    /// while keeping the label readable (e.g. "xhigh" becomes "xHigh").
     var displayName: String {
         switch self {
-        case .none: "Off"
+        case .none: "None"
         case .minimal: "Minimal"
         case .low: "Low"
         case .medium: "Medium"
         case .high: "High"
-        case .xhigh: "Max+"
+        case .xhigh: "xHigh"
         case .max: "Max"
         }
     }
