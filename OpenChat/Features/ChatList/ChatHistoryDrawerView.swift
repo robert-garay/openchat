@@ -58,13 +58,6 @@ struct ChatHistoryDrawerView: View {
 
     private var drawerContent: some View {
         VStack(spacing: 0) {
-            header
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 12)
-
-            Divider()
-
             if conversations.isEmpty {
                 Spacer(minLength: 24)
                 ContentUnavailableView {
@@ -119,24 +112,6 @@ struct ChatHistoryDrawerView: View {
                     }
                 }
         )
-    }
-
-    private var header: some View {
-        HStack(spacing: 0) {
-            Text("OpenChat")
-                .font(.title2.weight(.bold))
-
-            Spacer(minLength: 12)
-
-            Button(action: onClose) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: 36, height: 36)
-                    .background(Color(.secondarySystemBackground), in: Circle())
-            }
-            .accessibilityLabel("Back to chat")
-        }
     }
 
     private var bottomBar: some View {

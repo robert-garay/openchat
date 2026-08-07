@@ -5,6 +5,7 @@ struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
     var onShowHistory: (() -> Void)?
+    var isHistoryDrawerOpen: Bool = false
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -107,6 +108,7 @@ struct ChatView: View {
                 }
             }
         }
+        .toolbar(isHistoryDrawerOpen ? .hidden : .visible, for: .navigationBar)
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
                 ModelPickerSheet(
