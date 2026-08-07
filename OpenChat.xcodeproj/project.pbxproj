@@ -121,6 +121,7 @@
 		ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B2B9966BEE5B326ABB3896 /* ChatView.swift */; };
 		B059A9B45E294DF428B1B54F /* ConversationCompactionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F0BE52570BA623F7B861EF /* ConversationCompactionService.swift */; };
 		B24319D981158A155F418CCF /* SerperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA243D85F91C1806E98CD232 /* SerperClient.swift */; };
+		B3971BFBB5789756EB4C07A8 /* OpenAICompatibleClient+WireTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */; };
 		B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */; };
 		B7354F0D7E69E62AAB5F1955 /* RuleReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD0509650F72AD06DFB5CDE /* RuleReviewSheet.swift */; };
 		B9CCF4A8CEE98C3C1F9023EB /* ChatMessageProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374A1E442B137C07DDA666EB /* ChatMessageProviderTests.swift */; };
@@ -254,6 +255,7 @@
 		86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
 		8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesSettingsView.swift; sourceTree = "<group>"; };
 		90DF21A990A4989A7177E07A /* DocumentAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentAttachmentTests.swift; sourceTree = "<group>"; };
+		94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAICompatibleClient+WireTypes.swift"; sourceTree = "<group>"; };
 		9485D5CB91D1A9E8C7915F97 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		9575E6FD04C1A7F6CE6A6D3D /* ProviderCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderCatalogTests.swift; sourceTree = "<group>"; };
 		99BA588DEFC44B3FF011184B /* ModelCapabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapabilityTests.swift; sourceTree = "<group>"; };
@@ -455,6 +457,7 @@
 				BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */,
 				D1D9831D482AEBA043B318B1 /* MultimodalRequestEncoder.swift */,
 				F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */,
+				94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */,
 				7BC4732631B2C5F041942EF5 /* OpenRouterModelsClient.swift */,
 				7B872EF3985BB7AC0BF86840 /* ProviderModelsClient.swift */,
 				8278B52A14134A4DE0197F82 /* ProviderStore.swift */,
@@ -783,6 +786,7 @@
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
 				36C0236209953383B0339F44 /* ModelReasoningConfig.swift in Sources */,
 				90D8DC45AE1392FE3829AD44 /* MultimodalRequestEncoder.swift in Sources */,
+				B3971BFBB5789756EB4C07A8 /* OpenAICompatibleClient+WireTypes.swift in Sources */,
 				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
 				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
 				E012A71A9E70FFF41CE878D2 /* OpenChatLogoView.swift in Sources */,
