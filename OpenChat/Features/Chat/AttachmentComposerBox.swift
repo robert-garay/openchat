@@ -125,6 +125,7 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
         Menu {
             if CameraCaptureAvailability.isAvailable {
                 Button {
+                    Haptics.light()
                     requestCamera()
                 } label: {
                     Label("Camera", systemImage: "camera")
@@ -132,22 +133,30 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
             }
 
             Button {
+                Haptics.light()
                 requestPhotoLibrary()
             } label: {
                 Label("Photos", systemImage: "photo")
             }
 
-            Button(action: pasteFromClipboard) {
+            Button {
+                Haptics.light()
+                pasteFromClipboard()
+            } label: {
                 Label("Paste Image", systemImage: "doc.on.clipboard")
             }
 
             Button {
+                Haptics.light()
                 requestFiles()
             } label: {
                 Label("Browse Files", systemImage: "doc")
             }
 
-            Button(action: pasteDocumentFromClipboard) {
+            Button {
+                Haptics.light()
+                pasteDocumentFromClipboard()
+            } label: {
                 Label("Paste Document", systemImage: "doc.badge.clock")
             }
         } label: {

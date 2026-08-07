@@ -141,6 +141,7 @@ struct RootView: View {
             }
             .onEnded { value in
                 isDragging = false
+                let wasOpen = isDrawerOpen
                 let horizontal = value.translation.width
                 let vertical = value.translation.height
                 let velocity = value.predictedEndLocation.x - value.location.x
@@ -152,6 +153,9 @@ struct RootView: View {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         drawerProgress = drawerProgress > 0.5 ? 1 : 0
                     }
+                }
+                if isDrawerOpen != wasOpen {
+                    Haptics.light()
                 }
             }
     }
