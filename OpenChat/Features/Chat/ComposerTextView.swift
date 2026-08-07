@@ -1,15 +1,14 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
+import UniformTypeIdentifiers
 
-/// UITextView subclass that intercepts paste commands for images so the composer
-/// can attach them without the user leaving the text input.
-///
-/// Text paste keeps the default behavior. Documents are left as a TODO so the
-/// same interception path can be extended once the app adds file attachments.
 private final class PasteInterceptingTextView: UITextView {
     /// Called when the pasteboard contains one or more images.
     var onPasteImages: (([UIImage]) -> Void)?
+    /// Called when the pasteboard contains a PDF document. Second argument is the
+    /// pasteboard-provided filename hint, if any.
+    var onPasteDocument: ((Data, String?) -> Void)?
 
     override func paste(_ sender: Any?) {
         if let images = UIPasteboard.general.images, !images.isEmpty, let onPasteImages {
@@ -17,8 +16,12 @@ private final class PasteInterceptingTextView: UITextView {
             return
         }
 
-        // Future document support: inspect UIPasteboard.general.itemProviders
-        // for UTType.pdf / UTType.fileURL and emit `.document(Data)` here.
+        if let onPasteDocument,
+           let data = UIPasteboard.general.data(forPasteboardType: UTType.pdf.identifier) {
+            let filename = UIPasteboard.general.itemProviders.first?.suggestedName
+            onPasteDocument(data, filename)
+            return
+        }
 
         super.paste(sender)
     }
@@ -36,6 +39,8 @@ struct ComposerTextView: UIViewRepresentable {
     /// Called when the user pastes images into the composer. Text paste still
     /// uses the default UITextView behavior.
     var onPasteImages: (([UIImage]) -> Void)?
+    /// Called when the user pastes a PDF into the composer.
+    var onPasteDocument: ((Data, String?) -> Void)?
     @Environment(\.isEnabled) private var isEnabled
 
     func makeCoordinator() -> Coordinator {
@@ -80,6 +85,7 @@ struct ComposerTextView: UIViewRepresentable {
     func updateUIView(_ textView: UITextView, context: Context) {
         if let pasteView = textView as? PasteInterceptingTextView {
             pasteView.onPasteImages = onPasteImages
+            pasteView.onPasteDocument = onPasteDocument
         }
         textView.isEditable = isEnabled
         textView.textColor = isEnabled ? .label : .secondaryLabel
