@@ -170,7 +170,7 @@ struct AnthropicClient: ChatCompletionClient {
             throw ChatServiceError.http(status: http.statusCode, body: bodyText)
         }
 
-        let decoded = try JSONDecoder().decode(MessagesResponse.self, from: data)
+        let decoded = try JSONDecoder().decode(AnthropicMessagesResponse.self, from: data)
         var textParts: [String] = []
         var toolCalls: [ChatToolCall] = []
 
@@ -237,12 +237,12 @@ struct AnthropicClient: ChatCompletionClient {
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools, reasoningEnabled: reasoningEnabled)
 
-        var accumulator = ToolCallAccumulator()
+        var accumulator = AnthropicToolCallAccumulator()
 
         let upstream = ServerSentEventStream.dataPayloads(for: request, session: session)
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
-            guard let event = try? JSONDecoder().decode(StreamEvent.self, from: data) else { continue }
+            guard let event = try? JSONDecoder().decode(AnthropicStreamEvent.self, from: data) else { continue }
 
             switch event.type {
             case "content_block_start":
@@ -273,52 +273,6 @@ struct AnthropicClient: ChatCompletionClient {
         // Returning an empty array here would read as `.some([])` at the call site
         // and wrongly continue into the non-streaming tool loop.
         return accumulator.isEmpty ? nil : accumulator.toolCalls
-    }
-
-    /// Collects streaming tool-use fragments into complete tool calls.
-    private struct ToolCallAccumulator {
-        private var blockTypes: [Int: String] = [:]
-        private var callsByIndex: [Int: AccumulatingToolCall] = [:]
-
-        var isEmpty: Bool { callsByIndex.isEmpty }
-
-        mutating func startBlock(index: Int, type: String, id: String?, name: String?) {
-            blockTypes[index] = type
-            if type == "tool_use" {
-                callsByIndex[index, default: AccumulatingToolCall()].id = id ?? ""
-                callsByIndex[index, default: AccumulatingToolCall()].name = name ?? ""
-            }
-        }
-
-        func isToolUse(at index: Int) -> Bool {
-            blockTypes[index] == "tool_use"
-        }
-
-        mutating func appendDelta(index: Int, delta: StreamEvent.Delta) {
-            guard delta.type == "input_json_delta", let partialJson = delta.partialJson else { return }
-            callsByIndex[index, default: AccumulatingToolCall()].arguments += partialJson
-        }
-
-        var toolCalls: [ChatToolCall] {
-            callsByIndex
-                .sorted { $0.key < $1.key }
-                .compactMap { $0.value.chatToolCall }
-        }
-    }
-
-    private struct AccumulatingToolCall {
-        var id: String = ""
-        var name: String = ""
-        var arguments: String = ""
-
-        var chatToolCall: ChatToolCall? {
-            guard !id.isEmpty, !name.isEmpty else { return nil }
-            return ChatToolCall(
-                id: id,
-                name: name,
-                argumentsJSON: arguments.isEmpty ? "{}" : arguments
-            )
-        }
     }
 
     // MARK: - Encoding
@@ -358,12 +312,12 @@ struct AnthropicClient: ChatCompletionClient {
 
         let conversationTurns = turns.filter { $0.role != .system }
         let messages = try encodeMessages(conversationTurns)
-        let toolPayloads: [ToolPayload]? = tools.isEmpty ? nil : try tools.map(encodeTool)
-        let thinking: ThinkingPayload? = (reasoningEnabled == true)
-            ? ThinkingPayload(type: "enabled", budgetTokens: 16000)
+        let toolPayloads: [AnthropicToolPayload]? = tools.isEmpty ? nil : try tools.map(encodeTool)
+        let thinking: AnthropicThinkingPayload? = (reasoningEnabled == true)
+            ? AnthropicThinkingPayload(type: "enabled", budgetTokens: 16000)
             : nil
 
-        let body = RequestBody(
+        let body = AnthropicRequestBody(
             model: model,
             maxTokens: 8192,
             system: systemPrompt.isEmpty ? nil : systemPrompt,
@@ -376,8 +330,8 @@ struct AnthropicClient: ChatCompletionClient {
     }
 
     /// Collapses OpenAI-style tool result turns into Anthropic user `tool_result` blocks.
-    private static func encodeMessages(_ turns: [ChatTurn]) throws -> [RequestMessage] {
-        var messages: [RequestMessage] = []
+    private static func encodeMessages(_ turns: [ChatTurn]) throws -> [AnthropicRequestMessage] {
+        var messages: [AnthropicRequestMessage] = []
         var index = 0
         while index < turns.count {
             let turn = turns[index]
@@ -393,7 +347,7 @@ struct AnthropicClient: ChatCompletionClient {
                     )
                     index += 1
                 }
-                messages.append(RequestMessage(role: "user", content: .blocks(results)))
+                messages.append(AnthropicRequestMessage(role: "user", content: .blocks(results)))
                 continue
             }
 
@@ -406,20 +360,20 @@ struct AnthropicClient: ChatCompletionClient {
                     let input = try decodeJSONObject(call.argumentsJSON)
                     blocks.append(.toolUse(id: call.id, name: call.name, input: input))
                 }
-                messages.append(RequestMessage(role: "assistant", content: .blocks(blocks)))
+                messages.append(AnthropicRequestMessage(role: "assistant", content: .blocks(blocks)))
                 index += 1
                 continue
             }
 
             messages.append(
-                RequestMessage(role: turn.role.rawValue, content: encodeContent(for: turn))
+                AnthropicRequestMessage(role: turn.role.rawValue, content: encodeContent(for: turn))
             )
             index += 1
         }
         return messages
     }
 
-    private static func encodeContent(for turn: ChatTurn) -> MessageContent {
+    private static func encodeContent(for turn: ChatTurn) -> AnthropicMessageContent {
         if let parts = MultimodalRequestEncoder.anthropicParts(for: turn) {
             return .blocks(parts.map { part in
                 if part.type == "image", let source = part.source {
@@ -431,9 +385,9 @@ struct AnthropicClient: ChatCompletionClient {
         return .text(turn.content)
     }
 
-    private static func encodeTool(_ tool: ChatToolDefinition) throws -> ToolPayload {
+    private static func encodeTool(_ tool: ChatToolDefinition) throws -> AnthropicToolPayload {
         let schema = try decodeJSONObject(tool.parametersJSON)
-        return ToolPayload(
+        return AnthropicToolPayload(
             name: tool.name,
             description: tool.description,
             inputSchema: schema
@@ -447,138 +401,5 @@ struct AnthropicClient: ChatCompletionClient {
             return AnyCodableJSON([String: Any]())
         }
         return AnyCodableJSON(object)
-    }
-
-    // MARK: - Wire types
-
-    private struct RequestBody: Encodable {
-        var model: String
-        var maxTokens: Int
-        var system: String?
-        var messages: [RequestMessage]
-        var stream: Bool
-        var tools: [ToolPayload]?
-        var thinking: ThinkingPayload?
-
-        enum CodingKeys: String, CodingKey {
-            case model, system, messages, stream, tools, thinking
-            case maxTokens = "max_tokens"
-        }
-    }
-
-    private struct ThinkingPayload: Encodable {
-        var type: String
-        var budgetTokens: Int
-
-        enum CodingKeys: String, CodingKey {
-            case type
-            case budgetTokens = "budget_tokens"
-        }
-    }
-
-    private struct RequestMessage: Encodable {
-        var role: String
-        var content: MessageContent
-    }
-
-    private enum MessageContent: Encodable {
-        case text(String)
-        case blocks([AnthropicContentBlock])
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .text(let value):
-                try container.encode(value)
-            case .blocks(let blocks):
-                try container.encode(blocks)
-            }
-        }
-    }
-
-    private enum AnthropicContentBlock: Encodable {
-        case text(String)
-        case image(mediaType: String, data: String)
-        case toolUse(id: String, name: String, input: AnyCodableJSON)
-        case toolResult(toolUseID: String, content: String)
-
-        enum CodingKeys: String, CodingKey {
-            case type, text, source, id, name, input, content
-            case toolUseID = "tool_use_id"
-        }
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            switch self {
-            case .text(let text):
-                try container.encode("text", forKey: .type)
-                try container.encode(text, forKey: .text)
-            case .image(let mediaType, let data):
-                try container.encode("image", forKey: .type)
-                try container.encode(
-                    ["type": "base64", "media_type": mediaType, "data": data],
-                    forKey: .source
-                )
-            case .toolUse(let id, let name, let input):
-                try container.encode("tool_use", forKey: .type)
-                try container.encode(id, forKey: .id)
-                try container.encode(name, forKey: .name)
-                try container.encode(input, forKey: .input)
-            case .toolResult(let toolUseID, let content):
-                try container.encode("tool_result", forKey: .type)
-                try container.encode(toolUseID, forKey: .toolUseID)
-                try container.encode(content, forKey: .content)
-            }
-        }
-    }
-
-    private struct ToolPayload: Encodable {
-        var name: String
-        var description: String
-        var inputSchema: AnyCodableJSON
-
-        enum CodingKeys: String, CodingKey {
-            case name, description
-            case inputSchema = "input_schema"
-        }
-    }
-
-    private struct MessagesResponse: Decodable {
-        var content: [ContentBlock]?
-
-        struct ContentBlock: Decodable {
-            var type: String
-            var text: String?
-            var id: String?
-            var name: String?
-            var input: AnyCodableJSON?
-        }
-    }
-
-    private struct StreamEvent: Decodable {
-        struct Delta: Decodable {
-            var type: String?
-            var text: String?
-            var partialJson: String?
-
-            enum CodingKeys: String, CodingKey {
-                case type, text
-                case partialJson = "partial_json"
-            }
-        }
-        struct ContentBlock: Decodable {
-            var type: String?
-            var id: String?
-            var name: String?
-        }
-        var type: String
-        var delta: Delta?
-        var index: Int?
-        var contentBlock: ContentBlock?
-
-        enum CodingKeys: String, CodingKey {
-            case type, delta, index
-            case contentBlock = "content_block"
-        }
     }
 }

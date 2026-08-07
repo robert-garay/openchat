@@ -74,6 +74,7 @@
 		57D3AE2B503528502E84742F /* EffortLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF529654A520BC45155B2D7 /* EffortLevel.swift */; };
 		5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */; };
 		5E332FDFB6FDC2DE4D79DA0C /* EffortLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0446C9738EA458A95A0F9BB7 /* EffortLevelTests.swift */; };
+		5F8580CAA2F33B10B6CFD4F5 /* ChatViewModel+Reasoning.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED061940FBC318AE5A2CA53 /* ChatViewModel+Reasoning.swift */; };
 		5FBADBABFC44F1299042C3DC /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D868369D030010308DDCDB /* MarkdownMessageView.swift */; };
 		62AC223FF0B57BC499BE1895 /* ProviderTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F332162541FC9583006859 /* ProviderTemplate.swift */; };
 		668CBCEE1FF90906B77F7C4D /* SkillResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B0A810AD421E91E40BB0B4F /* SkillResolver.swift */; };
@@ -142,6 +143,7 @@
 		E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EFBE369A07EED25532B291 /* ProviderDetailView.swift */; };
 		E3687ABBC67C5FEFB1F5713F /* CalendarContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001515E7D612955EE697BC2B /* CalendarContextReader.swift */; };
 		E3DA2FA3A516E96B3213C845 /* ConversationEditMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */; };
+		EC154CF094937256E9CDD426 /* AnthropicClient+WireTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */; };
 		EF62D1912A3C1D296B195F24 /* OpenRouterModelCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */; };
 		F5602244DDF16715EFA471C6 /* CodeLanguageProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC579AFEA17708D79C48A25B /* CodeLanguageProfile.swift */; };
 		F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */; };
@@ -299,6 +301,7 @@
 		D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapability.swift; sourceTree = "<group>"; };
 		D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchServiceTests.swift; sourceTree = "<group>"; };
 		DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProviderView.swift; sourceTree = "<group>"; };
+		DED061940FBC318AE5A2CA53 /* ChatViewModel+Reasoning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatViewModel+Reasoning.swift"; sourceTree = "<group>"; };
 		E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TavilyClient.swift; sourceTree = "<group>"; };
 		E152329A233CE865AB1083AB /* ChatHistoryDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryDrawerView.swift; sourceTree = "<group>"; };
 		E15E79CBE7CA9FBF5BD7B114 /* ChatCompletionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionClient.swift; sourceTree = "<group>"; };
@@ -306,6 +309,7 @@
 		E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyEntryView.swift; sourceTree = "<group>"; };
 		EC579AFEA17708D79C48A25B /* CodeLanguageProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeLanguageProfile.swift; sourceTree = "<group>"; };
 		EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
+		EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnthropicClient+WireTypes.swift"; sourceTree = "<group>"; };
 		F348296EA312E7D6FF927BF8 /* CalendarEventWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventWriter.swift; sourceTree = "<group>"; };
 		F37641FF5C574A5F3F8F6FCC /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		F539AA6FA57B47B500D2880B /* AnyCodableJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodableJSON.swift; sourceTree = "<group>"; };
@@ -430,6 +434,7 @@
 				3432E3B59D9CD35605D465A9 /* AgentDataSourcePermissionService.swift */,
 				B6731146FCF7A2CD31987C15 /* AgentDataSourceStore.swift */,
 				438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */,
+				EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */,
 				F539AA6FA57B47B500D2880B /* AnyCodableJSON.swift */,
 				6C7A805BCB76208FC5FDDCB5 /* BraveSearchClient.swift */,
 				2F7EBB374CCCA1074ECEAF1D /* CalendarActionParser.swift */,
@@ -488,6 +493,7 @@
 				8324D4B71773C6D4157CBDAB /* ChatRulesSheet.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
+				DED061940FBC318AE5A2CA53 /* ChatViewModel+Reasoning.swift */,
 				EC579AFEA17708D79C48A25B /* CodeLanguageProfile.swift */,
 				B77042F4B06EE256DB69CF28 /* CodeSyntaxHighlighter.swift */,
 				1A2AF4F55AFA1992CFFDAA5A /* ComposerTextView.swift */,
@@ -717,6 +723,7 @@
 				7DF61A34C15F495811360773 /* AgentDataSource.swift in Sources */,
 				6EB8A63C45BE513B792F4E68 /* AgentDataSourcePermissionService.swift in Sources */,
 				CEDAFE8FD0D48A76DE4879C8 /* AgentDataSourceStore.swift in Sources */,
+				EC154CF094937256E9CDD426 /* AnthropicClient+WireTypes.swift in Sources */,
 				0D3F5282015B115F864F765E /* AnthropicClient.swift in Sources */,
 				2A2ED828D7FCBD18F7818218 /* AnyCodableJSON.swift in Sources */,
 				F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */,
@@ -738,6 +745,7 @@
 				DE1740492006CBF97C99EE5E /* ChatTool.swift in Sources */,
 				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
 				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
+				5F8580CAA2F33B10B6CFD4F5 /* ChatViewModel+Reasoning.swift in Sources */,
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
 				F5602244DDF16715EFA471C6 /* CodeLanguageProfile.swift in Sources */,
 				BBB17BFEA4B31292C4E53202 /* CodeSyntaxHighlighter.swift in Sources */,
