@@ -208,10 +208,8 @@ struct ChatView: View {
         .onChange(of: viewModel?.effortLevel) { _, _ in
             viewModel?.persistComposerState()
         }
-        .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
-            viewModel?.persistComposerState()
-        }
     }
+}
 
 // MARK: - Composer host (isolates composerText observation)
 
@@ -253,12 +251,9 @@ private struct ChatComposerHost: View {
             conversation: conversation,
             skills: skills,
             effortLevel: $viewModel.effortLevel,
-            isReasoningEnabled: viewModel.isReasoningEnabled,
             supportsEffort: viewModel.supportsEffort,
             supportedEffortLevels: viewModel.supportedEffortLevels,
-            canDisableReasoning: viewModel.canDisableReasoning,
             onSetEffortLevel: viewModel.setEffortLevel,
-            onSetReasoningEnabled: viewModel.setReasoningEnabled,
             onSend: onSend,
             onStop: viewModel.cancelStreaming
         )
@@ -555,6 +550,5 @@ private struct TemporaryChatBanner: View {
         .padding(.vertical, 10)
         .background(.bar)
     }
-}
 }
 

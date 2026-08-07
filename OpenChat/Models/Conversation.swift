@@ -26,10 +26,8 @@ final class Conversation {
     /// JSON-encoded `[ChatImageAttachment]` for unsent composer images.
     var draftAttachmentsData: Data?
     /// Persisted raw value of `EffortLevel` for this chat. Defaults to `medium`.
+    /// A value of `none` means reasoning/thinking is turned off for models that support it.
     var effortLevelRawValue: String = EffortLevel.default.rawValue
-    /// When true, reasoning/thinking is enabled for this chat. Models that support
-    /// an explicit `none` effort level can be toggled off. Defaults to on.
-    var isReasoningEnabled: Bool = true
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
