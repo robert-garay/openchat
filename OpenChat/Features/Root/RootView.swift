@@ -14,6 +14,7 @@ struct RootView: View {
     @State private var dragStartProgress: CGFloat = 0
 
     private var isDrawerOpen: Bool { drawerProgress > 0.5 }
+    private var effectiveDrawerWidth: CGFloat { drawerWidth > 0 ? drawerWidth : 300 }
 
     /// Sidebar history: never temporary, never empty (no user messages).
     /// Keep the currently selected empty chat visible so the selection stays stable.
@@ -97,15 +98,12 @@ struct RootView: View {
 
                 // Chat panel slides to the right, rounds its leading edge,
                 // and darkens as the drawer is revealed.
-                NavigationStack {
-                    chatContent
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .offset(x: drawerProgress * width)
-                .background(chatPanelBackground)
-                .clipShape(LeadingRoundedRectangle(radius: drawerProgress * 24))
-                .shadow(color: .black.opacity(0.25), radius: 20, x: -8, y: 0)
-                .simultaneousGesture(drawerGesture)
+                chatContent
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .offset(x: drawerProgress * width)
+                    .clipShape(LeadingRoundedRectangle(radius: drawerProgress * 24))
+                    .shadow(color: .black.opacity(0.25), radius: 20, x: -8, y: 0)
+                    .simultaneousGesture(drawerGesture)
             }
             .onAppear { drawerWidth = width }
             .onChange(of: width) { _, new in drawerWidth = new }
@@ -119,22 +117,13 @@ struct RootView: View {
                 conversation: conversation,
                 onToggleTemporary: { toggleTemporary(for: conversation) },
                 onShowHistory: { toggleDrawer() },
-                isHistoryDrawerOpen: drawerProgress > 0
+                drawerProgress: drawerProgress
             )
             .id(conversation.id)
         } else {
             ProgressView()
                 .controlSize(.large)
         }
-    }
-
-    private var chatPanelBackground: Color {
-        Color(
-            uiColor: UIColor.systemBackground.blended(
-                with: UIColor.secondarySystemBackground,
-                fraction: drawerProgress
-            )
-        )
     }
 
     private var drawerGesture: some Gesture {
@@ -147,7 +136,7 @@ struct RootView: View {
                     isDragging = true
                     dragStartProgress = drawerProgress
                 }
-                let progress = dragStartProgress + horizontal / drawerWidth
+                let progress = dragStartProgress + horizontal / effectiveDrawerWidth
                 drawerProgress = max(0, min(1, progress))
             }
             .onEnded { value in
@@ -257,17 +246,3 @@ private struct LeadingRoundedRectangle: Shape {
     }
 }
 
-private extension UIColor {
-    func blended(with other: UIColor, fraction: CGFloat) -> UIColor {
-        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
-        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
-        getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-        other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
-        return UIColor(
-            red: r1 + (r2 - r1) * fraction,
-            green: g1 + (g2 - g1) * fraction,
-            blue: b1 + (b2 - b1) * fraction,
-            alpha: a1 + (a2 - a1) * fraction
-        )
-    }
-}
