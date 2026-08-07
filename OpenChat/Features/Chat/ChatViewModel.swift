@@ -18,6 +18,8 @@ final class ChatViewModel {
     private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
     private(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
     private(set) var skillActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    private(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -82,6 +84,13 @@ final class ChatViewModel {
 
     private var shouldUseMemory: Bool {
         MemoryStore.shouldUseMemory(isTemporary: conversation.isTemporary, useInChats: memoryStore.useInChats)
+    }
+
+    private var shouldAllowRuleProposals: Bool {
+        RulesStore.shouldAllowRuleProposals(
+            isTemporary: conversation.isTemporary,
+            allowProposalsFromChat: rulesStore.allowProposalsFromChat
+        )
     }
 
     /// Search will run on the next send: chat toggle on + configured active provider ready.
@@ -348,6 +357,20 @@ final class ChatViewModel {
         Haptics.light()
     }
 
+    /// Clears a pending rule proposal after the user saved it via the review sheet
+    /// (RuleReviewSheet performs the actual save; this only clears the bookkeeping).
+    func clearRuleProposalAfterReview(for messageID: UUID) {
+        pendingRuleProposalsByMessageID[messageID] = nil
+        ruleActionStatusByMessageID[messageID] = "Rule saved."
+        Haptics.success()
+    }
+
+    func dismissRuleProposals(for messageID: UUID) {
+        pendingRuleProposalsByMessageID[messageID] = nil
+        ruleActionStatusByMessageID[messageID] = "Rule discarded."
+        Haptics.light()
+    }
+
     func send() {
         let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
@@ -547,6 +570,10 @@ final class ChatViewModel {
                     middleSections.append(MemoryStore.modelInstruction())
                 }
 
+                if shouldAllowRuleProposals {
+                    middleSections.append(RulesStore.modelInstruction())
+                }
+
                 if let skillIndex, !skillIndex.isEmpty {
                     middleSections.append(skillIndex)
                 }
@@ -664,6 +691,7 @@ final class ChatViewModel {
                 assistantMessage.isStreaming = false
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
+                captureRuleProposals(from: assistantMessage)
                 let invokedSkills = await skillCollector.invokedSkills
                 for skill in invokedSkills {
                     insertSkillSystemMessage(for: skill)
@@ -713,6 +741,38 @@ final class ChatViewModel {
         if saved > 0 {
             try? modelContext.save()
             memoryActionStatusByMessageID[messageID] = "Memory updated."
+        }
+    }
+
+    private func captureRuleProposals(from message: ChatMessage) {
+        guard shouldAllowRuleProposals else { return }
+        let proposals = RuleActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        if rulesStore.requireConfirmation {
+            pendingRuleProposalsByMessageID[message.id] = proposals
+        } else {
+            saveRuleProposals(proposals, messageID: message.id)
+        }
+    }
+
+    private func saveRuleProposals(_ proposals: [RuleProposal], messageID: UUID) {
+        var saved = 0
+        for proposal in proposals {
+            do {
+                _ = try rulesStore.save(
+                    content: proposal.content,
+                    modelContext: modelContext,
+                    conversation: proposal.scope == .global ? nil : conversation
+                )
+                saved += 1
+            } catch {
+                ruleActionStatusByMessageID[messageID] = error.localizedDescription
+                return
+            }
+        }
+        if saved > 0 {
+            try? modelContext.save()
+            ruleActionStatusByMessageID[messageID] = "Rule saved."
         }
     }
 
