@@ -117,7 +117,10 @@ final class RulesStore {
     nonisolated static func modelInstruction() -> String {
         """
         The user enabled rule proposals in OpenChat. If you want to establish a standing \
-        instruction, propose it using ```openchat-rule\\n{"content":"...","scope":"global"|"chat"}\\n```. \
+        instruction, propose it using:
+        ```openchat-rule
+        {"content":"...","scope":"global"|"chat"}
+        ```
         Always include scope — if it's not clear from context whether this should apply to just \
         this chat or to every chat, ask the user before proposing it. Saved after confirmation \
         unless disabled.

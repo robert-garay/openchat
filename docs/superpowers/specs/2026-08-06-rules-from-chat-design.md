@@ -194,10 +194,19 @@ nonisolated static func modelInstruction() -> String {
       pendingRuleProposalsByMessageID[messageID] = nil
   }
 
-  func clearRuleProposalAfterReview(for messageID: UUID) {
-      pendingRuleProposalsByMessageID[messageID] = nil
+  func clearRuleProposalAfterReview(for messageID: UUID, proposalID: UUID) {
+      guard var proposals = pendingRuleProposalsByMessageID[messageID] else { return }
+      proposals.removeAll { $0.id == proposalID }
+      if proposals.isEmpty {
+          pendingRuleProposalsByMessageID[messageID] = nil
+      } else {
+          pendingRuleProposalsByMessageID[messageID] = proposals
+      }
   }
   ```
+  Removes only the reviewed proposal — any remaining proposals for
+  this message stay pending, so reviewing one of several proposals in
+  a message no longer discards the rest.
   (`RuleProposal.scope` is non-optional after parsing, so there's no
   runtime "missing scope" case to default — the parser already
   dropped those blocks.)
@@ -326,9 +335,12 @@ Toggle("Require confirmation", isOn: Binding(
 ))
 .disabled(!rulesStore.allowProposalsFromChat)
 ```
-Footer text extended to cover the new toggles: "...When enabled, the
-assistant may propose new rules during a chat, for you to review (or
-save automatically if confirmation is off). Off by default."
+Footer text extended to cover the new toggles: "Global rules apply to
+every chat when enabled. Chat rules are per-conversation instructions
+(edited from the chat composer) and only apply when enabled. Both are
+off by default. When the assistant is allowed to propose rules, it can
+suggest new global or chat rules during a conversation for you to
+review before they're saved."
 
 **`ChatView`** — pass-through wiring for
 `pendingRuleProposalsByMessageID`/`ruleActionStatusByMessageID` into

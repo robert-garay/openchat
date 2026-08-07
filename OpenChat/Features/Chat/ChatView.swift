@@ -262,8 +262,8 @@ private struct ChatMessageListView: View {
                             onDismissRuleProposals: {
                                 viewModel.dismissRuleProposals(for: message.id)
                             },
-                            onRuleProposalSaved: {
-                                viewModel.clearRuleProposalAfterReview(for: message.id)
+                            onRuleProposalSaved: { proposalID in
+                                viewModel.clearRuleProposalAfterReview(for: message.id, proposalID: proposalID)
                             },
                             isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply,

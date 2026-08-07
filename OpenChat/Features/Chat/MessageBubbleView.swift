@@ -26,7 +26,7 @@ struct MessageBubbleView: View {
     var pendingRuleProposals: [RuleProposal] = []
     var ruleActionStatus: String? = nil
     var onDismissRuleProposals: (() -> Void)? = nil
-    var onRuleProposalSaved: (() -> Void)? = nil
+    var onRuleProposalSaved: ((UUID) -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
     var isEditing: Bool = false

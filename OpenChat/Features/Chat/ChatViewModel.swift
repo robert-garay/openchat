@@ -359,9 +359,16 @@ final class ChatViewModel {
 
     /// Clears a pending rule proposal after the user saved it via the review sheet
     /// (RuleReviewSheet performs the actual save; this only clears the bookkeeping).
-    func clearRuleProposalAfterReview(for messageID: UUID) {
-        pendingRuleProposalsByMessageID[messageID] = nil
-        ruleActionStatusByMessageID[messageID] = "Rule saved."
+    /// Removes only the reviewed proposal — any remaining proposals for this message stay pending.
+    func clearRuleProposalAfterReview(for messageID: UUID, proposalID: UUID) {
+        guard var proposals = pendingRuleProposalsByMessageID[messageID] else { return }
+        proposals.removeAll { $0.id == proposalID }
+        if proposals.isEmpty {
+            pendingRuleProposalsByMessageID[messageID] = nil
+            ruleActionStatusByMessageID[messageID] = "Rule saved."
+        } else {
+            pendingRuleProposalsByMessageID[messageID] = proposals
+        }
         Haptics.success()
     }
 

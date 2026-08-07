@@ -7,7 +7,7 @@ struct RuleReviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     let proposal: RuleProposal
     let conversation: Conversation
-    var onSaved: (() -> Void)? = nil
+    var onSaved: ((UUID) -> Void)? = nil
 
     @State private var content = ""
     @State private var scope: RuleScope = .chat
@@ -32,6 +32,23 @@ struct RuleReviewSheet: View {
                     .pickerStyle(.segmented)
                 } footer: {
                     Text("Every chat rules apply globally, everywhere. This chat rules apply only to this conversation.")
+                }
+                if scope == .global && !rulesStore.useGlobalRules {
+                    Section {
+                        Button("Enable global rules") {
+                            rulesStore.setUseGlobalRules(true)
+                        }
+                    } footer: {
+                        Text("Global rules are currently off, so this rule won't take effect until you enable them.")
+                    }
+                } else if scope == .chat && !rulesStore.useChatRules {
+                    Section {
+                        Button("Enable chat rules") {
+                            rulesStore.setUseChatRules(true)
+                        }
+                    } footer: {
+                        Text("Chat rules are currently off, so this rule won't take effect until you enable them.")
+                    }
                 }
                 if let errorMessage {
                     Section {
@@ -72,7 +89,7 @@ struct RuleReviewSheet: View {
             return
         }
         Haptics.success()
-        onSaved?()
+        onSaved?(proposal.id)
         dismiss()
     }
 }

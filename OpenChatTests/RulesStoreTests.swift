@@ -62,6 +62,7 @@ final class RulesStoreTests: XCTestCase {
         let instruction = RulesStore.modelInstruction()
         XCTAssertTrue(instruction.contains("openchat-rule"))
         XCTAssertTrue(instruction.contains("scope"))
+        XCTAssertTrue(instruction.contains("ask the user"))
     }
 
     func testCRUDAndInjectionText() throws {
