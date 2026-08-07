@@ -5,7 +5,6 @@ struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
     var onShowHistory: (() -> Void)?
-    var isHistoryDrawerOpen: Bool = false
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -22,31 +21,33 @@ struct ChatView: View {
     @State private var stickToBottom = true
 
     var body: some View {
-        VStack(spacing: 0) {
-            if conversation.isTemporary {
-                TemporaryChatBanner()
-            }
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                customHeader(topSafeArea: geometry.safeAreaInsets.top)
 
-            if let viewModel {
-                ZStack {
-                    ChatMessageListView(
-                        conversation: conversation,
-                        viewModel: viewModel,
-                        stickToBottom: $stickToBottom
-                    )
-
-                    if conversation.sortedMessages.isEmpty {
-                        WelcomeOverlay()
-                    }
+                if conversation.isTemporary {
+                    TemporaryChatBanner()
                 }
 
-                if !isHistoryDrawerOpen {
+                if let viewModel {
+                    ZStack {
+                        ChatMessageListView(
+                            conversation: conversation,
+                            viewModel: viewModel,
+                            stickToBottom: $stickToBottom
+                        )
+
+                        if conversation.sortedMessages.isEmpty {
+                            WelcomeOverlay()
+                        }
+                    }
+
                     ChatComposerHost(
                         viewModel: viewModel,
                         skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
                         hasChatRules: !conversation.systemPrompt
                             .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .isEmpty,
+                        .isEmpty,
                         canUseChatRules: rulesStore.useChatRules,
                         conversation: conversation,
                         onSend: {
@@ -54,57 +55,6 @@ struct ChatView: View {
                             viewModel.send()
                         }
                     )
-                }
-            }
-        }
-        .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    Haptics.light()
-                    onShowHistory?()
-                } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.primary)
-                }
-                .accessibilityLabel("Chat history")
-            }
-
-            ToolbarItem(placement: .principal) {
-                if let viewModel {
-                    Button {
-                        Haptics.light()
-                        showingModelPicker = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(viewModel.currentModel?.displayName ?? "Choose Model")
-                                .font(.subheadline.weight(.semibold))
-                                .lineLimit(1)
-                            ModelCapabilitySigns(
-                                capabilities: viewModel.currentModel?.capabilities ?? [],
-                                limit: 3
-                            )
-                            Image(systemName: "chevron.down")
-                                .font(.caption2.weight(.bold))
-                        }
-                        .foregroundStyle(.primary)
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                if conversation.messages.isEmpty {
-                    Button {
-                        Haptics.light()
-                        onToggleTemporary?()
-                    } label: {
-                        GhostIcon(size: 22, filled: conversation.isTemporary)
-                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
             }
         }
@@ -211,7 +161,66 @@ struct ChatView: View {
             viewModel?.persistComposerState()
         }
     }
-}
+
+    private func customHeader(topSafeArea: CGFloat) -> some View {
+        ZStack {
+            HStack(spacing: 0) {
+                Button {
+                    Haptics.light()
+                    onShowHistory?()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.secondarySystemBackground), in: Circle())
+                }
+                .accessibilityLabel("Chat history")
+
+                Spacer(minLength: 12)
+
+                if conversation.messages.isEmpty {
+                    Button {
+                        Haptics.light()
+                        onToggleTemporary?()
+                    } label: {
+                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
+                } else {
+                    Color.clear.frame(width: 36, height: 36)
+                }
+            }
+            .padding(.horizontal, 16)
+
+            if let viewModel {
+                Button {
+                    Haptics.light()
+                    showingModelPicker = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(viewModel.currentModel?.displayName ?? "Choose Model")
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                        ModelCapabilitySigns(
+                            capabilities: viewModel.currentModel?.capabilities ?? [],
+                            limit: 3
+                        )
+                        Image(systemName: "chevron.down")
+                            .font(.caption2.weight(.bold))
+                    }
+                    .foregroundStyle(.primary)
+                }
+                .accessibilityLabel("Choose model")
+            }
+        }
+        .padding(.top, topSafeArea + 12)
+        .padding(.bottom, 12)
+    }
 
 // MARK: - Composer host (isolates composerText observation)
 
@@ -555,5 +564,6 @@ private struct TemporaryChatBanner: View {
         .padding(.vertical, 10)
         .background(.bar)
     }
+}
 }
 
