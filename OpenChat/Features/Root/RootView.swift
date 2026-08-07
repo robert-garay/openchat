@@ -74,9 +74,8 @@ struct RootView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .topLeading) {
-                // Chat screen on the right
+        NavigationStack {
+            ZStack {
                 if let conversation = selectedConversation {
                     ChatView(
                         conversation: conversation,
@@ -84,15 +83,34 @@ struct RootView: View {
                         onShowHistory: { toggleHistoryDrawer() }
                     )
                     .id(conversation.id)
-                    .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-                    .offset(x: showingHistoryDrawer ? geometry.size.width : 0)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = value.translation.height
+                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showingHistoryDrawer = true
+                                    }
+                                }
+                            }
+                    )
                 } else {
+                    // Stable placeholder while the first chat is created.
                     ProgressView()
                         .controlSize(.large)
-                        .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
                 }
 
-                // History screen on the left
+                if showingHistoryDrawer {
+                    drawerOverlay
+                }
+            }
+        }
+    }
+
+    private var drawerOverlay: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
                 ChatHistoryDrawerView(
                     conversations: listConversations,
                     selectedConversationID: $selectedConversationID,
@@ -100,36 +118,13 @@ struct RootView: View {
                     onClose: { showingHistoryDrawer = false },
                     onShowSettings: { showingSettings = true }
                 )
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-                .offset(x: showingHistoryDrawer ? 0 : -geometry.size.width)
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 20)
-                        .onEnded { value in
-                            let horizontal = value.translation.width
-                            let vertical = value.translation.height
-                            if showingHistoryDrawer, horizontal < -80, abs(vertical) < abs(horizontal) {
-                                withAnimation(.easeInOut(duration: 0.25)) {
-                                    showingHistoryDrawer = false
-                                }
-                            }
-                        }
-                )
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .leading)
+                .background(.background)
+                .transition(.move(edge: .leading))
             }
-            .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 20)
-                    .onEnded { value in
-                        let horizontal = value.translation.width
-                        let vertical = value.translation.height
-                        if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                showingHistoryDrawer = true
-                            }
-                        }
-                    }
-            )
         }
         .ignoresSafeArea()
+        .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
     }
 
     private func toggleHistoryDrawer() {
