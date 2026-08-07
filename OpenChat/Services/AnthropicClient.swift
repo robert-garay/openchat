@@ -12,12 +12,14 @@ struct AnthropicClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         supportsImageGen: Bool,
-        effort: EffortLevel?
+        effort: EffortLevel?,
+        reasoningEnabled: Bool?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         // Anthropic Messages API does not return generated bitmaps; ignore supportsImageGen.
         // Anthropic has no equivalent of the OpenAI `reasoning_effort` parameter.
         _ = supportsImageGen
         _ = effort
+        _ = reasoningEnabled
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -27,6 +29,7 @@ struct AnthropicClient: ChatCompletionClient {
                             model: model,
                             baseURL: baseURL,
                             apiKey: apiKey,
+                            reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
                         )
@@ -38,6 +41,7 @@ struct AnthropicClient: ChatCompletionClient {
                             apiKey: apiKey,
                             tools: tools,
                             executeTool: executeTool,
+                            reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
                         )
@@ -64,6 +68,7 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -79,6 +84,7 @@ struct AnthropicClient: ChatCompletionClient {
             baseURL: baseURL,
             apiKey: apiKey,
             tools: tools,
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         ) {
@@ -109,6 +115,7 @@ struct AnthropicClient: ChatCompletionClient {
                 baseURL: baseURL,
                 apiKey: apiKey,
                 tools: tools,
+                reasoningEnabled: reasoningEnabled,
                 session: session
             )
 
@@ -136,6 +143,7 @@ struct AnthropicClient: ChatCompletionClient {
             model: model,
             baseURL: baseURL,
             apiKey: apiKey,
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         )
@@ -149,10 +157,11 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        reasoningEnabled: Bool?,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
-        let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools)
+        let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools, reasoningEnabled: reasoningEnabled)
         request.httpBody = body
 
         let (data, response) = try await session.data(for: request)
@@ -196,6 +205,7 @@ struct AnthropicClient: ChatCompletionClient {
         model: String,
         baseURL: String,
         apiKey: String?,
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -205,6 +215,7 @@ struct AnthropicClient: ChatCompletionClient {
             baseURL: baseURL,
             apiKey: apiKey,
             tools: [],
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         )
@@ -218,12 +229,13 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws -> [ChatToolCall]? {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools)
+        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools, reasoningEnabled: reasoningEnabled)
 
         var accumulator = ToolCallAccumulator()
 
@@ -335,7 +347,8 @@ struct AnthropicClient: ChatCompletionClient {
         turns: [ChatTurn],
         model: String,
         stream: Bool,
-        tools: [ChatToolDefinition]
+        tools: [ChatToolDefinition],
+        reasoningEnabled: Bool?
     ) throws -> Data {
         let systemPrompt = turns
             .filter { $0.role == .system }
@@ -346,6 +359,9 @@ struct AnthropicClient: ChatCompletionClient {
         let conversationTurns = turns.filter { $0.role != .system }
         let messages = try encodeMessages(conversationTurns)
         let toolPayloads: [ToolPayload]? = tools.isEmpty ? nil : try tools.map(encodeTool)
+        let thinking: ThinkingPayload? = (reasoningEnabled == true)
+            ? ThinkingPayload(type: "enabled", budgetTokens: 16000)
+            : nil
 
         let body = RequestBody(
             model: model,
@@ -353,7 +369,8 @@ struct AnthropicClient: ChatCompletionClient {
             system: systemPrompt.isEmpty ? nil : systemPrompt,
             messages: messages,
             stream: stream,
-            tools: toolPayloads
+            tools: toolPayloads,
+            thinking: thinking
         )
         return try JSONEncoder().encode(body)
     }
@@ -441,10 +458,21 @@ struct AnthropicClient: ChatCompletionClient {
         var messages: [RequestMessage]
         var stream: Bool
         var tools: [ToolPayload]?
+        var thinking: ThinkingPayload?
 
         enum CodingKeys: String, CodingKey {
-            case model, system, messages, stream, tools
+            case model, system, messages, stream, tools, thinking
             case maxTokens = "max_tokens"
+        }
+    }
+
+    private struct ThinkingPayload: Encodable {
+        var type: String
+        var budgetTokens: Int
+
+        enum CodingKeys: String, CodingKey {
+            case type
+            case budgetTokens = "budget_tokens"
         }
     }
 

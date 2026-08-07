@@ -16,7 +16,8 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         supportsImageGen: Bool,
-        effort: EffortLevel?
+        effort: EffortLevel?,
+        reasoningEnabled: Bool?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -29,6 +30,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             apiKey: apiKey,
                             supportsImageGen: supportsImageGen,
                             effort: effort,
+                            reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
                         )
@@ -42,6 +44,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             executeTool: executeTool,
                             supportsImageGen: supportsImageGen,
                             effort: effort,
+                            reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
                         )
@@ -70,6 +73,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         supportsImageGen: Bool,
         effort: EffortLevel?,
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -87,6 +91,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             tools: tools,
             supportsImageGen: supportsImageGen,
             effort: effort,
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         ) {
@@ -119,6 +124,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 tools: tools,
                 supportsImageGen: supportsImageGen,
                 effort: effort,
+                reasoningEnabled: reasoningEnabled,
                 session: session
             )
 
@@ -147,6 +153,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             apiKey: apiKey,
             supportsImageGen: supportsImageGen,
             effort: effort,
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         )
@@ -184,16 +191,19 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         supportsImageGen: Bool,
         effort: EffortLevel?,
+        reasoningEnabled: Bool?,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
-        let body = RequestBody(
+        let body = makeRequestBody(
             model: model,
             messages: turns.map(encodeMessage),
             stream: false,
             tools: tools.isEmpty ? nil : tools.map(encodeTool),
             modalities: supportsImageGen ? ["image", "text"] : nil,
-            reasoningEffort: effort?.rawValue
+            effort: effort,
+            reasoningEnabled: reasoningEnabled,
+            baseURL: baseURL
         )
         request.httpBody = try JSONEncoder().encode(body)
 
@@ -243,6 +253,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         apiKey: String?,
         supportsImageGen: Bool,
         effort: EffortLevel?,
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -254,6 +265,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             tools: [],
             supportsImageGen: supportsImageGen,
             effort: effort,
+            reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
         )
@@ -269,17 +281,20 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         supportsImageGen: Bool,
         effort: EffortLevel?,
+        reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws -> [ChatToolCall]? {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
-        let body = RequestBody(
+        let body = makeRequestBody(
             model: model,
             messages: turns.map(encodeMessage),
             stream: true,
             tools: tools.isEmpty ? nil : tools.map(encodeTool),
             modalities: supportsImageGen ? ["image", "text"] : nil,
-            reasoningEffort: effort?.rawValue
+            effort: effort,
+            reasoningEnabled: reasoningEnabled,
+            baseURL: baseURL
         )
         request.httpBody = try JSONEncoder().encode(body)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
@@ -443,6 +458,44 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         )
     }
 
+    private static func makeRequestBody(
+        model: String,
+        messages: [RequestMessage],
+        stream: Bool,
+        tools: [ToolPayload]?,
+        modalities: [String]?,
+        effort: EffortLevel?,
+        reasoningEnabled: Bool?,
+        baseURL: String
+    ) -> RequestBody {
+        let isDeepSeek = baseURL.lowercased().contains("deepseek")
+        if isDeepSeek {
+            let thinking: DeepSeekThinkingPayload? = (reasoningEnabled == true)
+                ? DeepSeekThinkingPayload(type: "enabled")
+                : nil
+            return RequestBody(
+                model: model,
+                messages: messages,
+                stream: stream,
+                tools: tools,
+                modalities: modalities,
+                reasoningEffort: nil,
+                reasoning: nil,
+                thinking: thinking
+            )
+        }
+        return RequestBody(
+            model: model,
+            messages: messages,
+            stream: stream,
+            tools: tools,
+            modalities: modalities,
+            reasoningEffort: effort?.rawValue,
+            reasoning: reasoningEnabled.map { ReasoningPayload(enabled: $0) },
+            thinking: nil
+        )
+    }
+
     // MARK: - Wire types
 
     private struct RequestBody: Encodable {
@@ -452,11 +505,23 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         var tools: [ToolPayload]?
         var modalities: [String]?
         var reasoningEffort: String?
+        var reasoning: ReasoningPayload?
+        var thinking: DeepSeekThinkingPayload?
 
         enum CodingKeys: String, CodingKey {
             case model, messages, stream, tools, modalities
             case reasoningEffort = "reasoning_effort"
+            case reasoning
+            case thinking
         }
+    }
+
+    private struct ReasoningPayload: Encodable {
+        var enabled: Bool
+    }
+
+    private struct DeepSeekThinkingPayload: Encodable {
+        var type: String
     }
 
     private struct RequestMessage: Encodable {

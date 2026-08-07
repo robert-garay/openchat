@@ -31,8 +31,10 @@ struct MessageComposerView: View {
     var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
     @Binding var effortLevel: EffortLevel
+    @Binding var isReasoningEnabled: Bool
     var supportsEffort: Bool = false
     var supportedEffortLevels: [EffortLevel] = []
+    var hasSeparateThinkingToggle: Bool = false
     var onSetEffortLevel: ((EffortLevel) -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
@@ -75,7 +77,10 @@ struct MessageComposerView: View {
             }
             compactButton
             Spacer(minLength: 0)
-            if supportsEffort {
+            if hasSeparateThinkingToggle {
+                reasoningToggleButton
+            }
+            if supportsEffort && (!hasSeparateThinkingToggle || isReasoningEnabled) {
                 effortButton
             }
             sendButton
@@ -275,6 +280,21 @@ struct MessageComposerView: View {
                     : "Not enough messages to compact"
             )
         }
+    }
+
+    private var reasoningToggleButton: some View {
+        Button {
+            Haptics.light()
+            isReasoningEnabled.toggle()
+        } label: {
+            Image(systemName: isReasoningEnabled ? "brain.fill" : "brain")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(isReasoningEnabled ? Color.accentColor : Color(.tertiaryLabel))
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel(isReasoningEnabled ? "Reasoning enabled" : "Reasoning disabled")
+        .accessibilityHint("Toggle reasoning on or off")
     }
 
     private var effortButton: some View {

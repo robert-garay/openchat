@@ -14,6 +14,7 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
     var outputModalities: [String]
     var supportedParameters: [String]
     var isAlias: Bool
+    var reasoningConfig: ModelReasoningConfig?
 
     init(
         id: String,
@@ -27,7 +28,8 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
         inputModalities: [String],
         outputModalities: [String],
         supportedParameters: [String] = [],
-        isAlias: Bool
+        isAlias: Bool,
+        reasoningConfig: ModelReasoningConfig? = nil
     ) {
         self.id = id
         self.name = name
@@ -41,12 +43,14 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
         self.outputModalities = outputModalities
         self.supportedParameters = supportedParameters
         self.isAlias = isAlias
+        self.reasoningConfig = reasoningConfig
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, created, contextLength, huggingFaceID
         case promptPrice, completionPrice, modality
         case inputModalities, outputModalities, supportedParameters, isAlias
+        case reasoningConfig = "reasoning"
     }
 
     init(from decoder: Decoder) throws {
@@ -63,6 +67,7 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
         outputModalities = try container.decodeIfPresent([String].self, forKey: .outputModalities) ?? []
         supportedParameters = try container.decodeIfPresent([String].self, forKey: .supportedParameters) ?? []
         isAlias = try container.decode(Bool.self, forKey: .isAlias)
+        reasoningConfig = try container.decodeIfPresent(ModelReasoningConfig.self, forKey: .reasoningConfig)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -79,6 +84,7 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
         try container.encode(outputModalities, forKey: .outputModalities)
         try container.encode(supportedParameters, forKey: .supportedParameters)
         try container.encode(isAlias, forKey: .isAlias)
+        try container.encodeIfPresent(reasoningConfig, forKey: .reasoningConfig)
     }
 
     var isFree: Bool {
@@ -127,7 +133,13 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
     }
 
     var asAIModel: AIModel {
-        AIModel(id: id, displayName: displayName, subtitle: subtitle, capabilities: capabilities)
+        AIModel(
+            id: id,
+            displayName: displayName,
+            subtitle: subtitle,
+            capabilities: capabilities,
+            reasoningConfig: reasoningConfig
+        )
     }
 
     private static func formatContext(_ tokens: Int) -> String {
