@@ -95,6 +95,98 @@ final class RulesStoreTests: XCTestCase {
         XCTAssertTrue(try store.fetchItems(modelContext: context).isEmpty)
     }
 
+    func testSaveMergesNearDuplicateGlobalRule() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        let first = try store.save(content: "Always answer in bullet points.", modelContext: context)
+        try context.save()
+
+        let second = try store.save(content: "always   answer in bullet points.  ", modelContext: context)
+        try context.save()
+
+        XCTAssertEqual(first.id, second.id)
+        XCTAssertEqual(second.content, "always   answer in bullet points.")
+        XCTAssertEqual(try store.fetchItems(modelContext: context).count, 1)
+    }
+
+    func testSaveKeepsDistinctRulesSeparate() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        _ = try store.save(content: "Always answer in bullet points.", modelContext: context)
+        _ = try store.save(content: "Never use corporate jargon.", modelContext: context)
+        try context.save()
+
+        XCTAssertEqual(try store.fetchItems(modelContext: context).count, 2)
+    }
+
+    func testSaveKeepsChatScopedRuleSeparateFromGlobalRule() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self, Conversation.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        let conversation = Conversation(providerID: "test-provider", modelID: "test-model")
+        context.insert(conversation)
+
+        let global = try store.save(content: "Be concise.", modelContext: context)
+        let chatScoped = try store.save(content: "Be concise.", modelContext: context, conversation: conversation)
+        try context.save()
+
+        XCTAssertNotEqual(global.id, chatScoped.id)
+        XCTAssertEqual(try store.fetchItems(modelContext: context).count, 1)
+        XCTAssertEqual(conversation.rules.count, 1)
+    }
+
+    func testSaveMergesNearDuplicateWithinSameChat() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self, Conversation.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        let conversation = Conversation(providerID: "test-provider", modelID: "test-model")
+        context.insert(conversation)
+
+        let first = try store.save(content: "Reply in Spanish.", modelContext: context, conversation: conversation)
+        let second = try store.save(content: "reply in spanish.", modelContext: context, conversation: conversation)
+        try context.save()
+
+        XCTAssertEqual(first.id, second.id)
+        XCTAssertEqual(conversation.rules.count, 1)
+    }
+
+    func testUpdateContentMergesIntoNearDuplicate() throws {
+        let container = try ModelContainer(
+            for: RuleItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        let first = try store.save(content: "Be concise.", modelContext: context)
+        let second = try store.save(content: "Prefer metric units.", modelContext: context)
+        try context.save()
+
+        try store.updateContent(second, content: "be   CONCISE.", modelContext: context)
+        try context.save()
+
+        XCTAssertEqual(first.content, "be   CONCISE.")
+        XCTAssertEqual(try store.fetchItems(modelContext: context).count, 1)
+    }
+
+    func testNormalizeContentCollapsesWhitespaceAndCase() {
+        XCTAssertEqual(
+            RulesStore.normalizeContent("  Always   Answer\nIn Spanish.  "),
+            RulesStore.normalizeContent("always answer in spanish.")
+        )
+    }
+
     func testSaveRejectsEmptyContent() throws {
         let container = try ModelContainer(
             for: RuleItem.self,

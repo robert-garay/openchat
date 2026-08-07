@@ -80,6 +80,13 @@ final class RulesStore {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw RulesStoreError.emptyContent }
 
+        let existing = try scopedItems(conversation: conversation, modelContext: modelContext)
+        if let match = findSimilar(existing, trimmed) {
+            match.content = trimmed
+            match.updatedAt = .now
+            return match
+        }
+
         let item = RuleItem(content: trimmed, conversation: conversation)
         modelContext.insert(item)
         return item
@@ -88,6 +95,16 @@ final class RulesStore {
     func updateContent(_ item: RuleItem, content: String, modelContext: ModelContext) throws {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw RulesStoreError.emptyContent }
+
+        let others = try scopedItems(conversation: item.conversation, modelContext: modelContext)
+            .filter { $0.id != item.id }
+        if let match = findSimilar(others, trimmed) {
+            modelContext.delete(item)
+            match.content = trimmed
+            match.updatedAt = .now
+            return
+        }
+
         item.content = trimmed
         item.updatedAt = .now
     }
@@ -108,6 +125,26 @@ final class RulesStore {
             .map { $0.content.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
+    }
+
+    /// Rules already saved in the same scope as `conversation` (global when nil, that chat's rules otherwise).
+    private func scopedItems(conversation: Conversation?, modelContext: ModelContext) throws -> [RuleItem] {
+        if let conversation {
+            return conversation.rules
+        }
+        return try fetchItems(modelContext: modelContext)
+    }
+
+    nonisolated static func normalizeContent(_ content: String) -> String {
+        content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .lowercased()
+    }
+
+    private func findSimilar(_ items: [RuleItem], _ content: String) -> RuleItem? {
+        let normalized = Self.normalizeContent(content)
+        return items.first { Self.normalizeContent($0.content) == normalized }
     }
 
     nonisolated static func shouldAllowRuleProposals(isTemporary: Bool, allowProposalsFromChat: Bool) -> Bool {
