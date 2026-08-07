@@ -76,7 +76,12 @@ enum EffortLevel: String, Codable, CaseIterable, Identifiable, Hashable, Sendabl
             return [.low, .medium, .high, .xhigh]
         }
 
-        // DeepSeek: high and max.
+        // DeepSeek V4 Flash: low, high, max (medium/xhigh map to high).
+        if haystack.contains("deepseek-v4-flash") {
+            return [.low, .high, .max]
+        }
+
+        // DeepSeek V4 Pro / Reasoner: high and max.
         if haystack.contains("deepseek") {
             return [.high, .max]
         }

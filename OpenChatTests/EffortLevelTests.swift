@@ -56,8 +56,13 @@ final class EffortLevelTests: XCTestCase {
         XCTAssertEqual(levels, [.low, .medium, .high, .xhigh])
     }
 
-    func testEffortLevelInferenceForDeepSeek() {
-        let levels = EffortLevel.inferred(for: "deepseek-reasoner", modelName: "DeepSeek Reasoner")
+    func testEffortLevelInferenceForDeepSeekFlash() {
+        let levels = EffortLevel.inferred(for: "deepseek/deepseek-v4-flash-0731", modelName: "DeepSeek V4 Flash 0731")
+        XCTAssertEqual(levels, [.low, .high, .max])
+    }
+
+    func testEffortLevelInferenceForDeepSeekPro() {
+        let levels = EffortLevel.inferred(for: "deepseek-v4-pro", modelName: "DeepSeek V4 Pro")
         XCTAssertEqual(levels, [.high, .max])
     }
 
