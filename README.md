@@ -2,22 +2,24 @@
 
 The native iOS home for every major LLM.
 
-OpenChat puts OpenAI, Claude, Gemini, OpenRouter, leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Z.ai GLM, 01.AI), and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) into one clean app.
+OpenChat puts OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) into one clean app.
 
 Provider-specific chat apps are good at one thing: their own model. OpenChat is built for the reality that the best model changes by task, by week, and by provider. You get one workflow, one interface, and no lock-in.
+
+OpenChat also keeps model lists current by pulling live `/models` catalogs from supported providers and OpenRouter's public catalog.
 
 No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
 
 ## Why OpenChat
 
 - **One app, every model** — compare and switch across providers without changing your workflow.
-- **Always current** — add new models and providers as they launch, instead of waiting for each vendor's app to catch up.
+- **Always current** — live provider catalogs keep new models available as soon as the upstream provider exposes them.
 - **No lock-in** — your chats and setup stay in OpenChat, while the model behind each conversation can change at any time.
 - **Private by design** — API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
 
 ## Features
 
-- **Any provider, one app** — switch between OpenAI, Anthropic, Gemini, OpenRouter, Chinese model providers, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
+- **Any provider, one app** — switch between OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
 - **Built for model choice** — use the best model for the job, keep the same interface, and move between providers without losing your workflow.
 - **Web search** — attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
 - **Rules** — steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.
@@ -40,6 +42,8 @@ Get keys here:
 | Alibaba Cloud (Qwen) | bailian.console.aliyun.com |
 | Moonshot AI (Kimi) | platform.moonshot.cn |
 | Z.ai (GLM) | z.ai/model-api |
+| Mistral AI | console.mistral.ai |
+| Google | aistudio.google.com |
 
 You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
 
