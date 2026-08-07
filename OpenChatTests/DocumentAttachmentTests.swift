@@ -62,4 +62,47 @@ final class DocumentAttachmentTests: XCTestCase {
         XCTAssertTrue(withFiles.supportsFiles)
         XCTAssertFalse(withoutFiles.supportsFiles)
     }
+
+    func testOpenAIMultimodalPartsIncludeDocumentOnly() throws {
+        let document = ChatDocumentAttachment(filename: "spec.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let turn = ChatTurn(role: .user, content: "Summarize this", documents: [document])
+        let parts = MultimodalRequestEncoder.openAIParts(for: turn)
+        XCTAssertEqual(parts?.count, 2)
+        XCTAssertEqual(parts?[0].type, "file")
+        XCTAssertEqual(parts?[0].file?.filename, "spec.pdf")
+        XCTAssertEqual(parts?[0].file?.fileData, document.dataURI)
+        XCTAssertEqual(parts?[1].type, "text")
+        XCTAssertEqual(parts?[1].text, "Summarize this")
+    }
+
+    func testAnthropicMultimodalPartsIncludeDocumentOnly() {
+        let document = ChatDocumentAttachment(filename: "spec.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let turn = ChatTurn(role: .user, content: "Summarize this", documents: [document])
+        let parts = MultimodalRequestEncoder.anthropicParts(for: turn)
+        XCTAssertEqual(parts?.count, 2)
+        XCTAssertEqual(parts?[0].type, "document")
+        XCTAssertEqual(parts?[0].source?.mediaType, "application/pdf")
+        XCTAssertEqual(parts?[0].source?.data, document.data.base64EncodedString())
+        XCTAssertEqual(parts?[1].type, "text")
+        XCTAssertEqual(parts?[1].text, "Summarize this")
+    }
+
+    func testMultimodalPartsOrderDocumentsBeforeImagesBeforeText() {
+        let document = ChatDocumentAttachment(filename: "spec.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let image = ChatImageAttachment(mimeType: "image/png", data: Data([1, 2, 3]))
+        let turn = ChatTurn(role: .user, content: "Both", images: [image], documents: [document])
+
+        let openAIParts = MultimodalRequestEncoder.openAIParts(for: turn)
+        XCTAssertEqual(openAIParts?.map(\.type), ["file", "image_url", "text"])
+
+        let anthropicParts = MultimodalRequestEncoder.anthropicParts(for: turn)
+        XCTAssertEqual(anthropicParts?.map(\.type), ["document", "image", "text"])
+    }
+
+    func testMultimodalPartsForDocumentOnlyTurnAreNotNil() {
+        let document = ChatDocumentAttachment(filename: "a.pdf", mimeType: "application/pdf", data: pdfHeader)
+        let turn = ChatTurn(role: .user, content: "", documents: [document])
+        XCTAssertNotNil(MultimodalRequestEncoder.openAIParts(for: turn))
+        XCTAssertNotNil(MultimodalRequestEncoder.anthropicParts(for: turn))
+    }
 }
