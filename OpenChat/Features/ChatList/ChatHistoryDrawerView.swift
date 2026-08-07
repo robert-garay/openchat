@@ -35,16 +35,15 @@ struct ChatHistoryDrawerView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                drawerContent(topSafeArea: geometry.safeAreaInsets.top)
-                    .background(.background)
+        ZStack {
+            drawerContent
+                .background(.background)
 
-                if let activeMenu {
-                    contextMenuOverlay(for: activeMenu)
-                }
+            if let activeMenu {
+                contextMenuOverlay(for: activeMenu)
             }
-            .alert("Rename Chat", isPresented: isRenameAlertPresented) {
+        }
+        .alert("Rename Chat", isPresented: isRenameAlertPresented) {
             TextField("Title", text: $renameText)
             Button("Cancel", role: .cancel) {
                 conversationPendingRename = nil
@@ -55,14 +54,13 @@ struct ChatHistoryDrawerView: View {
         } message: {
             Text("Enter a new name for this chat.")
         }
-        }
     }
 
-    private func drawerContent(topSafeArea: CGFloat) -> some View {
+    private var drawerContent: some View {
         VStack(spacing: 0) {
             header
                 .padding(.horizontal, 16)
-                .padding(.top, topSafeArea + 12)
+                .padding(.top, 12)
                 .padding(.bottom, 12)
 
             Divider()
