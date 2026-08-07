@@ -31,14 +31,27 @@ struct MessageComposerView: View {
     var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
     @Binding var effortLevel: EffortLevel
+    var isReasoningEnabled: Bool = true
     var supportsEffort: Bool = false
+    var supportedEffortLevels: [EffortLevel] = []
+    var canDisableReasoning: Bool = false
     var onSetEffortLevel: ((EffortLevel) -> Void)? = nil
+    var onSetReasoningEnabled: ((Bool) -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
 
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     @State private var showingEffortPicker = false
+
+    /// The level currently reflected in the gauge (desired level when reasoning is on, or `none` when off).
+    private var effectiveLevel: EffortLevel {
+        guard supportsEffort, !supportedEffortLevels.isEmpty else { return .default }
+        if isReasoningEnabled {
+            return supportedEffortLevels.contains(effortLevel) ? effortLevel : (supportedEffortLevels.last ?? .default)
+        }
+        return supportedEffortLevels.contains(.none) ? .none : (supportedEffortLevels.first ?? .default)
+    }
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
@@ -69,6 +82,9 @@ struct MessageComposerView: View {
             compactButton
             Spacer(minLength: 0)
             if supportsEffort {
+                if canDisableReasoning {
+                    reasoningButton
+                }
                 effortButton
             }
             sendButton
@@ -270,30 +286,53 @@ struct MessageComposerView: View {
         }
     }
 
+    private var reasoningButton: some View {
+        Button {
+            Haptics.light()
+            onSetReasoningEnabled?(!isReasoningEnabled)
+        } label: {
+            Image(systemName: "brain")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(isReasoningEnabled ? Color.accentColor : Color(.tertiaryLabel))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(isReasoningEnabled ? Color.accentColor.opacity(0.12) : Color(.tertiarySystemFill), in: Capsule())
+        }
+        .accessibilityLabel(isReasoningEnabled ? "Reasoning on" : "Reasoning off")
+        .accessibilityHint("Toggle reasoning on or off")
+    }
+
     private var effortButton: some View {
         Button {
             Haptics.light()
             showingEffortPicker = true
         } label: {
-            HStack(spacing: 3) {
-                Image(systemName: "gauge.with.dots.needle.67percent")
-                    .font(.system(size: 13, weight: .semibold))
-                Text(effortLevel.displayName)
+            HStack(spacing: 4) {
+                EffortGaugeIcon(level: effectiveLevel, levels: supportedEffortLevels, color: isReasoningEnabled ? Color.accentColor : Color(.tertiaryLabel), size: 18)
+                Text(effectiveLevel.displayName)
                     .font(.system(size: 12, weight: .semibold))
             }
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(isReasoningEnabled ? Color.accentColor : Color(.tertiaryLabel))
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(Color.accentColor.opacity(0.12), in: Capsule())
         }
-        .accessibilityLabel(effortLevel.accessibilityLabel)
+        .accessibilityLabel(effectiveLevel.accessibilityLabel)
         .accessibilityHint("Change reasoning effort level")
         .sheet(isPresented: $showingEffortPicker) {
             EffortLevelPicker(
-                level: effortLevel,
+                level: effectiveLevel,
+                levels: supportedEffortLevels,
                 onChange: { level in
-                    effortLevel = level
-                    onSetEffortLevel?(level)
+                    if level == .none {
+                        onSetReasoningEnabled?(false)
+                    } else {
+                        if !isReasoningEnabled {
+                            onSetReasoningEnabled?(true)
+                        }
+                        effortLevel = level
+                        onSetEffortLevel?(level)
+                    }
                 }
             )
             .presentationDetents([.height(220)])

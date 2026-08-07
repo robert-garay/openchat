@@ -1,24 +1,32 @@
 import SwiftUI
 
 /// ChatGPT-style effort lever: a horizontal segmented slider with a large knob
-/// and a centered label showing the selected level. Three stops map to Low, Medium, High.
+/// and a centered label showing the selected level. The number of stops adapts to
+/// the model's supported effort levels. The sheet stays open after a drag; the
+/// user dismisses it by tapping outside.
 struct EffortLevelPicker: View {
     let level: EffortLevel
+    let levels: [EffortLevel]
     let onChange: (EffortLevel) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var selectedIndex: Int
     @GestureState private var dragOffset: CGFloat = 0
 
-    private let stopCount = EffortLevel.ordered.count
     private let trackHeight: CGFloat = 52
     private let knobDiameter: CGFloat = 44
     private let spring = Theme.springFast
 
-    init(level: EffortLevel, onChange: @escaping (EffortLevel) -> Void) {
+    private var stopCount: Int { max(1, levels.count) }
+    private var selectedLevel: EffortLevel {
+        levels[safe: selectedIndex] ?? level
+    }
+
+    init(level: EffortLevel, levels: [EffortLevel], onChange: @escaping (EffortLevel) -> Void) {
         self.level = level
+        self.levels = levels
         self.onChange = onChange
-        self._selectedIndex = State(initialValue: level.index)
+        self._selectedIndex = State(initialValue: levels.firstIndex(of: level) ?? 0)
     }
 
     var body: some View {
@@ -76,16 +84,18 @@ struct EffortLevelPicker: View {
                         .onEnded { value in
                             let currentX = knobRadius + stopSpacing * CGFloat(selectedIndex)
                             let finalX = max(0, min(trackWidth, currentX + value.translation.width))
-                            let nearestIndex = Int((finalX - knobRadius) / stopSpacing + 0.5)
+                            let nearestIndex = stopSpacing > 0
+                                ? Int((finalX - knobRadius) / stopSpacing + 0.5)
+                                : 0
                             let clamped = max(0, min(stopCount - 1, nearestIndex))
                             withAnimation(spring) {
                                 selectedIndex = clamped
                             }
-                            if let level = EffortLevel(index: clamped) {
+                            if let level = levels[safe: clamped], level != self.level {
                                 Haptics.light()
                                 onChange(level)
-                                dismiss()
                             }
+                            // Intentionally no dismiss(): let the user tap out.
                         }
                 )
             }
@@ -97,9 +107,15 @@ struct EffortLevelPicker: View {
         .padding(.bottom, 16)
     }
 
-    private var selectedLevel: EffortLevel {
-        EffortLevel(index: selectedIndex) ?? .default
-    }
-
     private var knobRadius: CGFloat { knobDiameter / 2 }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+#Preview {
+    EffortLevelPicker(level: .medium, levels: [.none, .low, .medium, .high, .xhigh, .max]) { _ in }
 }
