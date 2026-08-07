@@ -114,6 +114,7 @@ struct ChatHistoryDrawerView: View {
             DragGesture(minimumDistance: 20)
                 .onEnded { value in
                     if value.translation.width < -80 {
+                        Haptics.light()
                         onClose()
                     }
                 }

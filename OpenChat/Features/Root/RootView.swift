@@ -89,6 +89,7 @@ struct RootView: View {
                                 let horizontal = value.translation.width
                                 let vertical = value.translation.height
                                 if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                    Haptics.light()
                                     withAnimation(.easeInOut(duration: 0.25)) {
                                         showingHistoryDrawer = true
                                     }
