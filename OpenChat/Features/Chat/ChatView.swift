@@ -5,6 +5,7 @@ struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
     var onShowHistory: (() -> Void)?
+    var isHistoryDrawerOpen: Bool = false
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -39,19 +40,21 @@ struct ChatView: View {
                     }
                 }
 
-                ChatComposerHost(
-                    viewModel: viewModel,
-                    skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
-                    hasChatRules: !conversation.systemPrompt
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                        .isEmpty,
-                    canUseChatRules: rulesStore.useChatRules,
-                    conversation: conversation,
-                    onSend: {
-                        stickToBottom = true
-                        viewModel.send()
-                    }
-                )
+                if !isHistoryDrawerOpen {
+                    ChatComposerHost(
+                        viewModel: viewModel,
+                        skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
+                        hasChatRules: !conversation.systemPrompt
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty,
+                        canUseChatRules: rulesStore.useChatRules,
+                        conversation: conversation,
+                        onSend: {
+                            stickToBottom = true
+                            viewModel.send()
+                        }
+                    )
+                }
             }
         }
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
@@ -518,12 +521,7 @@ private struct CompactStatusToast: View {
 
 private struct WelcomeOverlay: View {
     var body: some View {
-        VStack(spacing: 16) {
-            OpenChatLogoView(size: 72)
-            Text("What can I help with?")
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
+        OpenChatLogoView(size: 72)
     }
 }
 
