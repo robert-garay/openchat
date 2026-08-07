@@ -118,6 +118,57 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertFalse(withoutTools.supportsTools)
     }
 
+    func testEffortInferenceFromParameters() {
+        let caps = ModelCapability.inferred(
+            inputModalities: ["text"],
+            outputModalities: ["text"],
+            supportedParameters: ["reasoning_effort", "tools"],
+            modelID: "openai/o3-mini",
+            modelName: "o3-mini"
+        )
+        XCTAssertEqual(caps, [.tools, .reasoning, .effort])
+    }
+
+    func testEffortInferenceFromModelID() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "o3-mini",
+            modelName: "o3-mini"
+        )
+        XCTAssertTrue(caps.contains(.effort))
+        XCTAssertTrue(caps.contains(.reasoning))
+    }
+
+    func testEffortInferenceForGPT56Sol() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "openai/gpt-5.6-sol",
+            modelName: "gpt-5.6-sol"
+        )
+        XCTAssertTrue(caps.contains(.reasoning))
+        XCTAssertTrue(caps.contains(.effort))
+    }
+
+    func testEffortNotInferredForDeepSeekR1() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "deepseek/deepseek-reasoner",
+            modelName: "DeepSeek R1"
+        )
+        XCTAssertTrue(caps.contains(.reasoning))
+        XCTAssertFalse(caps.contains(.effort))
+    }
+
+    func testAIModelSupportsEffort() {
+        let withEffort = AIModel(id: "o3-mini", displayName: "O3 Mini", capabilities: [.effort])
+        let withoutEffort = AIModel(id: "gpt-4o", displayName: "GPT-4o", capabilities: [.tools])
+        XCTAssertTrue(withEffort.supportsEffort)
+        XCTAssertFalse(withoutEffort.supportsEffort)
+    }
+
     func testAIModelSupportsImageGenAndModalities() {
         let imageModel = AIModel(
             id: "google/gemini-2.5-flash-image",

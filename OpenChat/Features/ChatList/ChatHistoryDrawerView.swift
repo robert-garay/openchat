@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// Grok-style minimal conversation history drawer.
+/// ChatGPT-style minimal conversation history drawer.
 struct ChatHistoryDrawerView: View {
     let conversations: [Conversation]
     @Binding var selectedConversationID: UUID?
@@ -10,7 +10,6 @@ struct ChatHistoryDrawerView: View {
     let onShowSettings: () -> Void
 
     @Environment(\.modelContext) private var modelContext
-    @Environment(ProviderStore.self) private var providerStore
     @State private var searchText = ""
     @State private var conversationPendingRename: Conversation?
     @State private var renameText = ""
@@ -112,16 +111,6 @@ struct ChatHistoryDrawerView: View {
 
             searchBar
         }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    let horizontal = value.translation.width
-                    let vertical = value.translation.height
-                    if horizontal < -80, abs(vertical) < abs(horizontal) {
-                        onClose()
-                    }
-                }
-        )
     }
 
     private var header: some View {
@@ -204,19 +193,22 @@ struct ChatHistoryDrawerView: View {
     }
 
     private func conversationRow(_ conversation: Conversation) -> some View {
-        ConversationRow(conversation: conversation, providerStore: providerStore)
-            .contentShape(Rectangle())
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-            .onTapGesture {
-                selectedConversationID = conversation.id
-                onClose()
-            }
-            .onLongPressGesture {
-                Haptics.medium()
-                activeMenu = conversation
-            }
+        ConversationRow(
+            conversation: conversation,
+            isSelected: selectedConversationID == conversation.id
+        )
+        .contentShape(Rectangle())
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .onTapGesture {
+            selectedConversationID = conversation.id
+            onClose()
+        }
+        .onLongPressGesture {
+            Haptics.medium()
+            activeMenu = conversation
+        }
     }
 
     private func contextMenuOverlay(for conversation: Conversation) -> some View {
@@ -335,58 +327,24 @@ struct ChatHistoryDrawerView: View {
 
 struct ConversationRow: View {
     let conversation: Conversation
-    let providerStore: ProviderStore
-
-    private var provider: ConfiguredProvider? {
-        providerStore.provider(withID: conversation.providerID)
-    }
+    let isSelected: Bool
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            ProviderLogoView(
-                logoAssetName: provider?.logoAssetName,
-                symbolName: provider?.symbolName ?? "sparkles",
-                tint: provider.map { Color(hex: $0.tint) } ?? .accentColor,
-                size: 20,
-                cornerRadius: 6
-            )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(conversation.title)
-                    .font(.body)
-                    .lineLimit(1)
-                Text(conversationDateString(conversation.updatedAt))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
+        HStack(spacing: 0) {
+            Text(conversation.title)
+                .font(.body)
+                .lineLimit(1)
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(isSelected ? Color.white.opacity(0.12) : Color.clear)
+        )
         .accessibilityLabel(
             conversation.isPinned
-                ? "Pinned, \(conversation.title), \(conversationDateString(conversation.updatedAt))"
-                : "\(conversation.title), \(conversationDateString(conversation.updatedAt))"
+                ? "Pinned, \(conversation.title)"
+                : conversation.title
         )
     }
-}
-
-private func conversationDateString(_ date: Date) -> String {
-    let calendar = Calendar.current
-    let startOfDate = calendar.startOfDay(for: date)
-    let startOfNow = calendar.startOfDay(for: .now)
-    let daysAgo = calendar.dateComponents([.day], from: startOfDate, to: startOfNow).day ?? 0
-
-    if daysAgo == 0 { return "Today" }
-    if daysAgo == 1 { return "Yesterday" }
-    if daysAgo < 7 {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: date)
-    }
-
-    let formatter = DateFormatter()
-    formatter.dateFormat = "M/d/yy"
-    return formatter.string(from: date)
 }

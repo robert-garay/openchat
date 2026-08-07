@@ -8,7 +8,10 @@ struct RootView: View {
 
     @State private var selectedConversationID: UUID?
     @State private var showingSettings = false
-    @State private var showingHistoryDrawer = false
+    @State private var drawerProgress: CGFloat = 0
+    @State private var drawerWidth: CGFloat = 0
+
+    private var isDrawerOpen: Bool { drawerProgress > 0.5 }
 
     /// Sidebar history: never temporary, never empty (no user messages).
     /// Keep the currently selected empty chat visible so the selection stays stable.
@@ -67,7 +70,7 @@ struct RootView: View {
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty {
                 selectedConversationID = nil
-                showingHistoryDrawer = false
+                drawerProgress = 0
             }
         }
     }
@@ -75,65 +78,113 @@ struct RootView: View {
     @ViewBuilder
     private var mainContent: some View {
         NavigationStack {
-            ZStack {
-                if let conversation = selectedConversation {
-                    ChatView(
-                        conversation: conversation,
-                        onToggleTemporary: { toggleTemporary(for: conversation) },
-                        onShowHistory: { showingHistoryDrawer.toggle() },
-                        isHistoryDrawerOpen: showingHistoryDrawer
-                    )
-                    .id(conversation.id)
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 20)
-                            .onEnded { value in
-                                let horizontal = value.translation.width
-                                let vertical = value.translation.height
-                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        showingHistoryDrawer = true
-                                    }
-                                }
-                            }
-                    )
-                } else {
-                    // Stable placeholder while the first chat is created.
-                    ProgressView()
-                        .controlSize(.large)
+            GeometryReader { geometry in
+                let width = min(geometry.size.width * 0.85, 360)
+                ZStack {
+                    chatView
+                    drawerOverlay(width: width)
                 }
-
-                if showingHistoryDrawer {
-                    drawerOverlay
-                }
+                .onAppear { drawerWidth = width }
+                .onChange(of: width) { _, new in drawerWidth = new }
             }
         }
     }
 
-    private var drawerOverlay: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        showingHistoryDrawer = false
-                    }
-                    .transition(.opacity)
-
-                ChatHistoryDrawerView(
-                    conversations: listConversations,
-                    selectedConversationID: $selectedConversationID,
-                    onNewChat: { startNewChat(temporary: false) },
-                    onClose: { showingHistoryDrawer = false },
-                    onShowSettings: { showingSettings = true }
-                )
-                .frame(width: min(geometry.size.width * 0.85, 360))
+    @ViewBuilder
+    private var chatView: some View {
+        if let conversation = selectedConversation {
+            ChatView(
+                conversation: conversation,
+                onToggleTemporary: { toggleTemporary(for: conversation) },
+                onShowHistory: { toggleDrawer() },
+                isHistoryDrawerOpen: drawerProgress > 0
+            )
+            .id(conversation.id)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.background)
+            .simultaneousGesture(openDrawerGesture)
+        } else {
+            ProgressView()
+                .controlSize(.large)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.background)
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 4, y: 0)
-                .transition(.move(edge: .leading))
-            }
         }
-        .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
+    }
+
+    private var openDrawerGesture: some Gesture {
+        DragGesture(minimumDistance: 10, coordinateSpace: .global)
+            .onChanged { value in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                guard drawerProgress < 1, horizontal > 0, horizontal > abs(vertical) else { return }
+                let progress = min(1, horizontal / drawerWidth)
+                drawerProgress = progress
+            }
+            .onEnded { value in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                guard drawerProgress < 1, horizontal > 0, horizontal > abs(vertical) else { return }
+                let velocity = value.predictedEndLocation.x - value.location.x
+                let shouldOpen = horizontal > drawerWidth * 0.25 || velocity > 120
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    drawerProgress = shouldOpen ? 1 : 0
+                }
+            }
+    }
+
+    private func toggleDrawer() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            drawerProgress = isDrawerOpen ? 0 : 1
+        }
+    }
+
+    private func drawerOverlay(width: CGFloat) -> some View {
+        ZStack(alignment: .leading) {
+            Color.black.opacity(0.4 * drawerProgress)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        drawerProgress = 0
+                    }
+                }
+                .allowsHitTesting(drawerProgress > 0.01)
+
+            ChatHistoryDrawerView(
+                conversations: listConversations,
+                selectedConversationID: $selectedConversationID,
+                onNewChat: { startNewChat(temporary: false) },
+                onClose: {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        drawerProgress = 0
+                    }
+                },
+                onShowSettings: { showingSettings = true }
+            )
+            .frame(width: width, alignment: .leading)
+            .background(.background)
+            .offset(x: -width * (1 - drawerProgress))
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 10)
+                    .onChanged { value in
+                        let horizontal = value.translation.width
+                        let vertical = value.translation.height
+                        guard drawerProgress > 0, horizontal < 0, abs(horizontal) > abs(vertical) else { return }
+                        let progress = max(0, 1 + horizontal / width)
+                        drawerProgress = progress
+                    }
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        let vertical = value.translation.height
+                        guard drawerProgress > 0, horizontal < 0, abs(horizontal) > abs(vertical) else { return }
+                        let velocity = value.predictedEndLocation.x - value.location.x
+                        let shouldClose = abs(horizontal) > width * 0.25 || velocity < -120
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            drawerProgress = shouldClose ? 0 : 1
+                        }
+                    }
+            )
+        }
     }
 
     private func startNewChat(temporary: Bool, preferring source: Conversation? = nil) {

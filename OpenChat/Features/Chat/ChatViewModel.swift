@@ -67,6 +67,8 @@ final class ChatViewModel {
     /// even if a provider is configured. Always starts off for a freshly
     /// opened chat; the user opts in per chat via the composer.
     var isWebSearchEnabledForChat: Bool
+    /// Per-chat effort level for models that support the `reasoning_effort` parameter.
+    var effortLevel: EffortLevel
 
     init(
         conversation: Conversation,
@@ -87,12 +89,14 @@ final class ChatViewModel {
         self.memoryStore = memoryStore
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
+        self.effortLevel = conversation.effortLevel
         restoreComposerState()
     }
 
     private func restoreComposerState() {
         composerText = conversation.draftMessage
         pendingAttachments = conversation.draftAttachments
+        effortLevel = conversation.effortLevel
 
         if let raw = conversation.lastUsedWebSearchProviderID,
            let kind = WebSearchProviderKind(rawValue: raw),
@@ -109,6 +113,7 @@ final class ChatViewModel {
         conversation.draftMessage = composerText
         conversation.draftAttachments = pendingAttachments
         conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
+        conversation.effortLevel = effortLevel
 
         persistTask?.cancel()
         persistTask = Task { [weak self] in
@@ -198,6 +203,22 @@ final class ChatViewModel {
 
     var supportsFiles: Bool {
         currentModel?.supportsFiles ?? false
+    }
+
+    var supportsEffort: Bool {
+        currentModel?.supportsEffort ?? false
+    }
+
+    func setEffortLevel(_ level: EffortLevel) {
+        effortLevel = level
+        conversation.effortLevel = level
+        persistTask?.cancel()
+        persistTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, !Task.isCancelled else { return }
+            try? modelContext.save()
+        }
+        Haptics.light()
     }
 
     func selectModel(providerID: String, modelID: String) {
@@ -306,7 +327,8 @@ final class ChatViewModel {
                     turns: summarizationTurns,
                     model: modelID,
                     baseURL: baseURL,
-                    apiKey: apiKey
+                    apiKey: apiKey,
+                    effort: supportsEffort ? effortLevel : nil
                 ) {
                     if case .text(let delta) = event {
                         summary += delta
@@ -766,7 +788,8 @@ final class ChatViewModel {
                     apiKey: apiKey,
                     tools: tools,
                     executeTool: executeTool,
-                    supportsImageGen: supportsImageGen
+                    supportsImageGen: supportsImageGen,
+                    effort: supportsEffort ? effortLevel : nil
                 ) {
                     switch event {
                     case .text(let delta):

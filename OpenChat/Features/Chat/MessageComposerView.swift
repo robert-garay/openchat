@@ -30,11 +30,15 @@ struct MessageComposerView: View {
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
+    @Binding var effortLevel: EffortLevel
+    var supportsEffort: Bool = false
+    var onSetEffortLevel: ((EffortLevel) -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
 
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
+    @State private var showingEffortPicker = false
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
@@ -64,6 +68,9 @@ struct MessageComposerView: View {
             }
             compactButton
             Spacer(minLength: 0)
+            if supportsEffort {
+                effortButton
+            }
             sendButton
         }
         .padding(.horizontal, 12)
@@ -260,6 +267,37 @@ struct MessageComposerView: View {
                     ? "Summarize older messages to save context"
                     : "Not enough messages to compact"
             )
+        }
+    }
+
+    private var effortButton: some View {
+        Button {
+            Haptics.light()
+            showingEffortPicker = true
+        } label: {
+            HStack(spacing: 3) {
+                Image(systemName: "gauge.with.dots.needle.67percent")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(effortLevel.displayName)
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundStyle(Color.accentColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(Color.accentColor.opacity(0.12), in: Capsule())
+        }
+        .accessibilityLabel(effortLevel.accessibilityLabel)
+        .accessibilityHint("Change reasoning effort level")
+        .sheet(isPresented: $showingEffortPicker) {
+            EffortLevelPicker(
+                level: effortLevel,
+                onChange: { level in
+                    effortLevel = level
+                    onSetEffortLevel?(level)
+                }
+            )
+            .presentationDetents([.height(220)])
+            .presentationBackground(.bar)
         }
     }
 
