@@ -54,20 +54,6 @@ struct EffortLevelPicker: View {
                             .frame(width: max(0, centerX + knobRadius), height: trackHeight)
                     }
 
-                    // Stop tick dots.
-                    HStack(spacing: 0) {
-                        ForEach(0..<stopCount, id: \.self) { index in
-                            Circle()
-                                .fill(index <= selectedIndex ? Color.white.opacity(0.55) : Color(.tertiaryLabel).opacity(0.5))
-                                .frame(width: 8, height: 8)
-                                .offset(x: knobRadius + stopSpacing * CGFloat(index) - 4)
-                            if index < stopCount - 1 {
-                                Spacer()
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 0)
-
                     // Knob.
                     Circle()
                         .fill(.white)
