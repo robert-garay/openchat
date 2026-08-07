@@ -19,7 +19,9 @@ private struct RawImageData: Transferable {
 struct MessageComposerView: View {
     @Binding var text: String
     @Binding var attachments: [ChatImageAttachment]
+    @Binding var documentAttachments: [ChatDocumentAttachment]
     let supportsVision: Bool
+    let supportsFiles: Bool
     let modelDisplayName: String?
     let isStreaming: Bool
     var canUseWebSearch: Bool = false
@@ -46,17 +48,21 @@ struct MessageComposerView: View {
 
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var showingVisionAlert = false
+    @State private var showingFilesAlert = false
+    @State private var showingInvalidDocumentAlert = false
     @State private var showingPhotoPicker = false
     @State private var showingCamera = false
+    @State private var showingFileImporter = false
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
+    @State private var previewDocument: ChatDocumentAttachment?
     #endif
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
-        !attachments.isEmpty || text.contains { !$0.isWhitespace }
+        !attachments.isEmpty || !documentAttachments.isEmpty || text.contains { !$0.isWhitespace }
     }
 
     private var slashQuery: String? { SkillResolver.slashQuery(from: text) }
@@ -68,7 +74,7 @@ struct MessageComposerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if !attachments.isEmpty {
+            if !attachments.isEmpty || !documentAttachments.isEmpty {
                 attachmentStrip
             }
 
@@ -81,7 +87,7 @@ struct MessageComposerView: View {
         .onChange(of: photoPickerItems) { _, items in
             Task { await loadPickerItems(items) }
         }
-        .onDrop(of: [UTType.image], isTargeted: nil) { providers in
+        .onDrop(of: [UTType.image, UTType.pdf], isTargeted: nil) { providers in
             handleDropProviders(providers)
         }
         .fullScreenCover(isPresented: $showingCamera) {
@@ -94,6 +100,9 @@ struct MessageComposerView: View {
             Color.clear.onAppear { showingCamera = false }
             #endif
         }
+        .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf]) { result in
+            handleFileImporterResult(result)
+        }
         .alert("Images not supported", isPresented: $showingVisionAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -103,16 +112,33 @@ struct MessageComposerView: View {
                 Text("This model can’t process images. Choose a model marked with an eye to attach or paste photos.")
             }
         }
+        .alert("Documents not supported", isPresented: $showingFilesAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            if let modelDisplayName {
+                Text("\(modelDisplayName) can't process documents. Choose a model marked with a doc icon to attach or paste PDFs.")
+            } else {
+                Text("This model can't process documents. Choose a model marked with a doc icon to attach or paste PDFs.")
+            }
+        }
         .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
+        }
+        .alert("Couldn't attach file", isPresented: $showingInvalidDocumentAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Couldn't attach that file — PDFs only, up to 32MB.")
         }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
                 ImagePreviewView(image: uiImage)
             }
+        }
+        .fullScreenCover(item: $previewDocument) { attachment in
+            DocumentPreviewView(attachment: attachment)
         }
         #endif
     }
@@ -133,7 +159,8 @@ struct MessageComposerView: View {
                 placeholder: "Message",
                 minHeight: 22,
                 maxHeight: 120,
-                onPasteImages: handlePastedImages
+                onPasteImages: handlePastedImages,
+                onPasteDocument: handlePastedDocument
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -187,6 +214,16 @@ struct MessageComposerView: View {
             Button(action: pasteFromClipboard) {
                 Label("Paste Image", systemImage: "doc.on.clipboard")
             }
+
+            Button {
+                requestFiles()
+            } label: {
+                Label("Browse Files", systemImage: "doc")
+            }
+
+            Button(action: pasteDocumentFromClipboard) {
+                Label("Paste Document", systemImage: "doc.badge.clock")
+            }
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 20, weight: .medium))
@@ -195,7 +232,7 @@ struct MessageComposerView: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Add")
-        .accessibilityHint("Attach a photo or paste an image")
+        .accessibilityHint("Attach a photo, PDF, or paste content")
     }
 
     /// Explicit web search provider menu order: Tavily first, Exa second, then any remaining providers in their original order, with Off at the bottom.
@@ -403,6 +440,40 @@ struct MessageComposerView: View {
                         .accessibilityLabel("Remove image")
                     }
                 }
+                ForEach(documentAttachments) { document in
+                    ZStack(alignment: .topTrailing) {
+                        Button {
+                            Haptics.light()
+                            previewDocument = document
+                        } label: {
+                            VStack(spacing: 2) {
+                                Image(systemName: "doc.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color.accentColor)
+                                Text(document.filename)
+                                    .font(.caption2)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .foregroundStyle(Color.primary)
+                                    .frame(maxWidth: 50)
+                            }
+                            .frame(width: 56, height: 56)
+                            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Preview document \(document.filename)")
+                        Button {
+                            documentAttachments.removeAll { $0.id == document.id }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, .black.opacity(0.55))
+                        }
+                        .offset(x: 4, y: -4)
+                        .accessibilityLabel("Remove document")
+                    }
+                }
             }
             .padding(.horizontal, 12)
             .padding(.top, 8)
@@ -432,6 +503,15 @@ struct MessageComposerView: View {
         showingCamera = true
     }
 
+    private func requestFiles() {
+        guard supportsFiles else {
+            Haptics.warning()
+            showingFilesAlert = true
+            return
+        }
+        showingFileImporter = true
+    }
+
     private func primaryAction() {
         if isStreaming {
             Haptics.medium()
@@ -459,6 +539,17 @@ struct MessageComposerView: View {
         #endif
     }
 
+    private func pasteDocumentFromClipboard() {
+        guard supportsFiles else {
+            Haptics.warning()
+            showingFilesAlert = true
+            return
+        }
+        guard let data = UIPasteboard.general.data(forPasteboardType: UTType.pdf.identifier) else { return }
+        let filename = UIPasteboard.general.itemProviders.first?.suggestedName ?? "Document.pdf"
+        appendDocumentData(data, filename: filename)
+    }
+
     private func handlePastedImages(_ images: [UIImage]) {
         #if canImport(UIKit)
         guard supportsVision else {
@@ -472,14 +563,36 @@ struct MessageComposerView: View {
         #endif
     }
 
-    private func handleDropProviders(_ providers: [NSItemProvider]) -> Bool {
-        guard supportsVision else {
+    private func handlePastedDocument(_ data: Data, filename: String?) {
+        guard supportsFiles else {
             Haptics.warning()
-            showingVisionAlert = true
-            return false
+            showingFilesAlert = true
+            return
         }
-        loadImages(from: providers)
-        return true
+        appendDocumentData(data, filename: filename ?? "Document.pdf")
+    }
+
+    private func handleDropProviders(_ providers: [NSItemProvider]) -> Bool {
+        let hasImage = providers.contains { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }
+        let hasPDF = providers.contains { $0.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) }
+
+        if hasImage {
+            guard supportsVision else {
+                Haptics.warning()
+                showingVisionAlert = true
+                return false
+            }
+            loadImages(from: providers)
+        }
+        if hasPDF {
+            guard supportsFiles else {
+                Haptics.warning()
+                showingFilesAlert = true
+                return false
+            }
+            loadDocuments(from: providers)
+        }
+        return hasImage || hasPDF
     }
 
     private func loadImages(from providers: [NSItemProvider]) {
@@ -488,6 +601,18 @@ struct MessageComposerView: View {
                 guard let data else { return }
                 Task { @MainActor in
                     appendImageData(data)
+                }
+            }
+        }
+    }
+
+    private func loadDocuments(from providers: [NSItemProvider]) {
+        for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) {
+            let suggestedName = provider.suggestedName
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.pdf.identifier) { data, _ in
+                guard let data else { return }
+                Task { @MainActor in
+                    appendDocumentData(data, filename: suggestedName ?? "Document.pdf")
                 }
             }
         }
@@ -518,6 +643,18 @@ struct MessageComposerView: View {
         return true
     }
 
+    @discardableResult
+    private func appendDocumentData(_ data: Data, filename: String) -> Bool {
+        guard let attachment = DocumentAttachmentEncoder.makeAttachment(from: data, filename: filename) else {
+            Haptics.warning()
+            showingInvalidDocumentAlert = true
+            return false
+        }
+        documentAttachments.append(attachment)
+        Haptics.light()
+        return true
+    }
+
     #if canImport(UIKit)
     private func appendImage(_ image: UIImage) {
         guard supportsVision else {
@@ -530,4 +667,12 @@ struct MessageComposerView: View {
         Haptics.light()
     }
     #endif
+
+    private func handleFileImporterResult(_ result: Result<URL, Error>) {
+        guard case .success(let url) = result else { return }
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+        guard let data = try? Data(contentsOf: url) else { return }
+        appendDocumentData(data, filename: url.lastPathComponent)
+    }
 }
