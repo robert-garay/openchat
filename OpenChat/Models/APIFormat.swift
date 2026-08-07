@@ -5,7 +5,7 @@ import Foundation
 /// self-hosted model, including every major Chinese open-source model.
 enum APIFormat: String, Codable, Hashable, Sendable {
     /// `POST /chat/completions` with `{ model, messages, stream }`.
-    /// Used by OpenAI, DeepSeek, Moonshot (Kimi), Zhipu (GLM), Alibaba
+    /// Used by OpenAI, DeepSeek, Moonshot (Kimi), Z.ai (GLM), Alibaba
     /// Qwen (DashScope compatible mode), 01.AI (Yi), OpenRouter, Google
     /// Gemini's OpenAI-compatible endpoint, and any Ollama / LM Studio /
     /// vLLM style local server.

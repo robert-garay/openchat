@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "ProviderLogoZhipu.png",
+      "filename" : "ProviderLogoZai.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "ProviderLogoZhipu@2x.png",
+      "filename" : "ProviderLogoZai@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "ProviderLogoZhipu@3x.png",
+      "filename" : "ProviderLogoZai@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

@@ -7,22 +7,9 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(Set(ids).count, ids.count)
     }
 
-    func testAllTemplatesHaveAtLeastOneModel() {
-        for template in ProviderTemplate.all {
-            XCTAssertFalse(template.defaultModels.isEmpty, "\(template.name) has no default models")
-        }
-    }
-
     func testChineseOpenModelProvidersArePresent() {
         let ids = Set(ProviderTemplate.all.map(\.id))
         XCTAssertTrue(ids.isSuperset(of: ["deepseek", "qwen", "moonshot", "zhipu"]))
-    }
-
-    func testOpenRouterDefaultsAreStarterModels() {
-        let models = ProviderTemplate.template(for: "openrouter")!.defaultModels
-        XCTAssertFalse(models.isEmpty)
-        XCTAssertTrue(models.allSatisfy { !$0.id.hasSuffix(":free") })
-        XCTAssertTrue(models.contains { $0.subtitle?.localizedCaseInsensitiveContains("open source") == true })
     }
 
     func testTemplateLookupByIDSucceeds() {
@@ -34,7 +21,7 @@ final class ProviderCatalogTests: XCTestCase {
         let names = Dictionary(uniqueKeysWithValues: ProviderTemplate.all.map { ($0.id, $0.name) })
         XCTAssertEqual(names["moonshot"], "Moonshot AI")
         XCTAssertEqual(names["qwen"], "Alibaba Cloud")
-        XCTAssertEqual(names["zhipu"], "Zhipu AI")
+        XCTAssertEqual(names["zhipu"], "Z.ai")
         XCTAssertEqual(names["yi"], "01.AI")
         XCTAssertEqual(names["google"], "Google")
         XCTAssertEqual(names["mistral"], "Mistral AI")

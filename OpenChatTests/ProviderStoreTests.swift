@@ -77,14 +77,13 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.redactedAPIKey(for: provider), "sk-••••••••1234")
     }
 
-    func testPickerModelsFallsBackToSavedDefaults() {
+    func testPickerModelsIsEmptyWithoutLiveOrRememberedModels() {
         store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
         let provider = store.provider(withID: "openai")!
         store.setAPIKey("sk-test", for: provider)
 
-        let picker = store.pickerModels(for: store.provider(withID: "openai")!)
-        XCTAssertFalse(picker.isEmpty)
-        XCTAssertEqual(picker.map(\.id), provider.models.map(\.id))
+        let picker = store.pickerModels(for: provider)
+        XCTAssertTrue(picker.isEmpty)
     }
 
     func testRememberModelPersistsSelection() {
@@ -155,6 +154,8 @@ final class ProviderStoreTests: XCTestCase {
         store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
         store.setAPIKey("sk-test", for: store.provider(withID: "anthropic")!)
 
+        let anthropicModel = AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6")
+        store.rememberModel(anthropicModel, providerID: "anthropic")
         store.recordModelUsage(providerID: "anthropic", modelID: "claude-opus-4-6-20260805")
 
         let choice = store.defaultModelForNewChat()
@@ -167,13 +168,12 @@ final class ProviderStoreTests: XCTestCase {
     }
 
     func testDefaultModelForNewChatFallsBackWhenLastSelectedUnavailable() {
-        store.addFromTemplate(ProviderTemplate.template(for: "openai")!)
-        store.setAPIKey("sk-test", for: store.provider(withID: "openai")!)
+        let provider = store.addCustom(name: "Local Server", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "Llama 3.1")], requiresAPIKey: false)!
         store.rememberLastSelectedModel(providerID: "missing", modelID: "gone")
 
         let choice = store.defaultModelForNewChat()
-        XCTAssertEqual(choice?.providerID, "openai")
-        XCTAssertEqual(choice?.modelID, store.provider(withID: "openai")?.models.first?.id)
+        XCTAssertEqual(choice?.providerID, provider.id)
+        XCTAssertEqual(choice?.modelID, provider.models.first?.id)
     }
 
     func testSeedLastSelectedModelOnlyWhenEmpty() {

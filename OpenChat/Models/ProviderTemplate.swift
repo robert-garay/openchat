@@ -13,7 +13,6 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var apiFormat: APIFormat
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
-    var defaultModels: [AIModel]
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -29,12 +28,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://openrouter.ai/api/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://openrouter.ai/keys"),
-            apiKeyPlaceholder: "sk-or-...",
-            defaultModels: [
-                AIModel(id: "deepseek/deepseek-chat", displayName: "DeepSeek V3", subtitle: "Open source"),
-                AIModel(id: "meta-llama/llama-4-maverick", displayName: "Llama 4 Maverick", subtitle: "Open source", capabilities: [.vision]),
-                AIModel(id: "qwen/qwen3-235b-a22b", displayName: "Qwen3 235B", subtitle: "Open source"),
-            ]
+            apiKeyPlaceholder: "sk-or-..."
         ),
         ProviderTemplate(
             id: "deepseek",
@@ -44,11 +38,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://api.deepseek.com/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://platform.deepseek.com/api_keys"),
-            apiKeyPlaceholder: "sk-...",
-            defaultModels: [
-                AIModel(id: "deepseek-chat", displayName: "DeepSeek-V3", subtitle: "General purpose · 64K context"),
-                AIModel(id: "deepseek-reasoner", displayName: "DeepSeek-R1", subtitle: "Deep reasoning · 64K context", capabilities: [.reasoning]),
-            ]
+            apiKeyPlaceholder: "sk-..."
         ),
         ProviderTemplate(
             id: "qwen",
@@ -58,13 +48,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://bailian.console.aliyun.com/?apiKey=1"),
-            apiKeyPlaceholder: "sk-...",
-            defaultModels: [
-                AIModel(id: "qwen-max", displayName: "Qwen-Max", subtitle: "Alibaba's flagship model"),
-                AIModel(id: "qwen-plus", displayName: "Qwen-Plus", subtitle: "Balanced speed & quality"),
-                AIModel(id: "qwen-turbo", displayName: "Qwen-Turbo", subtitle: "Fast & low cost"),
-                AIModel(id: "qwen-vl-plus", displayName: "Qwen-VL Plus", subtitle: "Vision", capabilities: [.vision]),
-            ]
+            apiKeyPlaceholder: "sk-..."
         ),
         ProviderTemplate(
             id: "moonshot",
@@ -74,27 +58,17 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://api.moonshot.cn/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://platform.moonshot.cn/console/api-keys"),
-            apiKeyPlaceholder: "sk-...",
-            defaultModels: [
-                AIModel(id: "kimi-k2-0711-preview", displayName: "Kimi K2", subtitle: "Frontier open model"),
-                AIModel(id: "moonshot-v1-32k", displayName: "Moonshot v1 32K", subtitle: "32K context"),
-                AIModel(id: "moonshot-v1-128k", displayName: "Moonshot v1 128K", subtitle: "128K context"),
-            ]
+            apiKeyPlaceholder: "sk-..."
         ),
         ProviderTemplate(
             id: "zhipu",
-            name: "Zhipu AI",
+            name: "Z.ai",
             symbolName: "cube.transparent.fill",
             tint: "#3859FF",
-            baseURL: "https://open.bigmodel.cn/api/paas/v4",
+            baseURL: "https://api.z.ai/api/paas/v4",
             apiFormat: .openAI,
-            keyHelpURL: URL(string: "https://open.bigmodel.cn/usercenter/apikeys"),
-            apiKeyPlaceholder: "API key",
-            defaultModels: [
-                AIModel(id: "glm-4-plus", displayName: "GLM-4-Plus", subtitle: "Flagship reasoning model", capabilities: [.reasoning]),
-                AIModel(id: "glm-4-flash", displayName: "GLM-4-Flash", subtitle: "Fast"),
-                AIModel(id: "glm-4v-plus", displayName: "GLM-4V-Plus", subtitle: "Vision", capabilities: [.vision]),
-            ]
+            keyHelpURL: URL(string: "https://z.ai/manage-apikey/apikey-list"),
+            apiKeyPlaceholder: "API key"
         ),
         ProviderTemplate(
             id: "yi",
@@ -104,11 +78,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://api.lingyiwanwu.com/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://platform.lingyiwanwu.com/apikeys"),
-            apiKeyPlaceholder: "API key",
-            defaultModels: [
-                AIModel(id: "yi-large", displayName: "Yi-Large", subtitle: "Flagship model"),
-                AIModel(id: "yi-large-turbo", displayName: "Yi-Large-Turbo", subtitle: "Faster variant"),
-            ]
+            apiKeyPlaceholder: "API key"
         ),
         ProviderTemplate(
             id: "openai",
@@ -118,12 +88,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://api.openai.com/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://platform.openai.com/api-keys"),
-            apiKeyPlaceholder: "sk-...",
-            defaultModels: [
-                AIModel(id: "gpt-5", displayName: "GPT-5", subtitle: "Flagship model", capabilities: [.vision, .tools]),
-                AIModel(id: "gpt-5-mini", displayName: "GPT-5 Mini", subtitle: "Fast & affordable", capabilities: [.tools]),
-                AIModel(id: "o4-mini", displayName: "o4-mini", subtitle: "Reasoning model", capabilities: [.reasoning, .tools]),
-            ]
+            apiKeyPlaceholder: "sk-..."
         ),
         ProviderTemplate(
             id: "anthropic",
@@ -133,11 +98,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://api.anthropic.com/v1",
             apiFormat: .anthropic,
             keyHelpURL: URL(string: "https://console.anthropic.com/settings/keys"),
-            apiKeyPlaceholder: "sk-ant-...",
-            defaultModels: [
-                AIModel(id: "claude-opus-4-6-20260805", displayName: "Claude Opus 4.6", subtitle: "Most capable", capabilities: [.vision, .tools]),
-                AIModel(id: "claude-sonnet-4-6-20260805", displayName: "Claude Sonnet 4.6", subtitle: "Balanced", capabilities: [.vision, .tools]),
-            ]
+            apiKeyPlaceholder: "sk-ant-..."
         ),
         ProviderTemplate(
             id: "mistral",
@@ -163,11 +124,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://aistudio.google.com/apikey"),
-            apiKeyPlaceholder: "API key",
-            defaultModels: [
-                AIModel(id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", subtitle: "Flagship", capabilities: [.vision, .tools]),
-                AIModel(id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", subtitle: "Fast", capabilities: [.vision, .tools]),
-            ]
+            apiKeyPlaceholder: "API key"
         ),
     ]
 

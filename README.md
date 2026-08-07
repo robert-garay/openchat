@@ -1,6 +1,6 @@
 # OpenChat
 
-A native iOS chat app for talking to any LLM — OpenAI, Claude, Gemini, OpenRouter, and leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Zhipu GLM, 01.AI) — plus any custom OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
+A native iOS chat app for talking to any LLM — OpenAI, Claude, Gemini, OpenRouter, and leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Z.ai GLM, 01.AI) — plus any custom OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
 
 No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
 
@@ -26,7 +26,7 @@ On first launch, tap **Connect a Provider**, pick a provider, and paste in an AP
 | DeepSeek | platform.deepseek.com |
 | Alibaba Cloud (Qwen) | bailian.console.aliyun.com |
 | Moonshot AI (Kimi) | platform.moonshot.cn |
-| Zhipu AI (GLM) | open.bigmodel.cn |
+| Z.ai (GLM) | z.ai/model-api |
 
 You can also add any OpenAI-compatible endpoint (self-hosted Ollama, LM Studio, vLLM, an internal gateway) from Settings → Add a Provider → Custom Endpoint.
 
