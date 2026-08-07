@@ -1,13 +1,24 @@
 # OpenChat
 
-A native iOS chat app for talking to any LLM — OpenAI, Claude, Gemini, OpenRouter, and leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Z.ai GLM, 01.AI) — plus any custom OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
+The native iOS home for every major LLM.
+
+OpenChat puts OpenAI, Claude, Gemini, OpenRouter, leading Chinese open models (DeepSeek, Qwen, Kimi/Moonshot, Z.ai GLM, 01.AI), and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) into one clean app.
+
+Provider-specific chat apps are good at one thing: their own model. OpenChat is built for the reality that the best model changes by task, by week, and by provider. You get one workflow, one interface, and no lock-in.
 
 No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
 
+## Why OpenChat
+
+- **One app, every model** — compare and switch across providers without changing your workflow.
+- **Always current** — add new models and providers as they launch, instead of waiting for each vendor's app to catch up.
+- **No lock-in** — your chats and setup stay in OpenChat, while the model behind each conversation can change at any time.
+- **Private by design** — API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
+
 ## Features
 
-- **Any provider, one app** — switch between OpenAI, Anthropic, Gemini, OpenRouter, Chinese model providers, or a self-hosted/custom OpenAI-compatible endpoint, all from the same chat UI.
-- **Private by design** — API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
+- **Any provider, one app** — switch between OpenAI, Anthropic, Gemini, OpenRouter, Chinese model providers, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
+- **Built for model choice** — use the best model for the job, keep the same interface, and move between providers without losing your workflow.
 - **Web search** — attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
 - **Rules** — steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.
 - **Memory** — the app can remember facts across chats; review, edit, pin, or delete anything it's stored at any time.
@@ -16,7 +27,9 @@ No backend server, no account, no telemetry: the app talks directly to whichever
 
 ## Connecting a provider
 
-On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Get keys here:
+On first launch, tap **Connect a Provider**, pick a provider, and paste in an API key. Add as many providers as you want, then choose the right model for each conversation.
+
+Get keys here:
 
 | Provider | Console |
 |---|---|
