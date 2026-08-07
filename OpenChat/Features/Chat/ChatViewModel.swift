@@ -35,7 +35,7 @@ final class ChatViewModel {
             var parts: [String] = []
             if omitsThreadImages {
                 parts.append(
-                    "\(modelDisplayName) can't process images. Photos already in this chat stay visible but won't be sent until you switch back to a vision model."
+                    "\(modelDisplayName) can’t process images. Photos already in this chat stay visible but won’t be sent until you switch back to a vision model."
                 )
             }
             if omitsThreadDocuments {
