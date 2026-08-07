@@ -181,6 +181,14 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertEqual(byName.map(\.id), ["meta-llama/llama-4-maverick"])
     }
 
+    func testSearchMatchesTokensAcrossSeparators() {
+        let byTokens = OpenRouterModelCatalog.filtered(models: sampleModels, query: "llama maverick")
+        XCTAssertEqual(byTokens.map(\.id), ["meta-llama/llama-4-maverick"])
+
+        let byStripped = OpenRouterModelCatalog.filtered(models: sampleModels, query: "llama4maverick")
+        XCTAssertEqual(byStripped.map(\.id), ["meta-llama/llama-4-maverick"])
+    }
+
     func testFilterByCapabilities() {
         let withTools = OpenRouterCatalogModel(
             id: "meta-llama/llama-vision-tools",
