@@ -37,6 +37,7 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(names["zhipu"], "Zhipu AI")
         XCTAssertEqual(names["yi"], "01.AI")
         XCTAssertEqual(names["google"], "Google")
+        XCTAssertEqual(names["mistral"], "Mistral AI")
     }
 
     func testEveryTemplateHasAnOfficialLogoAsset() {
