@@ -153,8 +153,20 @@ final class RulesStore {
 
     nonisolated static func modelInstruction() -> String {
         """
-        The user enabled rule proposals in OpenChat. If you want to establish a standing \
-        instruction, propose it using:
+        The user enabled rule proposals in OpenChat. A Rule is an instruction about how you \
+        should behave, act, or interact going forward — a standing behavior change, not a fact \
+        about the user. Examples: "always answer in bullet points", "never use corporate \
+        jargon", "write commit messages in the imperative mood". If what you want to save is \
+        instead a fact about the user, their environment, or a situation worth recalling (e.g. \
+        "I use Xcode 16", "my team ships on Thursdays"), propose a Memory instead, not a Rule. \
+        If you're already proposing a Skill or another rule/memory for the same request, don't \
+        also propose this unless it captures something genuinely separate — don't restate the \
+        same intent across multiple proposals.
+
+        Only propose a rule when you're genuinely confident it's a standing instruction — don't \
+        propose speculative or one-off preferences.
+
+        Propose it using:
         ```openchat-rule
         {"content":"...","scope":"global"|"chat"}
         ```

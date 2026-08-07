@@ -65,6 +65,17 @@ final class RulesStoreTests: XCTestCase {
         XCTAssertTrue(instruction.contains("ask the user"))
     }
 
+    func testModelInstructionDistinguishesRuleFromMemory() {
+        let instruction = RulesStore.modelInstruction()
+        XCTAssertTrue(instruction.contains("Memory"))
+        XCTAssertTrue(instruction.contains("behave"))
+    }
+
+    func testModelInstructionWarnsAgainstRestatingOtherProposals() {
+        let instruction = RulesStore.modelInstruction()
+        XCTAssertTrue(instruction.contains("Skill"))
+    }
+
     func testCRUDAndInjectionText() throws {
         let container = try ModelContainer(
             for: RuleItem.self,
