@@ -45,7 +45,8 @@ struct DocumentPreviewView: View {
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            let url = directory.appendingPathComponent(attachment.filename)
+            let safeFilename = (attachment.filename as NSString).lastPathComponent
+            let url = directory.appendingPathComponent(safeFilename)
             try attachment.data.write(to: url)
             return url
         } catch {
