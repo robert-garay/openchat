@@ -296,7 +296,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
     }
 
     func testOpenRouterModelsClientDecodesCatalogPayload() throws {
-        let json = """
+        let json = Data("""
         {
           "data": [
             {
@@ -326,7 +326,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
             }
           ]
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let models = try OpenRouterModelsClient.decodeModels(from: json)
         XCTAssertEqual(models.count, 2)

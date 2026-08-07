@@ -75,9 +75,9 @@ final class ModelCapabilityTests: XCTestCase {
     }
 
     func testAIModelLegacySupportsVisionDecoding() throws {
-        let json = """
+        let json = Data("""
         {"id":"x","displayName":"X","supportsVision":true}
-        """.data(using: .utf8)!
+        """.utf8)
         let model = try JSONDecoder().decode(AIModel.self, from: json)
         XCTAssertTrue(model.supportsVision)
         XCTAssertEqual(model.capabilities, [.vision])

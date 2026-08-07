@@ -3,7 +3,7 @@ import XCTest
 
 final class ProviderModelsClientTests: XCTestCase {
     func testDecodeOpenAIModelsFiltersNonChat() throws {
-        let json = """
+        let json = Data("""
         {
           "data": [
             { "id": "gpt-4o" },
@@ -14,7 +14,7 @@ final class ProviderModelsClientTests: XCTestCase {
             { "id": "deepseek-chat" }
           ]
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
         XCTAssertEqual(models.map(\.id), ["gpt-4o", "o4-mini", "deepseek-chat"])
@@ -24,7 +24,7 @@ final class ProviderModelsClientTests: XCTestCase {
     }
 
     func testDecodeOpenAIModelsUsesArchitectureMetadataWhenPresent() throws {
-        let json = """
+        let json = Data("""
         {
           "data": [
             {
@@ -45,7 +45,7 @@ final class ProviderModelsClientTests: XCTestCase {
             }
           ]
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
         XCTAssertEqual(models[0].capabilities, [])
@@ -53,7 +53,7 @@ final class ProviderModelsClientTests: XCTestCase {
     }
 
     func testDecodeAnthropicModelsMapsCapabilities() throws {
-        let json = """
+        let json = Data("""
         {
           "data": [
             {
@@ -70,7 +70,7 @@ final class ProviderModelsClientTests: XCTestCase {
           "has_more": false,
           "last_id": "claude-opus-4-6"
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let page = try ProviderModelsClient.decodeAnthropicModels(from: json)
         XCTAssertEqual(page.models.count, 1)
@@ -83,7 +83,7 @@ final class ProviderModelsClientTests: XCTestCase {
     }
 
     func testDecodeAnthropicModelsInfersWhenCapabilitiesMissing() throws {
-        let json = """
+        let json = Data("""
         {
           "data": [
             {
@@ -94,7 +94,7 @@ final class ProviderModelsClientTests: XCTestCase {
           ],
           "has_more": false
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let page = try ProviderModelsClient.decodeAnthropicModels(from: json)
         XCTAssertEqual(page.models[0].capabilities, [.vision, .tools])

@@ -116,4 +116,3 @@ final class AgentDataSourceStoreTests: XCTestCase {
         XCTAssertFalse(readTypes.contains(where: { $0 is HKClinicalType }))
     }
 }
-
