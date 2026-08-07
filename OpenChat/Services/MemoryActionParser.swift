@@ -3,10 +3,16 @@ struct MemoryProposal: Equatable, Identifiable, Sendable { var id = UUID(); var 
 enum MemoryActionParser {
     private static let fence = #"```openchat-memory\s*([\s\S]*?)```"#
     private static let tag = #"<memory_proposal>([\s\S]*?)</memory_proposal>"#
+    private static let openFence = #"```openchat-memory[\s\S]*$"#
+    private static let openTag = #"<memory_proposal>[\s\S]*$"#
     static func parse(_ markdown: String) -> [MemoryProposal] { dedupe(parseBlocks(markdown, fence) + parseBlocks(markdown, tag)) }
     static func strippingFences(from markdown: String) -> String {
         var r = markdown
         for p in [fence, tag] {
+            guard let rx = try? NSRegularExpression(pattern: p) else { continue }
+            r = rx.stringByReplacingMatches(in: r, range: NSRange(r.startIndex..<r.endIndex, in: r), withTemplate: "")
+        }
+        for p in [openFence, openTag] {
             guard let rx = try? NSRegularExpression(pattern: p) else { continue }
             r = rx.stringByReplacingMatches(in: r, range: NSRange(r.startIndex..<r.endIndex, in: r), withTemplate: "")
         }
