@@ -510,6 +510,12 @@ final class ChatViewModel {
         requestAssistantReply()
     }
 
+    /// The message being edited, for the edit screen's `fullScreenCover(item:)`.
+    var editingMessage: ChatMessage? {
+        guard let editingMessageID else { return nil }
+        return conversation.messages.first { $0.id == editingMessageID }
+    }
+
     func beginEditing(_ message: ChatMessage) {
         guard !isStreaming, message.role == .user else { return }
         editingMessageID = message.id
@@ -519,15 +525,26 @@ final class ChatViewModel {
         editingMessageID = nil
     }
 
-    func saveEdit(_ message: ChatMessage, newText: String) {
-        guard editingMessageID == message.id, !isStreaming else { return }
+    /// Applies an edit and regenerates from it. Returns `false` without mutating
+    /// anything when a guard rejects the edit, so the edit screen can stay up
+    /// with the user's text intact rather than silently discarding it.
+    @discardableResult
+    func saveEdit(_ message: ChatMessage, newText: String, attachments: [ChatImageAttachment]) -> Bool {
+        guard editingMessageID == message.id, !isStreaming else { return false }
         let trimmed = newText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty || !message.imageAttachments.isEmpty else { return }
-        guard let provider = currentProvider, currentModel != nil else { return }
+        guard !trimmed.isEmpty || !attachments.isEmpty else { return false }
+        guard let provider = currentProvider, currentModel != nil else { return false }
         let apiKey = providerStore.apiKey(for: provider)
-        guard !provider.requiresAPIKey || apiKey != nil else { return }
+        guard !provider.requiresAPIKey || apiKey != nil else { return false }
+
+        // Mirrors send(): the model can be switched after the edit screen opens.
+        if !attachments.isEmpty, !supportsVision {
+            capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
+            return false
+        }
 
         message.content = trimmed
+        message.imageAttachments = attachments
 
         let trailingMessages = conversation.messages(after: message)
         let trailingIDs = Set(trailingMessages.map(\.id))
@@ -546,6 +563,7 @@ final class ChatViewModel {
         editingMessageID = nil
 
         requestAssistantReply()
+        return true
     }
 
     func cancelStreaming() {

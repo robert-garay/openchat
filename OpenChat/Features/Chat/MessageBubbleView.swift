@@ -29,11 +29,8 @@ struct MessageBubbleView: View {
     var onRuleProposalSaved: ((UUID) -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
-    var isEditing: Bool = false
     var canEdit: Bool = false
     var onBeginEdit: (() -> Void)? = nil
-    var onCancelEdit: (() -> Void)? = nil
-    var onSaveEdit: ((String) -> Void)? = nil
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
@@ -41,7 +38,6 @@ struct MessageBubbleView: View {
     @State private var selectionText: String = ""
     @State private var shareAttachment: ChatImageAttachment?
     #endif
-    @State private var draftText: String = ""
     @State private var reviewingSkillProposal: SkillProposal?
     @State private var reviewingRuleProposal: RuleProposal?
 
@@ -80,9 +76,7 @@ struct MessageBubbleView: View {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .trailing)
                 }
-                if isEditing {
-                    editingBubble
-                } else if !message.content.isEmpty {
+                if !message.content.isEmpty {
                     userBubbleText
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)
@@ -98,7 +92,6 @@ struct MessageBubbleView: View {
 
                             if canEdit {
                                 Button {
-                                    draftText = message.content
                                     onBeginEdit?()
                                 } label: {
                                     Label("Edit", systemImage: "pencil")
@@ -148,34 +141,6 @@ struct MessageBubbleView: View {
         let token = afterSlash[afterSlash.startIndex..<tokenEnd]
         guard !token.isEmpty, token.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" }) else { return nil }
         return String(token)
-    }
-
-    private var editingBubble: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            TextField("Edit message", text: $draftText, axis: .vertical)
-                .textFieldStyle(.plain)
-                .foregroundStyle(.white)
-                .tint(.white)
-                .lineLimit(1...8)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 11)
-                .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
-
-            HStack(spacing: 10) {
-                Button("Cancel") {
-                    Haptics.light()
-                    onCancelEdit?()
-                }
-                .buttonStyle(.bordered)
-
-                Button("Save · Send") {
-                    Haptics.light()
-                    onSaveEdit?(draftText)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && message.imageAttachments.isEmpty)
-            }
-        }
     }
 
     private var assistantContent: some View {
@@ -443,7 +408,6 @@ struct MessageBubbleView: View {
 
                         if message.role == .user && message.content.isEmpty && canEdit {
                             Button {
-                                draftText = message.content
                                 onBeginEdit?()
                             } label: {
                                 Label("Edit", systemImage: "pencil")

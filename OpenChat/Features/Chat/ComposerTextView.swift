@@ -36,6 +36,9 @@ struct ComposerTextView: UIViewRepresentable {
     /// Called when the user pastes images into the composer. Text paste still
     /// uses the default UITextView behavior.
     var onPasteImages: (([UIImage]) -> Void)?
+    /// Raises the keyboard on appear with the caret after the seeded text.
+    /// Used by the edit screen, where the field is the reason the screen exists.
+    var autoFocus: Bool = false
     @Environment(\.isEnabled) private var isEnabled
 
     func makeCoordinator() -> Coordinator {
@@ -73,6 +76,16 @@ struct ComposerTextView: UIViewRepresentable {
         ])
         context.coordinator.placeholderLabel = placeholderLabel
         context.coordinator.updatePlaceholder(for: textView)
+
+        if autoFocus {
+            // Deferred: the view is not in a window yet during makeUIView, so
+            // becomeFirstResponder() is a no-op if called synchronously here.
+            DispatchQueue.main.async {
+                textView.becomeFirstResponder()
+                let end = (textView.text as NSString).length
+                textView.selectedRange = NSRange(location: end, length: 0)
+            }
+        }
 
         return textView
     }
