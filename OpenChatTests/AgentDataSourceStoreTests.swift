@@ -1,5 +1,5 @@
 import HealthKit
-import XCTest
+@preconcurrency import XCTest
 @testable import OpenChat
 
 @MainActor

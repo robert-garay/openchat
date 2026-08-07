@@ -1,5 +1,5 @@
 import SwiftData
-import XCTest
+@preconcurrency import XCTest
 @testable import OpenChat
 
 @MainActor
