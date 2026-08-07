@@ -8,22 +8,16 @@ struct RootView: View {
 
     @State private var selectedConversationID: UUID?
     @State private var showingSettings = false
-    @State private var drawerProgress: CGFloat = 0
-    @State private var drawerWidth: CGFloat = 0
-    @State private var isDragging = false
-    @State private var dragStartProgress: CGFloat = 0
+    @State private var showingHistoryDrawer = false
 
-    private var isDrawerOpen: Bool { drawerProgress > 0.5 }
-    private var effectiveDrawerWidth: CGFloat { drawerWidth > 0 ? drawerWidth : 300 }
-
-    /// Sidebar history: never temporary, never empty (no user messages).
-    /// Keep the currently selected empty chat visible so the selection stays stable.
+    /// Sidebar history: never temporary, never unstarted, and never a placeholder title.
     /// Pinned chats stay above unpinned, each group by recency.
     private var listConversations: [Conversation] {
         conversations
             .filter { conversation in
                 if conversation.isTemporary { return false }
-                return conversation.hasUserMessages || conversation.id == selectedConversationID
+                if conversation.needsAutoTitle { return false }
+                return true
             }
             .sorted { lhs, rhs in
                 if lhs.isPinned != rhs.isPinned {
@@ -73,98 +67,69 @@ struct RootView: View {
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty {
                 selectedConversationID = nil
-                drawerProgress = 0
+                showingHistoryDrawer = false
             }
         }
     }
 
     @ViewBuilder
     private var mainContent: some View {
-        GeometryReader { geometry in
-            let width = min(geometry.size.width * 0.85, 360)
+        NavigationStack {
             ZStack {
-                // History drawer sits behind the chat panel.
+                if let conversation = selectedConversation {
+                    ChatView(
+                        conversation: conversation,
+                        onToggleTemporary: { toggleTemporary(for: conversation) },
+                        onShowHistory: { toggleHistoryDrawer() },
+                        isHistoryDrawerOpen: showingHistoryDrawer
+                    )
+                    .id(conversation.id)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = value.translation.height
+                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showingHistoryDrawer = true
+                                    }
+                                }
+                            }
+                    )
+                } else {
+                    // Stable placeholder while the first chat is created.
+                    ProgressView()
+                        .controlSize(.large)
+                }
+
+                if showingHistoryDrawer {
+                    drawerOverlay
+                }
+            }
+        }
+    }
+
+    private var drawerOverlay: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
                 ChatHistoryDrawerView(
                     conversations: listConversations,
                     selectedConversationID: $selectedConversationID,
                     onNewChat: { startNewChat(temporary: false) },
-                    onClose: { closeDrawer() },
+                    onClose: { showingHistoryDrawer = false },
                     onShowSettings: { showingSettings = true }
                 )
-                .frame(width: width)
-                .frame(maxHeight: .infinity, alignment: .leading)
+                .frame(width: geometry.size.width, alignment: .leading)
                 .background(.background)
-                .simultaneousGesture(drawerGesture)
-
-                // Chat panel slides to the right, rounds its leading edge,
-                // and darkens as the drawer is revealed.
-                chatContent
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .offset(x: drawerProgress * width)
-                    .clipShape(LeadingRoundedRectangle(radius: drawerProgress * 24))
-                    .shadow(color: .black.opacity(0.25), radius: 20, x: -8, y: 0)
-                    .simultaneousGesture(drawerGesture)
+                .transition(.move(edge: .leading))
             }
-            .onAppear { drawerWidth = width }
-            .onChange(of: width) { _, new in drawerWidth = new }
         }
+        .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
     }
 
-    @ViewBuilder
-    private var chatContent: some View {
-        if let conversation = selectedConversation {
-            ChatView(
-                conversation: conversation,
-                onToggleTemporary: { toggleTemporary(for: conversation) },
-                onShowHistory: { toggleDrawer() },
-                drawerProgress: drawerProgress
-            )
-            .id(conversation.id)
-        } else {
-            ProgressView()
-                .controlSize(.large)
-        }
-    }
-
-    private var drawerGesture: some Gesture {
-        DragGesture(minimumDistance: 10, coordinateSpace: .global)
-            .onChanged { value in
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-                guard abs(horizontal) > abs(vertical) else { return }
-                if !isDragging {
-                    isDragging = true
-                    dragStartProgress = drawerProgress
-                }
-                let progress = dragStartProgress + horizontal / effectiveDrawerWidth
-                drawerProgress = max(0, min(1, progress))
-            }
-            .onEnded { value in
-                isDragging = false
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-                let velocity = value.predictedEndLocation.x - value.location.x
-                if abs(horizontal) > abs(vertical), abs(velocity) > 120 {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        drawerProgress = velocity > 0 ? 1 : 0
-                    }
-                } else {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        drawerProgress = drawerProgress > 0.5 ? 1 : 0
-                    }
-                }
-            }
-    }
-
-    private func toggleDrawer() {
+    private func toggleHistoryDrawer() {
         withAnimation(.easeInOut(duration: 0.25)) {
-            drawerProgress = isDrawerOpen ? 0 : 1
-        }
-    }
-
-    private func closeDrawer() {
-        withAnimation(.easeInOut(duration: 0.25)) {
-            drawerProgress = 0
+            showingHistoryDrawer.toggle()
         }
     }
 
@@ -216,33 +181,3 @@ struct RootView: View {
         }
     }
 }
-
-private struct LeadingRoundedRectangle: Shape {
-    var radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let r = min(radius, rect.width / 2, rect.height / 2)
-        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.minX + r, y: rect.minY))
-        path.addArc(
-            center: CGPoint(x: rect.minX + r, y: rect.minY + r),
-            radius: r,
-            startAngle: .degrees(-90),
-            endAngle: .degrees(-180),
-            clockwise: true
-        )
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - r))
-        path.addArc(
-            center: CGPoint(x: rect.minX + r, y: rect.maxY - r),
-            radius: r,
-            startAngle: .degrees(180),
-            endAngle: .degrees(90),
-            clockwise: true
-        )
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.closeSubpath()
-        return path
-    }
-}
-
