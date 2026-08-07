@@ -255,6 +255,7 @@ private struct ChatMessageListView: View {
                         let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
+                            conversation: conversation,
                             providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: messageProvider?.symbolName ?? "sparkles",
                             providerLogoAssetName: messageProvider?.logoAssetName,
@@ -282,6 +283,14 @@ private struct ChatMessageListView: View {
                             },
                             onSkillProposalSaved: {
                                 viewModel.clearSkillProposalAfterReview(for: message.id)
+                            },
+                            pendingRuleProposals: viewModel.pendingRuleProposalsByMessageID[message.id] ?? [],
+                            ruleActionStatus: viewModel.ruleActionStatusByMessageID[message.id],
+                            onDismissRuleProposals: {
+                                viewModel.dismissRuleProposals(for: message.id)
+                            },
+                            onRuleProposalSaved: { proposalID in
+                                viewModel.clearRuleProposalAfterReview(for: message.id, proposalID: proposalID)
                             },
                             isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply,

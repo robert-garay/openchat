@@ -28,9 +28,18 @@ struct RulesSettingsView: View {
                     get: { rulesStore.useChatRules },
                     set: { rulesStore.setUseChatRules($0) }
                 ))
+                Toggle("Allow assistant to propose rules", isOn: Binding(
+                    get: { rulesStore.allowProposalsFromChat },
+                    set: { rulesStore.setAllowProposalsFromChat($0) }
+                ))
+                Toggle("Require confirmation", isOn: Binding(
+                    get: { rulesStore.requireConfirmation },
+                    set: { rulesStore.setRequireConfirmation($0) }
+                ))
+                .disabled(!rulesStore.allowProposalsFromChat)
             } footer: {
                 Text(
-                    "Global rules apply to every chat when enabled. Chat rules are per-conversation instructions (edited from the chat composer) and only apply when enabled. Both are off by default."
+                    "Global rules apply to every chat when enabled. Chat rules are per-conversation instructions (edited from the chat composer) and only apply when enabled. Both are off by default. When the assistant is allowed to propose rules, it can suggest new global or chat rules during a conversation for you to review before they're saved."
                 )
             }
 
