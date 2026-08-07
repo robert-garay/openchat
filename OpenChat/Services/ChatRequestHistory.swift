@@ -3,7 +3,7 @@ import Foundation
 /// Builds provider-bound chat turns from persisted messages.
 /// Images and documents stay on `ChatMessage`; callers choose whether to include them in the outbound payload.
 enum ChatRequestHistory {
-    static let omittedImagePlaceholder = "[Image omitted — this model can't process images]"
+    static let omittedImagePlaceholder = "[Image omitted — this model can’t process images]"
     static let omittedDocumentPlaceholder = "[Document omitted — this model can't process documents]"
 
     static func turns(
