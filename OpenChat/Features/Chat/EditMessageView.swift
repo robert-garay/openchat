@@ -45,9 +45,11 @@ struct EditMessageView: View {
 
             AttachmentComposerBox(
                 attachments: $attachments,
+                documentAttachments: .constant([]),
                 supportsVision: supportsVision,
+                supportsFiles: false,
                 modelDisplayName: modelDisplayName
-            ) { onPasteImages in
+            ) { onPasteImages, _ in
                 composerField(onPasteImages: onPasteImages)
             } buttons: {
                 Spacer(minLength: 0)

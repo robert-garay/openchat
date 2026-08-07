@@ -21,6 +21,10 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
         capabilities.contains(.tools)
     }
 
+    var supportsFiles: Bool {
+        capabilities.contains(.files)
+    }
+
     var supportsEffort: Bool {
         capabilities.contains(.effort)
     }

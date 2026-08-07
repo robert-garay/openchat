@@ -6,6 +6,7 @@ struct ChatTurn: Sendable {
     var role: MessageRole
     var content: String
     var images: [ChatImageAttachment]
+    var documents: [ChatDocumentAttachment]
     /// Assistant turns may request tool calls instead of (or alongside) text.
     var toolCalls: [ChatToolCall]
     /// For `.tool` turns (OpenAI) / tool_result blocks (Anthropic).
@@ -15,17 +16,20 @@ struct ChatTurn: Sendable {
         role: MessageRole,
         content: String,
         images: [ChatImageAttachment] = [],
+        documents: [ChatDocumentAttachment] = [],
         toolCalls: [ChatToolCall] = [],
         toolCallID: String? = nil
     ) {
         self.role = role
         self.content = content
         self.images = images
+        self.documents = documents
         self.toolCalls = toolCalls
         self.toolCallID = toolCallID
     }
 
     var hasImages: Bool { !images.isEmpty }
+    var hasDocuments: Bool { !documents.isEmpty }
     var hasToolCalls: Bool { !toolCalls.isEmpty }
 }
 
@@ -37,6 +41,7 @@ enum ChatServiceError: LocalizedError {
     case cancelled
     case timedOut
     case modelLacksVision
+    case modelLacksFiles
 
     var errorDescription: String? {
         switch self {
@@ -62,6 +67,8 @@ enum ChatServiceError: LocalizedError {
             """
         case .modelLacksVision:
             return "This model can't process images. Choose a vision-capable model."
+        case .modelLacksFiles:
+            return "This model can't process documents. Choose a model marked with a doc icon."
         }
     }
 

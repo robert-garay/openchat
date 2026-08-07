@@ -6,7 +6,9 @@ import UIKit
 struct MessageComposerView: View {
     @Binding var text: String
     @Binding var attachments: [ChatImageAttachment]
+    @Binding var documentAttachments: [ChatDocumentAttachment]
     let supportsVision: Bool
+    let supportsFiles: Bool
     let modelDisplayName: String?
     let isStreaming: Bool
     var canUseWebSearch: Bool = false
@@ -34,12 +36,13 @@ struct MessageComposerView: View {
     let onSend: () -> Void
     let onStop: () -> Void
 
+    @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     @State private var showingEffortPicker = false
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
-        !attachments.isEmpty || text.contains { !$0.isWhitespace }
+        !attachments.isEmpty || !documentAttachments.isEmpty || text.contains { !$0.isWhitespace }
     }
 
     private var slashQuery: String? { SkillResolver.slashQuery(from: text) }
@@ -52,10 +55,12 @@ struct MessageComposerView: View {
     var body: some View {
         AttachmentComposerBox(
             attachments: $attachments,
+            documentAttachments: $documentAttachments,
             supportsVision: supportsVision,
+            supportsFiles: supportsFiles,
             modelDisplayName: modelDisplayName
-        ) { onPasteImages in
-            composerField(onPasteImages: onPasteImages)
+        ) { onPasteImages, onPasteDocument in
+            composerField(onPasteImages: onPasteImages, onPasteDocument: onPasteDocument)
         } buttons: {
             webSearchButton
             if canUseChatRules {
@@ -71,9 +76,17 @@ struct MessageComposerView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.bar)
+        .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
+        }
     }
 
-    private func composerField(onPasteImages: @escaping ([UIImage]) -> Void) -> some View {
+    private func composerField(
+        onPasteImages: @escaping ([UIImage]) -> Void,
+        onPasteDocument: @escaping (Data, String?) -> Void
+    ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             if showSkillPicker {
                 SkillPickerDropdown(skills: matchingSkills) { skill in
@@ -89,7 +102,8 @@ struct MessageComposerView: View {
                 placeholder: "Message",
                 minHeight: 22,
                 maxHeight: 120,
-                onPasteImages: onPasteImages
+                onPasteImages: onPasteImages,
+                onPasteDocument: onPasteDocument
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)

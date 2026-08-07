@@ -61,4 +61,39 @@ final class ChatRequestHistoryTests: XCTestCase {
 
         XCTAssertEqual(turns.map(\.content), ["hi"])
     }
+
+    func testIncludeDocumentsKeepsAttachments() {
+        let document = ChatDocumentAttachment(filename: "a.pdf", mimeType: "application/pdf", data: Data([1, 2, 3]))
+        let message = ChatMessage(role: .user, content: "What is this?", documentAttachments: [document])
+
+        let turns = ChatRequestHistory.turns(from: [message], includeImages: true, includeDocuments: true)
+
+        XCTAssertEqual(turns.count, 1)
+        XCTAssertEqual(turns[0].content, "What is this?")
+        XCTAssertEqual(turns[0].documents.count, 1)
+        XCTAssertEqual(turns[0].documents[0].data, Data([1, 2, 3]))
+    }
+
+    func testOmitDocumentsKeepsTextAndAddsPlaceholder() {
+        let document = ChatDocumentAttachment(filename: "a.pdf", mimeType: "application/pdf", data: Data([1, 2, 3]))
+        let message = ChatMessage(role: .user, content: "What is this?", documentAttachments: [document])
+
+        let turns = ChatRequestHistory.turns(from: [message], includeImages: true, includeDocuments: false)
+
+        XCTAssertEqual(turns.count, 1)
+        XCTAssertTrue(turns[0].documents.isEmpty)
+        XCTAssertTrue(turns[0].content.contains("What is this?"))
+        XCTAssertTrue(turns[0].content.contains(ChatRequestHistory.omittedDocumentPlaceholder))
+    }
+
+    func testOmitDocumentsReplacesDocumentOnlyTurnWithPlaceholder() {
+        let document = ChatDocumentAttachment(filename: "a.pdf", mimeType: "application/pdf", data: Data([9]))
+        let message = ChatMessage(role: .user, content: "", documentAttachments: [document])
+
+        let turns = ChatRequestHistory.turns(from: [message], includeImages: true, includeDocuments: false)
+
+        XCTAssertEqual(turns.count, 1)
+        XCTAssertTrue(turns[0].documents.isEmpty)
+        XCTAssertEqual(turns[0].content, ChatRequestHistory.omittedDocumentPlaceholder)
+    }
 }

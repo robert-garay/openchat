@@ -138,11 +138,12 @@ enum ConversationCompactionService {
         compactedSummary: String?,
         compactedThroughMessageID: UUID?,
         includeImages: Bool = true,
+        includeDocuments: Bool = true,
         excludingMessageID: UUID? = nil
     ) -> [ChatTurn] {
         let eligible = sortedMessages.filter {
             $0.id != excludingMessageID
-                && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty)
+                && (!$0.content.isEmpty || !$0.imageAttachments.isEmpty || !$0.documentAttachments.isEmpty)
                 && !($0.role == .assistant && $0.isStreaming)
         }
 
@@ -172,7 +173,8 @@ enum ConversationCompactionService {
         turns.append(
             contentsOf: ChatRequestHistory.turns(
                 from: postWatermarkMessages,
-                includeImages: includeImages
+                includeImages: includeImages,
+                includeDocuments: includeDocuments
             )
         )
 

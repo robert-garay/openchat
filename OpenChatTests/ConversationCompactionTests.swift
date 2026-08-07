@@ -155,4 +155,33 @@ final class ConversationCompactionTests: XCTestCase {
         XCTAssertEqual(turns[1].content, "Follow up")
         XCTAssertTrue(turns[1].images.isEmpty)
     }
+
+    func testAPIHistoryTurnsOmitsCompactedDocumentBinariesWhenExcluded() {
+        let document = ChatDocumentAttachment(filename: "report.pdf", mimeType: "application/pdf", data: Data([0x25, 0x50, 0x44, 0x46]))
+        let old = ChatMessage(role: .user, content: "Doc", documentAttachments: [document])
+        let recent = ChatMessage(role: .user, content: "Follow up")
+
+        let turns = ConversationCompactionService.apiHistoryTurns(
+            sortedMessages: [old, recent],
+            compactedSummary: "User shared a document.",
+            compactedThroughMessageID: old.id
+        )
+
+        XCTAssertEqual(turns.count, 2)
+        XCTAssertTrue(turns[0].content.contains("Compacted conversation context"))
+        XCTAssertEqual(turns[1].content, "Follow up")
+        XCTAssertTrue(turns[1].documents.isEmpty)
+    }
+
+    func testAPIHistoryTurnsDocumentOnlyMessageEligibleForCompaction() {
+        let document = ChatDocumentAttachment(filename: "report.pdf", mimeType: "application/pdf", data: Data([0x25, 0x50, 0x44, 0x46]))
+        let documentOnly = ChatMessage(role: .user, content: "", documentAttachments: [document])
+        let turns = ConversationCompactionService.apiHistoryTurns(
+            sortedMessages: [documentOnly],
+            compactedSummary: nil,
+            compactedThroughMessageID: nil
+        )
+        XCTAssertEqual(turns.count, 1)
+        XCTAssertEqual(turns[0].documents.count, 1)
+    }
 }

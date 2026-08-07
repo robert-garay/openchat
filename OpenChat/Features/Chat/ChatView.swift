@@ -226,7 +226,9 @@ private struct ChatComposerHost: View {
         MessageComposerView(
             text: $viewModel.composerText,
             attachments: $viewModel.pendingAttachments,
+            documentAttachments: $viewModel.pendingDocumentAttachments,
             supportsVision: viewModel.supportsVision,
+            supportsFiles: viewModel.supportsFiles,
             modelDisplayName: viewModel.currentModel?.displayName,
             isStreaming: viewModel.isStreaming,
             canUseWebSearch: viewModel.canUseWebSearch,
