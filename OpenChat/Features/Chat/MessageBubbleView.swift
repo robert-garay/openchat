@@ -6,6 +6,7 @@ import Photos
 
 struct MessageBubbleView: View {
     let message: ChatMessage
+    let conversation: Conversation
     let providerTint: Color
     let providerSymbol: String
     var providerLogoAssetName: String? = nil
@@ -22,22 +23,24 @@ struct MessageBubbleView: View {
     var skillActionStatus: String? = nil
     var onDismissSkillProposals: (() -> Void)? = nil
     var onSkillProposalSaved: (() -> Void)? = nil
+    var pendingRuleProposals: [RuleProposal] = []
+    var ruleActionStatus: String? = nil
+    var onDismissRuleProposals: (() -> Void)? = nil
+    var onRuleProposalSaved: ((UUID) -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
-    var isEditing: Bool = false
     var canEdit: Bool = false
     var onBeginEdit: (() -> Void)? = nil
-    var onCancelEdit: (() -> Void)? = nil
-    var onSaveEdit: ((String) -> Void)? = nil
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     @State private var previewDocument: ChatDocumentAttachment?
     @State private var showingTextSelection = false
+    @State private var selectionText: String = ""
     @State private var shareAttachment: ChatImageAttachment?
     #endif
-    @State private var draftText: String = ""
     @State private var reviewingSkillProposal: SkillProposal?
+    @State private var reviewingRuleProposal: RuleProposal?
 
     var body: some View {
         Group {
@@ -60,7 +63,7 @@ struct MessageBubbleView: View {
             DocumentPreviewView(attachment: attachment)
         }
         .sheet(isPresented: $showingTextSelection) {
-            TextSelectionSheet(text: displayContent)
+            TextSelectionSheet(text: selectionText)
         }
         .sheet(item: $shareAttachment) { attachment in
             if let uiImage = UIImage(data: attachment.data) {
@@ -80,23 +83,37 @@ struct MessageBubbleView: View {
                 if !message.documentAttachments.isEmpty {
                     documentChipRow(message.documentAttachments, alignment: .trailing)
                 }
-                if isEditing {
-                    editingBubble
-                } else {
-                    if !message.content.isEmpty {
-                        userBubbleText
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 11)
-                            .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
-                    }
-                    #if canImport(UIKit)
-                    if canEdit {
-                        EditChip {
-                            draftText = message.content
-                            onBeginEdit?()
+                if !message.content.isEmpty {
+                    userBubbleText
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 11)
+                        .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
+                        #if canImport(UIKit)
+                        .contextMenu {
+                            Button {
+                                UIPasteboard.general.string = message.content
+                                Haptics.light()
+                            } label: {
+                                Label("Copy", systemImage: "doc.on.doc")
+                            }
+
+                            if canEdit {
+                                Button {
+                                    onBeginEdit?()
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                            }
+
+                            Button {
+                                Haptics.light()
+                                selectionText = message.content
+                                showingTextSelection = true
+                            } label: {
+                                Label("Select", systemImage: "text.cursor")
+                            }
                         }
-                    }
-                    #endif
+                        #endif
                 }
             }
         }
@@ -133,38 +150,6 @@ struct MessageBubbleView: View {
         return String(token)
     }
 
-    private var editingBubble: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            TextField("Edit message", text: $draftText, axis: .vertical)
-                .textFieldStyle(.plain)
-                .foregroundStyle(.white)
-                .tint(.white)
-                .lineLimit(1...8)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 11)
-                .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: Theme.bubbleCornerRadius, style: .continuous))
-
-            HStack(spacing: 10) {
-                Button("Cancel") {
-                    Haptics.light()
-                    onCancelEdit?()
-                }
-                .buttonStyle(.bordered)
-
-                Button("Save · Send") {
-                    Haptics.light()
-                    onSaveEdit?(draftText)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(
-                    draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        && message.imageAttachments.isEmpty
-                        && message.documentAttachments.isEmpty
-                )
-            }
-        }
-    }
-
     private var assistantContent: some View {
         HStack(alignment: .top, spacing: 8) {
             ProviderLogoView(
@@ -194,9 +179,18 @@ struct MessageBubbleView: View {
                 if !displayContent.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
-                        SelectChip(isPresented: $showingTextSelection)
+                        SelectChip {
+                            selectionText = displayContent
+                            showingTextSelection = true
+                        }
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
+                        }
+                        Spacer(minLength: 4)
+                        if let responseTimeLabel {
+                            Text(responseTimeLabel)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 } else if isLastMessage && !message.isStreaming && message.errorMessage == nil {
@@ -228,6 +222,14 @@ struct MessageBubbleView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if !pendingRuleProposals.isEmpty {
+                    ruleProposalCard
+                } else if let ruleActionStatus, !ruleActionStatus.isEmpty {
+                    Text(ruleActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
                         MarkdownMessageView(content: errorMessage, isUserMessage: false)
@@ -243,7 +245,14 @@ struct MessageBubbleView: View {
     }
 
     private var displayContent: String {
-        MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+        RuleActionParser.strippingFences(
+            from: MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+        )
+    }
+
+    private var responseTimeLabel: String? {
+        guard let seconds = message.responseTimeSeconds else { return nil }
+        return String(format: "%.2fs", seconds)
     }
 
     private var calendarConfirmationCard: some View {
@@ -339,6 +348,36 @@ struct MessageBubbleView: View {
         }
     }
 
+    private var ruleProposalCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("New rule proposed", systemImage: "list.bullet.rectangle")
+                .font(.subheadline.weight(.semibold))
+            ForEach(pendingRuleProposals) { proposal in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(proposal.content)
+                        .font(.caption)
+                    Text(proposal.scope == .global ? "Every chat" : "This chat")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            HStack {
+                Button("Review") {
+                    reviewingRuleProposal = pendingRuleProposals.first
+                }
+                .buttonStyle(.borderedProminent)
+                Button("Discard") { onDismissRuleProposals?() }
+                    .buttonStyle(.bordered)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .sheet(item: $reviewingRuleProposal) { proposal in
+            RuleReviewSheet(proposal: proposal, conversation: conversation, onSaved: onRuleProposalSaved)
+        }
+    }
+
     private func attachmentGallery(_ attachments: [ChatImageAttachment], alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 6) {
             ForEach(attachments) { attachment in
@@ -375,6 +414,14 @@ struct MessageBubbleView: View {
                             saveToPhotos(uiImage)
                         } label: {
                             Label("Save to Photos", systemImage: "square.and.arrow.down")
+                        }
+
+                        if message.role == .user && message.content.isEmpty && canEdit {
+                            Button {
+                                onBeginEdit?()
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
                         }
                     }
                 }
@@ -452,25 +499,6 @@ private struct CopyChip: View {
     }
 }
 
-private struct EditChip: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.light()
-            action()
-        } label: {
-            Image(systemName: "pencil")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(4)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Edit message")
-    }
-}
-
 private struct RegenerateChip: View {
     let action: () -> Void
 
@@ -491,12 +519,12 @@ private struct RegenerateChip: View {
 }
 
 private struct SelectChip: View {
-    @Binding var isPresented: Bool
+    let action: () -> Void
 
     var body: some View {
         Button {
             Haptics.light()
-            isPresented = true
+            action()
         } label: {
             Image(systemName: "text.cursor")
                 .font(.caption)

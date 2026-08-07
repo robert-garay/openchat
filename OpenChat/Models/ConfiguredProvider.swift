@@ -36,7 +36,7 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
             tint: template.tint,
             baseURL: template.baseURL,
             apiFormat: template.apiFormat,
-            models: template.defaultModels,
+            models: [],
             requiresAPIKey: true,
             isEnabled: true
         )

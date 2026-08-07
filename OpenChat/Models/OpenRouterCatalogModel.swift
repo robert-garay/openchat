@@ -215,14 +215,13 @@ enum OpenRouterModelCatalog {
         query: String,
         capabilities: Set<ModelCapability> = []
     ) -> [OpenRouterCatalogModel] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         var results = searchableModels(from: models)
-        if !trimmed.isEmpty {
+        if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             results = results.filter {
-                $0.id.localizedCaseInsensitiveContains(trimmed) ||
-                $0.name.localizedCaseInsensitiveContains(trimmed) ||
-                $0.displayName.localizedCaseInsensitiveContains(trimmed) ||
-                $0.organization.localizedCaseInsensitiveContains(trimmed)
+                FuzzyMatcher.matches(
+                    query: query,
+                    fields: [$0.id, $0.name, $0.displayName, $0.organization]
+                )
             }
         }
         if !capabilities.isEmpty {

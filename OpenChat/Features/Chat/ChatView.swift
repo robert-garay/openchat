@@ -4,6 +4,8 @@ import SwiftData
 struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
+    var onShowHistory: (() -> Void)?
+    var isHistoryDrawerOpen: Bool = false
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -26,31 +28,50 @@ struct ChatView: View {
             }
 
             if let viewModel {
-                // Isolated so composer keystrokes do not rebuild the message list.
-                ChatMessageListView(
-                    conversation: conversation,
-                    viewModel: viewModel,
-                    stickToBottom: $stickToBottom
-                )
+                ZStack {
+                    ChatMessageListView(
+                        conversation: conversation,
+                        viewModel: viewModel,
+                        stickToBottom: $stickToBottom
+                    )
 
-                ChatComposerHost(
-                    viewModel: viewModel,
-                    skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
-                    hasChatRules: !conversation.systemPrompt
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                        .isEmpty,
-                    canUseChatRules: rulesStore.useChatRules,
-                    conversation: conversation,
-                    onSend: {
-                        stickToBottom = true
-                        viewModel.send()
+                    if conversation.sortedMessages.isEmpty {
+                        WelcomeOverlay()
                     }
-                )
+                }
+
+                if !isHistoryDrawerOpen {
+                    ChatComposerHost(
+                        viewModel: viewModel,
+                        skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
+                        hasChatRules: !conversation.systemPrompt
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty,
+                        canUseChatRules: rulesStore.useChatRules,
+                        conversation: conversation,
+                        onSend: {
+                            stickToBottom = true
+                            viewModel.send()
+                        }
+                    )
+                }
             }
         }
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Haptics.light()
+                    onShowHistory?()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .accessibilityLabel("Chat history")
+            }
+
             ToolbarItem(placement: .principal) {
                 if let viewModel {
                     Button {
@@ -142,6 +163,24 @@ struct ChatView: View {
             }
         }
         .animation(Theme.springFast, value: viewModel?.compactStatusMessage)
+        .fullScreenCover(item: Binding(
+            get: { viewModel?.editingMessage },
+            set: { if $0 == nil { viewModel?.cancelEditing() } }
+        )) { message in
+            if let viewModel {
+                EditMessageView(
+                    message: message,
+                    supportsVision: viewModel.supportsVision,
+                    modelDisplayName: viewModel.currentModel?.displayName,
+                    onCancel: {
+                        viewModel.cancelEditing()
+                    },
+                    onSave: { newText, attachments in
+                        viewModel.saveEdit(message, newText: newText, attachments: attachments)
+                    }
+                )
+            }
+        }
         .task(id: conversation.id) {
             if viewModel == nil {
                 viewModel = ChatViewModel(
@@ -155,6 +194,15 @@ struct ChatView: View {
                     skillsStore: skillsStore
                 )
             }
+        }
+        .onChange(of: viewModel?.composerText) { _, _ in
+            viewModel?.persistComposerState()
+        }
+        .onChange(of: viewModel?.pendingAttachments) { _, _ in
+            viewModel?.persistComposerState()
+        }
+        .onChange(of: viewModel?.selectedWebSearchProvider) { _, _ in
+            viewModel?.persistComposerState()
         }
     }
 }
@@ -230,6 +278,7 @@ private struct ChatMessageListView: View {
                         let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
+                            conversation: conversation,
                             providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
                             providerSymbol: messageProvider?.symbolName ?? "sparkles",
                             providerLogoAssetName: messageProvider?.logoAssetName,
@@ -258,18 +307,19 @@ private struct ChatMessageListView: View {
                             onSkillProposalSaved: {
                                 viewModel.clearSkillProposalAfterReview(for: message.id)
                             },
+                            pendingRuleProposals: viewModel.pendingRuleProposalsByMessageID[message.id] ?? [],
+                            ruleActionStatus: viewModel.ruleActionStatusByMessageID[message.id],
+                            onDismissRuleProposals: {
+                                viewModel.dismissRuleProposals(for: message.id)
+                            },
+                            onRuleProposalSaved: { proposalID in
+                                viewModel.clearRuleProposalAfterReview(for: message.id, proposalID: proposalID)
+                            },
                             isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply,
-                            isEditing: viewModel.editingMessageID == message.id,
                             canEdit: !viewModel.isStreaming,
                             onBeginEdit: {
                                 viewModel.beginEditing(message)
-                            },
-                            onCancelEdit: {
-                                viewModel.cancelEditing()
-                            },
-                            onSaveEdit: { newText in
-                                viewModel.saveEdit(message, newText: newText)
                             }
                         )
                         .id(message.id)
@@ -468,6 +518,12 @@ private struct CompactStatusToast: View {
             .padding(.vertical, 8)
             .background(.ultraThinMaterial, in: Capsule())
             .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+    }
+}
+
+private struct WelcomeOverlay: View {
+    var body: some View {
+        OpenChatLogoView(size: 72)
     }
 }
 

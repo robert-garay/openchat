@@ -13,7 +13,7 @@ struct MarkdownMessageView: View, Equatable {
     var body: some View {
         let blocks = MarkdownContentParser.blocks(from: content)
         let groups = groupedBlocks(blocks)
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Theme.markdownGroupSpacing) {
             ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
                 groupView(group)
             }
@@ -120,7 +120,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         let mutable = NSMutableAttributedString()
         for (index, block) in blocks.enumerated() {
             if index > 0 {
-                mutable.append(NSAttributedString(string: "\n"))
+                mutable.append(paragraphSeparator(after: mutable))
             }
             let isFirst = index == 0
             let isLast = index == blocks.count - 1
@@ -156,8 +156,8 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyInlinePresentationIntents(to: mutable)
             applyParagraphSpacing(
                 mutable,
-                before: isFirstBlock ? 0 : (level == 1 ? 4 : 2),
-                after: isLastBlock ? 0 : 10
+                before: isFirstBlock ? 0 : (level == 1 ? Theme.markdownHeadingTopSpacing + 2 : Theme.markdownHeadingTopSpacing),
+                after: isLastBlock ? 0 : Theme.markdownBlockSpacing
             )
             return mutable
 
@@ -167,17 +167,17 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyForegroundColor(mutable, color: isUserMessage ? .white : .label)
             applyFont(mutable, font: .preferredFont(forTextStyle: .body))
             applyInlinePresentationIntents(to: mutable)
-            applyParagraphSpacing(mutable, before: 0, after: isLastBlock ? 0 : 10)
+            applyParagraphSpacing(mutable, before: 0, after: isLastBlock ? 0 : Theme.markdownBlockSpacing)
             return mutable
 
         case .unorderedList(let items):
             let result = NSMutableAttributedString()
             for (index, item) in items.enumerated() {
                 if index > 0 {
-                    result.append(NSAttributedString(string: "\n"))
+                    result.append(paragraphSeparator(after: result))
                 }
                 let isLastItem = index == items.count - 1
-                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
+                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : Theme.markdownBlockSpacing) : Theme.markdownListItemSpacing
                 let bullet = NSAttributedString(string: "• ", attributes: [
                     .font: UIFont.preferredFont(forTextStyle: .body),
                     .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
@@ -197,10 +197,10 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             let result = NSMutableAttributedString()
             for (index, item) in items.enumerated() {
                 if index > 0 {
-                    result.append(NSAttributedString(string: "\n"))
+                    result.append(paragraphSeparator(after: result))
                 }
                 let isLastItem = index == items.count - 1
-                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
+                let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : Theme.markdownBlockSpacing) : Theme.markdownListItemSpacing
                 let number = NSAttributedString(string: "\(index + 1). ", attributes: [
                     .font: UIFont.preferredFont(forTextStyle: .body),
                     .foregroundColor: isUserMessage ? UIColor.white.withAlphaComponent(0.85) : UIColor.secondaryLabel,
@@ -224,8 +224,8 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             applyInlinePresentationIntents(to: mutable)
             applyParagraphSpacing(
                 mutable,
-                before: isFirstBlock ? 0 : 2,
-                after: isLastBlock ? 0 : 10
+                before: isFirstBlock ? 0 : Theme.markdownHeadingTopSpacing,
+                after: isLastBlock ? 0 : Theme.markdownBlockSpacing
             )
             return mutable
 
@@ -244,6 +244,21 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         let fullRange = NSRange(location: 0, length: mutable.length)
         guard fullRange.length > 0 else { return }
         mutable.addAttribute(.font, value: font, range: fullRange)
+    }
+
+    /// A "\n" carrying the paragraph style of the text it follows.
+    ///
+    /// TextKit reads a paragraph's spacing from the style attached to its
+    /// trailing newline. A bare, unstyled "\n" resets that to zero spacing,
+    /// which is why headings/list items rendered flush against the prior
+    /// line instead of respecting `applyParagraphSpacing`'s `after` value.
+    private func paragraphSeparator(after attributed: NSAttributedString) -> NSAttributedString {
+        let separator = NSMutableAttributedString(string: "\n")
+        if attributed.length > 0,
+           let style = attributed.attribute(.paragraphStyle, at: attributed.length - 1, effectiveRange: nil) {
+            separator.addAttribute(.paragraphStyle, value: style, range: NSRange(location: 0, length: 1))
+        }
+        return separator
     }
 
     private func applyParagraphSpacing(_ mutable: NSMutableAttributedString, before: CGFloat, after: CGFloat) {

@@ -19,6 +19,8 @@ final class ChatViewModel {
     private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
     private(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
     private(set) var skillActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    private(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -85,10 +87,46 @@ final class ChatViewModel {
         self.memoryStore = memoryStore
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
+        restoreComposerState()
+    }
+
+    private func restoreComposerState() {
+        composerText = conversation.draftMessage
+        pendingAttachments = conversation.draftAttachments
+
+        if let raw = conversation.lastUsedWebSearchProviderID,
+           let kind = WebSearchProviderKind(rawValue: raw),
+           webSearchStore.hasAPIKey(for: kind) {
+            webSearchStore.setActiveProvider(kind)
+            webSearchStore.setEnabled(true)
+            isWebSearchEnabledForChat = true
+        }
+    }
+
+    private var persistTask: Task<Void, Never>?
+
+    func persistComposerState() {
+        conversation.draftMessage = composerText
+        conversation.draftAttachments = pendingAttachments
+        conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
+
+        persistTask?.cancel()
+        persistTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, !Task.isCancelled else { return }
+            try? modelContext.save()
+        }
     }
 
     private var shouldUseMemory: Bool {
         MemoryStore.shouldUseMemory(isTemporary: conversation.isTemporary, useInChats: memoryStore.useInChats)
+    }
+
+    private var shouldAllowRuleProposals: Bool {
+        RulesStore.shouldAllowRuleProposals(
+            isTemporary: conversation.isTemporary,
+            allowProposalsFromChat: rulesStore.allowProposalsFromChat
+        )
     }
 
     /// Search will run on the next send: chat toggle on + configured active provider ready.
@@ -121,9 +159,9 @@ final class ChatViewModel {
         webSearchStore.configuredProviders
     }
 
-    /// True when at least one search provider has a key (menu can open).
+    /// True when web search is enabled in Settings and at least one provider has a key.
     var canUseWebSearch: Bool {
-        webSearchStore.hasAnyAPIKey
+        webSearchStore.isEnabled && webSearchStore.hasAnyAPIKey
     }
 
     func selectWebSearchProvider(_ kind: WebSearchProviderKind) {
@@ -367,6 +405,27 @@ final class ChatViewModel {
         Haptics.light()
     }
 
+    /// Clears a pending rule proposal after the user saved it via the review sheet
+    /// (RuleReviewSheet performs the actual save; this only clears the bookkeeping).
+    /// Removes only the reviewed proposal — any remaining proposals for this message stay pending.
+    func clearRuleProposalAfterReview(for messageID: UUID, proposalID: UUID) {
+        guard var proposals = pendingRuleProposalsByMessageID[messageID] else { return }
+        proposals.removeAll { $0.id == proposalID }
+        if proposals.isEmpty {
+            pendingRuleProposalsByMessageID[messageID] = nil
+            ruleActionStatusByMessageID[messageID] = "Rule saved."
+        } else {
+            pendingRuleProposalsByMessageID[messageID] = proposals
+        }
+        Haptics.success()
+    }
+
+    func dismissRuleProposals(for messageID: UUID) {
+        pendingRuleProposalsByMessageID[messageID] = nil
+        ruleActionStatusByMessageID[messageID] = "Rule discarded."
+        Haptics.light()
+    }
+
     func send() {
         let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
@@ -390,6 +449,9 @@ final class ChatViewModel {
         composerText = ""
         pendingAttachments = []
         pendingDocumentAttachments = []
+        conversation.draftMessage = ""
+        conversation.draftAttachments = []
+        conversation.lastUsedWebSearchProviderID = nil
 
         // Explicit /slash-name invocation pins its instructions into the conversation
         // immediately, synchronously, before the user's message — same-turn, same as
@@ -473,6 +535,12 @@ final class ChatViewModel {
         requestAssistantReply()
     }
 
+    /// The message being edited, for the edit screen's `fullScreenCover(item:)`.
+    var editingMessage: ChatMessage? {
+        guard let editingMessageID else { return nil }
+        return conversation.messages.first { $0.id == editingMessageID }
+    }
+
     func beginEditing(_ message: ChatMessage) {
         guard !isStreaming, message.role == .user else { return }
         editingMessageID = message.id
@@ -482,15 +550,26 @@ final class ChatViewModel {
         editingMessageID = nil
     }
 
-    func saveEdit(_ message: ChatMessage, newText: String) {
-        guard editingMessageID == message.id, !isStreaming else { return }
+    /// Applies an edit and regenerates from it. Returns `false` without mutating
+    /// anything when a guard rejects the edit, so the edit screen can stay up
+    /// with the user's text intact rather than silently discarding it.
+    @discardableResult
+    func saveEdit(_ message: ChatMessage, newText: String, attachments: [ChatImageAttachment]) -> Bool {
+        guard editingMessageID == message.id, !isStreaming else { return false }
         let trimmed = newText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty || !message.imageAttachments.isEmpty || !message.documentAttachments.isEmpty else { return }
-        guard let provider = currentProvider, currentModel != nil else { return }
+        guard !trimmed.isEmpty || !attachments.isEmpty || !message.documentAttachments.isEmpty else { return false }
+        guard let provider = currentProvider, currentModel != nil else { return false }
         let apiKey = providerStore.apiKey(for: provider)
-        guard !provider.requiresAPIKey || apiKey != nil else { return }
+        guard !provider.requiresAPIKey || apiKey != nil else { return false }
+
+        // Mirrors send(): the model can be switched after the edit screen opens.
+        if !attachments.isEmpty, !supportsVision {
+            capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
+            return false
+        }
 
         message.content = trimmed
+        message.imageAttachments = attachments
 
         let trailingMessages = conversation.messages(after: message)
         let trailingIDs = Set(trailingMessages.map(\.id))
@@ -509,6 +588,7 @@ final class ChatViewModel {
         editingMessageID = nil
 
         requestAssistantReply()
+        return true
     }
 
     func cancelStreaming() {
@@ -572,6 +652,10 @@ final class ChatViewModel {
                         middleSections.append(memorySection)
                     }
                     middleSections.append(MemoryStore.modelInstruction())
+                }
+
+                if shouldAllowRuleProposals {
+                    middleSections.append(RulesStore.modelInstruction())
                 }
 
                 if let skillIndex, !skillIndex.isEmpty {
@@ -670,6 +754,11 @@ final class ChatViewModel {
                     }
                 }
 
+                // Coalesce deltas so we don't mutate SwiftData / redraw the message view on every token.
+                var contentBuffer = ""
+                var lastFlush = ContinuousClock().now
+                let flushInterval: Duration = .milliseconds(80)
+
                 for try await event in client.streamReply(
                     turns: turns,
                     model: modelID,
@@ -681,16 +770,29 @@ final class ChatViewModel {
                 ) {
                     switch event {
                     case .text(let delta):
-                        assistantMessage.content += delta
+                        contentBuffer += delta
+                        let now = ContinuousClock().now
+                        if now >= lastFlush + flushInterval {
+                            assistantMessage.content += contentBuffer
+                            contentBuffer = ""
+                            lastFlush = now
+                        }
                     case .images(let images):
                         var existing = assistantMessage.imageAttachments
                         existing.append(contentsOf: images)
                         assistantMessage.imageAttachments = existing
                     }
                 }
+
+                // Flush any remaining buffered content.
+                if !contentBuffer.isEmpty {
+                    assistantMessage.content += contentBuffer
+                }
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
+                captureRuleProposals(from: assistantMessage)
                 let invokedSkills = await skillCollector.invokedSkills
                 for skill in invokedSkills {
                     insertSkillSystemMessage(for: skill)
@@ -699,8 +801,10 @@ final class ChatViewModel {
                 captureSkillProposals(skillProposals, messageID: assistantMessage.id)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
             } catch {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
@@ -740,6 +844,38 @@ final class ChatViewModel {
         if saved > 0 {
             try? modelContext.save()
             memoryActionStatusByMessageID[messageID] = "Memory updated."
+        }
+    }
+
+    private func captureRuleProposals(from message: ChatMessage) {
+        guard shouldAllowRuleProposals else { return }
+        let proposals = RuleActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        if rulesStore.requireConfirmation {
+            pendingRuleProposalsByMessageID[message.id] = proposals
+        } else {
+            saveRuleProposals(proposals, messageID: message.id)
+        }
+    }
+
+    private func saveRuleProposals(_ proposals: [RuleProposal], messageID: UUID) {
+        var saved = 0
+        for proposal in proposals {
+            do {
+                _ = try rulesStore.save(
+                    content: proposal.content,
+                    modelContext: modelContext,
+                    conversation: proposal.scope == .global ? nil : conversation
+                )
+                saved += 1
+            } catch {
+                ruleActionStatusByMessageID[messageID] = error.localizedDescription
+                return
+            }
+        }
+        if saved > 0 {
+            try? modelContext.save()
+            ruleActionStatusByMessageID[messageID] = "Rule saved."
         }
     }
 

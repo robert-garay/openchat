@@ -16,7 +16,6 @@ struct ProviderLogoView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: size, height: size)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(tint.opacity(0.12))
@@ -38,9 +37,10 @@ enum ProviderLogo {
         guard let id else { return nil }
         switch id {
         case "deepseek": return "ProviderLogoDeepSeek"
+        case "mistral": return "ProviderLogoMistral"
         case "qwen": return "ProviderLogoAlibabaCloud"
         case "moonshot": return "ProviderLogoMoonshot"
-        case "zhipu": return "ProviderLogoZhipu"
+        case "zhipu": return "ProviderLogoZai"
         case "yi": return "ProviderLogoYi"
         case "openai": return "ProviderLogoOpenAI"
         case "anthropic": return "ProviderLogoAnthropic"

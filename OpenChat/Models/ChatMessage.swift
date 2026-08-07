@@ -17,6 +17,8 @@ final class ChatMessage {
     var createdAt: Date
     var isStreaming: Bool
     var errorMessage: String?
+    /// Timestamp when streaming finished. Nil for user/system turns or in-progress assistant turns.
+    var completedAt: Date?
     /// Provider that generated this assistant turn. Nil for user/system or legacy rows.
     var providerID: String?
     /// Model that generated this assistant turn. Nil for user/system or legacy rows.
@@ -30,6 +32,12 @@ final class ChatMessage {
     var role: MessageRole {
         get { MessageRole(rawValue: roleRaw) ?? .user }
         set { roleRaw = newValue.rawValue }
+    }
+
+    /// Elapsed time between `createdAt` and `completedAt`, in seconds. Nil until the turn finishes.
+    var responseTimeSeconds: Double? {
+        guard let completedAt else { return nil }
+        return completedAt.timeIntervalSince(createdAt)
     }
 
     var imageAttachments: [ChatImageAttachment] {

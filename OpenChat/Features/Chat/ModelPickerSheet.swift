@@ -28,7 +28,7 @@ struct ModelPickerSheet: View {
 
             if provider.id == "openrouter" {
                 // Searching the provider name should surface that provider's full catalog.
-                let query = matchesProviderName(provider.name, query: trimmed) ? "" : searchText
+                let query = FuzzyMatcher.matches(query: trimmed, fields: [provider.name]) ? "" : searchText
                 let models = OpenRouterModelCatalog.filtered(
                     models: providerStore.openRouterModels,
                     query: query,
@@ -136,10 +136,6 @@ struct ModelPickerSheet: View {
                             modelRow(item)
                         }
                     }
-                } footer: {
-                    if !allResults.isEmpty {
-                        Text("\(allResults.count) models")
-                    }
                 }
             }
             .listStyle(.plain)
@@ -163,17 +159,12 @@ struct ModelPickerSheet: View {
 
     private func matchesFilters(model: AIModel, providerName: String, query: String) -> Bool {
         let matchesText = query.isEmpty
-            || model.id.localizedCaseInsensitiveContains(query)
-            || model.displayName.localizedCaseInsensitiveContains(query)
-            || (model.subtitle?.localizedCaseInsensitiveContains(query) ?? false)
-            || matchesProviderName(providerName, query: query)
+            || FuzzyMatcher.matches(
+                query: query,
+                fields: [model.id, model.displayName, model.subtitle ?? "", providerName]
+            )
         let matchesCapabilities = ModelCapability.matches(model.capabilities, filters: selectedCapabilities)
         return matchesText && matchesCapabilities
-    }
-
-    private func matchesProviderName(_ name: String, query: String) -> Bool {
-        guard query.count >= 2 else { return false }
-        return name.localizedCaseInsensitiveContains(query)
     }
 
     @ViewBuilder

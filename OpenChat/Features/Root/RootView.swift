@@ -7,11 +7,11 @@ struct RootView: View {
     @Query(sort: \Conversation.updatedAt, order: .reverse) private var conversations: [Conversation]
 
     @State private var selectedConversationID: UUID?
-    @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
     @State private var showingSettings = false
+    @State private var showingHistoryDrawer = false
 
     /// Sidebar history: never temporary, never empty (no user messages).
-    /// Keep the currently selected empty chat visible so List selection stays stable.
+    /// Keep the currently selected empty chat visible so the selection stays stable.
     /// Pinned chats stay above unpinned, each group by recency.
     private var listConversations: [Conversation] {
         conversations
@@ -31,52 +31,19 @@ struct RootView: View {
         conversations.first(where: { $0.id == selectedConversationID })
     }
 
-    /// Ignores List clearing selection when the active chat isn’t in sidebar data
-    /// (temporary chats, or empty chats mid-transition).
-    private var listSelection: Binding<UUID?> {
-        Binding(
-            get: { selectedConversationID },
-            set: { newValue in
-                if newValue == nil,
-                   let current = selectedConversationID,
-                   conversations.contains(where: { $0.id == current }),
-                   !listConversations.contains(where: { $0.id == current }) {
-                    return
-                }
-                selectedConversationID = newValue
-            }
-        )
-    }
-
     var body: some View {
         Group {
             if providerStore.enabledProviders.isEmpty {
                 WelcomeView()
             } else {
-                NavigationSplitView(columnVisibility: $columnVisibility) {
-                    ConversationListView(
-                        conversations: listConversations,
-                        selectedConversationID: listSelection,
-                        onNewChat: { startNewChat(temporary: false) },
-                        onShowSettings: { showingSettings = true }
-                    )
-                } detail: {
-                    if let conversation = selectedConversation {
-                        ChatView(
-                            conversation: conversation,
-                            onToggleTemporary: { toggleTemporary(for: conversation) }
-                        )
-                        .id(conversation.id)
-                    } else {
-                        EmptyChatDetailView(onNewChat: { startNewChat(temporary: false) })
-                    }
-                }
+                mainContent
             }
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
         .onAppear {
+            guard !providerStore.enabledProviders.isEmpty else { return }
             discardOrphanedEphemeralChats()
             providerStore.seedModelUsageFromConversationsIfNeeded(
                 conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
@@ -90,13 +57,83 @@ struct RootView: View {
                     modelID: recent.modelID
                 )
             }
+            if selectedConversationID == nil {
+                startNewChat(temporary: false)
+            }
         }
         .onChange(of: selectedConversationID) { previousID, _ in
             discardEphemeralChat(id: previousID)
         }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
-            if isEmpty { selectedConversationID = nil }
+            if isEmpty {
+                selectedConversationID = nil
+                showingHistoryDrawer = false
+            }
         }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        NavigationStack {
+            ZStack {
+                if let conversation = selectedConversation {
+                    ChatView(
+                        conversation: conversation,
+                        onToggleTemporary: { toggleTemporary(for: conversation) },
+                        onShowHistory: { showingHistoryDrawer.toggle() },
+                        isHistoryDrawerOpen: showingHistoryDrawer
+                    )
+                    .id(conversation.id)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = value.translation.height
+                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showingHistoryDrawer = true
+                                    }
+                                }
+                            }
+                    )
+                } else {
+                    // Stable placeholder while the first chat is created.
+                    ProgressView()
+                        .controlSize(.large)
+                }
+
+                if showingHistoryDrawer {
+                    drawerOverlay
+                }
+            }
+        }
+    }
+
+    private var drawerOverlay: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        showingHistoryDrawer = false
+                    }
+                    .transition(.opacity)
+
+                ChatHistoryDrawerView(
+                    conversations: listConversations,
+                    selectedConversationID: $selectedConversationID,
+                    onNewChat: { startNewChat(temporary: false) },
+                    onClose: { showingHistoryDrawer = false },
+                    onShowSettings: { showingSettings = true }
+                )
+                .frame(width: min(geometry.size.width * 0.85, 360))
+                .background(.background)
+                .shadow(color: .black.opacity(0.2), radius: 8, x: 4, y: 0)
+                .transition(.move(edge: .leading))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
     }
 
     private func startNewChat(temporary: Bool, preferring source: Conversation? = nil) {
@@ -123,11 +160,10 @@ struct RootView: View {
         )
         modelContext.insert(conversation)
         selectedConversationID = conversation.id
-        columnVisibility = .detailOnly
     }
 
     private func toggleTemporary(for conversation: Conversation) {
-        // Flip in place — recreating a chat races List selection / ephemeral
+        // Flip in place — recreating a chat races selection / ephemeral
         // discard and often eats the first tap.
         conversation.toggleTemporaryMode()
     }
@@ -145,21 +181,6 @@ struct RootView: View {
             if conversation.isTemporary || !conversation.hasUserMessages {
                 modelContext.delete(conversation)
             }
-        }
-    }
-}
-
-private struct EmptyChatDetailView: View {
-    let onNewChat: () -> Void
-
-    var body: some View {
-        ContentUnavailableView {
-            Label("No Chat Selected", systemImage: "bubble.left.and.bubble.right")
-        } description: {
-            Text("Pick a conversation, or start a new one.")
-        } actions: {
-            Button("New Chat", action: onNewChat)
-                .buttonStyle(.borderedProminent)
         }
     }
 }
