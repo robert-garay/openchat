@@ -80,7 +80,8 @@ struct RootView: View {
                     ChatView(
                         conversation: conversation,
                         onToggleTemporary: { toggleTemporary(for: conversation) },
-                        onShowHistory: { toggleHistoryDrawer() }
+                        onShowHistory: { toggleHistoryDrawer() },
+                        isHistoryDrawerOpen: showingHistoryDrawer
                     )
                     .id(conversation.id)
                     .simultaneousGesture(
