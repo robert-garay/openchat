@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		00AC8B0D500AF62EB674FD3E /* ComposerTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2AF4F55AFA1992CFFDAA5A /* ComposerTextView.swift */; };
-		3B4D9F2D3AAD413890398E15 /* SkillsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FF91C8062846DFA1F85021 /* SkillsStore.swift */; };
-		F9EAAEBFA2334821851A6291 /* SkillToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */; };
 		03C73E93BA6EF5F268205973 /* RulesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A042DB0EEA4500DD5C09F3C3 /* RulesStoreTests.swift */; };
 		0567563958B93427B534AE05 /* MemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */; };
 		070822C35B99FB130C2A81BD /* SkillEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E72FD85D74B168B65225CC /* SkillEditorView.swift */; };
@@ -49,6 +47,7 @@
 		40561DBFFF62BF8BCB1B2649 /* WebSearchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C3A8E2A36B3BE2D0ED99C3 /* WebSearchStore.swift */; };
 		407459942BB263BEEEFB02F6 /* ImagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4B65EB10BF80F18249F7B9 /* ImagePreviewView.swift */; };
 		416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */; };
+		41AE54096BF4EC15A5FC64FB /* SkillsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3EAB9F6FED35ED8294CFC48 /* SkillsStore.swift */; };
 		4280F4C8BBA345EE2CA157A9 /* MemorySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E9ED4DCFD6273748937FE8 /* MemorySettingsView.swift */; };
 		42BF265CE3F9CA656D200940 /* ModelCapabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BA588DEFC44B3FF011184B /* ModelCapabilityTests.swift */; };
 		44D422EC5A53523EB4624F35 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031CE6B165039967ACAE5CC7 /* ChatRequestHistory.swift */; };
@@ -73,8 +72,10 @@
 		68FC5BE673CD1693B2B880E4 /* GhostIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C10CF67F7746EB18A4AB68 /* GhostIcon.swift */; };
 		6A2E36A2686F94E3015A90D2 /* CalendarActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7EBB374CCCA1074ECEAF1D /* CalendarActionParser.swift */; };
 		6B98CE2DF1DAD66D158901F2 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701D582B715E1A1CE50EEBF8 /* SerpAPIClient.swift */; };
+		6BAB533F2FE3DAC4F2131FA5 /* SkillToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */; };
 		6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */; };
 		6C8A1E116FC67511BAA57265 /* OpenRouterModelsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC4732631B2C5F041942EF5 /* OpenRouterModelsClient.swift */; };
+		6D76E9D70EA7EDF9982AC8B9 /* StreamingToolLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D007FC412BDCB9164328E99 /* StreamingToolLoopTests.swift */; };
 		6EB8A63C45BE513B792F4E68 /* AgentDataSourcePermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3432E3B59D9CD35605D465A9 /* AgentDataSourcePermissionService.swift */; };
 		769CFBBCD9C98B17EDF59F02 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */; };
 		7DF61A34C15F495811360773 /* AgentDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D348B817101C72DCC52C7AC /* AgentDataSource.swift */; };
@@ -142,8 +143,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		F6FF91C8062846DFA1F85021 /* SkillsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsStore.swift; sourceTree = "<group>"; };
-		83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillToolService.swift; sourceTree = "<group>"; };
 		001515E7D612955EE697BC2B /* CalendarContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarContextReader.swift; sourceTree = "<group>"; };
 		0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationEditMessageTests.swift; sourceTree = "<group>"; };
 		01E9ED4DCFD6273748937FE8 /* MemorySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySettingsView.swift; sourceTree = "<group>"; };
@@ -209,6 +208,7 @@
 		7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryActionParser.swift; sourceTree = "<group>"; };
 		7C9B6AAA9BC37A9E45671DFA /* ChatTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTool.swift; sourceTree = "<group>"; };
 		7CFB22E5DAA02F87C7556EF5 /* FitnessHealthDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessHealthDataTypes.swift; sourceTree = "<group>"; };
+		81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillToolService.swift; sourceTree = "<group>"; };
 		8278B52A14134A4DE0197F82 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		8324D4B71773C6D4157CBDAB /* ChatRulesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRulesSheet.swift; sourceTree = "<group>"; };
 		8349AA13A5CE82E605DED785 /* OpenChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OpenChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -220,6 +220,7 @@
 		99BA588DEFC44B3FF011184B /* ModelCapabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapabilityTests.swift; sourceTree = "<group>"; };
 		9BD94C32159B334893A22A33 /* MemoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStoreTests.swift; sourceTree = "<group>"; };
 		9C6A5D712E306A3D68A35592 /* ProviderStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStoreTests.swift; sourceTree = "<group>"; };
+		9D007FC412BDCB9164328E99 /* StreamingToolLoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingToolLoopTests.swift; sourceTree = "<group>"; };
 		A042DB0EEA4500DD5C09F3C3 /* RulesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesStoreTests.swift; sourceTree = "<group>"; };
 		A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerSentEventStream.swift; sourceTree = "<group>"; };
 		A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillResolverTests.swift; sourceTree = "<group>"; };
@@ -253,6 +254,7 @@
 		CF8C62A530E28AA5201464D5 /* AgentDataSourceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStoreTests.swift; sourceTree = "<group>"; };
 		D14F0680AC3183CE199CC8CE /* MemoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryItem.swift; sourceTree = "<group>"; };
 		D1D9831D482AEBA043B318B1 /* MultimodalRequestEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultimodalRequestEncoder.swift; sourceTree = "<group>"; };
+		D3EAB9F6FED35ED8294CFC48 /* SkillsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsStore.swift; sourceTree = "<group>"; };
 		D480041058C1DB91573B3419 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		D4CA638DF58495014701067D /* RuleItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleItem.swift; sourceTree = "<group>"; };
 		D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapability.swift; sourceTree = "<group>"; };
@@ -415,8 +417,8 @@
 				AA243D85F91C1806E98CD232 /* SerperClient.swift */,
 				A159AB682A26EF46A0900D9D /* ServerSentEventStream.swift */,
 				1B0A810AD421E91E40BB0B4F /* SkillResolver.swift */,
-				F6FF91C8062846DFA1F85021 /* SkillsStore.swift */,
-				83B9A5B2C72A48E58D231E36 /* SkillToolService.swift */,
+				D3EAB9F6FED35ED8294CFC48 /* SkillsStore.swift */,
+				81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */,
 				E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */,
 				5511B19A73D8EA300E939F07 /* WebSearchService.swift */,
 				C3C3A8E2A36B3BE2D0ED99C3 /* WebSearchStore.swift */,
@@ -539,6 +541,7 @@
 				A042DB0EEA4500DD5C09F3C3 /* RulesStoreTests.swift */,
 				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
 				A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */,
+				9D007FC412BDCB9164328E99 /* StreamingToolLoopTests.swift */,
 				D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */,
 			);
 			path = OpenChatTests;
@@ -726,9 +729,9 @@
 				070822C35B99FB130C2A81BD /* SkillEditorView.swift in Sources */,
 				16DDB874A737E57AEEE32F31 /* SkillPickerDropdown.swift in Sources */,
 				668CBCEE1FF90906B77F7C4D /* SkillResolver.swift in Sources */,
+				6BAB533F2FE3DAC4F2131FA5 /* SkillToolService.swift in Sources */,
 				AA12B6FA7EA44E0F7B71B9F7 /* SkillsSettingsView.swift in Sources */,
-				3B4D9F2D3AAD413890398E15 /* SkillsStore.swift in Sources */,
-				F9EAAEBFA2334821851A6291 /* SkillToolService.swift in Sources */,
+				41AE54096BF4EC15A5FC64FB /* SkillsStore.swift in Sources */,
 				C0F6A6DE9AF73452136885C7 /* TavilyClient.swift in Sources */,
 				1987538DE3A97D37CB88E6EE /* Theme.swift in Sources */,
 				5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */,
@@ -771,6 +774,7 @@
 				03C73E93BA6EF5F268205973 /* RulesStoreTests.swift in Sources */,
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */,
+				6D76E9D70EA7EDF9982AC8B9 /* StreamingToolLoopTests.swift in Sources */,
 				B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
