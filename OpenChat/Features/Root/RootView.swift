@@ -109,21 +109,19 @@ struct RootView: View {
     }
 
     private var drawerOverlay: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                ChatHistoryDrawerView(
-                    conversations: listConversations,
-                    selectedConversationID: $selectedConversationID,
-                    onNewChat: { startNewChat(temporary: false) },
-                    onClose: { showingHistoryDrawer = false },
-                    onShowSettings: { showingSettings = true }
-                )
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .leading)
-                .background(.background)
-                .transition(.move(edge: .leading))
-            }
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+
+            ChatHistoryDrawerView(
+                conversations: listConversations,
+                selectedConversationID: $selectedConversationID,
+                onNewChat: { startNewChat(temporary: false) },
+                onClose: { showingHistoryDrawer = false },
+                onShowSettings: { showingSettings = true }
+            )
+            .transition(.move(edge: .leading))
         }
-        .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
     }
 
