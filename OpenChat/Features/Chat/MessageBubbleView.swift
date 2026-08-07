@@ -32,6 +32,7 @@ struct MessageBubbleView: View {
 
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
+    @State private var previewDocument: ChatDocumentAttachment?
     @State private var showingTextSelection = false
     @State private var shareAttachment: ChatImageAttachment?
     #endif
@@ -55,6 +56,9 @@ struct MessageBubbleView: View {
                 ImagePreviewView(image: uiImage)
             }
         }
+        .fullScreenCover(item: $previewDocument) { attachment in
+            DocumentPreviewView(attachment: attachment)
+        }
         .sheet(isPresented: $showingTextSelection) {
             TextSelectionSheet(text: displayContent)
         }
@@ -72,6 +76,9 @@ struct MessageBubbleView: View {
             VStack(alignment: .trailing, spacing: 8) {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .trailing)
+                }
+                if !message.documentAttachments.isEmpty {
+                    documentChipRow(message.documentAttachments, alignment: .trailing)
                 }
                 if isEditing {
                     editingBubble
@@ -149,7 +156,11 @@ struct MessageBubbleView: View {
                     onSaveEdit?(draftText)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && message.imageAttachments.isEmpty)
+                .disabled(
+                    draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        && message.imageAttachments.isEmpty
+                        && message.documentAttachments.isEmpty
+                )
             }
         }
     }
@@ -166,6 +177,9 @@ struct MessageBubbleView: View {
             VStack(alignment: .leading, spacing: 8) {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .leading)
+                }
+                if !message.documentAttachments.isEmpty {
+                    documentChipRow(message.documentAttachments, alignment: .leading)
                 }
 
                 if message.content.isEmpty && message.isStreaming && message.imageAttachments.isEmpty {
@@ -365,6 +379,36 @@ struct MessageBubbleView: View {
                     }
                 }
                 #endif
+            }
+        }
+    }
+
+    private func documentChipRow(_ attachments: [ChatDocumentAttachment], alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 6) {
+            ForEach(attachments) { attachment in
+                Button {
+                    Haptics.light()
+                    #if canImport(UIKit)
+                    previewDocument = attachment
+                    #endif
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "doc.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                        Text(attachment.filename)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundStyle(Color.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Preview document \(attachment.filename)")
+                .accessibilityHint("Opens document preview")
             }
         }
     }
