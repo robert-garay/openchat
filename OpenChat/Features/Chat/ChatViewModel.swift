@@ -8,6 +8,7 @@ final class ChatViewModel {
     private(set) var isStreaming = false
     var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
+    var pendingDocumentAttachments: [ChatDocumentAttachment] = []
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
@@ -28,12 +29,18 @@ final class ChatViewModel {
         var modelDisplayName: String
         var clearsPendingAttachments: Bool
         var omitsThreadImages: Bool
+        var omitsThreadDocuments: Bool
 
         var message: String {
             var parts: [String] = []
             if omitsThreadImages {
                 parts.append(
                     "\(modelDisplayName) can’t process images. Photos already in this chat stay visible but won’t be sent until you switch back to a vision model."
+                )
+            }
+            if omitsThreadDocuments {
+                parts.append(
+                    "\(modelDisplayName) can’t process documents. Documents already in this chat stay visible but won’t be sent until you switch back to a file-capable model."
                 )
             }
             if clearsPendingAttachments {
@@ -151,6 +158,10 @@ final class ChatViewModel {
         currentModel?.supportsVision ?? false
     }
 
+    var supportsFiles: Bool {
+        currentModel?.supportsFiles ?? false
+    }
+
     func selectModel(providerID: String, modelID: String) {
         if providerID == conversation.providerID, modelID == conversation.modelID {
             return
@@ -158,19 +169,26 @@ final class ChatViewModel {
 
         let model = providerStore.model(providerID: providerID, modelID: modelID)
         let targetSupportsVision = model?.supportsVision == true
+        let targetSupportsFiles = model?.supportsFiles == true
         let hasThreadImages = conversation.messages.contains { !$0.imageAttachments.isEmpty }
-        let clearsPendingAttachments = !pendingAttachments.isEmpty && !targetSupportsVision
+        let hasThreadDocuments = conversation.messages.contains { !$0.documentAttachments.isEmpty }
+        let clearsPendingAttachments = (!pendingAttachments.isEmpty && !targetSupportsVision)
+            || (!pendingDocumentAttachments.isEmpty && !targetSupportsFiles)
         let leavingVision = currentModel?.supportsVision == true
+        let leavingFiles = currentModel?.supportsFiles == true
 
-        let needsConfirmation = !targetSupportsVision
-            && ((hasThreadImages && leavingVision) || clearsPendingAttachments)
+        let omitsThreadImages = !targetSupportsVision && hasThreadImages && leavingVision
+        let omitsThreadDocuments = !targetSupportsFiles && hasThreadDocuments && leavingFiles
+
+        let needsConfirmation = omitsThreadImages || omitsThreadDocuments || clearsPendingAttachments
         if needsConfirmation {
             pendingModelSwitch = PendingModelSwitch(
                 providerID: providerID,
                 modelID: modelID,
                 modelDisplayName: model?.displayName ?? "This model",
                 clearsPendingAttachments: clearsPendingAttachments,
-                omitsThreadImages: hasThreadImages
+                omitsThreadImages: omitsThreadImages,
+                omitsThreadDocuments: omitsThreadDocuments
             )
             return
         }
@@ -287,6 +305,7 @@ final class ChatViewModel {
         providerStore.recordModelUsage(providerID: providerID, modelID: modelID)
         if clearPendingAttachments {
             pendingAttachments = []
+            pendingDocumentAttachments = []
         }
     }
 
@@ -351,20 +370,26 @@ final class ChatViewModel {
     func send() {
         let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
-        guard (!rawText.isEmpty || !images.isEmpty), !isStreaming else { return }
+        let documents = pendingDocumentAttachments
+        guard (!rawText.isEmpty || !images.isEmpty || !documents.isEmpty), !isStreaming else { return }
 
         if !images.isEmpty, !supportsVision {
             capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
+            return
+        }
+        if !documents.isEmpty, !supportsFiles {
+            capabilityWarning = ChatServiceError.modelLacksFiles.errorDescription
             return
         }
 
         let skills = fetchSkillMatches()
         let resolution = SkillResolver.resolve(text: rawText, skills: skills)
         let text = resolution?.storedMessage ?? rawText
-        guard !text.isEmpty || !images.isEmpty else { return }
+        guard !text.isEmpty || !images.isEmpty || !documents.isEmpty else { return }
 
         composerText = ""
         pendingAttachments = []
+        pendingDocumentAttachments = []
 
         // Explicit /slash-name invocation pins its instructions into the conversation
         // immediately, synchronously, before the user's message — same-turn, same as
@@ -373,7 +398,7 @@ final class ChatViewModel {
             insertSkillSystemMessage(for: resolution.skill)
         }
 
-        let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images)
+        let userMessage = ChatMessage(role: .user, content: text, imageAttachments: images, documentAttachments: documents)
         userMessage.conversation = conversation
         conversation.messages.append(userMessage)
         modelContext.insert(userMessage)
@@ -460,7 +485,7 @@ final class ChatViewModel {
     func saveEdit(_ message: ChatMessage, newText: String) {
         guard editingMessageID == message.id, !isStreaming else { return }
         let trimmed = newText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty || !message.imageAttachments.isEmpty else { return }
+        guard !trimmed.isEmpty || !message.imageAttachments.isEmpty || !message.documentAttachments.isEmpty else { return }
         guard let provider = currentProvider, currentModel != nil else { return }
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
@@ -512,6 +537,7 @@ final class ChatViewModel {
         let modelID = model.id
         let supportsTools = model.supportsTools
         let supportsVision = model.supportsVision
+        let supportsFiles = model.supportsFiles
         let supportsImageGen = model.supportsImageGen
         let conversationSystemPrompt = conversation.systemPrompt
         let skillMatches = fetchSkillMatches()
@@ -522,6 +548,7 @@ final class ChatViewModel {
             compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
             compactedThroughMessageID: conversation.compactedThroughMessageID,
             includeImages: supportsVision,
+            includeDocuments: supportsFiles,
             excludingMessageID: assistantMessage.id
         )
         let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
