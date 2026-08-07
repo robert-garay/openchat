@@ -69,7 +69,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 apiKey: "k",
                 tools: tools,
                 executeTool: { _ in "unused" },
-                supportsImageGen: false
+                supportsImageGen: false,
+                effort: nil
             )
         )
 
@@ -101,7 +102,8 @@ final class StreamingToolLoopTests: XCTestCase {
                     await executed.record(call)
                     return "results"
                 },
-                supportsImageGen: false
+                supportsImageGen: false,
+                effort: nil
             )
         )
 
@@ -136,7 +138,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 apiKey: "k",
                 tools: tools,
                 executeTool: { _ in "unused" },
-                supportsImageGen: false
+                supportsImageGen: false,
+                effort: nil
             )
         )
 
@@ -170,7 +173,8 @@ final class StreamingToolLoopTests: XCTestCase {
                     await executed.record(call)
                     return "results"
                 },
-                supportsImageGen: false
+                supportsImageGen: false,
+                effort: nil
             )
         )
 
@@ -201,7 +205,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 apiKey: "k",
                 tools: tools,
                 executeTool: { _ in "results" },
-                supportsImageGen: false
+                supportsImageGen: false,
+                effort: nil
             )
         )
 
@@ -227,12 +232,20 @@ final class MockURLProtocol: URLProtocol {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var stubs: [Stub] = []
     nonisolated(unsafe) private static var count = 0
+    nonisolated(unsafe) private static var capturedRequestBody: Data?
 
     static func reset() {
         lock.lock()
         defer { lock.unlock() }
         stubs = []
         count = 0
+        capturedRequestBody = nil
+    }
+
+    static var lastRequestBody: Data? {
+        lock.lock()
+        defer { lock.unlock() }
+        return capturedRequestBody
     }
 
     static func enqueue(sse: String) {
@@ -264,6 +277,11 @@ final class MockURLProtocol: URLProtocol {
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        Self.lock.lock()
+        Self.capturedRequestBody = request.httpBody ?? request.httpBodyStream.flatMap {
+            $0.readToEnd(maxLength: 10_000_000)
+        }
+        Self.lock.unlock()
         guard let stub = Self.next() else {
             client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable))
             return
@@ -280,4 +298,28 @@ final class MockURLProtocol: URLProtocol {
     }
 
     override func stopLoading() {}
+}
+
+private extension InputStream {
+    func readToEnd(maxLength: Int) -> Data? {
+        open()
+        defer { close() }
+        var data = Data()
+        let bufferSize = 4096
+        var buffer = [UInt8](repeating: 0, count: bufferSize)
+        while hasBytesAvailable {
+            let read = self.read(&buffer, maxLength: bufferSize)
+            if read < 0 {
+                return nil
+            }
+            if read == 0 {
+                break
+            }
+            data.append(buffer, count: read)
+            if data.count > maxLength {
+                return nil
+            }
+        }
+        return data.isEmpty ? nil : data
+    }
 }

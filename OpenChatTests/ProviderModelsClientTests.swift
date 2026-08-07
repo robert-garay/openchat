@@ -19,7 +19,7 @@ final class ProviderModelsClientTests: XCTestCase {
         let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
         XCTAssertEqual(models.map(\.id), ["gpt-4o", "o4-mini", "deepseek-chat"])
         XCTAssertEqual(models[0].capabilities, [.vision, .tools])
-        XCTAssertEqual(models[1].capabilities, [.vision, .tools, .reasoning])
+        XCTAssertEqual(models[1].capabilities, [.vision, .tools, .reasoning, .effort])
         XCTAssertEqual(models[2].capabilities, [.tools])
     }
 

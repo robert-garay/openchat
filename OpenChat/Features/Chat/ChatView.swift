@@ -183,6 +183,9 @@ struct ChatView: View {
         .onChange(of: viewModel?.selectedWebSearchProvider) { _, _ in
             viewModel?.persistComposerState()
         }
+        .onChange(of: viewModel?.effortLevel) { _, _ in
+            viewModel?.persistComposerState()
+        }
     }
 }
 
@@ -223,6 +226,9 @@ private struct ChatComposerHost: View {
             canUseChatRules: canUseChatRules,
             conversation: conversation,
             skills: skills,
+            effortLevel: $viewModel.effortLevel,
+            supportsEffort: viewModel.supportsEffort,
+            onSetEffortLevel: viewModel.setEffortLevel,
             onSend: onSend,
             onStop: viewModel.cancelStreaming
         )

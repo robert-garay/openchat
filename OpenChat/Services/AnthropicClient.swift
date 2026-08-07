@@ -11,10 +11,13 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
-        supportsImageGen: Bool
+        supportsImageGen: Bool,
+        effort: EffortLevel?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         // Anthropic Messages API does not return generated bitmaps; ignore supportsImageGen.
+        // Anthropic has no equivalent of the OpenAI `reasoning_effort` parameter.
         _ = supportsImageGen
+        _ = effort
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {

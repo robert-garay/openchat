@@ -18,6 +18,8 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
     case search
     /// Reasoning / extended thinking.
     case reasoning
+    /// Configurable effort / reasoning effort level.
+    case effort
 
     var id: String { rawValue }
 
@@ -31,6 +33,7 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         case .tools: "wrench"
         case .search: "globe"
         case .reasoning: "brain"
+        case .effort: "gauge.with.dots.needle.67percent"
         }
     }
 
@@ -45,6 +48,7 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         case .tools: "Tools"
         case .search: "Search"
         case .reasoning: "Reasoning"
+        case .effort: "Effort"
         }
     }
 
@@ -54,7 +58,7 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
 
     /// Stable left-to-right order in the UI.
     static let displayOrder: [ModelCapability] = [
-        .vision, .imageGen, .files, .audioIn, .audioOut, .tools, .search, .reasoning
+        .vision, .imageGen, .files, .audioIn, .audioOut, .tools, .search, .reasoning, .effort
     ]
 
     static func sorted(_ capabilities: some Sequence<ModelCapability>) -> [ModelCapability] {
@@ -94,6 +98,9 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         if params.contains("reasoning") || params.contains("include_reasoning") {
             caps.insert(.reasoning)
         }
+        if params.contains("reasoning_effort") || params.contains("effort") {
+            caps.insert(.effort)
+        }
 
         // Naming signals that catalogs rarely encode as modalities.
         if looksLikeSearchModel(haystack) { caps.insert(.search) }
@@ -113,6 +120,12 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
             caps.insert(.tools)
         }
 
+        // When `supported_parameters` wasn't reported, infer effort for known reasoning
+        // families that expose the `reasoning_effort` parameter.
+        if supportedParameters.isEmpty, looksLikeEffortModel(haystack) {
+            caps.insert(.effort)
+        }
+
         return sorted(caps)
     }
 
@@ -125,6 +138,13 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         let markers = [
             "reasoner", "reasoning", "-r1", "/r1", "o1-", "o3-", "o4-",
             "thinking", "deepseek-r1", "gpt-5-pro", "gpt-5.pro"
+        ]
+        return markers.contains { haystack.contains($0) }
+    }
+
+    private static func looksLikeEffortModel(_ haystack: String) -> Bool {
+        let markers = [
+            "o1", "o3", "o4", "gpt-5-pro", "gpt-5.pro"
         ]
         return markers.contains { haystack.contains($0) }
     }
