@@ -79,14 +79,20 @@ struct AnthropicClient: ChatCompletionClient {
             session: session,
             continuation: continuation
         ) {
-            workingTurns.append(
-                ChatTurn(role: .assistant, content: "", toolCalls: toolCalls)
-            )
-            for call in toolCalls {
-                let output = try await executeTool(call)
+            // When fragments arrived but none resolved into a usable call
+            // (missing id/name), leave the turns untouched and let the
+            // non-streaming round below retry: appending an empty assistant
+            // turn with no tool calls is rejected by some providers.
+            if !toolCalls.isEmpty {
                 workingTurns.append(
-                    ChatTurn(role: .tool, content: output, toolCallID: call.id)
+                    ChatTurn(role: .assistant, content: "", toolCalls: toolCalls)
                 )
+                for call in toolCalls {
+                    let output = try await executeTool(call)
+                    workingTurns.append(
+                        ChatTurn(role: .tool, content: output, toolCallID: call.id)
+                    )
+                }
             }
         } else {
             return
@@ -248,7 +254,10 @@ struct AnthropicClient: ChatCompletionClient {
             }
         }
 
-        return accumulator.toolCalls
+        // `nil` signals "the model answered with text, which is already streamed".
+        // Returning an empty array here would read as `.some([])` at the call site
+        // and wrongly continue into the non-streaming tool loop.
+        return accumulator.isEmpty ? nil : accumulator.toolCalls
     }
 
     /// Collects streaming tool-use fragments into complete tool calls.
