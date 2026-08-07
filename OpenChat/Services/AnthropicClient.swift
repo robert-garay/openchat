@@ -65,7 +65,34 @@ struct AnthropicClient: ChatCompletionClient {
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var workingTurns = turns
-        for _ in 0..<WebSearchService.maxToolRounds {
+
+        // First round: stream with tools so the user sees text immediately when the model
+        // does not invoke any tools. If it does invoke tools, fall back to the non-streaming
+        // loop for the remaining rounds.
+        try Task.checkCancellation()
+        if let toolCalls = try await streamText(
+            turns: workingTurns,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            tools: tools,
+            session: session,
+            continuation: continuation
+        ) {
+            workingTurns.append(
+                ChatTurn(role: .assistant, content: "", toolCalls: toolCalls)
+            )
+            for call in toolCalls {
+                let output = try await executeTool(call)
+                workingTurns.append(
+                    ChatTurn(role: .tool, content: output, toolCallID: call.id)
+                )
+            }
+        } else {
+            return
+        }
+
+        for _ in 1..<WebSearchService.maxToolRounds {
             try Task.checkCancellation()
             let result = try await complete(
                 turns: workingTurns,
@@ -163,19 +190,110 @@ struct AnthropicClient: ChatCompletionClient {
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
+        _ = try await streamText(
+            turns: turns,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            tools: [],
+            session: session,
+            continuation: continuation
+        )
+    }
+
+    /// Streams a request that may include tools. Returns any tool calls the model emits;
+    /// if it returns `nil`, the streamed text has already been yielded.
+    private static func streamText(
+        turns: [ChatTurn],
+        model: String,
+        baseURL: String,
+        apiKey: String?,
+        tools: [ChatToolDefinition],
+        session: URLSession,
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
+    ) async throws -> [ChatToolCall]? {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: [])
+        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools)
+
+        var accumulator = ToolCallAccumulator()
 
         let upstream = ServerSentEventStream.dataPayloads(for: request, session: session)
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
             guard let event = try? JSONDecoder().decode(StreamEvent.self, from: data) else { continue }
-            if event.type == "content_block_delta",
-               event.delta?.type == "text_delta",
-               let text = event.delta?.text, !text.isEmpty {
-                continuation.yield(.text(text))
+
+            switch event.type {
+            case "content_block_start":
+                if let index = event.index, let blockType = event.contentBlock?.type {
+                    accumulator.startBlock(
+                        index: index,
+                        type: blockType,
+                        id: event.contentBlock?.id,
+                        name: event.contentBlock?.name
+                    )
+                }
+            case "content_block_delta":
+                if let index = event.index, let delta = event.delta {
+                    if accumulator.isToolUse(at: index) {
+                        accumulator.appendDelta(index: index, delta: delta)
+                    } else if accumulator.isEmpty,
+                              delta.type == "text_delta",
+                              let text = delta.text, !text.isEmpty {
+                        continuation.yield(.text(text))
+                    }
+                }
+            default:
+                break
             }
+        }
+
+        return accumulator.toolCalls
+    }
+
+    /// Collects streaming tool-use fragments into complete tool calls.
+    private struct ToolCallAccumulator {
+        private var blockTypes: [Int: String] = [:]
+        private var callsByIndex: [Int: AccumulatingToolCall] = [:]
+
+        var isEmpty: Bool { callsByIndex.isEmpty }
+
+        mutating func startBlock(index: Int, type: String, id: String?, name: String?) {
+            blockTypes[index] = type
+            if type == "tool_use" {
+                callsByIndex[index, default: AccumulatingToolCall()].id = id ?? ""
+                callsByIndex[index, default: AccumulatingToolCall()].name = name ?? ""
+            }
+        }
+
+        func isToolUse(at index: Int) -> Bool {
+            blockTypes[index] == "tool_use"
+        }
+
+        mutating func appendDelta(index: Int, delta: StreamEvent.Delta) {
+            guard delta.type == "input_json_delta", let partialJson = delta.partialJson else { return }
+            callsByIndex[index, default: AccumulatingToolCall()].arguments += partialJson
+        }
+
+        var toolCalls: [ChatToolCall] {
+            callsByIndex
+                .sorted { $0.key < $1.key }
+                .compactMap { $0.value.chatToolCall }
+        }
+    }
+
+    private struct AccumulatingToolCall {
+        var id: String = ""
+        var name: String = ""
+        var arguments: String = ""
+
+        var chatToolCall: ChatToolCall? {
+            guard !id.isEmpty, !name.isEmpty else { return nil }
+            return ChatToolCall(
+                id: id,
+                name: name,
+                argumentsJSON: arguments.isEmpty ? "{}" : arguments
+            )
         }
     }
 
@@ -401,8 +519,26 @@ struct AnthropicClient: ChatCompletionClient {
         struct Delta: Decodable {
             var type: String?
             var text: String?
+            var partialJson: String?
+
+            enum CodingKeys: String, CodingKey {
+                case type, text
+                case partialJson = "partial_json"
+            }
+        }
+        struct ContentBlock: Decodable {
+            var type: String?
+            var id: String?
+            var name: String?
         }
         var type: String
         var delta: Delta?
+        var index: Int?
+        var contentBlock: ContentBlock?
+
+        enum CodingKeys: String, CodingKey {
+            case type, delta, index
+            case contentBlock = "content_block"
+        }
     }
 }
