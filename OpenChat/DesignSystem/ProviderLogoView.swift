@@ -38,6 +38,7 @@ enum ProviderLogo {
         guard let id else { return nil }
         switch id {
         case "deepseek": return "ProviderLogoDeepSeek"
+        case "mistral": return "ProviderLogoMistral"
         case "qwen": return "ProviderLogoAlibabaCloud"
         case "moonshot": return "ProviderLogoMoonshot"
         case "zhipu": return "ProviderLogoZhipu"

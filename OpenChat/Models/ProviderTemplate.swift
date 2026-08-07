@@ -140,6 +140,22 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             ]
         ),
         ProviderTemplate(
+            id: "mistral",
+            name: "Mistral AI",
+            symbolName: "tornado",
+            tint: "#FF7000",
+            baseURL: "https://api.mistral.ai/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://console.mistral.ai/api-keys/"),
+            apiKeyPlaceholder: "API key",
+            defaultModels: [
+                AIModel(id: "mistral-medium-latest", displayName: "Mistral Medium", subtitle: "Frontier multimodal", capabilities: [.vision, .tools]),
+                AIModel(id: "mistral-large-latest", displayName: "Mistral Large", subtitle: "General purpose", capabilities: [.vision, .tools]),
+                AIModel(id: "mistral-small-latest", displayName: "Mistral Small", subtitle: "Fast & efficient", capabilities: [.tools]),
+                AIModel(id: "pixtral-large-latest", displayName: "Pixtral Large", subtitle: "Vision", capabilities: [.vision, .tools]),
+            ]
+        ),
+        ProviderTemplate(
             id: "google",
             name: "Google",
             symbolName: "diamond.fill",
