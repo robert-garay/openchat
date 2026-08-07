@@ -92,6 +92,14 @@ jobs:
           xcodegen --version
           xcbeautify --version
 
+      - name: Verify project.yml is in sync
+        run: |
+          xcodegen generate
+          if ! git diff --exit-code OpenChat.xcodeproj; then
+            echo "ERROR: OpenChat.xcodeproj is out of sync with project.yml. Run xcodegen generate and commit the result." >&2
+            exit 1
+          fi
+
       - name: Boot simulator
         run: |
           DEVICE="$(
