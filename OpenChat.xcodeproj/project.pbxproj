@@ -88,6 +88,7 @@
 		8375DD6EB2BD80199A6BFC11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174C8A720DB382316B6679A5 /* Assets.xcassets */; };
 		843C97B5D226D6F8CEF3A43E /* EditMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0956E2D14D6BFC60E14884 /* EditMessageView.swift */; };
 		8449A8CA12F11383F3D5D56E /* ProviderKeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */; };
+		84990B5D4C2B7EAB1FD4D710 /* FuzzyMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A679C0B8E756AC29DB04741 /* FuzzyMatcherTests.swift */; };
 		8741FBC49B6BA4F05FA26C99 /* MarkdownPreviewFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A4311FFABAED5E0A871E73F /* MarkdownPreviewFormatter.swift */; };
 		8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4EA65A8E67CCE1B461F1C3E /* RootView.swift */; };
 		892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEE1C80223D627AF9EA03F /* ExaClient.swift */; };
@@ -113,6 +114,7 @@
 		B7354F0D7E69E62AAB5F1955 /* RuleReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD0509650F72AD06DFB5CDE /* RuleReviewSheet.swift */; };
 		B9CCF4A8CEE98C3C1F9023EB /* ChatMessageProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374A1E442B137C07DDA666EB /* ChatMessageProviderTests.swift */; };
 		BBB17BFEA4B31292C4E53202 /* CodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77042F4B06EE256DB69CF28 /* CodeSyntaxHighlighter.swift */; };
+		BD1770BB13C4C00FDB3F807C /* FuzzyMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F4107DB67495A3124A91BB /* FuzzyMatcher.swift */; };
 		C0F6A6DE9AF73452136885C7 /* TavilyClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */; };
 		C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CDF1813E984EAC421E082F /* ChatTurn.swift */; };
 		C3A5CFD3AC9276E1E5E7CF84 /* ProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B059E831C9E43DC9CFC7B055 /* ProviderLogoView.swift */; };
@@ -152,11 +154,13 @@
 
 /* Begin PBXFileReference section */
 		001515E7D612955EE697BC2B /* CalendarContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarContextReader.swift; sourceTree = "<group>"; };
+		00F4107DB67495A3124A91BB /* FuzzyMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzyMatcher.swift; sourceTree = "<group>"; };
 		0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationEditMessageTests.swift; sourceTree = "<group>"; };
 		01E9ED4DCFD6273748937FE8 /* MemorySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySettingsView.swift; sourceTree = "<group>"; };
 		031CE6B165039967ACAE5CC7 /* ChatRequestHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRequestHistory.swift; sourceTree = "<group>"; };
 		06065844B4FECEFA73D1FB41 /* ConversationDraftPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationDraftPersistenceTests.swift; sourceTree = "<group>"; };
 		07FC9E00F25403BEF76198DF /* RuleActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleActionParser.swift; sourceTree = "<group>"; };
+		0A679C0B8E756AC29DB04741 /* FuzzyMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzyMatcherTests.swift; sourceTree = "<group>"; };
 		0DA7BF3262C5159168758827 /* MessageComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposerView.swift; sourceTree = "<group>"; };
 		0DB12C1E44071ECB896883D0 /* OpenRouterCatalogModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterCatalogModel.swift; sourceTree = "<group>"; };
 		0E95C6B3E6CF2D96BE307311 /* OpenChatLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatLogoView.swift; sourceTree = "<group>"; };
@@ -420,6 +424,7 @@
 				6B9D07425A56E94382CA05B8 /* ConversationTitleGenerator.swift */,
 				69FEE1C80223D627AF9EA03F /* ExaClient.swift */,
 				1332BED16DEE3A6013BB5072 /* FitnessContextReader.swift */,
+				00F4107DB67495A3124A91BB /* FuzzyMatcher.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
 				7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */,
 				BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */,
@@ -550,6 +555,7 @@
 				0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */,
 				3C2969B471457A2C1EFCD4DC /* ConversationTemporaryChatTests.swift */,
 				36873DF3796EB11DDF4BC482 /* ConversationTitleGeneratorTests.swift */,
+				0A679C0B8E756AC29DB04741 /* FuzzyMatcherTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				CAF4C57E9B9B411592F2A1EB /* MarkdownContentParserTests.swift */,
 				AB13EFEECB55DC9191EA121F /* MarkdownPreviewFormatterTests.swift */,
@@ -716,6 +722,7 @@
 				892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */,
 				CF8D88908B2E08C1A2DEA587 /* FitnessContextReader.swift in Sources */,
 				34A8CC9DAE9BCDEF74815C9C /* FitnessHealthDataTypes.swift in Sources */,
+				BD1770BB13C4C00FDB3F807C /* FuzzyMatcher.swift in Sources */,
 				68FC5BE673CD1693B2B880E4 /* GhostIcon.swift in Sources */,
 				48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */,
 				407459942BB263BEEEFB02F6 /* ImagePreviewView.swift in Sources */,
@@ -791,6 +798,7 @@
 				E3DA2FA3A516E96B3213C845 /* ConversationEditMessageTests.swift in Sources */,
 				8DED6833DB76AEB78A9F8373 /* ConversationTemporaryChatTests.swift in Sources */,
 				0CF4B4340A3465AD1A9D0616 /* ConversationTitleGeneratorTests.swift in Sources */,
+				84990B5D4C2B7EAB1FD4D710 /* FuzzyMatcherTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				5045576F3802119107D3CBD6 /* MarkdownContentParserTests.swift in Sources */,
 				2D774946EAA557E6DF226A64 /* MarkdownPreviewFormatterTests.swift in Sources */,
