@@ -144,8 +144,8 @@ struct OpenRouterCatalogModel: Codable, Identifiable, Hashable, Sendable {
 
     private static func formatContext(_ tokens: Int) -> String {
         if tokens >= 1_000_000 {
-            let millions = Double(tokens) / 1_000_000
-            return String(format: millions.rounded() == millions ? "%.0fM context" : "%.1fM context", millions)
+            let millions = (Double(tokens) / 1_000_000).rounded()
+            return String(format: "%.0fM context", millions)
         }
         if tokens >= 1_000 {
             return "\(tokens / 1_000)K context"
