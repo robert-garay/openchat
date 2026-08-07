@@ -282,15 +282,14 @@ struct MessageComposerView: View {
             Haptics.light()
             showingEffortPicker = true
         } label: {
-            HStack(spacing: 4) {
-                EffortGaugeIcon(level: effectiveLevel, levels: supportedEffortLevels, color: Color.accentColor, size: 20)
-                Text(effectiveLevel.displayName)
-                    .font(.system(size: 12, weight: .semibold))
-            }
-            .foregroundStyle(Color.accentColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Color.accentColor.opacity(0.12), in: Capsule())
+            EffortGaugeIcon(
+                level: effectiveLevel,
+                levels: supportedEffortLevels,
+                color: effectiveLevel == .none ? Color(.tertiaryLabel) : Color.accentColor,
+                size: 22
+            )
+            .frame(width: 34, height: 34)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel(effectiveLevel.accessibilityLabel)
         .accessibilityHint("Change reasoning effort level")
