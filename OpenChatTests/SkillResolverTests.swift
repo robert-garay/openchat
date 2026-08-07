@@ -3,8 +3,18 @@ import XCTest
 
 final class SkillResolverTests: XCTestCase {
     private let sampleSkills: [SkillMatchable] = [
-        SkillMatchable(slashName: "fitness-review", name: "Fitness Review", instructions: "Analyze workouts."),
-        SkillMatchable(slashName: "summarize", name: "Summarize", instructions: "Be concise."),
+        SkillMatchable(
+            slashName: "fitness-review",
+            name: "Fitness Review",
+            description: "Analyze workout logs and provide feedback.",
+            instructions: "Analyze workouts."
+        ),
+        SkillMatchable(
+            slashName: "summarize",
+            name: "Summarize",
+            description: "Summarize long text into bullet points.",
+            instructions: "Be concise."
+        ),
     ]
 
     func testNormalizeSlashName() {
@@ -22,6 +32,36 @@ final class SkillResolverTests: XCTestCase {
 
     func testFilter() {
         XCTAssertEqual(SkillResolver.filter(sampleSkills, query: "fit").map(\.slashName), ["fitness-review"])
+    }
+
+    func testFilterMatchesName() {
+        XCTAssertEqual(SkillResolver.filter(sampleSkills, query: "Fitness").map(\.slashName), ["fitness-review"])
+    }
+
+    func testFilterMatchesDescription() {
+        XCTAssertEqual(SkillResolver.filter(sampleSkills, query: "bullet").map(\.slashName), ["summarize"])
+    }
+
+    func testFilterMatchesAcrossSeparators() {
+        XCTAssertEqual(SkillResolver.filter(sampleSkills, query: "fitnessreview").map(\.slashName), ["fitness-review"])
+    }
+
+    func testFilterMatchesMultipleTokens() {
+        XCTAssertEqual(SkillResolver.filter(sampleSkills, query: "fitness feedback").map(\.slashName), ["fitness-review"])
+    }
+
+    func testFilterReturnsAllWhenQueryEmpty() {
+        let result = SkillResolver.filter(sampleSkills, query: "")
+        XCTAssertEqual(result.map(\.slashName), ["fitness-review", "summarize"])
+    }
+
+    func testFilterReturnsEmptyForNoMatch() {
+        XCTAssertTrue(SkillResolver.filter(sampleSkills, query: "xyz").isEmpty)
+    }
+
+    func testFilterExactMatchSortedFirst() {
+        let result = SkillResolver.filter(sampleSkills, query: "summarize").map(\.slashName)
+        XCTAssertEqual(result.first, "summarize")
     }
 
     func testResolveOnSend() {

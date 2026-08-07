@@ -79,17 +79,23 @@ enum SkillResolver {
     }
 
     static func filter(_ skills: [SkillMatchable], query: String) -> [SkillMatchable] {
-        let normalizedQuery = normalizeSlashName(query)
-        guard !normalizedQuery.isEmpty else {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else {
             return skills.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         }
-        return skills.filter { $0.slashName.hasPrefix(normalizedQuery) || $0.name.lowercased().hasPrefix(normalizedQuery) }
-            .sorted { lhs, rhs in
-                let lhsExact = lhs.slashName == normalizedQuery
-                let rhsExact = rhs.slashName == normalizedQuery
-                if lhsExact != rhsExact { return lhsExact }
-                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-            }
+        let normalizedQuery = normalizeSlashName(trimmedQuery)
+        return skills.filter {
+            FuzzyMatcher.matches(
+                query: trimmedQuery,
+                fields: [$0.slashName, $0.name, $0.description]
+            )
+        }
+        .sorted { lhs, rhs in
+            let lhsExact = lhs.slashName == normalizedQuery
+            let rhsExact = rhs.slashName == normalizedQuery
+            if lhsExact != rhsExact { return lhsExact }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
     }
 
     /// Resolves a leading `/slash-name` in `text` to a skill. `storedMessage` preserves the
