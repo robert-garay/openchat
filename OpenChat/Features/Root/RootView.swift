@@ -119,16 +119,17 @@ struct RootView: View {
                 conversations: listConversations,
                 selectedConversationID: $selectedConversationID,
                 onNewChat: { startNewChat(temporary: false) },
-                onClose: { showingHistoryDrawer = false },
+                onClose: { withAnimation(.easeInOut(duration: 0.25)) { showingHistoryDrawer = false } },
                 onShowSettings: { showingSettings = true }
             )
-            .transition(.move(edge: .leading))
         }
-        .animation(.easeInOut(duration: 0.25), value: showingHistoryDrawer)
+        .transition(.move(edge: .leading))
     }
 
     private func toggleHistoryDrawer() {
-        showingHistoryDrawer.toggle()
+        withAnimation(.easeInOut(duration: 0.25)) {
+            showingHistoryDrawer.toggle()
+        }
     }
 
     private func startNewChat(temporary: Bool, preferring source: Conversation? = nil) {
