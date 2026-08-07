@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// ChatGPT-style minimal conversation history drawer.
+/// Grok-style full-screen conversation history drawer.
 struct ChatHistoryDrawerView: View {
     let conversations: [Conversation]
     @Binding var selectedConversationID: UUID?
@@ -10,6 +10,7 @@ struct ChatHistoryDrawerView: View {
     let onShowSettings: () -> Void
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(ProviderStore.self) private var providerStore
     @State private var searchText = ""
     @State private var conversationPendingRename: Conversation?
     @State private var renameText = ""
@@ -93,7 +94,7 @@ struct ChatHistoryDrawerView: View {
                                 conversationRow(conversation)
                             }
                         } header: {
-                            sectionHeader("Recents")
+                            sectionHeader("Conversations")
                         }
                     }
                 }
@@ -108,76 +109,81 @@ struct ChatHistoryDrawerView: View {
             bottomBar
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-
-            searchBar
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    if value.translation.width < -80 {
+                        Haptics.light()
+                        onClose()
+                    }
+                }
+        )
     }
 
     private var header: some View {
         HStack(spacing: 0) {
             Text("OpenChat")
                 .font(.title2.weight(.bold))
+
             Spacer(minLength: 12)
+
             Button(action: onClose) {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 20, weight: .semibold))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(Color(.secondarySystemBackground), in: Circle())
             }
-            .accessibilityLabel("Close history")
+            .accessibilityLabel("Back to chat")
         }
     }
 
     private var bottomBar: some View {
-        HStack(spacing: 0) {
-            Button(action: newChatAndClose) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.pencil")
-                    Text("New Chat")
-                        .font(.subheadline.weight(.semibold))
-                }
-                .foregroundStyle(.primary)
-            }
-            .accessibilityLabel("New chat")
+        HStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
 
-            Spacer(minLength: 12)
+                TextField("Search chats", text: $searchText)
+                    .font(.subheadline)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             Button(action: onShowSettings) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 20))
                     .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(Color(.secondarySystemBackground), in: Circle())
             }
             .accessibilityLabel("Settings")
-        }
-    }
 
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            TextField("Search chats", text: $searchText)
-                .font(.subheadline)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
+            Button(action: newChatAndClose) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color.accentColor, in: Circle())
             }
+            .accessibilityLabel("New chat")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.top, 4)
-        .padding(.bottom, 8)
     }
 
     private func sectionHeader(_ title: String) -> some View {
@@ -209,6 +215,7 @@ struct ChatHistoryDrawerView: View {
             Haptics.medium()
             activeMenu = conversation
         }
+        .environment(providerStore)
     }
 
     private func contextMenuOverlay(for conversation: Conversation) -> some View {
@@ -329,11 +336,30 @@ struct ConversationRow: View {
     let conversation: Conversation
     let isSelected: Bool
 
+    @Environment(ProviderStore.self) private var providerStore
+
+    private var provider: ConfiguredProvider? {
+        providerStore.provider(withID: conversation.providerID)
+    }
+
+    private var providerTint: Color {
+        provider.map { Color(hex: $0.tint) } ?? .accentColor
+    }
+
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(alignment: .center, spacing: 10) {
+            ProviderLogoView(
+                logoAssetName: provider?.logoAssetName,
+                symbolName: provider?.symbolName ?? "sparkles",
+                tint: providerTint,
+                size: 28,
+                cornerRadius: 7
+            )
+
             Text(conversation.title)
                 .font(.body)
                 .lineLimit(1)
+
             Spacer(minLength: 0)
         }
         .padding(.vertical, 8)

@@ -10,12 +10,24 @@ private final class PasteInterceptingTextView: UITextView {
     /// pasteboard-provided filename hint, if any.
     var onPasteDocument: ((Data, String?) -> Void)?
 
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(paste(_:)) {
+            let defaultAllows = super.canPerformAction(action, withSender: sender)
+            let hasRichContent = UIPasteboard.general.hasImages
+                || UIPasteboard.general.itemProviders.contains { $0.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) }
+            return defaultAllows || (isEditable && hasRichContent)
+        }
+        return super.canPerformAction(action, withSender: sender)
+    }
+
     override func paste(_ sender: Any?) {
+        // 1. Images take priority over PDFs and text.
         if let images = UIPasteboard.general.images, !images.isEmpty, let onPasteImages {
             onPasteImages(images)
             return
         }
 
+        // 2. Attach a PDF if available.
         if let onPasteDocument,
            let data = UIPasteboard.general.data(forPasteboardType: UTType.pdf.identifier) {
             let filename = UIPasteboard.general.itemProviders.first?.suggestedName
@@ -23,6 +35,7 @@ private final class PasteInterceptingTextView: UITextView {
             return
         }
 
+        // 3. Fall back to the default text/URL paste behavior.
         super.paste(sender)
     }
 }
@@ -36,8 +49,7 @@ struct ComposerTextView: UIViewRepresentable {
     var minHeight: CGFloat = 22
     /// ~5–6 body lines (similar to the old `TextField` `.lineLimit(1...6)`).
     var maxHeight: CGFloat = 120
-    /// Called when the user pastes images into the composer. Text paste still
-    /// uses the default UITextView behavior.
+    /// Called when the user pastes one or more images into the composer.
     var onPasteImages: (([UIImage]) -> Void)?
     /// Called when the user pastes a PDF into the composer.
     var onPasteDocument: ((Data, String?) -> Void)?

@@ -5,7 +5,6 @@ struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
     var onShowHistory: (() -> Void)?
-    var drawerProgress: CGFloat = 0
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -21,77 +20,8 @@ struct ChatView: View {
     /// Shared with the message list so Send re-attaches follow-to-bottom.
     @State private var stickToBottom = true
 
-    private var chatBackground: Color {
-        Color(
-            uiColor: UIColor.systemBackground.blended(
-                with: UIColor.secondarySystemBackground,
-                fraction: drawerProgress
-            )
-        )
-    }
-
-    private var topBar: some View {
-        HStack(spacing: 0) {
-            Button {
-                Haptics.light()
-                onShowHistory?()
-            } label: {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.primary)
-            }
-            .accessibilityLabel("Chat history")
-            .frame(width: 60, alignment: .leading)
-
-            Spacer()
-
-            if let viewModel {
-                Button {
-                    Haptics.light()
-                    showingModelPicker = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(viewModel.currentModel?.displayName ?? "Choose Model")
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(1)
-                        ModelCapabilitySigns(
-                            capabilities: viewModel.currentModel?.capabilities ?? [],
-                            limit: 3
-                        )
-                        Image(systemName: "chevron.down")
-                            .font(.caption2.weight(.bold))
-                    }
-                    .foregroundStyle(.primary)
-                }
-            }
-
-            Spacer()
-
-            Group {
-                if conversation.messages.isEmpty {
-                    Button {
-                        Haptics.light()
-                        onToggleTemporary?()
-                    } label: {
-                        GhostIcon(size: 22, filled: conversation.isTemporary)
-                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
-                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
-                }
-            }
-            .frame(width: 60, alignment: .trailing)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            topBar
-
             if conversation.isTemporary {
                 TemporaryChatBanner()
             }
@@ -109,25 +39,74 @@ struct ChatView: View {
                     }
                 }
 
-                if drawerProgress <= 0 {
-                    ChatComposerHost(
-                        viewModel: viewModel,
-                        skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
-                        hasChatRules: !conversation.systemPrompt
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .isEmpty,
-                        canUseChatRules: rulesStore.useChatRules,
-                        conversation: conversation,
-                        onSend: {
-                            stickToBottom = true
-                            viewModel.send()
+                ChatComposerHost(
+                    viewModel: viewModel,
+                    skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
+                    hasChatRules: !conversation.systemPrompt
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .isEmpty,
+                    canUseChatRules: rulesStore.useChatRules,
+                    conversation: conversation,
+                    onSend: {
+                        stickToBottom = true
+                        viewModel.send()
+                    }
+                )
+            }
+        }
+        .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Haptics.light()
+                    onShowHistory?()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.secondarySystemBackground), in: Circle())
+                }
+                .accessibilityLabel("Chat history")
+            }
+
+            ToolbarItem(placement: .principal) {
+                if let viewModel {
+                    Button {
+                        Haptics.light()
+                        showingModelPicker = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(viewModel.currentModel?.displayName ?? "Choose Model")
+                                .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+                            ModelCapabilitySigns(
+                                capabilities: viewModel.currentModel?.capabilities ?? [],
+                                limit: 3
+                            )
+                            Image(systemName: "chevron.down")
+                                .font(.caption2.weight(.bold))
                         }
-                    )
+                        .foregroundStyle(.primary)
+                    }
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                if conversation.messages.isEmpty {
+                    Button {
+                        Haptics.light()
+                        onToggleTemporary?()
+                    } label: {
+                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                            .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
+                    .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(chatBackground)
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
                 ModelPickerSheet(
@@ -172,7 +151,7 @@ struct ChatView: View {
         .overlay(alignment: .top) {
             if let viewModel, let message = viewModel.compactStatusMessage {
                 CompactStatusToast(message: message)
-                    .padding(.top, 64)
+                    .padding(.top, 8)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .onAppear {
                         Task {
@@ -231,7 +210,6 @@ struct ChatView: View {
             viewModel?.persistComposerState()
         }
     }
-}
 
 // MARK: - Composer host (isolates composerText observation)
 
@@ -576,18 +554,5 @@ private struct TemporaryChatBanner: View {
         .background(.bar)
     }
 }
-
-private extension UIColor {
-    func blended(with other: UIColor, fraction: CGFloat) -> UIColor {
-        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
-        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
-        getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-        other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
-        return UIColor(
-            red: r1 + (r2 - r1) * fraction,
-            green: g1 + (g2 - g1) * fraction,
-            blue: b1 + (b2 - b1) * fraction,
-            alpha: a1 + (a2 - a1) * fraction
-        )
-    }
 }
+

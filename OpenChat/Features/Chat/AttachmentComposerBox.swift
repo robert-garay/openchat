@@ -17,8 +17,8 @@ private struct RawImageData: Transferable {
 }
 
 /// Rounded composer box that owns image and document attachments: the
-/// thumbnail/chip strip, the plus menu (Camera / Photos / Paste Image /
-/// Browse Files / Paste Document), drag-and-drop, and paste.
+/// thumbnail/chip strip, the plus menu (Camera / Photos / Browse Files),
+/// drag-and-drop, and paste.
 ///
 /// Shared by the main composer and the edit screen, which differ only in what
 /// they put in the two slots — the text field, and the buttons trailing the
@@ -141,23 +141,9 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
 
             Button {
                 Haptics.light()
-                pasteFromClipboard()
-            } label: {
-                Label("Paste Image", systemImage: "doc.on.clipboard")
-            }
-
-            Button {
-                Haptics.light()
                 requestFiles()
             } label: {
                 Label("Browse Files", systemImage: "doc")
-            }
-
-            Button {
-                Haptics.light()
-                pasteDocumentFromClipboard()
-            } label: {
-                Label("Paste Document", systemImage: "doc.badge.clock")
             }
         } label: {
             Image(systemName: "plus")
@@ -167,7 +153,7 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Add")
-        .accessibilityHint("Attach a photo, PDF, or paste content")
+        .accessibilityHint("Attach a photo or PDF")
     }
 
     private var attachmentStrip: some View {
@@ -270,29 +256,6 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
             return
         }
         showingFileImporter = true
-    }
-
-    private func pasteFromClipboard() {
-        #if canImport(UIKit)
-        guard supportsVision else {
-            Haptics.warning()
-            showingVisionAlert = true
-            return
-        }
-        guard let image = UIPasteboard.general.image else { return }
-        appendImage(image)
-        #endif
-    }
-
-    private func pasteDocumentFromClipboard() {
-        guard supportsFiles else {
-            Haptics.warning()
-            showingFilesAlert = true
-            return
-        }
-        guard let data = UIPasteboard.general.data(forPasteboardType: UTType.pdf.identifier) else { return }
-        let filename = UIPasteboard.general.itemProviders.first?.suggestedName ?? "Document.pdf"
-        appendDocumentData(data, filename: filename)
     }
 
     private func handlePastedImages(_ images: [UIImage]) {
