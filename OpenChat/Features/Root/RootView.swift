@@ -10,6 +10,8 @@ struct RootView: View {
     @State private var showingSettings = false
     @State private var drawerProgress: CGFloat = 0
     @State private var drawerWidth: CGFloat = 0
+    @State private var isDragging = false
+    @State private var dragStartProgress: CGFloat = 0
 
     private var isDrawerOpen: Bool { drawerProgress > 0.5 }
 
@@ -77,21 +79,41 @@ struct RootView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                let width = min(geometry.size.width * 0.85, 360)
-                ZStack {
-                    chatView
-                    drawerOverlay(width: width)
+        GeometryReader { geometry in
+            let width = min(geometry.size.width * 0.85, 360)
+            ZStack {
+                // History drawer sits behind the chat panel.
+                ChatHistoryDrawerView(
+                    conversations: listConversations,
+                    selectedConversationID: $selectedConversationID,
+                    onNewChat: { startNewChat(temporary: false) },
+                    onClose: { closeDrawer() },
+                    onShowSettings: { showingSettings = true }
+                )
+                .frame(width: width)
+                .frame(maxHeight: .infinity, alignment: .leading)
+                .background(.background)
+                .simultaneousGesture(drawerGesture)
+
+                // Chat panel slides to the right, rounds its leading edge,
+                // and darkens as the drawer is revealed.
+                NavigationStack {
+                    chatContent
                 }
-                .onAppear { drawerWidth = width }
-                .onChange(of: width) { _, new in drawerWidth = new }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .offset(x: drawerProgress * width)
+                .background(chatPanelBackground)
+                .clipShape(LeadingRoundedRectangle(radius: drawerProgress * 24))
+                .shadow(color: .black.opacity(0.25), radius: 20, x: -8, y: 0)
+                .simultaneousGesture(drawerGesture)
             }
+            .onAppear { drawerWidth = width }
+            .onChange(of: width) { _, new in drawerWidth = new }
         }
     }
 
     @ViewBuilder
-    private var chatView: some View {
+    private var chatContent: some View {
         if let conversation = selectedConversation {
             ChatView(
                 conversation: conversation,
@@ -100,34 +122,47 @@ struct RootView: View {
                 isHistoryDrawerOpen: drawerProgress > 0
             )
             .id(conversation.id)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.background)
-            .simultaneousGesture(openDrawerGesture)
         } else {
             ProgressView()
                 .controlSize(.large)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.background)
         }
     }
 
-    private var openDrawerGesture: some Gesture {
+    private var chatPanelBackground: Color {
+        Color(
+            uiColor: UIColor.systemBackground.blended(
+                with: UIColor.secondarySystemBackground,
+                fraction: drawerProgress
+            )
+        )
+    }
+
+    private var drawerGesture: some Gesture {
         DragGesture(minimumDistance: 10, coordinateSpace: .global)
             .onChanged { value in
                 let horizontal = value.translation.width
                 let vertical = value.translation.height
-                guard drawerProgress < 1, horizontal > 0, horizontal > abs(vertical) else { return }
-                let progress = min(1, horizontal / drawerWidth)
-                drawerProgress = progress
+                guard abs(horizontal) > abs(vertical) else { return }
+                if !isDragging {
+                    isDragging = true
+                    dragStartProgress = drawerProgress
+                }
+                let progress = dragStartProgress + horizontal / drawerWidth
+                drawerProgress = max(0, min(1, progress))
             }
             .onEnded { value in
+                isDragging = false
                 let horizontal = value.translation.width
                 let vertical = value.translation.height
-                guard drawerProgress < 1, horizontal > 0, horizontal > abs(vertical) else { return }
                 let velocity = value.predictedEndLocation.x - value.location.x
-                let shouldOpen = horizontal > drawerWidth * 0.25 || velocity > 120
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    drawerProgress = shouldOpen ? 1 : 0
+                if abs(horizontal) > abs(vertical), abs(velocity) > 120 {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        drawerProgress = velocity > 0 ? 1 : 0
+                    }
+                } else {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        drawerProgress = drawerProgress > 0.5 ? 1 : 0
+                    }
                 }
             }
     }
@@ -138,52 +173,9 @@ struct RootView: View {
         }
     }
 
-    private func drawerOverlay(width: CGFloat) -> some View {
-        ZStack(alignment: .leading) {
-            Color.black.opacity(0.4 * drawerProgress)
-                .ignoresSafeArea()
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        drawerProgress = 0
-                    }
-                }
-                .allowsHitTesting(drawerProgress > 0.01)
-
-            ChatHistoryDrawerView(
-                conversations: listConversations,
-                selectedConversationID: $selectedConversationID,
-                onNewChat: { startNewChat(temporary: false) },
-                onClose: {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        drawerProgress = 0
-                    }
-                },
-                onShowSettings: { showingSettings = true }
-            )
-            .frame(width: width, alignment: .leading)
-            .background(.background)
-            .offset(x: -width * (1 - drawerProgress))
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 10)
-                    .onChanged { value in
-                        let horizontal = value.translation.width
-                        let vertical = value.translation.height
-                        guard drawerProgress > 0, horizontal < 0, abs(horizontal) > abs(vertical) else { return }
-                        let progress = max(0, 1 + horizontal / width)
-                        drawerProgress = progress
-                    }
-                    .onEnded { value in
-                        let horizontal = value.translation.width
-                        let vertical = value.translation.height
-                        guard drawerProgress > 0, horizontal < 0, abs(horizontal) > abs(vertical) else { return }
-                        let velocity = value.predictedEndLocation.x - value.location.x
-                        let shouldClose = abs(horizontal) > width * 0.25 || velocity < -120
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            drawerProgress = shouldClose ? 0 : 1
-                        }
-                    }
-            )
+    private func closeDrawer() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            drawerProgress = 0
         }
     }
 
@@ -233,5 +225,49 @@ struct RootView: View {
                 modelContext.delete(conversation)
             }
         }
+    }
+}
+
+private struct LeadingRoundedRectangle: Shape {
+    var radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let r = min(radius, rect.width / 2, rect.height / 2)
+        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX + r, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + r, y: rect.minY + r),
+            radius: r,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(-180),
+            clockwise: true
+        )
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - r))
+        path.addArc(
+            center: CGPoint(x: rect.minX + r, y: rect.maxY - r),
+            radius: r,
+            startAngle: .degrees(180),
+            endAngle: .degrees(90),
+            clockwise: true
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private extension UIColor {
+    func blended(with other: UIColor, fraction: CGFloat) -> UIColor {
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        return UIColor(
+            red: r1 + (r2 - r1) * fraction,
+            green: g1 + (g2 - g1) * fraction,
+            blue: b1 + (b2 - b1) * fraction,
+            alpha: a1 + (a2 - a1) * fraction
+        )
     }
 }
