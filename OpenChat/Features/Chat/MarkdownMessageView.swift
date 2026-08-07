@@ -120,7 +120,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         let mutable = NSMutableAttributedString()
         for (index, block) in blocks.enumerated() {
             if index > 0 {
-                mutable.append(NSAttributedString(string: "\n"))
+                mutable.append(paragraphSeparator(after: mutable))
             }
             let isFirst = index == 0
             let isLast = index == blocks.count - 1
@@ -174,7 +174,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             let result = NSMutableAttributedString()
             for (index, item) in items.enumerated() {
                 if index > 0 {
-                    result.append(NSAttributedString(string: "\n"))
+                    result.append(paragraphSeparator(after: result))
                 }
                 let isLastItem = index == items.count - 1
                 let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
@@ -197,7 +197,7 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
             let result = NSMutableAttributedString()
             for (index, item) in items.enumerated() {
                 if index > 0 {
-                    result.append(NSAttributedString(string: "\n"))
+                    result.append(paragraphSeparator(after: result))
                 }
                 let isLastItem = index == items.count - 1
                 let spacingAfter: CGFloat = isLastItem ? (isLastBlock ? 0 : 10) : 6
@@ -244,6 +244,21 @@ private struct MarkdownTextBlockView: UIViewRepresentable {
         let fullRange = NSRange(location: 0, length: mutable.length)
         guard fullRange.length > 0 else { return }
         mutable.addAttribute(.font, value: font, range: fullRange)
+    }
+
+    /// A "\n" carrying the paragraph style of the text it follows.
+    ///
+    /// TextKit reads a paragraph's spacing from the style attached to its
+    /// trailing newline. A bare, unstyled "\n" resets that to zero spacing,
+    /// which is why headings/list items rendered flush against the prior
+    /// line instead of respecting `applyParagraphSpacing`'s `after` value.
+    private func paragraphSeparator(after attributed: NSAttributedString) -> NSAttributedString {
+        let separator = NSMutableAttributedString(string: "\n")
+        if attributed.length > 0,
+           let style = attributed.attribute(.paragraphStyle, at: attributed.length - 1, effectiveRange: nil) {
+            separator.addAttribute(.paragraphStyle, value: style, range: NSRange(location: 0, length: 1))
+        }
+        return separator
     }
 
     private func applyParagraphSpacing(_ mutable: NSMutableAttributedString, before: CGFloat, after: CGFloat) {
