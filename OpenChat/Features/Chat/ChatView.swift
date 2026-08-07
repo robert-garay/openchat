@@ -174,6 +174,15 @@ struct ChatView: View {
                 )
             }
         }
+        .onChange(of: viewModel?.composerText) { _, _ in
+            viewModel?.persistComposerState()
+        }
+        .onChange(of: viewModel?.pendingAttachments) { _, _ in
+            viewModel?.persistComposerState()
+        }
+        .onChange(of: viewModel?.selectedWebSearchProvider) { _, _ in
+            viewModel?.persistComposerState()
+        }
     }
 }
 

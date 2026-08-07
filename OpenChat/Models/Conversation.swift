@@ -19,6 +19,12 @@ final class Conversation {
     var compactedSummary: String = ""
     /// Last message ID included in `compactedSummary`.
     var compactedThroughMessageID: UUID?
+    /// Last web search provider used in this chat (nil means search was off).
+    var lastUsedWebSearchProviderID: String?
+    /// Unsent composer text saved for this chat.
+    var draftMessage: String = ""
+    /// JSON-encoded `[ChatImageAttachment]` for unsent composer images.
+    var draftAttachmentsData: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
@@ -50,6 +56,20 @@ final class Conversation {
 
     var sortedMessages: [ChatMessage] {
         messages.sorted { $0.createdAt < $1.createdAt }
+    }
+
+    var draftAttachments: [ChatImageAttachment] {
+        get {
+            guard let draftAttachmentsData else { return [] }
+            return (try? JSONDecoder().decode([ChatImageAttachment].self, from: draftAttachmentsData)) ?? []
+        }
+        set {
+            if newValue.isEmpty {
+                draftAttachmentsData = nil
+            } else {
+                draftAttachmentsData = try? JSONEncoder().encode(newValue)
+            }
+        }
     }
 
     var hasUserMessages: Bool {

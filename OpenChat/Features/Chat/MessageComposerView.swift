@@ -31,7 +31,6 @@ struct MessageComposerView: View {
     let onSend: () -> Void
     let onStop: () -> Void
 
-    @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
@@ -65,11 +64,6 @@ struct MessageComposerView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.bar)
-        .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Add a search API key in Settings → Web Search, then pick a provider from the web search button.")
-        }
     }
 
     private func composerField(onPasteImages: @escaping ([UIImage]) -> Void) -> some View {
@@ -108,19 +102,35 @@ struct MessageComposerView: View {
         .animation(Theme.springFast, value: showSkillPicker)
     }
 
-    /// Explicit web search provider menu order: Tavily first, Exa second, then any remaining providers in their original order, with Off at the bottom.
-    private var orderedWebSearchProviders: [WebSearchProviderKind] {
-        let prioritized: [WebSearchProviderKind] = [.tavily, .exa]
-        let prioritizedProviders = prioritized.filter { webSearchProviders.contains($0) }
-        let remainingProviders = webSearchProviders.filter { !prioritized.contains($0) }
-        return prioritizedProviders + remainingProviders
-    }
-
     private var webSearchButton: some View {
         Group {
             if canUseWebSearch {
                 Menu {
-                    ForEach(orderedWebSearchProviders) { provider in
+                    // The composer sits at the bottom of the screen, so this menu always
+                    // opens upward. UIKit keeps the first item closest to the button,
+                    // which flips the visual top-to-bottom order — so the item order here
+                    // is reversed to make "Off" land at the bottom and providers read in
+                    // Settings order from top to bottom on screen.
+                    Button {
+                        onDisableWebSearch?()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color(.secondaryLabel))
+                                .frame(width: 22, height: 22)
+                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            Text("Off")
+                            Spacer(minLength: 12)
+                            if !isWebSearchArmed {
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+
+                    ForEach(webSearchProviders.reversed()) { provider in
                         Button {
                             onSelectWebSearchProvider?(provider)
                         } label: {
@@ -142,25 +152,6 @@ struct MessageComposerView: View {
                             }
                         }
                     }
-
-                    Button {
-                        onDisableWebSearch?()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "globe")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(Color(.secondaryLabel))
-                                .frame(width: 22, height: 22)
-                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            Text("Off")
-                            Spacer(minLength: 12)
-                            if !isWebSearchArmed {
-                                Image(systemName: "checkmark")
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        }
-                    }
                 } label: {
                     webSearchIcon
                 }
@@ -170,15 +161,6 @@ struct MessageComposerView: View {
                         ? "Using \(webSearchProviderName). Choose another provider or turn web search off."
                         : "Choose a search provider for this chat."
                 )
-            } else {
-                Button {
-                    Haptics.warning()
-                    showingWebSearchDisabledAlert = true
-                } label: {
-                    webSearchIcon
-                }
-                .accessibilityLabel("Web search off")
-                .accessibilityHint("Add a search API key in Settings")
             }
         }
         .animation(Theme.springFast, value: isWebSearchArmed)
@@ -201,7 +183,6 @@ struct MessageComposerView: View {
                     .foregroundStyle(Color(.tertiaryLabel))
                     .frame(width: 34, height: 34)
                     .contentShape(Rectangle())
-                    .opacity(canUseWebSearch ? 1 : 0.85)
             }
         }
         .frame(width: 34, height: 34)

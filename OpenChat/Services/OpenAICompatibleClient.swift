@@ -20,26 +20,13 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    if supportsImageGen && tools.isEmpty {
-                        // Image-capable chat models (OpenRouter Gemini/Flux, etc.) return
-                        // images on a non-streaming completion with `modalities`.
-                        try await Self.completeAndYield(
-                            turns: turns,
-                            model: model,
-                            baseURL: baseURL,
-                            apiKey: apiKey,
-                            tools: [],
-                            supportsImageGen: true,
-                            session: session,
-                            continuation: continuation
-                        )
-                    } else if tools.isEmpty {
+                    if tools.isEmpty {
                         try await Self.streamText(
                             turns: turns,
                             model: model,
                             baseURL: baseURL,
                             apiKey: apiKey,
-                            supportsImageGen: false,
+                            supportsImageGen: supportsImageGen,
                             session: session,
                             continuation: continuation
                         )
@@ -83,7 +70,41 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
         var workingTurns = turns
-        for _ in 0..<WebSearchService.maxToolRounds {
+
+        // First round: stream with tools so the user sees text immediately when the model
+        // does not invoke any tools. If it does invoke tools, fall back to the non-streaming
+        // loop for the remaining rounds.
+        try Task.checkCancellation()
+        if let toolCalls = try await streamText(
+            turns: workingTurns,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            tools: tools,
+            supportsImageGen: supportsImageGen,
+            session: session,
+            continuation: continuation
+        ) {
+            // When fragments arrived but none resolved into a usable call
+            // (missing id/name), leave the turns untouched and let the
+            // non-streaming round below retry: appending an empty assistant
+            // turn with no tool calls is rejected by some providers.
+            if !toolCalls.isEmpty {
+                workingTurns.append(
+                    ChatTurn(role: .assistant, content: "", toolCalls: toolCalls)
+                )
+                for call in toolCalls {
+                    let output = try await executeTool(call)
+                    workingTurns.append(
+                        ChatTurn(role: .tool, content: output, toolCallID: call.id)
+                    )
+                }
+            }
+        } else {
+            return
+        }
+
+        for _ in 1..<WebSearchService.maxToolRounds {
             try Task.checkCancellation()
             let result = try await complete(
                 turns: workingTurns,
@@ -113,53 +134,18 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         }
 
         // Exhausted tool rounds — stream a final answer without tools.
-        if supportsImageGen {
-            try await completeAndYield(
-                turns: workingTurns,
-                model: model,
-                baseURL: baseURL,
-                apiKey: apiKey,
-                tools: [],
-                supportsImageGen: true,
-                session: session,
-                continuation: continuation
-            )
-        } else {
-            try await streamText(
-                turns: workingTurns,
-                model: model,
-                baseURL: baseURL,
-                apiKey: apiKey,
-                supportsImageGen: false,
-                session: session,
-                continuation: continuation
-            )
-        }
-    }
-
-    // MARK: - Non-streaming completion
-
-    private static func completeAndYield(
-        turns: [ChatTurn],
-        model: String,
-        baseURL: String,
-        apiKey: String?,
-        tools: [ChatToolDefinition],
-        supportsImageGen: Bool,
-        session: URLSession,
-        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
-    ) async throws {
-        let result = try await complete(
-            turns: turns,
+        try await streamText(
+            turns: workingTurns,
             model: model,
             baseURL: baseURL,
             apiKey: apiKey,
-            tools: tools,
             supportsImageGen: supportsImageGen,
-            session: session
+            session: session,
+            continuation: continuation
         )
-        try yieldCompletion(result, to: continuation)
     }
+
+    // MARK: - Non-streaming completion
 
     private static func yieldCompletion(
         _ result: ChatCompletionResult,
@@ -239,7 +225,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         )
     }
 
-    // MARK: - Streaming text (no tools / no image gen)
+    // MARK: - Streaming text
 
     private static func streamText(
         turns: [ChatTurn],
@@ -250,22 +236,59 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
+        _ = try await streamText(
+            turns: turns,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            tools: [],
+            supportsImageGen: supportsImageGen,
+            session: session,
+            continuation: continuation
+        )
+    }
+
+    /// Streams a request that may include tools. Returns any tool calls the model emits;
+    /// if it returns `nil`, the streamed text (and any images) has already been yielded.
+    private static func streamText(
+        turns: [ChatTurn],
+        model: String,
+        baseURL: String,
+        apiKey: String?,
+        tools: [ChatToolDefinition],
+        supportsImageGen: Bool,
+        session: URLSession,
+        continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
+    ) async throws -> [ChatToolCall]? {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         let body = RequestBody(
             model: model,
             messages: turns.map(encodeMessage),
             stream: true,
-            tools: nil,
+            tools: tools.isEmpty ? nil : tools.map(encodeTool),
             modalities: supportsImageGen ? ["image", "text"] : nil
         )
         request.httpBody = try JSONEncoder().encode(body)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+
+        var accumulator = ToolCallAccumulator()
 
         let upstream = ServerSentEventStream.dataPayloads(for: request, session: session)
         for try await payload in upstream {
             guard let data = payload.data(using: .utf8) else { continue }
             guard let chunk = try? JSONDecoder().decode(Chunk.self, from: data) else { continue }
             let delta = chunk.choices?.first?.delta
+
+            if let toolCallDeltas = delta?.toolCalls, !toolCallDeltas.isEmpty {
+                accumulator.append(toolCallDeltas)
+                continue
+            }
+
+            guard accumulator.isEmpty else {
+                // Tool calls already started; ignore any trailing content.
+                continue
+            }
+
             if let text = delta?.content.text, !text.isEmpty {
                 continuation.yield(.text(text))
             }
@@ -280,6 +303,51 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             if !streamImages.isEmpty {
                 continuation.yield(.images(streamImages))
             }
+        }
+
+        // `nil` signals "the model answered with text, which is already streamed".
+        // Returning an empty array here would read as `.some([])` at the call site
+        // and wrongly continue into the non-streaming tool loop.
+        return accumulator.isEmpty ? nil : accumulator.toolCalls
+    }
+
+    /// Collects streaming tool-call fragments into complete tool calls.
+    private struct ToolCallAccumulator {
+        private var callsByIndex: [Int: AccumulatingToolCall] = [:]
+
+        var isEmpty: Bool { callsByIndex.isEmpty }
+
+        mutating func append(_ deltas: [ToolCallDeltaDTO]) {
+            for delta in deltas {
+                callsByIndex[delta.index, default: AccumulatingToolCall()].append(delta)
+            }
+        }
+
+        var toolCalls: [ChatToolCall] {
+            callsByIndex
+                .sorted { $0.key < $1.key }
+                .compactMap { $0.value.chatToolCall }
+        }
+    }
+
+    private struct AccumulatingToolCall {
+        var id: String = ""
+        var name: String = ""
+        var arguments: String = ""
+
+        mutating func append(_ delta: ToolCallDeltaDTO) {
+            if let id = delta.id, !id.isEmpty { self.id = id }
+            if let name = delta.function?.name, !name.isEmpty { self.name = name }
+            if let arguments = delta.function?.arguments { self.arguments += arguments }
+        }
+
+        var chatToolCall: ChatToolCall? {
+            guard !id.isEmpty, !name.isEmpty else { return nil }
+            return ChatToolCall(
+                id: id,
+                name: name,
+                argumentsJSON: arguments.isEmpty ? "{}" : arguments
+            )
         }
     }
 
@@ -531,6 +599,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             struct Delta: Decodable {
                 var content: FlexibleMessageContent
                 var images: [GeneratedImageDTO]?
+                var toolCalls: [ToolCallDeltaDTO]?
 
                 init(from decoder: Decoder) throws {
                     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -541,14 +610,29 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                         content = FlexibleMessageContent()
                     }
                     images = try container.decodeIfPresent([GeneratedImageDTO].self, forKey: .images)
+                    toolCalls = try container.decodeIfPresent([ToolCallDeltaDTO].self, forKey: .toolCalls)
                 }
 
                 enum CodingKeys: String, CodingKey {
                     case content, images
+                    case toolCalls = "tool_calls"
                 }
             }
             var delta: Delta?
         }
         var choices: [Choice]?
+    }
+
+    /// A single fragment of a tool call as it arrives in a streaming chunk.
+    private struct ToolCallDeltaDTO: Decodable {
+        var index: Int
+        var id: String?
+        var type: String?
+        var function: FunctionDeltaDTO?
+
+        struct FunctionDeltaDTO: Decodable {
+            var name: String?
+            var arguments: String?
+        }
     }
 }

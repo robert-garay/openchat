@@ -170,6 +170,12 @@ struct MessageBubbleView: View {
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
                         }
+                        Spacer(minLength: 4)
+                        if let responseTimeLabel {
+                            Text(responseTimeLabel)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 } else if isLastMessage && !message.isStreaming && message.errorMessage == nil {
                     RegenerateChip(action: onRetry)
@@ -216,6 +222,11 @@ struct MessageBubbleView: View {
 
     private var displayContent: String {
         MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+    }
+
+    private var responseTimeLabel: String? {
+        guard let seconds = message.responseTimeSeconds else { return nil }
+        return String(format: "%.2fs", seconds)
     }
 
     private var calendarConfirmationCard: some View {

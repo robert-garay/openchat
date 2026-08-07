@@ -78,6 +78,35 @@ final class ChatViewModel {
         self.memoryStore = memoryStore
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
+        restoreComposerState()
+    }
+
+    private func restoreComposerState() {
+        composerText = conversation.draftMessage
+        pendingAttachments = conversation.draftAttachments
+
+        if let raw = conversation.lastUsedWebSearchProviderID,
+           let kind = WebSearchProviderKind(rawValue: raw),
+           webSearchStore.hasAPIKey(for: kind) {
+            webSearchStore.setActiveProvider(kind)
+            webSearchStore.setEnabled(true)
+            isWebSearchEnabledForChat = true
+        }
+    }
+
+    private var persistTask: Task<Void, Never>?
+
+    func persistComposerState() {
+        conversation.draftMessage = composerText
+        conversation.draftAttachments = pendingAttachments
+        conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
+
+        persistTask?.cancel()
+        persistTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, !Task.isCancelled else { return }
+            try? modelContext.save()
+        }
     }
 
     private var shouldUseMemory: Bool {
@@ -114,9 +143,9 @@ final class ChatViewModel {
         webSearchStore.configuredProviders
     }
 
-    /// True when at least one search provider has a key (menu can open).
+    /// True when web search is enabled in Settings and at least one provider has a key.
     var canUseWebSearch: Bool {
-        webSearchStore.hasAnyAPIKey
+        webSearchStore.isEnabled && webSearchStore.hasAnyAPIKey
     }
 
     func selectWebSearchProvider(_ kind: WebSearchProviderKind) {
@@ -365,6 +394,9 @@ final class ChatViewModel {
 
         composerText = ""
         pendingAttachments = []
+        conversation.draftMessage = ""
+        conversation.draftAttachments = []
+        conversation.lastUsedWebSearchProviderID = nil
 
         // Explicit /slash-name invocation pins its instructions into the conversation
         // immediately, synchronously, before the user's message — same-turn, same as
@@ -661,6 +693,11 @@ final class ChatViewModel {
                     }
                 }
 
+                // Coalesce deltas so we don't mutate SwiftData / redraw the message view on every token.
+                var contentBuffer = ""
+                var lastFlush = ContinuousClock().now
+                let flushInterval: Duration = .milliseconds(80)
+
                 for try await event in client.streamReply(
                     turns: turns,
                     model: modelID,
@@ -672,14 +709,26 @@ final class ChatViewModel {
                 ) {
                     switch event {
                     case .text(let delta):
-                        assistantMessage.content += delta
+                        contentBuffer += delta
+                        let now = ContinuousClock().now
+                        if now >= lastFlush + flushInterval {
+                            assistantMessage.content += contentBuffer
+                            contentBuffer = ""
+                            lastFlush = now
+                        }
                     case .images(let images):
                         var existing = assistantMessage.imageAttachments
                         existing.append(contentsOf: images)
                         assistantMessage.imageAttachments = existing
                     }
                 }
+
+                // Flush any remaining buffered content.
+                if !contentBuffer.isEmpty {
+                    assistantMessage.content += contentBuffer
+                }
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 captureCalendarProposals(from: assistantMessage)
                 captureMemoryProposals(from: assistantMessage)
                 let invokedSkills = await skillCollector.invokedSkills
@@ -690,8 +739,10 @@ final class ChatViewModel {
                 captureSkillProposals(skillProposals, messageID: assistantMessage.id)
             } catch is CancellationError {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
             } catch {
                 assistantMessage.isStreaming = false
+                assistantMessage.completedAt = .now
                 assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
             }
             conversation.updatedAt = .now
