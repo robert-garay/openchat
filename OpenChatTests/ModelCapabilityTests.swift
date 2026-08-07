@@ -140,6 +140,17 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertTrue(caps.contains(.reasoning))
     }
 
+    func testEffortInferenceForGPT56Sol() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "openai/gpt-5.6-sol",
+            modelName: "gpt-5.6-sol"
+        )
+        XCTAssertTrue(caps.contains(.reasoning))
+        XCTAssertTrue(caps.contains(.effort))
+    }
+
     func testEffortNotInferredForDeepSeekR1() {
         let caps = ModelCapability.inferred(
             inputModalities: [],
