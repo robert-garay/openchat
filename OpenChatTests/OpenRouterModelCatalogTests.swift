@@ -221,7 +221,10 @@ final class OpenRouterModelCatalogTests: XCTestCase {
             query: "",
             capabilities: [.vision, .tools]
         )
-        XCTAssertEqual(visionAndTools.map(\.id), [withTools.id])
+        XCTAssertEqual(
+            Set(visionAndTools.map(\.id)),
+            Set([withTools.id, "meta-llama/llama-4-maverick", "anthropic/claude-sonnet-4.6"])
+        )
     }
 
     func testFilterCombinesQueryAndCapabilities() {
@@ -281,7 +284,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertTrue(imageGen.contains { $0.id == imageOnly.id })
         XCTAssertTrue(imageGen.contains { $0.id == textAndImage.id })
         XCTAssertEqual(imageOnly.capabilities, [.vision, .imageGen])
-        XCTAssertEqual(textAndImage.capabilities, [.vision, .imageGen])
+        XCTAssertEqual(textAndImage.capabilities, [.vision, .imageGen, .tools])
     }
 
     func testDisplayNameAndSubtitleFormatting() {

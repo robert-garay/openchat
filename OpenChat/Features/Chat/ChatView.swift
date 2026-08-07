@@ -209,6 +209,9 @@ struct ChatView: View {
         .onChange(of: viewModel?.effortLevel) { _, _ in
             viewModel?.persistComposerState()
         }
+        .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
+            viewModel?.persistComposerState()
+        }
     }
 }
 
@@ -252,8 +255,10 @@ private struct ChatComposerHost: View {
             conversation: conversation,
             skills: skills,
             effortLevel: $viewModel.effortLevel,
+            isReasoningEnabled: $viewModel.isReasoningEnabled,
             supportsEffort: viewModel.supportsEffort,
-            supportedEffortLevels: viewModel.supportedEffortLevels,
+            supportedEffortLevels: viewModel.pickerEffortLevels,
+            hasSeparateThinkingToggle: viewModel.hasSeparateThinkingToggle,
             onSetEffortLevel: viewModel.setEffortLevel,
             onSend: onSend,
             onStop: viewModel.cancelStreaming

@@ -68,8 +68,11 @@ final class ChatViewModel {
     /// even if a provider is configured. Always starts off for a freshly
     /// opened chat; the user opts in per chat via the composer.
     var isWebSearchEnabledForChat: Bool
-    /// Per-chat effort level. A value of `none` turns reasoning off for models that support it.
+    /// Per-chat effort level.
     var effortLevel: EffortLevel
+    /// Per-chat reasoning/thinking toggle. Used for models/providers that expose a
+    /// separate thinking on/off parameter (e.g. OpenRouter `reasoning.enabled`).
+    var isReasoningEnabled: Bool
 
     init(
         conversation: Conversation,
@@ -91,6 +94,7 @@ final class ChatViewModel {
         self.skillsStore = skillsStore
         self.isWebSearchEnabledForChat = false
         self.effortLevel = conversation.effortLevel
+        self.isReasoningEnabled = conversation.isReasoningEnabled
         restoreComposerState()
     }
 
@@ -98,6 +102,7 @@ final class ChatViewModel {
         composerText = conversation.draftMessage
         pendingAttachments = conversation.draftAttachments
         effortLevel = conversation.effortLevel
+        isReasoningEnabled = conversation.isReasoningEnabled
 
         if let raw = conversation.lastUsedWebSearchProviderID,
            let kind = WebSearchProviderKind(rawValue: raw),
@@ -115,6 +120,7 @@ final class ChatViewModel {
         conversation.draftAttachments = pendingAttachments
         conversation.lastUsedWebSearchProviderID = isWebSearchEnabledForChat ? webSearchStore.activeProvider.rawValue : nil
         conversation.effortLevel = effortLevel
+        conversation.isReasoningEnabled = isReasoningEnabled
 
         persistTask?.cancel()
         persistTask = Task { [weak self] in
@@ -210,19 +216,13 @@ final class ChatViewModel {
         currentModel?.supportsEffort ?? false
     }
 
-    var supportedEffortLevels: [EffortLevel] {
-        currentModel?.supportedEffortLevels ?? []
-    }
-
-    /// The effort level sent to the API, clamped to the model's supported set.
-    var effectiveEffortLevel: EffortLevel {
-        guard supportsEffort, !supportedEffortLevels.isEmpty else { return .default }
-        return supportedEffortLevels.contains(effortLevel) ? effortLevel : (supportedEffortLevels.last ?? .default)
-    }
-
     func setEffortLevel(_ level: EffortLevel) {
         effortLevel = level
         conversation.effortLevel = level
+        if hasSeparateThinkingToggle, !isReasoningEnabled {
+            isReasoningEnabled = true
+            conversation.isReasoningEnabled = true
+        }
         persistTask?.cancel()
         persistTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
@@ -339,7 +339,8 @@ final class ChatViewModel {
                     model: modelID,
                     baseURL: baseURL,
                     apiKey: apiKey,
-                    effort: supportsEffort ? effectiveEffortLevel : nil
+                    effort: supportsEffort ? effectiveEffortLevel : nil,
+                    reasoningEnabled: nil
                 ) {
                     if case .text(let delta) = event {
                         summary += delta
@@ -800,7 +801,8 @@ final class ChatViewModel {
                     tools: tools,
                     executeTool: executeTool,
                     supportsImageGen: supportsImageGen,
-                    effort: supportsEffort ? effectiveEffortLevel : nil
+                    effort: (supportsEffort && (!hasSeparateThinkingToggle || isReasoningEnabled)) ? effectiveEffortLevel : nil,
+                    reasoningEnabled: hasSeparateThinkingToggle ? effectiveReasoningEnabled : nil
                 ) {
                     switch event {
                     case .text(let delta):

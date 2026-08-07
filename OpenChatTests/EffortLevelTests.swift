@@ -75,4 +75,72 @@ final class EffortLevelTests: XCTestCase {
         let model = AIModel(id: "gpt-5.6-sol", displayName: "GPT-5.6 Sol", capabilities: [.effort])
         XCTAssertEqual(model.supportedEffortLevels, [.none, .low, .medium, .high, .xhigh, .max])
     }
+
+    func testAIModelUsesReasoningConfigForSupportedEffortLevels() {
+        let config = ModelReasoningConfig(
+            supportedEfforts: ["high", "max", "low"],
+            defaultEffort: "low",
+            defaultEnabled: true,
+            isMandatory: false,
+            supportsMaxTokens: false
+        )
+        let model = AIModel(
+            id: "custom-reasoner",
+            displayName: "Custom Reasoner",
+            capabilities: [.effort],
+            reasoningConfig: config
+        )
+        XCTAssertEqual(model.supportedEffortLevels, [.low, .high, .max])
+    }
+
+    func testAIModelHasSeparateThinkingToggleFromReasoningConfig() {
+        let optionalConfig = ModelReasoningConfig(
+            supportedEfforts: ["low", "high"],
+            defaultEnabled: true,
+            isMandatory: false
+        )
+        let optionalModel = AIModel(
+            id: "openrouter-reasoner",
+            displayName: "OpenRouter Reasoner",
+            capabilities: [.effort],
+            reasoningConfig: optionalConfig
+        )
+        XCTAssertTrue(optionalModel.hasSeparateThinkingToggle)
+
+        let mandatoryConfig = ModelReasoningConfig(
+            supportedEfforts: ["low", "high"],
+            defaultEnabled: true,
+            isMandatory: true
+        )
+        let mandatoryModel = AIModel(
+            id: "openrouter-reasoner-mandatory",
+            displayName: "OpenRouter Reasoner Mandatory",
+            capabilities: [.effort],
+            reasoningConfig: mandatoryConfig
+        )
+        XCTAssertFalse(mandatoryModel.hasSeparateThinkingToggle)
+        XCTAssertTrue(mandatoryModel.isReasoningMandatory)
+    }
+
+    func testAIModelReasoningConfigOverridesInferenceForDeepSeek() {
+        let config = ModelReasoningConfig(
+            supportedEfforts: ["low", "high"],
+            defaultEnabled: true,
+            isMandatory: false
+        )
+        let model = AIModel(
+            id: "deepseek-v4-flash",
+            displayName: "DeepSeek V4 Flash",
+            capabilities: [.effort],
+            reasoningConfig: config
+        )
+        XCTAssertEqual(model.supportedEffortLevels, [.low, .high])
+    }
+
+    func testConversationReasoningEnabledPersistence() {
+        let conversation = Conversation(providerID: "p", modelID: "m")
+        XCTAssertTrue(conversation.isReasoningEnabled)
+        conversation.isReasoningEnabled = false
+        XCTAssertFalse(conversation.isReasoningEnabled)
+    }
 }
