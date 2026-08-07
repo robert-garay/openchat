@@ -4,6 +4,7 @@ import SwiftData
 struct ChatView: View {
     let conversation: Conversation
     var onToggleTemporary: (() -> Void)?
+    var onShowHistory: (() -> Void)?
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
@@ -26,12 +27,17 @@ struct ChatView: View {
             }
 
             if let viewModel {
-                // Isolated so composer keystrokes do not rebuild the message list.
-                ChatMessageListView(
-                    conversation: conversation,
-                    viewModel: viewModel,
-                    stickToBottom: $stickToBottom
-                )
+                ZStack {
+                    ChatMessageListView(
+                        conversation: conversation,
+                        viewModel: viewModel,
+                        stickToBottom: $stickToBottom
+                    )
+
+                    if conversation.sortedMessages.isEmpty {
+                        WelcomeOverlay()
+                    }
+                }
 
                 ChatComposerHost(
                     viewModel: viewModel,
@@ -51,6 +57,18 @@ struct ChatView: View {
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Haptics.light()
+                    onShowHistory?()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .accessibilityLabel("Chat history")
+            }
+
             ToolbarItem(placement: .principal) {
                 if let viewModel {
                     Button {
@@ -495,6 +513,17 @@ private struct CompactStatusToast: View {
             .padding(.vertical, 8)
             .background(.ultraThinMaterial, in: Capsule())
             .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+    }
+}
+
+private struct WelcomeOverlay: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            OpenChatLogoView(size: 72)
+            Text("What can I help with?")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
     }
 }
 
