@@ -29,6 +29,18 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
         capabilities.contains(.effort)
     }
 
+    /// The effort levels this model supports, ordered least-to-most reasoning.
+    /// Computed from the model ID/name because providers rarely enumerate them in
+    /// the model list response.
+    var supportedEffortLevels: [EffortLevel] {
+        supportsEffort ? EffortLevel.inferred(for: id, modelName: displayName) : []
+    }
+
+    /// True when the model supports turning reasoning/thinking off (`none`).
+    var canDisableReasoning: Bool {
+        supportedEffortLevels.contains(.none)
+    }
+
     /// OpenRouter-style `modalities` for chat completions. Nil when omitted (text-only default).
     var chatOutputModalities: [String]? {
         guard supportsImageGen else { return nil }

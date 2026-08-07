@@ -80,6 +80,7 @@
 		68FC5BE673CD1693B2B880E4 /* GhostIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C10CF67F7746EB18A4AB68 /* GhostIcon.swift */; };
 		695BB5AE181BC04E36C135D4 /* ChatHistoryDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152329A233CE865AB1083AB /* ChatHistoryDrawerView.swift */; };
 		6A2E36A2686F94E3015A90D2 /* CalendarActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7EBB374CCCA1074ECEAF1D /* CalendarActionParser.swift */; };
+		6B26347062ADF89FDA13017A /* EffortGaugeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3436B71AE5018DC293AC3E14 /* EffortGaugeIcon.swift */; };
 		6B98CE2DF1DAD66D158901F2 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701D582B715E1A1CE50EEBF8 /* SerpAPIClient.swift */; };
 		6BAB533F2FE3DAC4F2131FA5 /* SkillToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */; };
 		6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */; };
@@ -194,6 +195,7 @@
 		3022C85CF36B100C7663857D /* AddProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddProviderView.swift; sourceTree = "<group>"; };
 		33F0BE52570BA623F7B861EF /* ConversationCompactionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationCompactionService.swift; sourceTree = "<group>"; };
 		3432E3B59D9CD35605D465A9 /* AgentDataSourcePermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourcePermissionService.swift; sourceTree = "<group>"; };
+		3436B71AE5018DC293AC3E14 /* EffortGaugeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffortGaugeIcon.swift; sourceTree = "<group>"; };
 		351DB8F5AD48BE069DBC2B02 /* APIFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIFormat.swift; sourceTree = "<group>"; };
 		36873DF3796EB11DDF4BC482 /* ConversationTitleGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTitleGeneratorTests.swift; sourceTree = "<group>"; };
 		374A1E442B137C07DDA666EB /* ChatMessageProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageProviderTests.swift; sourceTree = "<group>"; };
@@ -487,6 +489,7 @@
 				1A2AF4F55AFA1992CFFDAA5A /* ComposerTextView.swift */,
 				5AB6E25E943F288DFF8C04EF /* DocumentPreviewView.swift */,
 				CB0956E2D14D6BFC60E14884 /* EditMessageView.swift */,
+				3436B71AE5018DC293AC3E14 /* EffortGaugeIcon.swift */,
 				85DBF651694D60DF74467C43 /* EffortLevelPicker.swift */,
 				CE4B65EB10BF80F18249F7B9 /* ImagePreviewView.swift */,
 				B5D868369D030010308DDCDB /* MarkdownMessageView.swift */,
@@ -742,6 +745,7 @@
 				FBF1A6CE34FD4FEAD3F93E8B /* DataSourcesSettingsView.swift in Sources */,
 				8E73451C3463680BE8BABB1D /* DocumentPreviewView.swift in Sources */,
 				843C97B5D226D6F8CEF3A43E /* EditMessageView.swift in Sources */,
+				6B26347062ADF89FDA13017A /* EffortGaugeIcon.swift in Sources */,
 				57D3AE2B503528502E84742F /* EffortLevel.swift in Sources */,
 				145D54C59CDC58A2738412E8 /* EffortLevelPicker.swift in Sources */,
 				892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */,

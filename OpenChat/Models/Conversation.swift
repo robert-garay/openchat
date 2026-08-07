@@ -27,6 +27,9 @@ final class Conversation {
     var draftAttachmentsData: Data?
     /// Persisted raw value of `EffortLevel` for this chat. Defaults to `medium`.
     var effortLevelRawValue: String = EffortLevel.default.rawValue
+    /// When true, reasoning/thinking is enabled for this chat. Models that support
+    /// an explicit `none` effort level can be toggled off. Defaults to on.
+    var isReasoningEnabled: Bool = true
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []
