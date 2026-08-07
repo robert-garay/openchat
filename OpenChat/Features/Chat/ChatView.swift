@@ -142,6 +142,24 @@ struct ChatView: View {
             }
         }
         .animation(Theme.springFast, value: viewModel?.compactStatusMessage)
+        .fullScreenCover(item: Binding(
+            get: { viewModel?.editingMessage },
+            set: { if $0 == nil { viewModel?.cancelEditing() } }
+        )) { message in
+            if let viewModel {
+                EditMessageView(
+                    message: message,
+                    supportsVision: viewModel.supportsVision,
+                    modelDisplayName: viewModel.currentModel?.displayName,
+                    onCancel: {
+                        viewModel.cancelEditing()
+                    },
+                    onSave: { newText, attachments in
+                        viewModel.saveEdit(message, newText: newText, attachments: attachments)
+                    }
+                )
+            }
+        }
         .task(id: conversation.id) {
             if viewModel == nil {
                 viewModel = ChatViewModel(
@@ -258,16 +276,9 @@ private struct ChatMessageListView: View {
                             },
                             isLastMessage: message.id == lastMessageID,
                             onRetry: viewModel.regenerateLastReply,
-                            isEditing: viewModel.editingMessageID == message.id,
                             canEdit: !viewModel.isStreaming,
                             onBeginEdit: {
                                 viewModel.beginEditing(message)
-                            },
-                            onCancelEdit: {
-                                viewModel.cancelEditing()
-                            },
-                            onSaveEdit: { newText in
-                                viewModel.saveEdit(message, newText: newText)
                             }
                         )
                         .id(message.id)

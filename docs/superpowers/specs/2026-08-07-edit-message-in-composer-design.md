@@ -57,28 +57,33 @@ keeps the invariant explicit.
 
 ## Components
 
-### `AttachmentPickerBar.swift` (new)
+### `AttachmentComposerBox.swift` (new)
 
-Extracted verbatim in behavior from `MessageComposerView`. Owns the
-plus-menu button (Camera / Photos / Paste Image), `.photosPicker`,
-camera `.fullScreenCover`, `.onDrop`, paste handling, the "Images not
-supported" alert, and the thumbnail strip with remove buttons and
-tap-to-preview.
+Extracted verbatim in behavior from `MessageComposerView`. A `View` (not
+a plain struct — `@State` only installs storage inside `View`/`App`/
+`Scene` types) that owns the rounded composer box itself: the thumbnail
+strip, the plus-menu button (Camera / Photos / Paste Image),
+`.photosPicker`, camera `.fullScreenCover`, `.onDrop`, paste handling,
+and the "Images not supported" alert.
 
 Interface:
 
 ```swift
-@Binding var attachments: [ChatImageAttachment]
-let supportsVision: Bool
-let modelDisplayName: String?
+struct AttachmentComposerBox<Field: View, Buttons: View>: View {
+    @Binding var attachments: [ChatImageAttachment]
+    let supportsVision: Bool
+    let modelDisplayName: String?
+    @ViewBuilder let field: (([UIImage]) -> Void) -> Field
+    @ViewBuilder let buttons: () -> Buttons
+}
 ```
 
-The strip and the plus button are separate views on the same type
-(`strip`, `plusButton`) so each host lays them out its own way: the
-strip above the text field, the plus button in the button row. The
-modifiers (`photosPicker`, `onDrop`, alerts, camera cover) attach via a
-single `attachmentHandlers()` view modifier the host applies to its
-container.
+Two generic slots let each host supply its own text field and trailing
+buttons while sharing the box's chrome, state, and image-intake
+plumbing: the main composer passes its `ComposerTextView` plus web
+search / chat rules / compact / send buttons; the edit screen passes an
+autofocused `ComposerTextView` plus a send button. `field` receives the
+paste handler to install on the text view.
 
 ### `EditMessageView.swift` (new)
 
