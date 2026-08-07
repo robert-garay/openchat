@@ -26,7 +26,13 @@ struct SkillEditorView: View {
             Form {
                 Section {
                     TextField("Display Name", text: $name)
-                    HStack { Text("/").foregroundStyle(.secondary); TextField("slash-name", text: $slashInput).textInputAutocapitalization(.never).autocorrectionDisabled().onChange(of: slashInput) { _, _ in validateSlashName() } }
+                    HStack {
+                        Text("/").foregroundStyle(.secondary)
+                        TextField("slash-name", text: $slashInput)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .onChange(of: slashInput) { _, _ in validateSlashName() }
+                    }
                     if let slashNameError { Text(slashNameError).font(.caption).foregroundStyle(.red) }
                     else if !normalizedSlashName.isEmpty { Text("Invoked as /\(normalizedSlashName)").font(.caption).foregroundStyle(.secondary) }
                 } header: { Text("Identity") }

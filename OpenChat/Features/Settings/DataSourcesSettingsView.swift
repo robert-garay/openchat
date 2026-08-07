@@ -11,7 +11,9 @@ struct DataSourcesSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("When enabled, calendar and fitness data are attached to chat requests so the model can answer questions like today’s agenda. With calendar editing on, the model can propose changes you confirm in chat. Relevant details are sent to the AI providers you configure.")
+                    Text("When enabled, calendar and fitness data are attached to chat requests so the model can answer questions "
+                         + "like today’s agenda. With calendar editing on, the model can propose changes you confirm in chat. "
+                         + "Relevant details are sent to the AI providers you configure.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -144,7 +146,8 @@ struct CalendarAccessModeChooserView: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Choose how agents may use your calendar. iOS will ask for calendar access either way. Edits are never applied until you confirm them in chat.")
+                    Text("Choose how agents may use your calendar. iOS will ask for calendar access either way. "
+                         + "Edits are never applied until you confirm them in chat.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .listRowBackground(Color.clear)
@@ -211,17 +214,20 @@ struct FitnessPrivacyNoticeView: View {
                     noticeRow(
                         symbol: "cross.case",
                         title: "No clinical data",
-                        detail: "OpenChat does not request clinical records, lab results, medications, immunizations, or other medical chart data from Apple Health."
+                        detail: "OpenChat does not request clinical records, lab results, medications, immunizations, "
+                                + "or other medical chart data from Apple Health."
                     )
                     noticeRow(
                         symbol: "network",
                         title: "Sent to your AI provider",
-                        detail: "Relevant fitness metrics may be included in prompts sent to the AI providers you configure (for example OpenAI, Anthropic, or a custom endpoint). OpenChat does not operate its own backend for this data."
+                        detail: "Relevant fitness metrics may be included in prompts sent to the AI providers you configure "
+                                + "(for example OpenAI, Anthropic, or a custom endpoint). OpenChat does not operate its own backend for this data."
                     )
                     noticeRow(
                         symbol: "lock.shield",
                         title: "Under your control",
-                        detail: "Apple Health stays off until you enable it. You can turn it off anytime in OpenChat. Revoke system access in iOS Settings → Health → Data Access."
+                        detail: "Apple Health stays off until you enable it. You can turn it off anytime in OpenChat. "
+                                + "Revoke system access in iOS Settings → Health → Data Access."
                     )
                     noticeRow(
                         symbol: "eye.slash",
@@ -284,10 +290,10 @@ private struct DataSourceToggleRow: View {
     let source: AgentDataSource
     let isOn: Bool
     let authorizationStatus: AgentDataSourceAuthorizationStatus
-    var calendarAccessMode: CalendarAccessMode? = nil
+    var calendarAccessMode: CalendarAccessMode?
     let isBusy: Bool
     let onChange: (Bool) -> Void
-    var onChangeCalendarMode: ((CalendarAccessMode) -> Void)? = nil
+    var onChangeCalendarMode: ((CalendarAccessMode) -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
