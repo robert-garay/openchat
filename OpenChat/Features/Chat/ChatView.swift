@@ -65,10 +65,11 @@ struct ChatView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(Color(.secondarySystemBackground), in: Circle())
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Chat history")
             }
 
