@@ -41,7 +41,7 @@ jobs:
             --volume "$PWD:/work" \
             --workdir /work \
             "$SWIFTLINT_IMAGE" \
-            lint --reporter github-actions-logging
+            swiftlint --reporter github-actions-logging
 
   test:
     name: Unit Tests
