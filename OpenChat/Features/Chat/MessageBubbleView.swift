@@ -6,6 +6,7 @@ import Photos
 
 struct MessageBubbleView: View {
     let message: ChatMessage
+    let conversation: Conversation
     let providerTint: Color
     let providerSymbol: String
     var providerLogoAssetName: String? = nil
@@ -22,6 +23,10 @@ struct MessageBubbleView: View {
     var skillActionStatus: String? = nil
     var onDismissSkillProposals: (() -> Void)? = nil
     var onSkillProposalSaved: (() -> Void)? = nil
+    var pendingRuleProposals: [RuleProposal] = []
+    var ruleActionStatus: String? = nil
+    var onDismissRuleProposals: (() -> Void)? = nil
+    var onRuleProposalSaved: (() -> Void)? = nil
     var isLastMessage: Bool = false
     let onRetry: () -> Void
     var isEditing: Bool = false
@@ -37,6 +42,7 @@ struct MessageBubbleView: View {
     #endif
     @State private var draftText: String = ""
     @State private var reviewingSkillProposal: SkillProposal?
+    @State private var reviewingRuleProposal: RuleProposal?
 
     var body: some View {
         Group {
@@ -214,6 +220,14 @@ struct MessageBubbleView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if !pendingRuleProposals.isEmpty {
+                    ruleProposalCard
+                } else if let ruleActionStatus, !ruleActionStatus.isEmpty {
+                    Text(ruleActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
                         MarkdownMessageView(content: errorMessage, isUserMessage: false)
@@ -229,7 +243,9 @@ struct MessageBubbleView: View {
     }
 
     private var displayContent: String {
-        MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+        RuleActionParser.strippingFences(
+            from: MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+        )
     }
 
     private var calendarConfirmationCard: some View {
@@ -322,6 +338,36 @@ struct MessageBubbleView: View {
         .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         .sheet(item: $reviewingSkillProposal) { proposal in
             SkillEditorView(skill: nil, proposal: proposal, onSaved: onSkillProposalSaved)
+        }
+    }
+
+    private var ruleProposalCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("New rule proposed", systemImage: "list.bullet.rectangle")
+                .font(.subheadline.weight(.semibold))
+            ForEach(pendingRuleProposals) { proposal in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(proposal.content)
+                        .font(.caption)
+                    Text(proposal.scope == .global ? "Every chat" : "This chat")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            HStack {
+                Button("Review") {
+                    reviewingRuleProposal = pendingRuleProposals.first
+                }
+                .buttonStyle(.borderedProminent)
+                Button("Discard") { onDismissRuleProposals?() }
+                    .buttonStyle(.bordered)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .sheet(item: $reviewingRuleProposal) { proposal in
+            RuleReviewSheet(proposal: proposal, conversation: conversation, onSaved: onRuleProposalSaved)
         }
     }
 
