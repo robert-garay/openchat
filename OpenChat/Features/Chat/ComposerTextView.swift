@@ -10,6 +10,16 @@ private final class PasteInterceptingTextView: UITextView {
     /// pasteboard-provided filename hint, if any.
     var onPasteDocument: ((Data, String?) -> Void)?
 
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(paste(_:)) {
+            let defaultAllows = super.canPerformAction(action, withSender: sender)
+            let hasRichContent = UIPasteboard.general.hasImages
+                || UIPasteboard.general.itemProviders.contains { $0.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) }
+            return defaultAllows || (isEditable && hasRichContent)
+        }
+        return super.canPerformAction(action, withSender: sender)
+    }
+
     override func paste(_ sender: Any?) {
         // 1. Images take priority over PDFs and text.
         if let images = UIPasteboard.general.images, !images.isEmpty, let onPasteImages {

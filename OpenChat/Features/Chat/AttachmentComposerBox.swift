@@ -45,7 +45,6 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
     #if canImport(UIKit)
     @State private var previewAttachment: ChatImageAttachment?
     @State private var previewDocument: ChatDocumentAttachment?
-    @State private var canPaste = false
     #endif
 
     var body: some View {
@@ -59,21 +58,11 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
 
                 HStack(alignment: .center, spacing: 2) {
                     plusMenuButton
-                    pasteButton
                     buttons()
                 }
                 .padding(.leading, 2)
                 .padding(.trailing, 4)
                 .padding(.bottom, 4)
-                #if canImport(UIKit)
-                .onAppear { canPaste = clipboardHasContent() }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                    canPaste = clipboardHasContent()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
-                    canPaste = clipboardHasContent()
-                }
-                #endif
             }
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
@@ -162,25 +151,6 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
         }
         .accessibilityLabel("Add")
         .accessibilityHint("Attach a photo or PDF")
-    }
-
-    private var pasteButton: some View {
-        Group {
-            #if canImport(UIKit)
-            Button {
-                UIApplication.shared.sendAction(#selector(UIResponder.paste(_:)), to: nil, from: nil, for: nil)
-            } label: {
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(canPaste ? Color.primary : Color(.tertiaryLabel))
-                    .frame(width: 34, height: 34)
-                    .contentShape(Rectangle())
-            }
-            .disabled(!canPaste)
-            .accessibilityLabel("Paste")
-            .accessibilityHint("Paste clipboard content")
-            #endif
-        }
     }
 
     private var attachmentStrip: some View {
@@ -284,14 +254,6 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
         }
         showingFileImporter = true
     }
-
-    #if canImport(UIKit)
-    private func clipboardHasContent() -> Bool {
-        UIPasteboard.general.hasImages
-            || UIPasteboard.general.hasStrings
-            || UIPasteboard.general.itemProviders.contains { $0.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) }
-    }
-    #endif
 
     private func handlePastedImages(_ images: [UIImage]) {
         #if canImport(UIKit)
