@@ -38,7 +38,11 @@ struct AgentContextProvider {
         guard !sections.isEmpty else { return nil }
 
         return """
-        On-device context the user enabled in OpenChat settings. Use it when relevant. Do not invent calendar events, fitness metrics, or memory facts beyond what appears here. If the user asks about agenda/schedule, prefer the Calendar section. If they ask about steps, heart rate, workouts, sleep, or training, prefer the Fitness section. If they ask about saved preferences or long-term facts, prefer the Memory section.
+        On-device context the user enabled in OpenChat settings. Use it when relevant. \
+        Do not invent calendar events, fitness metrics, or memory facts beyond what appears here. \
+        If the user asks about agenda/schedule, prefer the Calendar section. \
+        If they ask about steps, heart rate, workouts, sleep, or training, prefer the Fitness section. \
+        If they ask about saved preferences or long-term facts, prefer the Memory section.
 
         \(sections.joined(separator: "\n\n"))
         """

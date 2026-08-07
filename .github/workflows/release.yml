@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog section
+        id: changelog
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          python3 - "$version" <<'PY' | tee release_notes.md
+import re, sys
+from pathlib import Path
+
+version = sys.argv[1]
+changelog_path = Path("CHANGELOG.md")
+if not changelog_path.exists():
+    sys.exit("CHANGELOG.md not found")
+
+text = changelog_path.read_text()
+# Match the version heading and capture until the next top-level heading or EOF.
+pattern = rf"## \[{re.escape(version)}\] - \d{{4}}-\d{{2}}-\d{{2}}\n\n(.*?)(?=\n## \[|\Z)"
+match = re.search(pattern, text, re.DOTALL)
+if not match:
+    sys.exit(f"No changelog section found for version {version}")
+section = match.group(1).strip()
+if not section:
+    section = "No release notes available."
+print(section)
+PY
+          {
+            echo "notes<<EOF"
+            cat release_notes.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          body: ${{ steps.changelog.outputs.notes }}
+          generate_release_notes: false

@@ -25,7 +25,7 @@ do
 done
 
 echo "==> Checking script executability"
-for path in scripts/ci-test.sh scripts/ci-lint.sh scripts/validate-ci.sh; do
+for path in scripts/ci-test.sh scripts/ci-lint.sh scripts/validate-ci.sh scripts/release.sh; do
   [[ -x "$path" ]] || fail "$path is not executable"
 done
 

@@ -43,13 +43,33 @@ OpenChatTests/    Unit tests for the provider catalog, Keychain, SSE parsing, an
 
 `main` is protected — all changes land via PR. Open a PR against `main`; CI (lint + tests) must pass before merge.
 
+Add a bullet under the `[Unreleased]` section of `CHANGELOG.md` if your PR is user-facing. Use the categories from [Keep a Changelog](https://keepachangelog.com/): `Added`, `Changed`, `Fixed`, `Deprecated`, `Removed`, `Security`.
+
+## Versioning
+
+Version information lives in `project.yml` only:
+
+- `MARKETING_VERSION` — public SemVer version (e.g. `1.0.0`).
+- `CURRENT_PROJECT_VERSION` — monotonic integer build number for App Store Connect / TestFlight.
+
+Never edit these values by hand. Use `scripts/release.sh` to bump them.
+
 ## Shipping to TestFlight
 
 (Maintainers only)
 
-1. In Xcode: **Product → Archive** (requires a physical device or "Any iOS Device" build target, not the simulator).
-2. In the Organizer window that opens, select the archive → **Distribute App → App Store Connect → Upload**.
-3. In [App Store Connect](https://appstoreconnect.apple.com), create the app record (if it doesn't exist yet) matching your bundle ID, then open **TestFlight** for that app once the build finishes processing.
-4. Add yourself (and other testers) under **Internal Testing**, attach the build, and install via the TestFlight app.
+1. Make sure `main` is green and you are on the `main` branch.
+2. Run the release script:
 
-Bump `CURRENT_PROJECT_VERSION` in `project.yml` (or directly in the target's build settings) before each new TestFlight upload — App Store Connect rejects duplicate build numbers.
+   ```bash
+   ./scripts/release.sh patch   # or minor / major
+   ```
+
+   This updates `project.yml`, regenerates `OpenChat.xcodeproj`, updates `CHANGELOG.md`, commits the changes, and pushes an annotated tag. GitHub Actions then creates a GitHub Release from the matching `CHANGELOG.md` section.
+
+3. In Xcode: **Product → Archive** (requires a physical device or "Any iOS Device" build target, not the simulator).
+4. In the Organizer window that opens, select the archive → **Distribute App → App Store Connect → Upload**.
+5. In [App Store Connect](https://appstoreconnect.apple.com), create the app record (if it doesn't exist yet) matching your bundle ID, then open **TestFlight** for that app once the build finishes processing.
+6. Add yourself (and other testers) under **Internal Testing**, attach the build, and install via the TestFlight app.
+
+The release script already incremented `CURRENT_PROJECT_VERSION`, so App Store Connect will not reject the upload for a duplicate build number.

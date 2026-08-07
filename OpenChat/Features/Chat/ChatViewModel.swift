@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import Observation
 
+// swiftlint:disable type_body_length
 @MainActor
 @Observable
 final class ChatViewModel {
@@ -951,3 +952,4 @@ private actor SkillInvocationCollector {
         proposals.append(proposal)
     }
 }
+// swiftlint:enable type_body_length

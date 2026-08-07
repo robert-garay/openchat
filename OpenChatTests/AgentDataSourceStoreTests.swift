@@ -1,5 +1,5 @@
 import HealthKit
-import XCTest
+@preconcurrency import XCTest
 @testable import OpenChat
 
 @MainActor
@@ -116,4 +116,3 @@ final class AgentDataSourceStoreTests: XCTestCase {
         XCTAssertFalse(readTypes.contains(where: { $0 is HKClinicalType }))
     }
 }
-

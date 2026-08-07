@@ -41,7 +41,7 @@ jobs:
             --volume "$PWD:/work" \
             --workdir /work \
             "$SWIFTLINT_IMAGE" \
-            lint --reporter github-actions-logging
+            swiftlint --reporter github-actions-logging
 
   test:
     name: Unit Tests
@@ -91,6 +91,14 @@ jobs:
           brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
           xcodegen --version
           xcbeautify --version
+
+      - name: Verify project.yml is in sync
+        run: |
+          xcodegen generate
+          if ! git diff --exit-code OpenChat.xcodeproj; then
+            echo "ERROR: OpenChat.xcodeproj is out of sync with project.yml. Run xcodegen generate and commit the result." >&2
+            exit 1
+          fi
 
       - name: Boot simulator
         run: |
