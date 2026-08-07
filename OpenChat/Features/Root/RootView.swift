@@ -80,9 +80,22 @@ struct RootView: View {
                     ChatView(
                         conversation: conversation,
                         onToggleTemporary: { toggleTemporary(for: conversation) },
-                        onShowHistory: { showingHistoryDrawer.toggle() }
+                        onShowHistory: { showingHistoryDrawer.toggle() },
+                        isHistoryDrawerOpen: showingHistoryDrawer
                     )
                     .id(conversation.id)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = value.translation.height
+                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showingHistoryDrawer = true
+                                    }
+                                }
+                            }
+                    )
                 } else {
                     // Stable placeholder while the first chat is created.
                     ProgressView()
