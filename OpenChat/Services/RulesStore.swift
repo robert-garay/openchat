@@ -137,7 +137,7 @@ final class RulesStore {
             .map { "- \($0)" }
             .joined(separator: "\n")
         guard !body.isEmpty else { return nil }
-        return "## Rules\nStanding instructions already saved in OpenChat. Do not propose a new rule that duplicates or re-blends one already listed here.\n\n\(body)"
+        return "## Rules\nRules already saved in OpenChat, shown for reference only — this list does not mean they are currently being applied to this chat. Do not propose a new rule that duplicates or re-blends one already listed here.\n\n\(body)"
     }
 
     /// Rules already saved in the same scope as `conversation` (global when nil, that chat's rules otherwise).
