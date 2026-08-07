@@ -137,14 +137,14 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
     private static func looksLikeReasoningModel(_ haystack: String) -> Bool {
         let markers = [
             "reasoner", "reasoning", "-r1", "/r1", "o1-", "o3-", "o4-",
-            "thinking", "deepseek-r1", "gpt-5-pro", "gpt-5.pro"
+            "thinking", "deepseek-r1", "gpt-5-pro", "gpt-5.pro", "gpt-5.6"
         ]
         return markers.contains { haystack.contains($0) }
     }
 
     private static func looksLikeEffortModel(_ haystack: String) -> Bool {
         let markers = [
-            "o1", "o3", "o4", "gpt-5-pro", "gpt-5.pro"
+            "o1", "o3", "o4", "gpt-5-pro", "gpt-5.pro", "gpt-5.6"
         ]
         return markers.contains { haystack.contains($0) }
     }
