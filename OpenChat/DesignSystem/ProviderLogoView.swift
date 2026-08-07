@@ -16,7 +16,6 @@ struct ProviderLogoView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: size, height: size)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(tint.opacity(0.12))
