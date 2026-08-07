@@ -254,4 +254,15 @@ final class RulesStoreTests: XCTestCase {
 
         XCTAssertTrue(try store.fetchItems(modelContext: context).isEmpty)
     }
+
+    func testContextSectionListsExistingRulesAndIsNilWhenEmpty() {
+        XCTAssertNil(RulesStore.contextSection(for: []))
+
+        let item = RuleItem(content: "Always answer in bullet points.")
+        let section = RulesStore.contextSection(for: [item])
+
+        XCTAssertNotNil(section)
+        XCTAssertTrue(section!.contains("## Rules"))
+        XCTAssertTrue(section!.contains("Always answer in bullet points."))
+    }
 }

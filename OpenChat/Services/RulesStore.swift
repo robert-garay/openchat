@@ -127,6 +127,19 @@ final class RulesStore {
             .joined(separator: "\n\n")
     }
 
+    /// Context block describing already-saved rules, injected so the model sees existing
+    /// state before proposing a new one (mirrors `MemoryStore.contextSection(for:)`).
+    static func contextSection(for items: [RuleItem]) -> String? {
+        guard !items.isEmpty else { return nil }
+        let body = items
+            .map { $0.content.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { "- \($0)" }
+            .joined(separator: "\n")
+        guard !body.isEmpty else { return nil }
+        return "## Rules\nStanding instructions already saved in OpenChat. Do not propose a new rule that duplicates or re-blends one already listed here.\n\n\(body)"
+    }
+
     /// Rules already saved in the same scope as `conversation` (global when nil, that chat's rules otherwise).
     private func scopedItems(conversation: Conversation?, modelContext: ModelContext) throws -> [RuleItem] {
         if let conversation {

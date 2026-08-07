@@ -628,6 +628,11 @@ final class ChatViewModel {
                 }
 
                 if shouldAllowRuleProposals {
+                    let globalRuleItems = (try? rulesStore.fetchItems(modelContext: modelContext)) ?? []
+                    let existingRuleItems = globalRuleItems + conversation.rules
+                    if let rulesSection = RulesStore.contextSection(for: existingRuleItems) {
+                        middleSections.append(rulesSection)
+                    }
                     middleSections.append(RulesStore.modelInstruction())
                 }
 
