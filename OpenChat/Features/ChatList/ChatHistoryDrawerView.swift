@@ -35,15 +35,16 @@ struct ChatHistoryDrawerView: View {
     }
 
     var body: some View {
-        ZStack {
-            drawerContent
-                .background(.background)
+        GeometryReader { geometry in
+            ZStack {
+                drawerContent(topSafeArea: geometry.safeAreaInsets.top)
+                    .background(.background)
 
-            if let activeMenu {
-                contextMenuOverlay(for: activeMenu)
+                if let activeMenu {
+                    contextMenuOverlay(for: activeMenu)
+                }
             }
-        }
-        .alert("Rename Chat", isPresented: isRenameAlertPresented) {
+            .alert("Rename Chat", isPresented: isRenameAlertPresented) {
             TextField("Title", text: $renameText)
             Button("Cancel", role: .cancel) {
                 conversationPendingRename = nil
@@ -54,13 +55,14 @@ struct ChatHistoryDrawerView: View {
         } message: {
             Text("Enter a new name for this chat.")
         }
+        }
     }
 
-    private var drawerContent: some View {
+    private func drawerContent(topSafeArea: CGFloat) -> some View {
         VStack(spacing: 0) {
             header
                 .padding(.horizontal, 16)
-                .padding(.top, 12)
+                .padding(.top, topSafeArea + 12)
                 .padding(.bottom, 12)
 
             Divider()
@@ -122,6 +124,11 @@ struct ChatHistoryDrawerView: View {
 
     private var header: some View {
         HStack(spacing: 0) {
+            Text("OpenChat")
+                .font(.title2.weight(.bold))
+
+            Spacer(minLength: 12)
+
             Button(action: onClose) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 18, weight: .semibold))
@@ -130,11 +137,6 @@ struct ChatHistoryDrawerView: View {
                     .background(Color(.secondarySystemBackground), in: Circle())
             }
             .accessibilityLabel("Back to chat")
-
-            Spacer(minLength: 12)
-
-            Text("OpenChat")
-                .font(.title2.weight(.bold))
         }
     }
 
