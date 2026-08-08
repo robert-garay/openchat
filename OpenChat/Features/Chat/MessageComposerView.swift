@@ -115,7 +115,8 @@ struct MessageComposerView: View {
                 minHeight: 22,
                 maxHeight: 120,
                 onPasteImages: onPasteImages,
-                onPasteDocument: onPasteDocument
+                onPasteDocument: onPasteDocument,
+                autoFocus: true
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)
