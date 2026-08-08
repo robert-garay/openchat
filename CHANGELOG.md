@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic reasoning configuration from provider model catalogs, with a separate brain-chip toggle for providers that expose a distinct thinking on/off parameter (OpenRouter `reasoning.enabled`, Anthropic `thinking`, DeepSeek `thinking.type`) and a ChatGPT-style effort gauge for providers that encode "off" as an effort level.
 - Initial versioning and release workflow for OpenChat.
 
+### Changed
+
+- History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused.
+
 ### Fixed
 
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display (e.g., "1M context") and capability inference tests reflect the current tool-call heuristics.
