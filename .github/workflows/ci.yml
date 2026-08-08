@@ -87,8 +87,12 @@ jobs:
 
       - name: Install build tools
         run: |
-          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
-          brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew list xcodegen >/dev/null 2>&1 && brew link xcodegen || brew install xcodegen
+          fi
+          if ! command -v xcbeautify >/dev/null 2>&1; then
+            brew list xcbeautify >/dev/null 2>&1 && brew link xcbeautify || brew install xcbeautify
+          fi
           xcodegen --version
           xcbeautify --version
 
