@@ -179,10 +179,6 @@ struct MessageBubbleView: View {
                 if !displayContent.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
-                        SelectChip {
-                            selectionText = displayContent
-                            showingTextSelection = true
-                        }
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
                         }
@@ -515,25 +511,6 @@ private struct RegenerateChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Regenerate response")
-    }
-}
-
-private struct SelectChip: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.light()
-            action()
-        } label: {
-            Image(systemName: "text.cursor")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(4)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Select text")
     }
 }
 
