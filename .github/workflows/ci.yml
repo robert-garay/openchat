@@ -87,12 +87,10 @@ jobs:
 
       - name: Install build tools
         run: |
-          if ! command -v xcodegen >/dev/null 2>&1; then
-            brew list xcodegen >/dev/null 2>&1 && brew link xcodegen || brew install xcodegen
-          fi
-          if ! command -v xcbeautify >/dev/null 2>&1; then
-            brew list xcbeautify >/dev/null 2>&1 && brew link xcbeautify || brew install xcbeautify
-          fi
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
+          # The Cellar cache restores binaries but not the /opt/homebrew/bin symlinks.
+          brew link xcodegen xcbeautify 2>/dev/null || true
           xcodegen --version
           xcbeautify --version
 

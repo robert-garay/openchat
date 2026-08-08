@@ -15,11 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused.
+- History drawer now uses a push-style transition: the chat view slides out to the right as the drawer slides in, removing the overlap between the two views.
 
 ### Fixed
 
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display (e.g., "1M context") and capability inference tests reflect the current tool-call heuristics.
 - CI unit tests now use ad-hoc signing so keychain-backed tests pass in the iOS simulator.
+- Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
+
+### Removed
+
+- Removed the "Select text" chip from assistant responses; text selection remains available via the user-message context menu.
 
 ## [1.0.0] - 2026-08-07
 
