@@ -75,36 +75,41 @@ struct RootView: View {
     @ViewBuilder
     private var mainContent: some View {
         NavigationStack {
-            ZStack {
-                if let conversation = selectedConversation {
-                    ChatView(
-                        conversation: conversation,
-                        onToggleTemporary: { toggleTemporary(for: conversation) },
-                        onShowHistory: { toggleHistoryDrawer() },
-                        isHistoryDrawerOpen: showingHistoryDrawer
-                    )
-                    .id(conversation.id)
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 20)
-                            .onEnded { value in
-                                let horizontal = value.translation.width
-                                let vertical = value.translation.height
-                                if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
-                                    Haptics.light()
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        showingHistoryDrawer = true
+            GeometryReader { geometry in
+                ZStack {
+                    if let conversation = selectedConversation {
+                        ChatView(
+                            conversation: conversation,
+                            onToggleTemporary: { toggleTemporary(for: conversation) },
+                            onShowHistory: { toggleHistoryDrawer() },
+                            isHistoryDrawerOpen: showingHistoryDrawer
+                        )
+                        .id(conversation.id)
+                        .offset(x: showingHistoryDrawer ? geometry.size.width : 0)
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 20)
+                                .onEnded { value in
+                                    let horizontal = value.translation.width
+                                    let vertical = value.translation.height
+                                    if !showingHistoryDrawer, horizontal > 80, abs(vertical) < abs(horizontal) {
+                                        Haptics.light()
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            showingHistoryDrawer = true
+                                        }
                                     }
                                 }
-                            }
-                    )
-                } else {
-                    // Stable placeholder while the first chat is created.
-                    ProgressView()
-                        .controlSize(.large)
-                }
+                        )
+                    } else {
+                        // Stable placeholder while the first chat is created.
+                        ProgressView()
+                            .controlSize(.large)
+                            .offset(x: showingHistoryDrawer ? geometry.size.width : 0)
+                    }
 
-                if showingHistoryDrawer {
                     drawerOverlay
+                        .offset(x: showingHistoryDrawer ? 0 : -geometry.size.width)
+                        .allowsHitTesting(showingHistoryDrawer)
+                        .accessibilityHidden(!showingHistoryDrawer)
                 }
             }
         }
@@ -123,7 +128,6 @@ struct RootView: View {
                 onShowSettings: { showingSettings = true }
             )
         }
-        .transition(.move(edge: .leading))
     }
 
     private func toggleHistoryDrawer() {
