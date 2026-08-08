@@ -80,6 +80,13 @@ final class RulesStore {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw RulesStoreError.emptyContent }
 
+        let existing = try scopedItems(conversation: conversation, modelContext: modelContext)
+        if let match = findSimilar(existing, trimmed) {
+            match.content = trimmed
+            match.updatedAt = .now
+            return match
+        }
+
         let item = RuleItem(content: trimmed, conversation: conversation)
         modelContext.insert(item)
         return item
@@ -88,6 +95,16 @@ final class RulesStore {
     func updateContent(_ item: RuleItem, content: String, modelContext: ModelContext) throws {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw RulesStoreError.emptyContent }
+
+        let others = try scopedItems(conversation: item.conversation, modelContext: modelContext)
+            .filter { $0.id != item.id }
+        if let match = findSimilar(others, trimmed) {
+            modelContext.delete(item)
+            match.content = trimmed
+            match.updatedAt = .now
+            return
+        }
+
         item.content = trimmed
         item.updatedAt = .now
     }
@@ -110,14 +127,59 @@ final class RulesStore {
             .joined(separator: "\n\n")
     }
 
+    /// Context block describing already-saved rules, injected so the model sees existing
+    /// state before proposing a new one (mirrors `MemoryStore.contextSection(for:)`).
+    static func contextSection(for items: [RuleItem]) -> String? {
+        guard !items.isEmpty else { return nil }
+        let body = items
+            .map { $0.content.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { "- \($0)" }
+            .joined(separator: "\n")
+        guard !body.isEmpty else { return nil }
+        return "## Rules\nRules already saved in OpenChat, shown for reference only — this list does not mean they are currently being applied to this chat. Do not propose a new rule that duplicates or re-blends one already listed here.\n\n\(body)"
+    }
+
+    /// Rules already saved in the same scope as `conversation` (global when nil, that chat's rules otherwise).
+    private func scopedItems(conversation: Conversation?, modelContext: ModelContext) throws -> [RuleItem] {
+        if let conversation {
+            return conversation.rules
+        }
+        return try fetchItems(modelContext: modelContext)
+    }
+
+    nonisolated static func normalizeContent(_ content: String) -> String {
+        content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .lowercased()
+    }
+
+    private func findSimilar(_ items: [RuleItem], _ content: String) -> RuleItem? {
+        let normalized = Self.normalizeContent(content)
+        return items.first { Self.normalizeContent($0.content) == normalized }
+    }
+
     nonisolated static func shouldAllowRuleProposals(isTemporary: Bool, allowProposalsFromChat: Bool) -> Bool {
         allowProposalsFromChat && !isTemporary
     }
 
     nonisolated static func modelInstruction() -> String {
         """
-        The user enabled rule proposals in OpenChat. If you want to establish a standing \
-        instruction, propose it using:
+        The user enabled rule proposals in OpenChat. A Rule is an instruction about how you \
+        should behave, act, or interact going forward — a standing behavior change, not a fact \
+        about the user. Examples: "always answer in bullet points", "never use corporate \
+        jargon", "write commit messages in the imperative mood". If what you want to save is \
+        instead a fact about the user, their environment, or a situation worth recalling (e.g. \
+        "I use Xcode 16", "my team ships on Thursdays"), propose a Memory instead, not a Rule. \
+        If you're already proposing a Skill or another rule/memory for the same request, don't \
+        also propose this unless it captures something genuinely separate — don't restate the \
+        same intent across multiple proposals.
+
+        Only propose a rule when you're genuinely confident it's a standing instruction — don't \
+        propose speculative or one-off preferences.
+
+        Propose it using:
         ```openchat-rule
         {"content":"...","scope":"global"|"chat"}
         ```

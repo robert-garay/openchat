@@ -3,8 +3,12 @@ import Foundation
 enum RuleActionParser {
     private static let fence = #"```openchat-rule\s*([\s\S]*?)```"#
     private static let tag = #"<rule_proposal>([\s\S]*?)</rule_proposal>"#
+    private static let openFence = #"```openchat-rule[\s\S]*$"#
+    private static let openTag = #"<rule_proposal>[\s\S]*$"#
     private static let fenceRegex = try? NSRegularExpression(pattern: fence)
     private static let tagRegex = try? NSRegularExpression(pattern: tag)
+    private static let openFenceRegex = try? NSRegularExpression(pattern: openFence)
+    private static let openTagRegex = try? NSRegularExpression(pattern: openTag)
 
     static func parse(_ markdown: String) -> [RuleProposal] {
         dedupe(parseBlocks(markdown, fenceRegex) + parseBlocks(markdown, tagRegex))
@@ -12,7 +16,7 @@ enum RuleActionParser {
 
     static func strippingFences(from markdown: String) -> String {
         var r = markdown
-        for rx in [fenceRegex, tagRegex] {
+        for rx in [fenceRegex, tagRegex, openFenceRegex, openTagRegex] {
             guard let rx else { continue }
             r = rx.stringByReplacingMatches(in: r, range: NSRange(r.startIndex..<r.endIndex, in: r), withTemplate: "")
         }
