@@ -133,7 +133,24 @@ final class MemoryStore {
     }
 
     nonisolated static func modelInstruction() -> String {
-        "The user enabled long-term memory in OpenChat. Propose durable facts using ```openchat-memory\\n{\\\"memories\\\":[\\\"fact\\\"]}\\n``` or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless disabled."
+        """
+        The user enabled long-term memory in OpenChat. A Memory is a durable fact about the \
+        user, their environment, or a situation worth recalling — not an instruction about how \
+        you should behave (that's a Rule instead). Examples: "I use Xcode 16", "my team ships \
+        on Thursdays". If you're already proposing a Skill or another rule/memory for the same \
+        request, don't also propose this unless it captures something genuinely separate — \
+        don't restate the same intent across multiple proposals.
+
+        Only propose a memory when you're genuinely confident it's a durable fact — don't \
+        propose speculative or one-off details.
+
+        Propose durable facts using:
+        ```openchat-memory
+        {"memories":["fact"]}
+        ```
+        or <memory_proposal>…</memory_proposal>. No secrets. Saved after confirmation unless \
+        disabled.
+        """
     }
 
     nonisolated static func normalizeContent(_ content: String) -> String {
