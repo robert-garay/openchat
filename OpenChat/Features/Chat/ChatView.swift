@@ -83,6 +83,8 @@ struct ChatView: View {
                             Text(viewModel.currentModel?.displayName ?? "Choose Model")
                                 .font(.subheadline.weight(.semibold))
                                 .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(maxWidth: 180)
                             ModelCapabilitySigns(
                                 capabilities: viewModel.currentModel?.capabilities ?? [],
                                 limit: 3
