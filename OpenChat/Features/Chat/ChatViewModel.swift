@@ -629,6 +629,7 @@ final class ChatViewModel {
         streamingTask?.cancel()
     }
 
+    // swiftlint:disable function_body_length
     private func requestAssistantReply() {
         guard let provider = currentProvider, let model = currentModel else { return }
         let apiKey = providerStore.apiKey(for: provider)
@@ -847,6 +848,7 @@ final class ChatViewModel {
             isStreaming = false
         }
     }
+    // swiftlint:enable function_body_length
 
     private func captureCalendarProposals(from message: ChatMessage) {
         guard dataSourceStore.canEditCalendar else { return }
