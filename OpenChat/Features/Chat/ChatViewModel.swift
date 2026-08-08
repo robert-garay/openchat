@@ -677,56 +677,18 @@ final class ChatViewModel {
         streamingTask = Task { [weak self] in
             guard let self else { return }
             do {
-                var middleSections: [String] = []
-
-                if shouldUseMemory {
-                    let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
-                    let injectionItems = memoryStore.injectionItems(from: items)
-                    if let memorySection = MemoryStore.contextSection(for: injectionItems) {
-                        middleSections.append(memorySection)
-                    }
-                    middleSections.append(MemoryStore.modelInstruction())
-                }
-
-                if shouldAllowRuleProposals {
-                    let globalRuleItems = rulesStore.useGlobalRules
-                        ? [] : ((try? rulesStore.fetchItems(modelContext: modelContext)) ?? [])
-                    let chatRuleItems = rulesStore.useChatRules ? [] : conversation.rules
-                    let existingRuleItems = globalRuleItems + chatRuleItems
-                    if let rulesSection = RulesStore.contextSection(for: existingRuleItems) {
-                        middleSections.append(rulesSection)
-                    }
-                    middleSections.append(RulesStore.modelInstruction())
-                }
-
-                if let skillIndex, !skillIndex.isEmpty {
-                    middleSections.append(skillIndex)
-                }
-
-                dataSourceStore.refreshAuthorizationStatuses()
-                if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                    middleSections.append(agentContext)
-                }
+                let (middleSections, webSearchToolPrompt) = await buildMiddleSections(
+                    skillIndex: skillIndex,
+                    searchMode: searchMode,
+                    searchAPIKey: searchAPIKey,
+                    searchClient: searchClient,
+                    searchProviderName: searchProviderName,
+                    latestUserText: latestUserText
+                )
 
                 var tools: [ChatToolDefinition] = []
-                var webSearchToolPrompt: String?
-                if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
-                    do {
-                        let injected = try await WebSearchService.makeInjectedContext(
-                            query: latestUserText,
-                            apiKey: searchAPIKey,
-                            client: searchClient
-                        )
-                        middleSections.append(injected)
-                    } catch {
-                        middleSections.append(
-                            "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
-                        )
-                    }
-                } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
+                if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
                     tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-                    webSearchToolPrompt =
-                        "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
                 }
 
                 if skillToolsEnabled {
@@ -734,24 +696,7 @@ final class ChatViewModel {
                     tools.append(SkillToolService.createToolDefinition())
                 }
 
-                rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
-
-                let globalRulesText: String
-                if rulesStore.useGlobalRules {
-                    let ruleItems = (try? rulesStore.fetchItems(modelContext: modelContext)) ?? []
-                    globalRulesText = RulesStore.injectionText(from: ruleItems)
-                } else {
-                    globalRulesText = ""
-                }
-                let chatRulesText: String
-                if rulesStore.useChatRules {
-                    let perChatRulesText = RulesStore.injectionText(from: conversation.rules)
-                    chatRulesText = [perChatRulesText, conversationSystemPrompt]
-                        .filter { !$0.isEmpty }
-                        .joined(separator: "\n\n")
-                } else {
-                    chatRulesText = ""
-                }
+                let (globalRulesText, chatRulesText) = buildRulesText(systemPrompt: conversationSystemPrompt)
 
                 let systemContent = ChatSystemPromptBuilder.assemble(
                     globalRules: globalRulesText,
@@ -767,33 +712,12 @@ final class ChatViewModel {
                 turns.append(contentsOf: historyTurns)
 
                 let skillCollector = SkillInvocationCollector()
-                let executeTool: @Sendable (ChatToolCall) async throws -> String = { call in
-                    switch call.name {
-                    case SkillToolService.invokeToolName:
-                        guard let slashName = SkillToolService.slashName(fromInvokeArguments: call.argumentsJSON),
-                              let matched = skillMatches.first(where: { $0.slashName == SkillResolver.normalizeSlashName(slashName) })
-                        else {
-                            return "No skill found with that slash name."
-                        }
-                        await skillCollector.recordInvoke(matched)
-                        return SkillResolver.systemBlock(for: matched)
-                    case SkillToolService.createToolName:
-                        guard let proposal = SkillToolService.proposal(fromCreateArguments: call.argumentsJSON) else {
-                            return "Could not parse the skill draft — name, slash_name, and instructions must be non-empty."
-                        }
-                        await skillCollector.recordProposal(proposal)
-                        return "Draft captured. The user will review \"\(proposal.name)\" (/\(proposal.slashName)) before it's saved."
-                    default:
-                        guard let searchAPIKey, let searchClient else {
-                            return "Search API key is not configured."
-                        }
-                        return try await WebSearchService.executeToolCall(
-                            call,
-                            apiKey: searchAPIKey,
-                            client: searchClient
-                        )
-                    }
-                }
+                let executeTool = Self.makeExecuteTool(
+                    skillMatches: skillMatches,
+                    searchAPIKey: searchAPIKey,
+                    searchClient: searchClient,
+                    skillCollector: skillCollector
+                )
 
                 // Coalesce deltas so we don't mutate SwiftData / redraw the message view on every token.
                 var contentBuffer = ""
@@ -852,6 +776,98 @@ final class ChatViewModel {
             }
             conversation.updatedAt = .now
             isStreaming = false
+        }
+    }
+
+    private func buildMiddleSections(
+        skillIndex: String?,
+        searchMode: WebSearchMode?,
+        searchAPIKey: String?,
+        searchClient: (any WebSearchClient)?,
+        searchProviderName: String,
+        latestUserText: String
+    ) async -> (middleSections: [String], webSearchToolPrompt: String?) {
+        var middleSections: [String] = []
+        if shouldUseMemory {
+            let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
+            let injectionItems = memoryStore.injectionItems(from: items)
+            if let memorySection = MemoryStore.contextSection(for: injectionItems) { middleSections.append(memorySection) }
+            middleSections.append(MemoryStore.modelInstruction())
+        }
+        if shouldAllowRuleProposals {
+            let globalRuleItems = rulesStore.useGlobalRules ? [] : ((try? rulesStore.fetchItems(modelContext: modelContext)) ?? [])
+            let chatRuleItems = rulesStore.useChatRules ? [] : conversation.rules
+            if let rulesSection = RulesStore.contextSection(for: globalRuleItems + chatRuleItems) {
+                middleSections.append(rulesSection)
+            }
+            middleSections.append(RulesStore.modelInstruction())
+        }
+        if let skillIndex, !skillIndex.isEmpty { middleSections.append(skillIndex) }
+        dataSourceStore.refreshAuthorizationStatuses()
+        if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+            middleSections.append(agentContext)
+        }
+        var webSearchToolPrompt: String?
+        if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
+            do {
+                let injected = try await WebSearchService.makeInjectedContext(
+                    query: latestUserText, apiKey: searchAPIKey, client: searchClient
+                )
+                middleSections.append(injected)
+            } catch {
+                middleSections.append(
+                    "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
+                )
+            }
+        } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
+            webSearchToolPrompt = "You have a web_search tool powered by \(searchProviderName). " +
+                "Use it when the user needs current or factual information from the web."
+        }
+        return (middleSections, webSearchToolPrompt)
+    }
+
+    private func buildRulesText(systemPrompt: String) -> (global: String, chat: String) {
+        rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
+        let globalRulesText: String
+        if rulesStore.useGlobalRules {
+            globalRulesText = RulesStore.injectionText(from: (try? rulesStore.fetchItems(modelContext: modelContext)) ?? [])
+        } else {
+            globalRulesText = ""
+        }
+        let chatRulesText: String
+        if rulesStore.useChatRules {
+            let perChatRulesText = RulesStore.injectionText(from: conversation.rules)
+            chatRulesText = [perChatRulesText, systemPrompt].filter { !$0.isEmpty }.joined(separator: "\n\n")
+        } else {
+            chatRulesText = ""
+        }
+        return (globalRulesText, chatRulesText)
+    }
+
+    private static nonisolated func makeExecuteTool(
+        skillMatches: [SkillMatchable],
+        searchAPIKey: String?,
+        searchClient: (any WebSearchClient)?,
+        skillCollector: SkillInvocationCollector
+    ) -> @Sendable (ChatToolCall) async throws -> String {
+        { call in
+            switch call.name {
+            case SkillToolService.invokeToolName:
+                guard let slashName = SkillToolService.slashName(fromInvokeArguments: call.argumentsJSON),
+                      let matched = skillMatches.first(where: { $0.slashName == SkillResolver.normalizeSlashName(slashName) })
+                else { return "No skill found with that slash name." }
+                await skillCollector.recordInvoke(matched)
+                return SkillResolver.systemBlock(for: matched)
+            case SkillToolService.createToolName:
+                guard let proposal = SkillToolService.proposal(fromCreateArguments: call.argumentsJSON) else {
+                    return "Could not parse the skill draft — name, slash_name, and instructions must be non-empty."
+                }
+                await skillCollector.recordProposal(proposal)
+                return "Draft captured. The user will review \"\(proposal.name)\" (/\(proposal.slashName)) before it's saved."
+            default:
+                guard let searchAPIKey, let searchClient else { return "Search API key is not configured." }
+                return try await WebSearchService.executeToolCall(call, apiKey: searchAPIKey, client: searchClient)
+            }
         }
     }
 
