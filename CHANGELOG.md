@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Simplified the temporary chat ghost icon eyes to small dots matching the outline color, making it look less like an exact Pac-Man ghost.
 - Replaced the custom Markdown renderer with SwiftStreamingMarkdown for cleaner, streaming-optimized assistant message rendering; removed the unused parser, syntax highlighter, and preview formatter.
 - Tapping the "OpenChat" title in the history drawer now opens Settings, in addition to the existing gear icon.
 - History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused, and exits search mode when the drawer closes.

@@ -13,8 +13,8 @@ struct GhostIcon: View {
                 .stroke(.foreground, style: StrokeStyle(lineWidth: filled ? 0 : 1.25, lineJoin: .round))
 
             HStack(spacing: size * 0.14) {
-                PacManEye(size: size, filled: filled)
-                PacManEye(size: size, filled: filled)
+                GhostEye(size: size, filled: filled)
+                GhostEye(size: size, filled: filled)
             }
             .offset(y: -size * 0.06)
         }
@@ -23,21 +23,14 @@ struct GhostIcon: View {
     }
 }
 
-private struct PacManEye: View {
+private struct GhostEye: View {
     var size: CGFloat
     var filled: Bool
 
     var body: some View {
-        Ellipse()
+        Circle()
             .fill(filled ? AnyShapeStyle(Color(.systemBackground)) : AnyShapeStyle(.foreground))
-            .frame(width: size * 0.22, height: size * 0.28)
-            .overlay(alignment: .bottomTrailing) {
-                Ellipse()
-                    .fill(filled ? AnyShapeStyle(.foreground) : AnyShapeStyle(Color(.systemBackground)))
-                    .frame(width: size * 0.10, height: size * 0.13)
-                    .padding(.trailing, size * 0.01)
-                    .padding(.bottom, size * 0.03)
-            }
+            .frame(width: size * 0.18, height: size * 0.18)
     }
 }
 
