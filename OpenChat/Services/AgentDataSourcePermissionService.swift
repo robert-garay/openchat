@@ -1,4 +1,5 @@
 import AVFoundation
+import Contacts
 import EventKit
 import HealthKit
 import Photos
@@ -28,8 +29,12 @@ final class AgentDataSourcePermissionService {
             return mapAVStatus(AVCaptureDevice.authorizationStatus(for: .audio))
         case .photos:
             return mapPhotosStatus(PHPhotoLibrary.authorizationStatus(for: .readWrite))
+        case .contacts:
+            return mapContactsStatus(CNContactStore.authorizationStatus(for: .contacts))
         case .calendar:
             return mapEventStatus(EKEventStore.authorizationStatus(for: .event))
+        case .reminders:
+            return mapEventStatus(EKEventStore.authorizationStatus(for: .reminder))
         case .notifications:
             return notificationStatus
         }
@@ -48,8 +53,12 @@ final class AgentDataSourcePermissionService {
         case .photos:
             let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
             return mapPhotosStatus(status)
+        case .contacts:
+            return await requestContacts()
         case .calendar:
             return await requestCalendar()
+        case .reminders:
+            return await requestReminders()
         case .notifications:
             return await requestNotifications()
         }
@@ -74,12 +83,30 @@ final class AgentDataSourcePermissionService {
         defaults.set(true, forKey: healthPromptKey)
     }
 
-    // MARK: - Calendar / Notifications
+    // MARK: - Contacts / Calendar / Reminders / Notifications
+
+    private func requestContacts() async -> AgentDataSourceAuthorizationStatus {
+        await withCheckedContinuation { continuation in
+            CNContactStore().requestAccess(for: .contacts) { granted, _ in
+                continuation.resume(returning: granted ? .authorized : .denied)
+            }
+        }
+    }
 
     private func requestCalendar() async -> AgentDataSourceAuthorizationStatus {
         let store = EKEventStore()
         do {
             let granted = try await store.requestFullAccessToEvents()
+            return granted ? .authorized : .denied
+        } catch {
+            return .denied
+        }
+    }
+
+    private func requestReminders() async -> AgentDataSourceAuthorizationStatus {
+        let store = EKEventStore()
+        do {
+            let granted = try await store.requestFullAccessToReminders()
             return granted ? .authorized : .denied
         } catch {
             return .denied
@@ -123,6 +150,16 @@ final class AgentDataSourcePermissionService {
     private func mapEventStatus(_ status: EKAuthorizationStatus) -> AgentDataSourceAuthorizationStatus {
         switch status {
         case .fullAccess, .writeOnly: .authorized
+        case .denied: .denied
+        case .restricted: .restricted
+        case .notDetermined: .notDetermined
+        @unknown default: .notDetermined
+        }
+    }
+
+    private func mapContactsStatus(_ status: CNAuthorizationStatus) -> AgentDataSourceAuthorizationStatus {
+        switch status {
+        case .authorized: .authorized
         case .denied: .denied
         case .restricted: .restricted
         case .notDetermined: .notDetermined
