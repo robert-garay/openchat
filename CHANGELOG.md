@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed navigation arrow buttons and related circular toolbar icons in the chat and history drawer so they remain visible in both light and dark mode.
+- Fixed selected conversation row highlight and history-drawer menu divider so they are visible in light mode.
 - Markdown heading spacing: section titles now get consistent top breathing room both inside text groups and when they follow code blocks, tables, or thematic breaks.
 - Assistant replies with generated images now extract `<image>` / markdown data URI embeds and strip `{image}` placeholders so all images render instead of appearing as raw tags.
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display (e.g., "1M context") and capability inference tests reflect the current tool-call heuristics.

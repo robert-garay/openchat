@@ -138,7 +138,7 @@ struct ChatHistoryDrawerView: View {
             Button(action: onClose) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .frame(width: 36, height: 36)
                     .background(Color(.secondarySystemBackground), in: Circle())
             }
@@ -179,7 +179,7 @@ struct ChatHistoryDrawerView: View {
                 Button(action: exitSearch) {
                     Image(systemName: "xmark")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         .frame(width: 36, height: 36)
                         .background(Color(.secondarySystemBackground), in: Circle())
                 }
@@ -305,7 +305,7 @@ struct ChatHistoryDrawerView: View {
 
     private var menuDivider: some View {
         Divider()
-            .background(.white.opacity(0.12))
+            .background(.primary.opacity(0.12))
             .padding(.horizontal, 16)
     }
 
@@ -383,7 +383,7 @@ struct ConversationRow: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isSelected ? Color.white.opacity(0.12) : Color.clear)
+                .fill(isSelected ? Color.primary.opacity(0.12) : Color.clear)
         )
         .accessibilityLabel(
             conversation.isPinned
