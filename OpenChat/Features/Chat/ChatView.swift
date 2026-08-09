@@ -112,6 +112,13 @@ struct ChatView: View {
             }
         }
         .toolbar(isHistoryDrawerOpen ? .hidden : .visible, for: .navigationBar)
+        .onChange(of: isHistoryDrawerOpen) { _, isOpen in
+            if isOpen {
+                #if canImport(UIKit)
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                #endif
+            }
+        }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
                 ModelPickerSheet(
