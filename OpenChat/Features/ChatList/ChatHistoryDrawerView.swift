@@ -44,6 +44,7 @@ struct ChatHistoryDrawerView: View {
                 contextMenuOverlay(for: activeMenu)
             }
         }
+        .onDisappear(perform: exitSearch)
         .alert("Rename Chat", isPresented: isRenameAlertPresented) {
             TextField("Title", text: $renameText)
             Button("Cancel", role: .cancel) {
