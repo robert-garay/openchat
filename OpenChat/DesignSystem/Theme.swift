@@ -8,12 +8,6 @@ enum Theme {
     static let contentPadding: CGFloat = 16
     static let chatHorizontalPadding: CGFloat = 8
 
-    // MARK: - Markdown rendering
-    static let markdownBlockSpacing: CGFloat = 16
-    static let markdownListItemSpacing: CGFloat = 10
-    static let markdownGroupSpacing: CGFloat = 12
-    static let markdownHeadingTopSpacing: CGFloat = 6
-
     static let userBubble = Color.accentColor
 
     static let springFast = Animation.spring(response: 0.32, dampingFraction: 0.86)

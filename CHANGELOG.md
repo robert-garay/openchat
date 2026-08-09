@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replaced the custom Markdown renderer with SwiftStreamingMarkdown for cleaner, streaming-optimized assistant message rendering; removed the unused parser, syntax highlighter, and preview formatter.
 - Tapping the "OpenChat" title in the history drawer now opens Settings, in addition to the existing gear icon.
 - History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused, and exits search mode when the drawer closes.
 - The message composer now toggles focus with the chat/history view: the keyboard opens when the chat is visible and closes when the history drawer is open.
@@ -24,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed navigation arrow buttons and related circular toolbar icons in the chat and history drawer so they remain visible in both light and dark mode.
 - Fixed selected conversation row highlight and history-drawer menu divider so they are visible in light mode.
+- Markdown heading spacing: section titles now get consistent top breathing room both inside text groups and when they follow code blocks, tables, or thematic breaks.
+- Assistant replies with generated images now extract `<image>` / markdown data URI embeds and strip `{image}` placeholders so all images render instead of appearing as raw tags.
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display (e.g., "1M context") and capability inference tests reflect the current tool-call heuristics.
 - CI unit tests now use ad-hoc signing so keychain-backed tests pass in the iOS simulator.
 - Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
