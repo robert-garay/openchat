@@ -18,6 +18,11 @@ configFiles:
 fileGroups:
   - Config
 
+packages:
+  SwiftStreamingMarkdown:
+    url: https://github.com/microsoft/SwiftStreamingMarkdown
+    branch: main
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -39,6 +44,7 @@ targets:
           - "Resources/Info.plist"
     dependencies:
       - sdk: AppIntents.framework
+      - package: SwiftStreamingMarkdown
     info:
       path: OpenChat/Resources/Info.plist
       properties:

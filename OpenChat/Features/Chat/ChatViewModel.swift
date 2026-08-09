@@ -831,6 +831,9 @@ final class ChatViewModel {
                 if !contentBuffer.isEmpty {
                     assistantMessage.content += contentBuffer
                 }
+
+                extractInlineImages(for: assistantMessage)
+
                 assistantMessage.isStreaming = false
                 assistantMessage.completedAt = .now
                 captureCalendarProposals(from: assistantMessage)
@@ -852,6 +855,19 @@ final class ChatViewModel {
             }
             conversation.updatedAt = .now
             isStreaming = false
+        }
+    }
+
+    private func extractInlineImages(for assistantMessage: ChatMessage) {
+        let inlineImageResult = GeneratedImageParser.extractInlineImages(
+            from: assistantMessage.content,
+            hasExistingImages: !assistantMessage.imageAttachments.isEmpty
+        )
+        assistantMessage.content = inlineImageResult.text
+        if !inlineImageResult.images.isEmpty {
+            var existing = assistantMessage.imageAttachments
+            existing.append(contentsOf: inlineImageResult.images)
+            assistantMessage.imageAttachments = existing
         }
     }
 

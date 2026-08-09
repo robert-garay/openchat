@@ -96,4 +96,38 @@ final class MultimodalAttachmentTests: XCTestCase {
         XCTAssertEqual(message.imageAttachments.count, 1)
         XCTAssertEqual(message.content, "A cat")
     }
+
+    func testGeneratedImageParserExtractsImageTagDataURI() {
+        let pngBytes = Data([0x89, 0x50, 0x4E, 0x47])
+        let uri = "data:image/png;base64,\(pngBytes.base64EncodedString())"
+        let text = "Here:<image>\(uri)</image>Done."
+        let result = GeneratedImageParser.extractImageTagDataURIs(from: text)
+        XCTAssertEqual(result.images.count, 1)
+        XCTAssertEqual(result.images[0].data, pngBytes)
+        XCTAssertFalse(result.text.contains("<image"))
+        XCTAssertTrue(result.text.contains("Here:"))
+        XCTAssertTrue(result.text.contains("Done."))
+    }
+
+    func testGeneratedImageParserStripsPlaceholdersWhenImagesExist() {
+        let text = "A <image> and {image} plus a sentence."
+        let result = GeneratedImageParser.extractInlineImages(from: text, hasExistingImages: true)
+        XCTAssertTrue(result.images.isEmpty)
+        XCTAssertFalse(result.text.contains("<image"))
+        XCTAssertFalse(result.text.contains("{image}"))
+        XCTAssertTrue(result.text.contains("plus a sentence"))
+    }
+
+    func testGeneratedImageParserExtractsInlineImagesAndStripsPlaceholders() {
+        let pngBytes = Data([0x89, 0x50, 0x4E, 0x47])
+        let uri = "data:image/png;base64,\(pngBytes.base64EncodedString())"
+        let text = "See this: {image}<image>\(uri)</image>Done."
+        let result = GeneratedImageParser.extractInlineImages(from: text, hasExistingImages: false)
+        XCTAssertEqual(result.images.count, 1)
+        XCTAssertEqual(result.images[0].data, pngBytes)
+        XCTAssertFalse(result.text.contains("{image}"))
+        XCTAssertFalse(result.text.contains("<image"))
+        XCTAssertTrue(result.text.contains("See this:"))
+        XCTAssertTrue(result.text.contains("Done."))
+    }
 }

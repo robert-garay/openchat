@@ -136,8 +136,9 @@ struct MessageBubbleView: View {
             .font(.body)
             .textSelection(.enabled)
         } else {
-            MarkdownMessageView(content: message.content, isUserMessage: true)
-                .equatable()
+            Text(message.content)
+                .foregroundStyle(.white)
+                .textSelection(.enabled)
         }
     }
 
@@ -171,8 +172,7 @@ struct MessageBubbleView: View {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
-                    MarkdownMessageView(content: displayContent, isUserMessage: false)
-                        .equatable()
+                    AssistantMarkdownMessageView(content: displayContent)
                 }
 
                 #if canImport(UIKit)
@@ -228,8 +228,7 @@ struct MessageBubbleView: View {
 
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
-                        MarkdownMessageView(content: errorMessage, isUserMessage: false)
-                            .equatable()
+                        AssistantMarkdownMessageView(content: errorMessage)
                         Button("Retry", action: onRetry)
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.bordered)
@@ -241,9 +240,13 @@ struct MessageBubbleView: View {
     }
 
     private var displayContent: String {
-        RuleActionParser.strippingFences(
+        let stripped = RuleActionParser.strippingFences(
             from: MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
         )
+        // Hide bare image placeholders for messages that already have rendered image attachments.
+        return message.imageAttachments.isEmpty
+            ? stripped
+            : GeneratedImageParser.stripImagePlaceholders(from: stripped)
     }
 
     private var responseTimeLabel: String? {

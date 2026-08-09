@@ -63,6 +63,7 @@ XCODEBUILD_ARGS=(
   -parallel-testing-enabled YES
   -enableCodeCoverage YES
   -resultBundlePath "$RESULT_BUNDLE"
+  -skipMacroValidation
   CODE_SIGN_IDENTITY="-"
   CODE_SIGNING_ALLOWED=YES
 )
