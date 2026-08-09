@@ -576,18 +576,12 @@ private struct WelcomeOverlay: View {
 
 private struct TemporaryChatBanner: View {
     var body: some View {
-        VStack(spacing: 4) {
-            Text("Temporary Chat")
-                .font(.subheadline.weight(.semibold))
-            Text("This chat won’t appear in history.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Theme.contentPadding)
-        .padding(.vertical, 10)
-        .background(.bar)
+        Text("Temporary Chat")
+            .font(.subheadline.weight(.semibold))
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, Theme.contentPadding)
+            .padding(.vertical, 10)
+            .background(.bar)
     }
 }
 
