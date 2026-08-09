@@ -56,6 +56,8 @@ struct ComposerTextView: UIViewRepresentable {
     /// Raises the keyboard on appear with the caret after the seeded text.
     /// Used by the edit screen, where the field is the reason the screen exists.
     var autoFocus: Bool = false
+    /// When bound, the text view matches this focus state (focuses when true, resigns when false).
+    var isFocused: Binding<Bool>? = nil
     @Environment(\.isEnabled) private var isEnabled
 
     func makeCoordinator() -> Coordinator {
@@ -129,6 +131,20 @@ struct ComposerTextView: UIViewRepresentable {
         }
         context.coordinator.updatePlaceholder(for: textView)
         context.coordinator.recalculateHeight(for: textView)
+
+        if let isFocused = isFocused {
+            let wantsFocus = isFocused.wrappedValue
+            if wantsFocus != context.coordinator.lastWantsFocus {
+                context.coordinator.lastWantsFocus = wantsFocus
+                DispatchQueue.main.async {
+                    if wantsFocus {
+                        textView.becomeFirstResponder()
+                    } else {
+                        textView.resignFirstResponder()
+                    }
+                }
+            }
+        }
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
@@ -171,6 +187,7 @@ struct ComposerTextView: UIViewRepresentable {
         var parent: ComposerTextView
         var placeholderLabel: UILabel?
         private var lastReportedHeight: CGFloat = 0
+        var lastWantsFocus: Bool = false
 
         init(_ parent: ComposerTextView) {
             self.parent = parent

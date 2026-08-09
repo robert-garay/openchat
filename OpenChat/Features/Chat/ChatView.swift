@@ -48,6 +48,10 @@ struct ChatView: View {
                         .isEmpty,
                     canUseChatRules: rulesStore.useChatRules,
                     conversation: conversation,
+                    isFocused: Binding(
+                        get: { !isHistoryDrawerOpen },
+                        set: { _ in }
+                    ),
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
@@ -112,13 +116,6 @@ struct ChatView: View {
             }
         }
         .toolbar(isHistoryDrawerOpen ? .hidden : .visible, for: .navigationBar)
-        .onChange(of: isHistoryDrawerOpen) { _, isOpen in
-            if isOpen {
-                #if canImport(UIKit)
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                #endif
-            }
-        }
         .sheet(isPresented: $showingModelPicker) {
             if let viewModel {
                 ModelPickerSheet(
@@ -234,6 +231,7 @@ private struct ChatComposerHost: View {
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
+    var isFocused: Binding<Bool> = .constant(false)
     let onSend: () -> Void
 
     var body: some View {
@@ -241,6 +239,7 @@ private struct ChatComposerHost: View {
             text: $viewModel.composerText,
             attachments: $viewModel.pendingAttachments,
             documentAttachments: $viewModel.pendingDocumentAttachments,
+            isFocused: isFocused,
             supportsVision: viewModel.supportsVision,
             supportsFiles: viewModel.supportsFiles,
             modelDisplayName: viewModel.currentModel?.displayName,

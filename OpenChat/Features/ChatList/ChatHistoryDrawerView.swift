@@ -102,6 +102,7 @@ struct ChatHistoryDrawerView: View {
                 .listStyle(.plain)
                 .listRowSpacing(0)
                 .listSectionSpacing(0)
+                .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.interactively)
             }
 
