@@ -32,6 +32,7 @@ struct MessageComposerView: View {
     var skills: [SkillMatchable] = []
     @Binding var effortLevel: EffortLevel
     @Binding var isReasoningEnabled: Bool
+    var isFocused: Binding<Bool> = .constant(false)
     var supportsEffort: Bool = false
     var supportedEffortLevels: [EffortLevel] = []
     var hasSeparateThinkingToggle: Bool = false
@@ -116,7 +117,7 @@ struct MessageComposerView: View {
                 maxHeight: 120,
                 onPasteImages: onPasteImages,
                 onPasteDocument: onPasteDocument,
-                autoFocus: true
+                isFocused: isFocused
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)

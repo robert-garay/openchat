@@ -695,7 +695,6 @@ final class ChatViewModel {
         streamingTask?.cancel()
     }
 
-    // swiftlint:disable function_body_length
     private func requestAssistantReply() {
         guard let provider = currentProvider, let model = currentModel else { return }
         let apiKey = providerStore.apiKey(for: provider)
@@ -763,7 +762,6 @@ final class ChatViewModel {
             )
         }
     }
-    // swiftlint:enable function_body_length
 
     private func performAssistantReplyStream(
         assistantMessage: ChatMessage,
