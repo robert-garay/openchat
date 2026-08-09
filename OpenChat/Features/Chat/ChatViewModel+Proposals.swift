@@ -5,7 +5,7 @@ import SwiftData
 extension ChatViewModel {
     // MARK: - Calendar / reminders / contacts actions
 
-    func confirmCalendarActions(for messageID: UUID) {
+    func confirmCalendarActions(for messageID: UUID) async {
         guard !isApplyingCalendarActions else { return }
         guard dataSourceStore.canEditCalendar else {
             calendarActionStatusByMessageID[messageID] = CalendarEventWriterError.editingDisabled.localizedDescription
@@ -15,14 +15,17 @@ extension ChatViewModel {
         guard let proposals = pendingCalendarActionsByMessageID[messageID], !proposals.isEmpty else { return }
 
         isApplyingCalendarActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try CalendarEventWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
+        let results = await Task.detached(priority: .userInitiated) {
+            var results: [String] = []
+            for proposal in proposals {
+                do {
+                    results.append(try CalendarEventWriter.apply(proposal))
+                } catch {
+                    results.append(error.localizedDescription)
+                }
             }
-        }
+            return results
+        }.value
         calendarActionStatusByMessageID[messageID] = results.joined(separator: "\n")
         pendingCalendarActionsByMessageID[messageID] = nil
         isApplyingCalendarActions = false
@@ -35,7 +38,7 @@ extension ChatViewModel {
         Haptics.light()
     }
 
-    func confirmRemindersActions(for messageID: UUID) {
+    func confirmRemindersActions(for messageID: UUID) async {
         guard !isApplyingRemindersActions else { return }
         guard dataSourceStore.canEditReminders else {
             remindersActionStatusByMessageID[messageID] = RemindersWriterError.editingDisabled.localizedDescription
@@ -45,14 +48,17 @@ extension ChatViewModel {
         guard let proposals = pendingRemindersActionsByMessageID[messageID], !proposals.isEmpty else { return }
 
         isApplyingRemindersActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try RemindersWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
+        let results = await Task.detached(priority: .userInitiated) {
+            var results: [String] = []
+            for proposal in proposals {
+                do {
+                    results.append(try RemindersWriter.apply(proposal))
+                } catch {
+                    results.append(error.localizedDescription)
+                }
             }
-        }
+            return results
+        }.value
         remindersActionStatusByMessageID[messageID] = results.joined(separator: "\n")
         pendingRemindersActionsByMessageID[messageID] = nil
         isApplyingRemindersActions = false
@@ -65,7 +71,7 @@ extension ChatViewModel {
         Haptics.light()
     }
 
-    func confirmContactsActions(for messageID: UUID) {
+    func confirmContactsActions(for messageID: UUID) async {
         guard !isApplyingContactsActions else { return }
         guard dataSourceStore.canEditContacts else {
             contactsActionStatusByMessageID[messageID] = ContactsWriterError.editingDisabled.localizedDescription
@@ -75,14 +81,17 @@ extension ChatViewModel {
         guard let proposals = pendingContactsActionsByMessageID[messageID], !proposals.isEmpty else { return }
 
         isApplyingContactsActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try ContactsWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
+        let results = await Task.detached(priority: .userInitiated) {
+            var results: [String] = []
+            for proposal in proposals {
+                do {
+                    results.append(try ContactsWriter.apply(proposal))
+                } catch {
+                    results.append(error.localizedDescription)
+                }
             }
-        }
+            return results
+        }.value
         contactsActionStatusByMessageID[messageID] = results.joined(separator: "\n")
         pendingContactsActionsByMessageID[messageID] = nil
         isApplyingContactsActions = false
@@ -187,8 +196,8 @@ extension ChatViewModel {
             memoryStore: memoryStore,
             modelContext: modelContext
         ) {
-        case .saved(let count):
-            if count > 0 {
+        case .saved(let savedCount):
+            if savedCount > 0 {
                 memoryActionStatusByMessageID[messageID] = "Memory updated."
             }
         case .failed(let error):
@@ -214,8 +223,8 @@ extension ChatViewModel {
             modelContext: modelContext,
             conversation: conversation
         ) {
-        case .saved(let count):
-            if count > 0 {
+        case .saved(let savedCount):
+            if savedCount > 0 {
                 ruleActionStatusByMessageID[messageID] = "Rule saved."
             }
         case .failed(let error):
@@ -239,8 +248,8 @@ extension ChatViewModel {
             modelContext: modelContext,
             conversation: conversation
         ) {
-        case .saved(let count):
-            if count > 0 {
+        case .saved(let savedCount):
+            if savedCount > 0 {
                 skillActionStatusByMessageID[messageID] = "Skill saved."
             }
         case .failed(let error):

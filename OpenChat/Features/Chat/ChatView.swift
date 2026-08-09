@@ -324,7 +324,7 @@ private struct ChatMessageListView: View {
                             calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
                             isApplyingCalendarActions: viewModel.isApplyingCalendarActions,
                             onConfirmCalendarActions: {
-                                viewModel.confirmCalendarActions(for: message.id)
+                                Task { await viewModel.confirmCalendarActions(for: message.id) }
                             },
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
@@ -333,7 +333,7 @@ private struct ChatMessageListView: View {
                             remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
                             isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
                             onConfirmRemindersActions: {
-                                viewModel.confirmRemindersActions(for: message.id)
+                                Task { await viewModel.confirmRemindersActions(for: message.id) }
                             },
                             onDismissRemindersActions: {
                                 viewModel.dismissRemindersActions(for: message.id)
@@ -342,7 +342,7 @@ private struct ChatMessageListView: View {
                             contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
                             isApplyingContactsActions: viewModel.isApplyingContactsActions,
                             onConfirmContactsActions: {
-                                viewModel.confirmContactsActions(for: message.id)
+                                Task { await viewModel.confirmContactsActions(for: message.id) }
                             },
                             onDismissContactsActions: {
                                 viewModel.dismissContactsActions(for: message.id)

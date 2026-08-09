@@ -13,6 +13,13 @@ final class NotificationService: NSObject {
     private override init() {
         super.init()
         center.delegate = self
+        let category = UNNotificationCategory(
+            identifier: "OPENCHAT_RESPONSE",
+            actions: [],
+            intentIdentifiers: [],
+            options: []
+        )
+        center.setNotificationCategories([category])
     }
 
     /// Requests alert/badge/sound authorization the first time it is needed.
@@ -31,7 +38,7 @@ final class NotificationService: NSObject {
         conversationTitle: String,
         messagePreview: String,
         failed: Bool
-    ) {
+    ) async {
         let content = UNMutableNotificationContent()
         content.title = failed ? "OpenChat — Response failed" : "OpenChat — Response ready"
         let preview = messagePreview
@@ -50,7 +57,11 @@ final class NotificationService: NSObject {
             content: content,
             trigger: nil
         )
-        center.add(request)
+        do {
+            try await center.add(request)
+        } catch {
+            print("Failed to schedule response notification: \(error.localizedDescription)")
+        }
     }
 }
 

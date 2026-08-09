@@ -23,7 +23,6 @@ enum RemindersWriterError: LocalizedError {
 
 /// Applies confirmed reminder create/update/delete proposals via EventKit.
 enum RemindersWriter {
-    @MainActor
     static func apply(
         _ proposal: RemindersActionProposal,
         eventStore: EKEventStore = EKEventStore()
@@ -38,7 +37,6 @@ enum RemindersWriter {
         }
     }
 
-    @MainActor
     private static func create(_ proposal: RemindersActionProposal, eventStore: EKEventStore) throws -> String {
         guard let title = proposal.title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
             throw RemindersWriterError.saveFailed("A title is required.")
@@ -66,7 +64,6 @@ enum RemindersWriter {
         return "Created \"\(title)\"."
     }
 
-    @MainActor
     private static func update(_ proposal: RemindersActionProposal, eventStore: EKEventStore) throws -> String {
         guard let reminder = findReminder(identifier: proposal.reminderIdentifier, eventStore: eventStore) else {
             throw RemindersWriterError.reminderNotFound
@@ -93,7 +90,6 @@ enum RemindersWriter {
         return "Updated \"\(name)\"."
     }
 
-    @MainActor
     private static func delete(_ proposal: RemindersActionProposal, eventStore: EKEventStore) throws -> String {
         guard let reminder = findReminder(identifier: proposal.reminderIdentifier, eventStore: eventStore) else {
             throw RemindersWriterError.reminderNotFound
@@ -107,7 +103,6 @@ enum RemindersWriter {
         return "Deleted \"\(title)\"."
     }
 
-    @MainActor
     private static func findReminder(identifier: String?, eventStore: EKEventStore) -> EKReminder? {
         guard let identifier, !identifier.isEmpty,
               let item = eventStore.calendarItem(withIdentifier: identifier) as? EKReminder else {

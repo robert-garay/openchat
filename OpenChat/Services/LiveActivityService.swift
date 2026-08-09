@@ -15,12 +15,6 @@ actor LiveActivityService {
     func start(conversationTitle: String, modelName: String?) async -> String? {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return nil }
 
-        if let existingID = Activity<OpenChatLiveActivityAttributes>.activities.first?.id {
-            // Only one OpenChat activity at a time; reuse a stale one if present.
-            activityIDs.insert(existingID)
-            return existingID
-        }
-
         let attributes = OpenChatLiveActivityAttributes(
             conversationTitle: conversationTitle,
             modelName: modelName ?? "Assistant"

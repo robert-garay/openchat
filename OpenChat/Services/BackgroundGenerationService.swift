@@ -109,13 +109,14 @@ final class BackgroundGenerationService {
         let startDate = Date()
 
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") { [weak self] in
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") { @MainActor [weak self] in
             // The system is about to suspend us; end the expired task and record
             // that it is no longer active so performGeneration's cleanup is safe.
-            UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            if var active = self?.tasks[conversationID] {
+            guard let self else { return }
+            endBackgroundTask(backgroundTaskID)
+            if var active = tasks[conversationID] {
                 active.backgroundTaskID = .invalid
-                self?.tasks[conversationID] = active
+                tasks[conversationID] = active
             }
         }
 
@@ -152,7 +153,6 @@ final class BackgroundGenerationService {
         Task {
             await LiveActivityService.shared.end(activityID: active.activityID, status: .failed)
         }
-        notify(event: .cancelled, conversationID: conversationID, messageID: active.assistantMessageID)
     }
 
     // MARK: - Generation
@@ -184,7 +184,7 @@ final class BackgroundGenerationService {
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
-                error: ChatServiceError.missingAPIKey,
+                error: ChatServiceError.serviceNotConfigured,
                 modelContext: modelContext,
                 conversationID: conversationID
             )
@@ -198,7 +198,7 @@ final class BackgroundGenerationService {
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
-                error: ChatServiceError.missingAPIKey,
+                error: ChatServiceError.providerOrModelNotFound,
                 modelContext: modelContext,
                 conversationID: conversationID
             )
@@ -224,7 +224,7 @@ final class BackgroundGenerationService {
                 conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
                 modelName: model.displayName
             )
-            if var active = tasks[conversationID] {
+            if var active = tasks[conversationID], active.taskID == taskID {
                 active.activityID = liveActivityID
                 tasks[conversationID] = active
             }
@@ -641,12 +641,14 @@ final class BackgroundGenerationService {
 
         // If the app is not active, post a local notification.
         if UIApplication.shared.applicationState != .active {
-            NotificationService.shared.scheduleResponseNotification(
-                conversationID: conversationID,
-                conversationTitle: conversationTitle,
-                messagePreview: assistantMessage.content,
-                failed: didFail
-            )
+            Task {
+                await NotificationService.shared.scheduleResponseNotification(
+                    conversationID: conversationID,
+                    conversationTitle: conversationTitle,
+                    messagePreview: assistantMessage.content,
+                    failed: didFail
+                )
+            }
         }
     }
 

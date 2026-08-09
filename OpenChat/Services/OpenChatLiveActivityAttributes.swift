@@ -5,12 +5,12 @@ import ActivityKit
 /// Shared data shape for the OpenChat Live Activity. This file is included in both
 /// the main app target and the Live Activity extension target.
 struct OpenChatLiveActivityAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
+    struct ContentState: Codable, Hashable {
         var status: Status
         var detail: String
     }
 
-    public enum Status: Codable, Hashable {
+    enum Status: Codable, Hashable {
         case generating(elapsed: TimeInterval)
         case completed
         case failed

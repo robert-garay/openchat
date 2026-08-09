@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Swift 6 strict-concurrency build errors: removed `@MainActor` from `ChatViewModel.deinit`, marked observer tokens and the notification center `nonisolated(unsafe)`, and made `NotificationService` delegate methods `nonisolated`.
 - Addressed review feedback for background response generation: guarded visible-conversation lifecycle in `ChatView`/`RootView`, validated notification payloads, preserved skill proposals across refreshes, converted `LiveActivityService` to an actor, and fixed the Live Activity extension bundle identifier.
 - Extracted shared memory/rule/skill proposal persistence into `ProposalSaveCoordinator` so the in-chat and background-generation paths no longer duplicate the same save loops.
+- Addressed additional review feedback for background generation: isolated `ChatViewModel` deinit, durable starter assistant message, distinct configuration/provider errors, a single `.cancelled` event, `@MainActor` background-task expiration handling, per-generation Live Activities, notification category registration with async scheduling, and moved EventKit/Contacts proposal writes off the main actor.
 - Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
 
 ### Removed

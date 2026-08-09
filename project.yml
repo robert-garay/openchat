@@ -81,7 +81,6 @@ targets:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:
         com.apple.developer.healthkit: true
-        com.apple.developer.live-activities: true
     settings:
       base:
         PRODUCT_NAME: OpenChat

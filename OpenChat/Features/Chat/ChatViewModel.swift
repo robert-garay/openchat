@@ -114,7 +114,7 @@ final class ChatViewModel {
         refreshPendingProposals()
     }
 
-    deinit {
+    isolated deinit {
         [
             generationObserver,
             calendarProposalObserver,
@@ -582,20 +582,38 @@ final class ChatViewModel {
     }
 
     private func requestAssistantReply() {
-        guard let provider = currentProvider, let model = currentModel else { return }
-        let apiKey = providerStore.apiKey(for: provider)
-        guard !provider.requiresAPIKey || apiKey != nil else { return }
+        let provider = currentProvider
+        let model = currentModel
+        let apiKey = provider.flatMap { providerStore.apiKey(for: $0) }
+        let immediateError: Error? = if provider == nil || model == nil {
+            ChatServiceError.providerOrModelNotFound
+        } else if provider?.requiresAPIKey == true && apiKey == nil {
+            ChatServiceError.missingAPIKey
+        } else {
+            nil
+        }
 
         let assistantMessage = ChatMessage(
             role: .assistant,
             content: "",
             isStreaming: true,
-            providerID: provider.id,
-            modelID: model.id
+            providerID: provider?.id ?? conversation.providerID,
+            modelID: model?.id ?? conversation.modelID
         )
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
         modelContext.insert(assistantMessage)
+
+        if let immediateError {
+            assistantMessage.isStreaming = false
+            assistantMessage.completedAt = .now
+            assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: immediateError)
+            conversation.updatedAt = .now
+            try? modelContext.save()
+            return
+        }
+
+        try? modelContext.save()
 
         isStreaming = true
         requestNotificationAuthorizationIfNeeded()
