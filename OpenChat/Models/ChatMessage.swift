@@ -100,3 +100,21 @@ final class ChatMessage {
         }
     }
 }
+
+extension ChatMessage {
+    /// Extracts inline `<image>` / markdown data URI images from `content` and appends
+    /// them to `imageAttachments`, then strips bare `{image}` / `<image>` placeholders
+    /// when images are present.
+    func extractInlineImages() {
+        let result = GeneratedImageParser.extractInlineImages(
+            from: content,
+            hasExistingImages: !imageAttachments.isEmpty
+        )
+        content = result.text
+        if !result.images.isEmpty {
+            var existing = imageAttachments
+            existing.append(contentsOf: result.images)
+            imageAttachments = existing
+        }
+    }
+}

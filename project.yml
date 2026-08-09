@@ -18,6 +18,11 @@ configFiles:
 fileGroups:
   - Config
 
+packages:
+  SwiftStreamingMarkdown:
+    url: https://github.com/microsoft/SwiftStreamingMarkdown
+    branch: main
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -39,6 +44,7 @@ targets:
           - "Resources/Info.plist"
     dependencies:
       - sdk: AppIntents.framework
+      - package: SwiftStreamingMarkdown
     info:
       path: OpenChat/Resources/Info.plist
       properties:
@@ -67,6 +73,8 @@ targets:
         NSPhotoLibraryUsageDescription: OpenChat accesses photos you select so agents can analyze images.
         NSPhotoLibraryAddUsageDescription: OpenChat saves images to your photo library when you choose Save to Photos.
         NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.
+        NSContactsUsageDescription: OpenChat reads your contacts so agents can look up people. Agents may propose contact changes that you confirm in the app before anything is saved.
+        NSRemindersFullAccessUsageDescription: OpenChat reads your reminders so agents can help with tasks and to-dos. If you allow editing, agents may propose reminder changes that you confirm in the app before anything is saved.
     entitlements:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:
