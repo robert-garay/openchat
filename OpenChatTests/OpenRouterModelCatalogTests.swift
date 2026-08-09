@@ -221,7 +221,14 @@ final class OpenRouterModelCatalogTests: XCTestCase {
             query: "",
             capabilities: [.vision, .tools]
         )
-        XCTAssertEqual(visionAndTools.map(\.id), [withTools.id])
+        XCTAssertEqual(
+            visionAndTools.map(\.id),
+            [
+                withTools.id,
+                "meta-llama/llama-4-maverick",
+                "anthropic/claude-sonnet-4.6",
+            ]
+        )
     }
 
     func testFilterCombinesQueryAndCapabilities() {
@@ -281,7 +288,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
         XCTAssertTrue(imageGen.contains { $0.id == imageOnly.id })
         XCTAssertTrue(imageGen.contains { $0.id == textAndImage.id })
         XCTAssertEqual(imageOnly.capabilities, [.vision, .imageGen])
-        XCTAssertEqual(textAndImage.capabilities, [.vision, .imageGen])
+        XCTAssertEqual(textAndImage.capabilities, [.vision, .imageGen, .tools])
     }
 
     func testDisplayNameAndSubtitleFormatting() {
@@ -291,7 +298,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
 
         let oss = sampleModels.first { $0.id == "meta-llama/llama-4-maverick" }!
         XCTAssertEqual(oss.displayName, "Llama 4 Maverick")
-        XCTAssertEqual(oss.subtitle, "Open source · 1M context")
+        XCTAssertEqual(oss.subtitle, "Open source · 1.0M context")
         XCTAssertTrue(oss.asAIModel.supportsVision)
     }
 
@@ -340,6 +347,8 @@ final class OpenRouterModelCatalogTests: XCTestCase {
 
     @MainActor
     func testRememberOpenRouterModelPersistsSelection() {
+        KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
+        KeychainStore.removeAll()
         let defaults = UserDefaults(suiteName: "com.openchat.tests.openrouter.\(UUID().uuidString)")!
         let store = ProviderStore(defaults: defaults)
         store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)

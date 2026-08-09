@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial versioning and release workflow for OpenChat.
 
+### Fixed
+
+- Fixed unit-test failures by isolating Keychain-backed tests to a per-test keychain service and updating OpenRouter model catalog expectations to match current capability inference.
+- Restored parallel and randomized test execution now that keychain tests are isolated.
+
 ## [1.0.0] - 2026-08-07
 
 ### Added

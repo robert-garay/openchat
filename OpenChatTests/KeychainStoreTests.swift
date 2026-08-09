@@ -4,8 +4,15 @@ import XCTest
 final class KeychainStoreTests: XCTestCase {
     private let testKey = "com.openchat.tests.keychain-round-trip"
 
+    override func setUp() {
+        super.setUp()
+        KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
+        KeychainStore.removeAll()
+    }
+
     override func tearDown() {
         KeychainStore.remove(testKey)
+        KeychainStore.removeAll()
         super.tearDown()
     }
 

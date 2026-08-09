@@ -82,24 +82,15 @@ final class WebSearchStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
+        KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
+        KeychainStore.removeAll()
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
-        for kind in WebSearchProviderKind.allCases {
-            KeychainStore.remove(kind.keychainAccount)
-            if let legacy = kind.legacyKeychainAccount {
-                KeychainStore.remove(legacy)
-            }
-        }
         store = WebSearchStore(defaults: defaults)
     }
 
     override func tearDown() async throws {
-        for kind in WebSearchProviderKind.allCases {
-            KeychainStore.remove(kind.keychainAccount)
-            if let legacy = kind.legacyKeychainAccount {
-                KeychainStore.remove(legacy)
-            }
-        }
+        KeychainStore.removeAll()
         defaults.removePersistentDomain(forName: suiteName)
         store = nil
         defaults = nil
