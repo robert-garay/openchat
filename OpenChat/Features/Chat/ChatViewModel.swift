@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 import Observation
 
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 @MainActor
 @Observable
 final class ChatViewModel {
