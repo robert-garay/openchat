@@ -9,7 +9,6 @@ final class NotificationService: NSObject {
     static let shared = NotificationService()
 
     private let center = UNUserNotificationCenter.current()
-    private var hasRequestedAuthorization = false
 
     private override init() {
         super.init()
@@ -17,15 +16,10 @@ final class NotificationService: NSObject {
     }
 
     /// Requests alert/badge/sound authorization the first time it is needed.
+    /// Subsequent calls return the current authorization status without prompting again.
     func requestAuthorizationIfNeeded() async -> Bool {
-        guard !hasRequestedAuthorization else {
-            let settings = await center.notificationSettings()
-            return settings.authorizationStatus == .authorized
-        }
-        hasRequestedAuthorization = true
         do {
-            let granted = try await center.requestAuthorization(options: [.alert, .badge, .sound])
-            return granted
+            return try await center.requestAuthorization(options: [.alert, .badge, .sound])
         } catch {
             return false
         }
