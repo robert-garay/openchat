@@ -181,19 +181,18 @@ extension ChatViewModel {
     }
 
     func saveMemoryProposals(_ proposals: [MemoryProposal], source: MemorySource, messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try memoryStore.save(content: proposal.content, source: source, modelContext: modelContext)
-                saved += 1
-            } catch {
-                memoryActionStatusByMessageID[messageID] = error.localizedDescription
-                return
+        switch ProposalSaveCoordinator.saveMemory(
+            proposals,
+            source: source,
+            memoryStore: memoryStore,
+            modelContext: modelContext
+        ) {
+        case .saved(let count):
+            if count > 0 {
+                memoryActionStatusByMessageID[messageID] = "Memory updated."
             }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            memoryActionStatusByMessageID[messageID] = "Memory updated."
+        case .failed(let error):
+            memoryActionStatusByMessageID[messageID] = error.localizedDescription
         }
     }
 
@@ -209,23 +208,18 @@ extension ChatViewModel {
     }
 
     func saveRuleProposals(_ proposals: [RuleProposal], messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try rulesStore.save(
-                    content: proposal.content,
-                    modelContext: modelContext,
-                    conversation: proposal.scope == .global ? nil : conversation
-                )
-                saved += 1
-            } catch {
-                ruleActionStatusByMessageID[messageID] = error.localizedDescription
-                return
+        switch ProposalSaveCoordinator.saveRule(
+            proposals,
+            rulesStore: rulesStore,
+            modelContext: modelContext,
+            conversation: conversation
+        ) {
+        case .saved(let count):
+            if count > 0 {
+                ruleActionStatusByMessageID[messageID] = "Rule saved."
             }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            ruleActionStatusByMessageID[messageID] = "Rule saved."
+        case .failed(let error):
+            ruleActionStatusByMessageID[messageID] = error.localizedDescription
         }
     }
 
@@ -239,26 +233,18 @@ extension ChatViewModel {
     }
 
     func saveSkillProposals(_ proposals: [SkillProposal], messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try skillsStore.save(
-                    name: proposal.name,
-                    slashName: proposal.slashName,
-                    skillDescription: proposal.description,
-                    instructions: proposal.instructions,
-                    createdFromChatID: conversation.id,
-                    modelContext: modelContext
-                )
-                saved += 1
-            } catch {
-                skillActionStatusByMessageID[messageID] = error.localizedDescription
-                return
+        switch ProposalSaveCoordinator.saveSkill(
+            proposals,
+            skillsStore: skillsStore,
+            modelContext: modelContext,
+            conversation: conversation
+        ) {
+        case .saved(let count):
+            if count > 0 {
+                skillActionStatusByMessageID[messageID] = "Skill saved."
             }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            skillActionStatusByMessageID[messageID] = "Skill saved."
+        case .failed(let error):
+            skillActionStatusByMessageID[messageID] = error.localizedDescription
         }
     }
 }

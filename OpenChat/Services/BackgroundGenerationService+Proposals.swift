@@ -91,22 +91,20 @@ extension BackgroundGenerationService {
         memoryStore: MemoryStore,
         modelContext: ModelContext
     ) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try memoryStore.save(content: proposal.content, source: source, modelContext: modelContext)
-                saved += 1
-            } catch {
-                NotificationCenter.default.post(
-                    name: .bgGenMemorySaveFailed,
-                    object: nil,
-                    userInfo: ["messageID": messageID, "error": error.localizedDescription]
-                )
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
+        switch ProposalSaveCoordinator.saveMemory(
+            proposals,
+            source: source,
+            memoryStore: memoryStore,
+            modelContext: modelContext
+        ) {
+        case .saved:
+            break
+        case .failed(let error):
+            NotificationCenter.default.post(
+                name: .bgGenMemorySaveFailed,
+                object: nil,
+                userInfo: ["messageID": messageID, "error": error.localizedDescription]
+            )
         }
     }
 
@@ -140,26 +138,20 @@ extension BackgroundGenerationService {
         modelContext: ModelContext,
         conversation: Conversation
     ) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try rulesStore.save(
-                    content: proposal.content,
-                    modelContext: modelContext,
-                    conversation: proposal.scope == .global ? nil : conversation
-                )
-                saved += 1
-            } catch {
-                NotificationCenter.default.post(
-                    name: .bgGenRuleSaveFailed,
-                    object: nil,
-                    userInfo: ["messageID": messageID, "error": error.localizedDescription]
-                )
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
+        switch ProposalSaveCoordinator.saveRule(
+            proposals,
+            rulesStore: rulesStore,
+            modelContext: modelContext,
+            conversation: conversation
+        ) {
+        case .saved:
+            break
+        case .failed(let error):
+            NotificationCenter.default.post(
+                name: .bgGenRuleSaveFailed,
+                object: nil,
+                userInfo: ["messageID": messageID, "error": error.localizedDescription]
+            )
         }
     }
 
@@ -189,29 +181,20 @@ extension BackgroundGenerationService {
         modelContext: ModelContext,
         conversation: Conversation
     ) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try skillsStore.save(
-                    name: proposal.name,
-                    slashName: proposal.slashName,
-                    skillDescription: proposal.description,
-                    instructions: proposal.instructions,
-                    createdFromChatID: conversation.id,
-                    modelContext: modelContext
-                )
-                saved += 1
-            } catch {
-                NotificationCenter.default.post(
-                    name: .bgGenSkillSaveFailed,
-                    object: nil,
-                    userInfo: ["messageID": messageID, "error": error.localizedDescription]
-                )
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
+        switch ProposalSaveCoordinator.saveSkill(
+            proposals,
+            skillsStore: skillsStore,
+            modelContext: modelContext,
+            conversation: conversation
+        ) {
+        case .saved:
+            break
+        case .failed(let error):
+            NotificationCenter.default.post(
+                name: .bgGenSkillSaveFailed,
+                object: nil,
+                userInfo: ["messageID": messageID, "error": error.localizedDescription]
+            )
         }
     }
 }

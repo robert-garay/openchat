@@ -160,6 +160,7 @@
 		E012A71A9E70FFF41CE878D2 /* OpenChatLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E95C6B3E6CF2D96BE307311 /* OpenChatLogoView.swift */; };
 		E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EFBE369A07EED25532B291 /* ProviderDetailView.swift */; };
 		E3687ABBC67C5FEFB1F5713F /* CalendarContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001515E7D612955EE697BC2B /* CalendarContextReader.swift */; };
+		E377A2905FC530723B0E35DD /* ProposalSaveCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B43513FAD22D47E418C48BD /* ProposalSaveCoordinator.swift */; };
 		E3DA2FA3A516E96B3213C845 /* ConversationEditMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0102D2A1C051823E498EFA2B /* ConversationEditMessageTests.swift */; };
 		EC154CF094937256E9CDD426 /* AnthropicClient+WireTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */; };
 		EF62D1912A3C1D296B195F24 /* OpenRouterModelCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */; };
@@ -284,6 +285,7 @@
 		739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatApp.swift; sourceTree = "<group>"; };
 		7415602CE5D47D71F672CB31 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		7AA31B3544CF0EA1AA0EDE74 /* AgentContextProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProviderTests.swift; sourceTree = "<group>"; };
+		7B43513FAD22D47E418C48BD /* ProposalSaveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalSaveCoordinator.swift; sourceTree = "<group>"; };
 		7B5CA9A4CF55898407AB3541 /* ChatViewModel+BackgroundGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatViewModel+BackgroundGeneration.swift"; sourceTree = "<group>"; };
 		7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPickerSheet.swift; sourceTree = "<group>"; };
 		7B872EF3985BB7AC0BF86840 /* ProviderModelsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderModelsClient.swift; sourceTree = "<group>"; };
@@ -523,6 +525,7 @@
 				94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */,
 				BE39E5FE1932B11E6E4ABE57 /* OpenChatLiveActivityAttributes.swift */,
 				7BC4732631B2C5F041942EF5 /* OpenRouterModelsClient.swift */,
+				7B43513FAD22D47E418C48BD /* ProposalSaveCoordinator.swift */,
 				7B872EF3985BB7AC0BF86840 /* ProviderModelsClient.swift */,
 				8278B52A14134A4DE0197F82 /* ProviderStore.swift */,
 				2D9EB5F8F791962D7114CA0F /* RemindersActionParser.swift */,
@@ -905,6 +908,7 @@
 				E012A71A9E70FFF41CE878D2 /* OpenChatLogoView.swift in Sources */,
 				CB7DB418F7CCEB57BA84BE28 /* OpenRouterCatalogModel.swift in Sources */,
 				6C8A1E116FC67511BAA57265 /* OpenRouterModelsClient.swift in Sources */,
+				E377A2905FC530723B0E35DD /* ProposalSaveCoordinator.swift in Sources */,
 				E266BB3AD7199D7743B93AA7 /* ProviderDetailView.swift in Sources */,
 				8449A8CA12F11383F3D5D56E /* ProviderKeyEntryView.swift in Sources */,
 				C3A5CFD3AC9276E1E5E7CF84 /* ProviderLogoView.swift in Sources */,
