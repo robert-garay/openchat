@@ -73,6 +73,8 @@ targets:
         NSPhotoLibraryUsageDescription: OpenChat accesses photos you select so agents can analyze images.
         NSPhotoLibraryAddUsageDescription: OpenChat saves images to your photo library when you choose Save to Photos.
         NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.
+        NSContactsUsageDescription: OpenChat reads your contacts so agents can look up people. Agents may propose contact changes that you confirm in the app before anything is saved.
+        NSRemindersFullAccessUsageDescription: OpenChat reads your reminders so agents can help with tasks and to-dos. If you allow editing, agents may propose reminder changes that you confirm in the app before anything is saved.
     entitlements:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:

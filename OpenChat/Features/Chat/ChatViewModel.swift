@@ -13,21 +13,21 @@ final class ChatViewModel {
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
-    private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
+    internal(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
-    private(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
+    internal(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
     private(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingRemindersActions = false
-    private(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
+    internal(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
     private(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingContactsActions = false
-    private(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
-    private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
-    private(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
-    private(set) var skillActionStatusByMessageID: [UUID: String] = [:]
-    private(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
-    private(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
+    internal(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
+    internal(set) var skillActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    internal(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -59,14 +59,14 @@ final class ChatViewModel {
         }
     }
 
-    private let conversation: Conversation
-    private let modelContext: ModelContext
+    internal let conversation: Conversation
+    internal let modelContext: ModelContext
     private let providerStore: ProviderStore
-    private let dataSourceStore: AgentDataSourceStore
+    internal let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
-    private let rulesStore: RulesStore
-    private let memoryStore: MemoryStore
-    private let skillsStore: SkillsStore
+    internal let rulesStore: RulesStore
+    internal let memoryStore: MemoryStore
+    internal let skillsStore: SkillsStore
     private var streamingTask: Task<Void, Never>?
     private var titleGenerationTask: Task<Void, Never>?
 
@@ -136,11 +136,11 @@ final class ChatViewModel {
         }
     }
 
-    private var shouldUseMemory: Bool {
+    internal var shouldUseMemory: Bool {
         MemoryStore.shouldUseMemory(isTemporary: conversation.isTemporary, useInChats: memoryStore.useInChats)
     }
 
-    private var shouldAllowRuleProposals: Bool {
+    internal var shouldAllowRuleProposals: Bool {
         RulesStore.shouldAllowRuleProposals(
             isTemporary: conversation.isTemporary,
             allowProposalsFromChat: rulesStore.allowProposalsFromChat
@@ -962,120 +962,6 @@ final class ChatViewModel {
         }
         conversation.updatedAt = .now
         isStreaming = false
-    }
-
-    private func captureCalendarProposals(from message: ChatMessage) {
-        guard dataSourceStore.canEditCalendar else { return }
-        let proposals = CalendarActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        pendingCalendarActionsByMessageID[message.id] = proposals
-    }
-
-    private func captureRemindersProposals(from message: ChatMessage) {
-        guard dataSourceStore.canEditReminders else { return }
-        let proposals = RemindersActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        pendingRemindersActionsByMessageID[message.id] = proposals
-    }
-
-    private func captureContactsProposals(from message: ChatMessage) {
-        guard dataSourceStore.canEditContacts else { return }
-        let proposals = ContactsActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        pendingContactsActionsByMessageID[message.id] = proposals
-    }
-
-    private func captureMemoryProposals(from message: ChatMessage) {
-        guard shouldUseMemory else { return }
-        let proposals = MemoryActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        if memoryStore.requireConfirmation {
-            pendingMemoryProposalsByMessageID[message.id] = proposals
-        } else {
-            saveMemoryProposals(proposals, source: .auto, messageID: message.id)
-        }
-    }
-
-    private func saveMemoryProposals(_ proposals: [MemoryProposal], source: MemorySource, messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try memoryStore.save(content: proposal.content, source: source, modelContext: modelContext)
-                saved += 1
-            } catch {
-                memoryActionStatusByMessageID[messageID] = error.localizedDescription
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            memoryActionStatusByMessageID[messageID] = "Memory updated."
-        }
-    }
-
-    private func captureRuleProposals(from message: ChatMessage) {
-        guard shouldAllowRuleProposals else { return }
-        let proposals = RuleActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        if rulesStore.requireConfirmation {
-            pendingRuleProposalsByMessageID[message.id] = proposals
-        } else {
-            saveRuleProposals(proposals, messageID: message.id)
-        }
-    }
-
-    private func saveRuleProposals(_ proposals: [RuleProposal], messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try rulesStore.save(
-                    content: proposal.content,
-                    modelContext: modelContext,
-                    conversation: proposal.scope == .global ? nil : conversation
-                )
-                saved += 1
-            } catch {
-                ruleActionStatusByMessageID[messageID] = error.localizedDescription
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            ruleActionStatusByMessageID[messageID] = "Rule saved."
-        }
-    }
-
-    private func captureSkillProposals(_ proposals: [SkillProposal], messageID: UUID) {
-        guard !proposals.isEmpty else { return }
-        if skillsStore.requireConfirmation {
-            pendingSkillProposalsByMessageID[messageID] = proposals
-        } else {
-            saveSkillProposals(proposals, messageID: messageID)
-        }
-    }
-
-    private func saveSkillProposals(_ proposals: [SkillProposal], messageID: UUID) {
-        var saved = 0
-        for proposal in proposals {
-            do {
-                _ = try skillsStore.save(
-                    name: proposal.name,
-                    slashName: proposal.slashName,
-                    skillDescription: proposal.description,
-                    instructions: proposal.instructions,
-                    createdFromChatID: conversation.id,
-                    modelContext: modelContext
-                )
-                saved += 1
-            } catch {
-                skillActionStatusByMessageID[messageID] = error.localizedDescription
-                return
-            }
-        }
-        if saved > 0 {
-            try? modelContext.save()
-            skillActionStatusByMessageID[messageID] = "Skill saved."
-        }
     }
 }
 

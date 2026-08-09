@@ -103,6 +103,7 @@
 		8449A8CA12F11383F3D5D56E /* ProviderKeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */; };
 		84990B5D4C2B7EAB1FD4D710 /* FuzzyMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A679C0B8E756AC29DB04741 /* FuzzyMatcherTests.swift */; };
 		8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4EA65A8E67CCE1B461F1C3E /* RootView.swift */; };
+		88CC98964F9B5A0B563F8D7D /* ChatViewModel+Proposals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41FB223D2F537647DDEFC334 /* ChatViewModel+Proposals.swift */; };
 		892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEE1C80223D627AF9EA03F /* ExaClient.swift */; };
 		8AD16056239FE1C131C86FBA /* CalendarEventWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F348296EA312E7D6FF927BF8 /* CalendarEventWriter.swift */; };
 		8C156C339E5DB9E61090FD40 /* ChatSystemPromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D741ACF3D3896C2351AB40 /* ChatSystemPromptBuilderTests.swift */; };
@@ -216,6 +217,7 @@
 		38179096B024B94EA48B03CA /* MessageBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubbleView.swift; sourceTree = "<group>"; };
 		3C2969B471457A2C1EFCD4DC /* ConversationTemporaryChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTemporaryChatTests.swift; sourceTree = "<group>"; };
 		3FACE5CEBC15E012B87B3C3D /* AnthropicClientReasoningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicClientReasoningTests.swift; sourceTree = "<group>"; };
+		41FB223D2F537647DDEFC334 /* ChatViewModel+Proposals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatViewModel+Proposals.swift"; sourceTree = "<group>"; };
 		438BD89175051A0D6C3F8560 /* OpenAICompatibleClientEffortTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClientEffortTests.swift; sourceTree = "<group>"; };
 		438FB2DC4989C9B29D4F96C8 /* AnthropicClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicClient.swift; sourceTree = "<group>"; };
 		43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapabilitySign.swift; sourceTree = "<group>"; };
@@ -513,6 +515,7 @@
 				8324D4B71773C6D4157CBDAB /* ChatRulesSheet.swift */,
 				A9B2B9966BEE5B326ABB3896 /* ChatView.swift */,
 				AF32A18AADECCD4DFCBE7C0A /* ChatViewModel.swift */,
+				41FB223D2F537647DDEFC334 /* ChatViewModel+Proposals.swift */,
 				DED061940FBC318AE5A2CA53 /* ChatViewModel+Reasoning.swift */,
 				1A2AF4F55AFA1992CFFDAA5A /* ComposerTextView.swift */,
 				5AB6E25E943F288DFF8C04EF /* DocumentPreviewView.swift */,
@@ -767,6 +770,7 @@
 				DE1740492006CBF97C99EE5E /* ChatTool.swift in Sources */,
 				C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */,
 				ACB310A49912A608CBB9F324 /* ChatView.swift in Sources */,
+				88CC98964F9B5A0B563F8D7D /* ChatViewModel+Proposals.swift in Sources */,
 				5F8580CAA2F33B10B6CFD4F5 /* ChatViewModel+Reasoning.swift in Sources */,
 				5DADE559123182FF1E3FDFD2 /* ChatViewModel.swift in Sources */,
 				416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */,
