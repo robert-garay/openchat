@@ -29,7 +29,7 @@ struct ProviderBalanceClient: Sendable {
     /// Returns whether the given provider exposes a balance endpoint.
     static func supportsBalance(for provider: ConfiguredProvider) -> Bool {
         switch provider.id {
-        case "deepseek", "moonshot":
+        case "deepseek", "moonshot", "openrouter":
             return true
         default:
             return false
@@ -50,6 +50,8 @@ struct ProviderBalanceClient: Sendable {
             return try await fetchDeepSeek(apiKey: apiKey)
         case "moonshot":
             return try await fetchMoonshot(apiKey: apiKey)
+        case "openrouter":
+            return try await fetchOpenRouter(apiKey: apiKey)
         default:
             throw BalanceError.unsupportedProvider
         }
@@ -122,6 +124,35 @@ struct ProviderBalanceClient: Sendable {
 
     struct MoonshotBalanceData: Decodable {
         var available_balance: Double
+    }
+
+    // MARK: - OpenRouter
+
+    /// OpenRouter's `/credits` endpoint uses the same API key as completions.
+    private func fetchOpenRouter(apiKey: String) async throws -> Balance {
+        var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/credits")!)
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        let data = try await perform(request)
+        return try Self.decodeOpenRouterBalance(from: data)
+    }
+
+    static func decodeOpenRouterBalance(from data: Data) throws -> Balance {
+        let decoded = try JSONDecoder().decode(OpenRouterCreditsResponse.self, from: data)
+
+        return Balance(
+            total: max(decoded.data.total_credits - decoded.data.total_usage, 0),
+            currency: "USD",
+            isSufficient: decoded.data.total_credits > decoded.data.total_usage
+        )
+    }
+
+    struct OpenRouterCreditsResponse: Decodable {
+        var data: OpenRouterCreditsData
+    }
+
+    struct OpenRouterCreditsData: Decodable {
+        var total_credits: Double
+        var total_usage: Double
     }
 
     // MARK: - Shared
