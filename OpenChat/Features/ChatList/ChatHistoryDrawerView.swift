@@ -15,6 +15,7 @@ struct ChatHistoryDrawerView: View {
     @State private var conversationPendingRename: Conversation?
     @State private var renameText = ""
     @State private var activeMenu: Conversation?
+    @State private var activeMenuFrame: CGRect?
 
     private var filtered: [Conversation] {
         guard !searchText.isEmpty else { return conversations }
@@ -41,6 +42,12 @@ struct ChatHistoryDrawerView: View {
 
             if let activeMenu {
                 contextMenuOverlay(for: activeMenu)
+            }
+        }
+        .coordinateSpace(name: "drawer")
+        .onChange(of: activeMenu) { _, newValue in
+            if newValue == nil {
+                activeMenuFrame = nil
             }
         }
         .onDisappear(perform: exitSearch)
@@ -249,6 +256,16 @@ struct ChatHistoryDrawerView: View {
             Haptics.medium()
             activeMenu = conversation
         }
+        .background(
+            GeometryReader { rowGeometry in
+                Color.clear
+                    .onChange(of: activeMenu?.id) { _, newActiveID in
+                        if newActiveID == conversation.id {
+                            activeMenuFrame = rowGeometry.frame(in: .named("drawer"))
+                        }
+                    }
+            }
+        )
     }
 
     private func contextMenuOverlay(for conversation: Conversation) -> some View {
@@ -293,11 +310,25 @@ struct ChatHistoryDrawerView: View {
                 .background(.bar, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .shadow(color: .black.opacity(0.4), radius: 24, x: 0, y: 12)
                 .frame(maxWidth: 260)
-                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                .position(menuPosition(in: geometry))
                 .transition(.scale(scale: 0.92).combined(with: .opacity))
             }
         }
         .animation(.easeInOut(duration: 0.18), value: activeMenu != nil)
+    }
+
+    private func menuPosition(in geometry: GeometryProxy) -> CGPoint {
+        let menuWidth: CGFloat = 260
+        let menuHeight: CGFloat = 170
+        let safe = geometry.safeAreaInsets
+        let fallback = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        guard let frame = activeMenuFrame else { return fallback }
+
+        let targetX = frame.midX
+        let targetY = frame.midY
+        let x = min(max(targetX, menuWidth / 2 + safe.leading), geometry.size.width - menuWidth / 2 - safe.trailing)
+        let y = min(max(targetY, menuHeight / 2 + safe.top), geometry.size.height - menuHeight / 2 - safe.bottom)
+        return CGPoint(x: x, y: y)
     }
 
     private var menuDivider: some View {
