@@ -7,7 +7,8 @@ struct WebSearchSettingsView: View {
         List {
             Section {
                 Label {
-                    Text("Add search API keys here. Pick which provider to use from the web search button in chat. Models with tool calling decide when to search; others get results injected automatically.")
+                    Text("Add search API keys here. Pick which provider to use from the web search button in chat. "
+                         + "Models with tool calling decide when to search; others get results injected automatically.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

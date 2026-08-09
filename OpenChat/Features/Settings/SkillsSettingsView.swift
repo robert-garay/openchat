@@ -23,7 +23,8 @@ struct SkillsSettingsView: View {
                 ))
                 .disabled(!skillsStore.isEnabled)
             } footer: {
-                Text("Skills can be invoked with /slash-name or automatically when relevant. When confirmation is off, skills drafted from chat are saved automatically.")
+                Text("Skills can be invoked with /slash-name or automatically when relevant. "
+                     + "When confirmation is off, skills drafted from chat are saved automatically.")
             }
 
             Section {

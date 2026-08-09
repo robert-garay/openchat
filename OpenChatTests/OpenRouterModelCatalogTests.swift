@@ -343,6 +343,8 @@ final class OpenRouterModelCatalogTests: XCTestCase {
 
     @MainActor
     func testRememberOpenRouterModelPersistsSelection() {
+        KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
+        KeychainStore.removeAll()
         let defaults = UserDefaults(suiteName: "com.openchat.tests.openrouter.\(UUID().uuidString)")!
         let store = ProviderStore(defaults: defaults)
         store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)

@@ -86,7 +86,8 @@ struct ProviderDetailView: View {
             } else if showingDeleteConfirmation {
                 SettingsConfirmDialog(
                     title: "Remove \(provider.name)?",
-                    message: "Its API key will be deleted from the Keychain. Existing chats using this model will keep their history but can no longer generate new replies.",
+                    message: "Its API key will be deleted from the Keychain. "
+                             + "Existing chats using this model will keep their history but can no longer generate new replies.",
                     confirmTitle: "Remove",
                     onCancel: { showingDeleteConfirmation = false },
                     onConfirm: {
