@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display and capability inference tests reflect the current tool-call heuristics.
 - Keychain-backed tests now use an isolated per-test keychain service to prevent cross-test contamination and pass reliably under parallel, randomized execution.
 - Fixed Swift 6 strict-concurrency build errors: removed `@MainActor` from `ChatViewModel.deinit`, marked observer tokens and the notification center `nonisolated(unsafe)`, and made `NotificationService` delegate methods `nonisolated`.
+- Addressed review feedback for background response generation: guarded visible-conversation lifecycle in `ChatView`/`RootView`, validated notification payloads, preserved skill proposals across refreshes, converted `LiveActivityService` to an actor, and fixed the Live Activity extension bundle identifier.
 - Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
 
 ### Removed
