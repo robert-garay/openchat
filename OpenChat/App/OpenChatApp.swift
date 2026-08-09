@@ -6,6 +6,7 @@ struct OpenChatApp: App {
     let modelContainer: ModelContainer
     @State private var providerStore = ProviderStore()
     @State private var dataSourceStore = AgentDataSourceStore()
+    @State private var googleAccountStore: GoogleAccountStore
     @State private var webSearchStore = WebSearchStore()
     @State private var rulesStore = RulesStore()
     @State private var memoryStore = MemoryStore()
@@ -19,11 +20,13 @@ struct OpenChatApp: App {
                 ChatMessage.self,
                 MemoryItem.self,
                 RuleItem.self,
-                Skill.self
+                Skill.self,
+                GoogleAccount.self
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+        googleAccountStore = GoogleAccountStore(modelContainer: modelContainer)
     }
 
     var body: some Scene {
@@ -31,6 +34,7 @@ struct OpenChatApp: App {
             RootView()
                 .environment(providerStore)
                 .environment(dataSourceStore)
+                .environment(googleAccountStore)
                 .environment(webSearchStore)
                 .environment(rulesStore)
                 .environment(memoryStore)

@@ -10,6 +10,7 @@ struct ChatView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
+    @Environment(GoogleAccountStore.self) private var googleAccountStore
     @Environment(WebSearchStore.self) private var webSearchStore
     @Environment(RulesStore.self) private var rulesStore
     @Environment(MemoryStore.self) private var memoryStore
@@ -199,6 +200,7 @@ struct ChatView: View {
                     modelContext: modelContext,
                     providerStore: providerStore,
                     dataSourceStore: dataSourceStore,
+                    googleAccountStore: googleAccountStore,
                     webSearchStore: webSearchStore,
                     rulesStore: rulesStore,
                     memoryStore: memoryStore,
@@ -566,4 +568,3 @@ private struct TemporaryChatBanner: View {
         .background(.bar)
     }
 }
-

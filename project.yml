@@ -28,6 +28,8 @@ settings:
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
+    GOOGLE_OAUTH_CLIENT_ID: ""
+    GOOGLE_OAUTH_REDIRECT_URI: ""
 
 targets:
   OpenChat:
@@ -39,6 +41,7 @@ targets:
           - "Resources/Info.plist"
     dependencies:
       - sdk: AppIntents.framework
+      - sdk: AuthenticationServices.framework
     info:
       path: OpenChat/Resources/Info.plist
       properties:
@@ -67,6 +70,12 @@ targets:
         NSPhotoLibraryUsageDescription: OpenChat accesses photos you select so agents can analyze images.
         NSPhotoLibraryAddUsageDescription: OpenChat saves images to your photo library when you choose Save to Photos.
         NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.genion.openchat.googleoauth
+            CFBundleURLSchemes:
+              - com.genion.openchat.googleoauth
+        GoogleOAuthClientID: $(GOOGLE_OAUTH_CLIENT_ID)
+        GoogleOAuthRedirectURI: $(GOOGLE_OAUTH_REDIRECT_URI)
     entitlements:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:

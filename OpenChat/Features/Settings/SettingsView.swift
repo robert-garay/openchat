@@ -61,6 +61,14 @@ struct SettingsView: View {
                     Toggle("Compact Context", isOn: $compactEnabled)
                 }
 
+                Section("Connected Accounts") {
+                    NavigationLink {
+                        GoogleAccountSettingsView()
+                    } label: {
+                        Label("Google Account", systemImage: "g.circle")
+                    }
+                }
+
                 Section("Privacy") {
                     NavigationLink {
                         DataSourcesSettingsView()

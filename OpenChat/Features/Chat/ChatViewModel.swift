@@ -57,6 +57,7 @@ final class ChatViewModel {
     private let modelContext: ModelContext
     private let providerStore: ProviderStore
     private let dataSourceStore: AgentDataSourceStore
+    private let googleAccountStore: GoogleAccountStore
     private let webSearchStore: WebSearchStore
     private let rulesStore: RulesStore
     private let memoryStore: MemoryStore
@@ -79,6 +80,7 @@ final class ChatViewModel {
         modelContext: ModelContext,
         providerStore: ProviderStore,
         dataSourceStore: AgentDataSourceStore,
+        googleAccountStore: GoogleAccountStore,
         webSearchStore: WebSearchStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
@@ -88,6 +90,7 @@ final class ChatViewModel {
         self.modelContext = modelContext
         self.providerStore = providerStore
         self.dataSourceStore = dataSourceStore
+        self.googleAccountStore = googleAccountStore
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
@@ -629,7 +632,6 @@ final class ChatViewModel {
         streamingTask?.cancel()
     }
 
-    // swiftlint:disable function_body_length
     private func requestAssistantReply() {
         guard let provider = currentProvider, let model = currentModel else { return }
         let apiKey = providerStore.apiKey(for: provider)
@@ -697,7 +699,6 @@ final class ChatViewModel {
             )
         }
     }
-    // swiftlint:enable function_body_length
 
     private func performAssistantReplyStream(
         assistantMessage: ChatMessage,
@@ -745,7 +746,8 @@ final class ChatViewModel {
             }
 
             dataSourceStore.refreshAuthorizationStatuses()
-            if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
+            googleAccountStore.fetchAccounts()
+            if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore, googleAccounts: googleAccountStore.accounts).makeContextBlock() {
                 middleSections.append(agentContext)
             }
 
@@ -995,5 +997,4 @@ final class ChatViewModel {
         }
     }
 }
-
 // swiftlint:enable type_body_length

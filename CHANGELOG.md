@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Google account integration for Google Calendar, Gmail, and Google Drive. Users can connect a Google account in Settings, toggle each app's context inclusion, and have recent calendar events, inbox messages, and Drive files included in agent context.
+- PKCE-based Google OAuth 2.0 sign-in using `AuthenticationServices` and Keychain token storage, configured via `Config/Local.xcconfig`.
 - Dynamic reasoning configuration from provider model catalogs, with a separate brain-chip toggle for providers that expose a distinct thinking on/off parameter (OpenRouter `reasoning.enabled`, Anthropic `thinking`, DeepSeek `thinking.type`) and a ChatGPT-style effort gauge for providers that encode "off" as an effort level.
 - Initial versioning and release workflow for OpenChat.
 

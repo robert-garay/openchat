@@ -55,7 +55,7 @@ open OpenChat.xcodeproj          # open in Xcode
 
 - Swift version: `6.0`. iOS deployment target: `17.0`.
 - Use `Bundle.main.infoDictionary` for the version string in UI; do not hard-code the version in Swift source.
-- Do not commit `Config/Local.xcconfig` (it is gitignored). Use `Config/Local.xcconfig.example` as a template.
+- Do not commit `Config/Local.xcconfig` (it is gitignored). Use `Config/Local.xcconfig.example` as a template. To enable Google account integration, set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_REDIRECT_URI` there after creating OAuth 2.0 credentials in Google Cloud Console.
 - Prefer minimal changes. Do not add dependencies or heavy tooling unless explicitly asked.
 - Do not add emojis to source files unless explicitly requested.
 - Do not create documentation files unless explicitly requested by the user.

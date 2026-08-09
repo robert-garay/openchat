@@ -136,4 +136,34 @@ final class AgentContextProviderTests: XCTestCase {
         XCTAssertTrue(block!.contains("Prefers concise answers"))
         XCTAssertTrue(block!.contains("Memory section"))
     }
+
+    func testContextProviderIncludesGoogleAccountContext() async {
+        let account = GoogleAccount(
+            email: "agent@example.com",
+            connectedScopes: [.calendarReadonly, .gmailReadonly, .driveReadonly],
+            enabledApps: [.calendar, .gmail, .drive]
+        )
+
+        var provider = AgentContextProvider(dataSourceStore: store, googleAccounts: [account])
+        provider.googleSection = { _ in
+            "## Google Calendar\n- Standup\n\n## Gmail\n- Email\n\n## Google Drive\n- File"
+        }
+
+        let block = await provider.makeContextBlock()
+        XCTAssertNotNil(block)
+        XCTAssertTrue(block!.contains("Google data"))
+        XCTAssertTrue(block!.contains("Google Calendar"))
+        XCTAssertTrue(block!.contains("Gmail"))
+        XCTAssertTrue(block!.contains("Google Drive"))
+    }
+
+    func testContextProviderOmitsGoogleContextWhenNoAccounts() async {
+        var provider = AgentContextProvider(dataSourceStore: store, googleAccounts: [])
+        provider.googleSection = { _ in
+            "## Google Calendar\n- Standup"
+        }
+
+        let block = await provider.makeContextBlock()
+        XCTAssertNil(block)
+    }
 }

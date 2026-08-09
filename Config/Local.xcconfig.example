@@ -4,5 +4,12 @@
 // or developer.apple.com → Account → Membership details,
 // or the 10-character code in parentheses on your Apple Development certificate
 // (e.g. "Apple Development: you@email.com (ABCD1234EF)").
+//
+// Optional: to enable Google account integration, create OAuth 2.0 credentials at
+// https://console.cloud.google.com/apis/credentials and set the client ID below.
+// The redirect URI must match the URL scheme registered in project.yml
+// (default: com.genion.openchat.googleoauth:/oauth2callback).
 
 DEVELOPMENT_TEAM = YOUR_TEAM_ID
+GOOGLE_OAUTH_CLIENT_ID = YOUR_GOOGLE_OAUTH_CLIENT_ID
+GOOGLE_OAUTH_REDIRECT_URI = com.genion.openchat.googleoauth:/oauth2callback
