@@ -84,7 +84,7 @@ struct ChatView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
-                                .frame(maxWidth: 180)
+                                .frame(maxWidth: conversation.messages.isEmpty ? 180 : 240)
                             ModelCapabilitySigns(
                                 capabilities: viewModel.currentModel?.capabilities ?? [],
                                 limit: 3
