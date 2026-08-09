@@ -236,10 +236,7 @@ struct ChatHistoryDrawerView: View {
     }
 
     private func conversationRow(_ conversation: Conversation) -> some View {
-        ConversationRow(
-            conversation: conversation,
-            isSelected: selectedConversationID == conversation.id
-        )
+        ConversationRow(conversation: conversation)
         .contentShape(Rectangle())
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
@@ -370,7 +367,6 @@ struct ChatHistoryDrawerView: View {
 
 struct ConversationRow: View {
     let conversation: Conversation
-    let isSelected: Bool
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -381,10 +377,6 @@ struct ConversationRow: View {
             Spacer(minLength: 0)
         }
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isSelected ? Color.primary.opacity(0.12) : Color.clear)
-        )
         .accessibilityLabel(
             conversation.isPinned
                 ? "Pinned, \(conversation.title)"
