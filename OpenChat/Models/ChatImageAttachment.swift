@@ -85,6 +85,84 @@ enum GeneratedImageParser {
 
         return (cleaned, images)
     }
+
+    /// Extracts data URI images wrapped in `<image>` tags, then markdown data URI images,
+    /// and finally strips bare `{image}` / `<image>` placeholders when images are present.
+    static func extractInlineImages(
+        from text: String,
+        hasExistingImages: Bool
+    ) -> (text: String, images: [ChatImageAttachment]) {
+        let tagResult = extractImageTagDataURIs(from: text)
+        let markdownResult = extractMarkdownDataURIImages(from: tagResult.text)
+        var images = tagResult.images + markdownResult.images
+        var cleaned = markdownResult.text
+
+        if hasExistingImages || !images.isEmpty {
+            cleaned = stripImagePlaceholders(from: cleaned)
+        }
+
+        return (cleaned, images)
+    }
+
+    /// `<image>data:image/...;base64,...</image>` → attachment + cleaned text.
+    static func extractImageTagDataURIs(from text: String) -> (text: String, images: [ChatImageAttachment]) {
+        guard text.contains("<image") else { return (text, []) }
+
+        let pattern = #"<image[^>]*>(.*?)<\/image>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else {
+            return (text, [])
+        }
+
+        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+        let matches = regex.matches(in: text, options: [], range: nsRange)
+        guard !matches.isEmpty else { return (text, []) }
+
+        var images: [ChatImageAttachment] = []
+        for match in matches {
+            guard match.numberOfRanges >= 2,
+                  let contentRange = Range(match.range(at: 1), in: text)
+            else { continue }
+            let content = String(text[contentRange])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: #"\s+"#, with: "", options: .regularExpression)
+            if let attachment = attachment(fromDataURI: content) {
+                images.append(attachment)
+            }
+        }
+
+        var cleaned = text
+        for match in matches.reversed() {
+            guard let fullRange = Range(match.range(at: 0), in: cleaned) else { continue }
+            cleaned.replaceSubrange(fullRange, with: "")
+        }
+        cleaned = cleaned
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return (cleaned, images)
+    }
+
+    /// Removes bare `{image}` and `<image>` placeholder tokens from assistant text.
+    static func stripImagePlaceholders(from text: String) -> String {
+        let patterns = [
+            #"\{image\}"#,
+            #"<image\s*/?>"#,
+            #"<image\s+[^>]*?>"#
+        ]
+        var cleaned = text
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { continue }
+            cleaned = regex.stringByReplacingMatches(
+                in: cleaned,
+                options: [],
+                range: NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned),
+                withTemplate: ""
+            )
+        }
+        return cleaned
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
 
 enum ImageAttachmentEncoder {
