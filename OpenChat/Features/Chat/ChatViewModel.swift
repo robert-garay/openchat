@@ -69,13 +69,13 @@ final class ChatViewModel {
     internal let skillsStore: SkillsStore
     private var titleGenerationTask: Task<Void, Never>?
     private var compactionTask: Task<Void, Never>?
-    var generationObserver: NSObjectProtocol?
-    var calendarProposalObserver: NSObjectProtocol?
-    var remindersProposalObserver: NSObjectProtocol?
-    var contactsProposalObserver: NSObjectProtocol?
-    var memoryProposalObserver: NSObjectProtocol?
-    var ruleProposalObserver: NSObjectProtocol?
-    var skillProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var generationObserver: NSObjectProtocol?
+    nonisolated(unsafe) var calendarProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var remindersProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var contactsProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var memoryProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var ruleProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var skillProposalObserver: NSObjectProtocol?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Always starts off for a freshly
@@ -114,7 +114,6 @@ final class ChatViewModel {
         refreshPendingProposals()
     }
 
-    @MainActor
     deinit {
         [
             generationObserver,
