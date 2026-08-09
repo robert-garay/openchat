@@ -12,6 +12,7 @@ struct ChatHistoryDrawerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
     @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
     @State private var conversationPendingRename: Conversation?
     @State private var renameText = ""
     @State private var activeMenu: Conversation?
@@ -43,6 +44,7 @@ struct ChatHistoryDrawerView: View {
                 contextMenuOverlay(for: activeMenu)
             }
         }
+        .onDisappear(perform: exitSearch)
         .alert("Rename Chat", isPresented: isRenameAlertPresented) {
             TextField("Title", text: $renameText)
             Button("Cancel", role: .cancel) {
@@ -151,6 +153,7 @@ struct ChatHistoryDrawerView: View {
                     .font(.subheadline)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
+                    .focused($isSearchFocused)
 
                 if !searchText.isEmpty {
                     Button {
@@ -167,24 +170,52 @@ struct ChatHistoryDrawerView: View {
             .padding(.vertical, 8)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-            Button(action: onShowSettings) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.primary)
-                    .frame(width: 36, height: 36)
-                    .background(Color(.secondarySystemBackground), in: Circle())
-            }
-            .accessibilityLabel("Settings")
+            if isSearchFocused {
+                Button(action: exitSearch) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.secondarySystemBackground), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Exit search")
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.8).combined(with: .opacity),
+                    removal: .opacity
+                ))
+            } else {
+                HStack(spacing: 12) {
+                    Button(action: onShowSettings) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.primary)
+                            .frame(width: 36, height: 36)
+                            .background(Color(.secondarySystemBackground), in: Circle())
+                    }
+                    .accessibilityLabel("Settings")
 
-            Button(action: newChatAndClose) {
-                Image(systemName: "square.and.pencil")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color.accentColor, in: Circle())
+                    Button(action: newChatAndClose) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(Color.accentColor, in: Circle())
+                    }
+                    .accessibilityLabel("New chat")
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity,
+                    removal: .scale(scale: 0.8).combined(with: .opacity)
+                ))
             }
-            .accessibilityLabel("New chat")
         }
+        .animation(.easeInOut(duration: 0.2), value: isSearchFocused)
+    }
+
+    private func exitSearch() {
+        searchText = ""
+        isSearchFocused = false
     }
 
     private func sectionHeader(_ title: String) -> some View {
