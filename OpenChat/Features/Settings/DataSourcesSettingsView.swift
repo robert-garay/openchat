@@ -1,12 +1,15 @@
 import SwiftUI
+import UIKit
 
 struct DataSourcesSettingsView: View {
     @Environment(AgentDataSourceStore.self) private var dataSourceStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showingFitnessNotice = false
     @State private var showingCalendarAccessChooser = false
     @State private var showingRemindersAccessChooser = false
     @State private var busySource: AgentDataSource?
     @State private var statusMessage: String?
+    @State private var settingsAlertSource: AgentDataSource?
 
     var body: some View {
         List {
@@ -80,6 +83,29 @@ struct DataSourcesSettingsView: View {
         .onAppear {
             dataSourceStore.refreshAuthorizationStatuses()
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                dataSourceStore.refreshAuthorizationStatuses()
+            }
+        }
+        .alert(
+            "Permission Needed",
+            isPresented: Binding(
+                get: { settingsAlertSource != nil },
+                set: { if !$0 { settingsAlertSource = nil } }
+            ),
+            presenting: settingsAlertSource
+        ) { source in
+            Button("Open Settings") { openSystemSettings() }
+            Button("Cancel", role: .cancel) {}
+        } message: { source in
+            Text("\(source.title) access was previously denied. iOS only asks once, so re-enabling this toggle can't show the prompt again — open iOS Settings → OpenChat to allow it, then come back here.")
+        }
+    }
+
+    private func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 
     private func calendarAccessMode(for source: AgentDataSource) -> CalendarAccessMode? {
@@ -133,6 +159,11 @@ struct DataSourcesSettingsView: View {
 
     private func handleToggle(_ source: AgentDataSource, enabled: Bool) async {
         if enabled {
+            let currentStatus = dataSourceStore.authorizationStatus(for: source)
+            if currentStatus == .denied || currentStatus == .restricted {
+                settingsAlertSource = source
+                return
+            }
             if source == .calendar {
                 showingCalendarAccessChooser = true
                 return
