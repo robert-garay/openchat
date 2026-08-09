@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed provider logos from the chat history drawer rows; chat titles are now shown without a provider icon.
 - Removed the "Select text" chip from assistant responses; text selection remains available via the user-message context menu.
 
 ## [1.0.0] - 2026-08-07
