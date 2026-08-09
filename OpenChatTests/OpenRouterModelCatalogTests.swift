@@ -294,7 +294,7 @@ final class OpenRouterModelCatalogTests: XCTestCase {
 
         let oss = sampleModels.first { $0.id == "meta-llama/llama-4-maverick" }!
         XCTAssertEqual(oss.displayName, "Llama 4 Maverick")
-        XCTAssertEqual(oss.subtitle, "Open source · 1.0M context")
+        XCTAssertEqual(oss.subtitle, "Open source · 1M context")
         XCTAssertTrue(oss.asAIModel.supportsVision)
     }
 
