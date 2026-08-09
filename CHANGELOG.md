@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Provider settings now display a live credit balance for providers that expose a balance API (DeepSeek and Moonshot).
+
 ### Changed
 
 ### Fixed

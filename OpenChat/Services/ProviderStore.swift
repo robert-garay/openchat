@@ -31,6 +31,10 @@ final class ProviderStore {
     private(set) var liveModelsByProviderID: [String: [AIModel]] = [:]
     private(set) var loadingModelProviderIDs: Set<String> = []
     private(set) var liveModelErrors: [String: String] = [:]
+    /// Cached account balances for providers that expose them.
+    private(set) var balances: [String: ProviderBalanceClient.Balance] = [:]
+    private(set) var balanceErrors: [String: String] = [:]
+    private(set) var loadingBalanceProviderIDs: Set<String> = Set()
 
     private let defaultsKey = "com.openchat.configuredProviders"
     private let openRouterCacheKey = "com.openchat.openRouterModelsCache"
@@ -46,6 +50,9 @@ final class ProviderStore {
     private let openRouterClient: OpenRouterModelsClient
     private let modelsClient: ProviderModelsClient
     private var modelRefreshTasks: [String: Task<Void, Never>] = [:]
+    private var balanceRefreshTasks: [String: Task<Void, Never>] = [:]
+    private var balanceCacheDates: [String: Date] = [:]
+    private let balanceCacheTTL: TimeInterval = 60
     /// Bumped when Keychain-backed credentials change so Observation can refresh views.
     private var credentialsEpoch = 0
     /// Selection frequency keyed by `providerID/modelID` for picker ranking.
@@ -55,14 +62,18 @@ final class ProviderStore {
     /// Starred models keyed by `providerID/modelID`; pinned near the top of the unfiltered picker.
     private(set) var starredModelKeys: Set<String> = []
 
+    private let balanceClient: ProviderBalanceClient
+
     init(
         defaults: UserDefaults = .standard,
         openRouterClient: OpenRouterModelsClient = OpenRouterModelsClient(),
-        modelsClient: ProviderModelsClient = ProviderModelsClient()
+        modelsClient: ProviderModelsClient = ProviderModelsClient(),
+        balanceClient: ProviderBalanceClient = ProviderBalanceClient()
     ) {
         self.defaults = defaults
         self.openRouterClient = openRouterClient
         self.modelsClient = modelsClient
+        self.balanceClient = balanceClient
         load()
         loadOpenRouterCache()
         loadLiveModelCaches()
@@ -103,6 +114,79 @@ final class ProviderStore {
     func removeAPIKey(for provider: ConfiguredProvider) {
         KeychainStore.remove(provider.id)
         credentialsEpoch &+= 1
+        clearBalance(for: provider)
+    }
+
+    // MARK: - Balance
+
+    /// Whether the provider exposes a balance endpoint.
+    func supportsBalance(for provider: ConfiguredProvider) -> Bool {
+        ProviderBalanceClient.supportsBalance(for: provider)
+    }
+
+    /// Latest cached balance for the provider, if any.
+    func balance(for provider: ConfiguredProvider) -> ProviderBalanceClient.Balance? {
+        balances[provider.id]
+    }
+
+    /// Latest balance fetch error message for the provider, if any.
+    func balanceError(for provider: ConfiguredProvider) -> String? {
+        balanceErrors[provider.id]
+    }
+
+    /// Whether a balance fetch is currently in flight for the provider.
+    func isLoadingBalance(for provider: ConfiguredProvider) -> Bool {
+        loadingBalanceProviderIDs.contains(provider.id)
+    }
+
+    /// Fetches the provider balance if supported, an API key exists, and the cache has expired.
+    func refreshBalanceIfNeeded(for provider: ConfiguredProvider, force: Bool = false) {
+        guard supportsBalance(for: provider),
+              hasUsableCredentials(provider) else {
+            clearBalance(for: provider)
+            return
+        }
+
+        if !force,
+           balances[provider.id] != nil,
+           let cachedAt = balanceCacheDates[provider.id],
+           Date().timeIntervalSince(cachedAt) < balanceCacheTTL {
+            return
+        }
+
+        balanceRefreshTasks[provider.id]?.cancel()
+        balanceRefreshTasks[provider.id] = Task { [weak self] in
+            await self?.fetchBalance(for: provider)
+        }
+    }
+
+    private func fetchBalance(for provider: ConfiguredProvider) async {
+        loadingBalanceProviderIDs.insert(provider.id)
+        balanceErrors[provider.id] = nil
+
+        do {
+            let apiKey = apiKey(for: provider)
+            let balance = try await balanceClient.fetchBalance(for: provider, apiKey: apiKey)
+            guard !Task.isCancelled else { return }
+            balances[provider.id] = balance
+            balanceCacheDates[provider.id] = Date()
+            balanceErrors[provider.id] = nil
+            loadingBalanceProviderIDs.remove(provider.id)
+        } catch {
+            guard !Task.isCancelled else { return }
+            balances[provider.id] = nil
+            balanceErrors[provider.id] = error.localizedDescription
+            loadingBalanceProviderIDs.remove(provider.id)
+        }
+    }
+
+    private func clearBalance(for provider: ConfiguredProvider) {
+        balances[provider.id] = nil
+        balanceErrors[provider.id] = nil
+        balanceCacheDates[provider.id] = nil
+        balanceRefreshTasks[provider.id]?.cancel()
+        balanceRefreshTasks[provider.id] = nil
+        loadingBalanceProviderIDs.remove(provider.id)
     }
 
     func addFromTemplate(_ template: ProviderTemplate) {
