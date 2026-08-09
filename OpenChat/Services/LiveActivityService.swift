@@ -3,20 +3,22 @@ import ActivityKit
 
 /// Manages the Live Activity shown in the Dynamic Island / lock screen while a
 /// response is being generated in the background.
-final class LiveActivityService: @unchecked Sendable {
+actor LiveActivityService {
     static let shared = LiveActivityService()
     private init() {}
 
-    private var activities: [String: Activity<OpenChatLiveActivityAttributes>] = [:]
+    private var activityIDs: Set<String> = []
 
     /// Starts a new Live Activity and returns its ID, or nil if ActivityKit is unavailable
     /// or the user has disabled Live Activities.
     @discardableResult
-    func start(conversationTitle: String, modelName: String?) -> String? {
+    func start(conversationTitle: String, modelName: String?) async -> String? {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return nil }
-        guard Activity<OpenChatLiveActivityAttributes>.activities.isEmpty else {
-            // Only one OpenChat activity at a time.
-            return Activity<OpenChatLiveActivityAttributes>.activities.first?.id
+
+        if let existingID = Activity<OpenChatLiveActivityAttributes>.activities.first?.id {
+            // Only one OpenChat activity at a time; reuse a stale one if present.
+            activityIDs.insert(existingID)
+            return existingID
         }
 
         let attributes = OpenChatLiveActivityAttributes(
@@ -25,17 +27,16 @@ final class LiveActivityService: @unchecked Sendable {
         )
         let initialState = OpenChatLiveActivityAttributes.ContentState(
             status: .generating(elapsed: 0),
-            progress: 0,
             detail: "Generating response…"
         )
 
         do {
-            let activity = try Activity.request(
+            let activity = try await Activity.request(
                 attributes: attributes,
                 content: ActivityContent(state: initialState, staleDate: nil),
                 pushType: nil
             )
-            activities[activity.id] = activity
+            activityIDs.insert(activity.id)
             return activity.id
         } catch {
             return nil
@@ -44,7 +45,11 @@ final class LiveActivityService: @unchecked Sendable {
 
     /// Updates the Live Activity with a new status. Safe to call with a nil ID.
     func update(activityID: String?, status: OpenChatLiveActivityAttributes.Status) async {
-        guard let activityID, let activity = activities[activityID] else { return }
+        guard let activityID, activityIDs.contains(activityID) else { return }
+        guard let activity = Activity<OpenChatLiveActivityAttributes>.activities.first(where: { $0.id == activityID }) else {
+            activityIDs.remove(activityID)
+            return
+        }
 
         let contentState: OpenChatLiveActivityAttributes.ContentState
         switch status {
@@ -54,19 +59,16 @@ final class LiveActivityService: @unchecked Sendable {
                 : "Still generating \(Int(elapsed / 60))m…"
             contentState = OpenChatLiveActivityAttributes.ContentState(
                 status: .generating(elapsed: elapsed),
-                progress: 0,
                 detail: detail
             )
         case .completed:
             contentState = OpenChatLiveActivityAttributes.ContentState(
                 status: .completed,
-                progress: 1,
                 detail: "Response ready"
             )
         case .failed:
             contentState = OpenChatLiveActivityAttributes.ContentState(
                 status: .failed,
-                progress: 1,
                 detail: "Response failed"
             )
         }
@@ -75,12 +77,14 @@ final class LiveActivityService: @unchecked Sendable {
     }
 
     /// Ends the Live Activity, showing the final state for a moment before dismissal.
-    func end(activityID: String?) async {
-        guard let activityID, let activity = activities.removeValue(forKey: activityID) else { return }
+    func end(activityID: String?, status: OpenChatLiveActivityAttributes.Status = .completed) async {
+        guard let activityID, activityIDs.remove(activityID) != nil else { return }
+        guard let activity = Activity<OpenChatLiveActivityAttributes>.activities.first(where: { $0.id == activityID }) else { return }
+
+        let detail = status == .failed ? "Response failed" : "Response ready"
         let finalState = OpenChatLiveActivityAttributes.ContentState(
-            status: .completed,
-            progress: 1,
-            detail: "Response ready"
+            status: status,
+            detail: detail
         )
         await activity.end(ActivityContent(state: finalState, staleDate: nil), dismissalPolicy: .default)
     }

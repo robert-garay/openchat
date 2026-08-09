@@ -35,6 +35,7 @@ final class BackgroundGenerationService {
     // MARK: - Active tasks
 
     private struct ActiveTask {
+        let taskID: UUID
         let task: Task<Void, Never>
         let assistantMessageID: UUID
         let conversationID: UUID
@@ -77,6 +78,11 @@ final class BackgroundGenerationService {
         visibleConversationID = id
     }
 
+    func clearVisibleConversationID(ifEquals id: UUID) {
+        guard visibleConversationID == id else { return }
+        visibleConversationID = nil
+    }
+
     // MARK: - Public API
 
     /// Returns true if a generation is currently running for `conversationID`.
@@ -102,19 +108,16 @@ final class BackgroundGenerationService {
         let taskID = UUID()
         let startDate = Date()
 
-        let backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") {
-            // If time runs out, clean up the background task marker only; the
-            // URLSession request itself may still complete in the background.
-            if var active = self.tasks[conversationID] {
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") { [weak self] in
+            // The system is about to suspend us; end the expired task and record
+            // that it is no longer active so performGeneration's cleanup is safe.
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            if var active = self?.tasks[conversationID] {
                 active.backgroundTaskID = .invalid
-                self.tasks[conversationID] = active
+                self?.tasks[conversationID] = active
             }
         }
-
-        let activityID = LiveActivityService.shared.start(
-            conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
-            modelName: providerStore?.model(providerID: conversation.providerID, modelID: conversation.modelID)?.displayName
-        )
 
         let task = Task { [weak self] in
             guard let self else { return }
@@ -129,11 +132,12 @@ final class BackgroundGenerationService {
         }
 
         tasks[conversationID] = ActiveTask(
+            taskID: taskID,
             task: task,
             assistantMessageID: assistantMessage.id,
             conversationID: conversationID,
             startDate: startDate,
-            activityID: activityID,
+            activityID: nil,
             backgroundTaskID: backgroundTaskID
         )
 
@@ -146,7 +150,7 @@ final class BackgroundGenerationService {
         active.task.cancel()
         endBackgroundTask(active.backgroundTaskID)
         Task {
-            await LiveActivityService.shared.end(activityID: active.activityID)
+            await LiveActivityService.shared.end(activityID: active.activityID, status: .failed)
         }
         notify(event: .cancelled, conversationID: conversationID, messageID: active.assistantMessageID)
     }
@@ -161,20 +165,22 @@ final class BackgroundGenerationService {
         modelContext: ModelContext,
         startDate: Date
     ) async {
-        let activityID = tasks[conversationID]?.activityID
+        var activityID = tasks[conversationID]?.activityID
+        var finalActivityStatus: OpenChatLiveActivityAttributes.Status = .completed
         defer {
             Task { @MainActor in
-                if let active = tasks[conversationID] {
+                if let active = tasks[conversationID], active.taskID == taskID {
                     endBackgroundTask(active.backgroundTaskID)
                     tasks.removeValue(forKey: conversationID)
                 }
             }
             Task {
-                await LiveActivityService.shared.end(activityID: activityID)
+                await LiveActivityService.shared.end(activityID: activityID, status: finalActivityStatus)
             }
         }
 
         guard let providerStore, let dataSourceStore, let webSearchStore, let rulesStore, let memoryStore, let skillsStore else {
+            finalActivityStatus = .failed
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
@@ -188,6 +194,7 @@ final class BackgroundGenerationService {
         guard let provider = providerStore.provider(withID: conversation.providerID),
               let model = providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID)
         else {
+            finalActivityStatus = .failed
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
@@ -200,6 +207,7 @@ final class BackgroundGenerationService {
 
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else {
+            finalActivityStatus = .failed
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
@@ -208,6 +216,19 @@ final class BackgroundGenerationService {
                 conversationID: conversationID
             )
             return
+        }
+
+        // Start the Live Activity now that we know the generation will actually run.
+        if !Task.isCancelled {
+            let liveActivityID = await LiveActivityService.shared.start(
+                conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
+                modelName: model.displayName
+            )
+            if var active = tasks[conversationID] {
+                active.activityID = liveActivityID
+                tasks[conversationID] = active
+            }
+            activityID = liveActivityID
         }
 
         let client = ChatService.client(for: provider.apiFormat)
@@ -279,8 +300,10 @@ final class BackgroundGenerationService {
                 conversationID: conversationID
             )
         } catch is CancellationError {
+            finalActivityStatus = .failed
             finishCancelled(message: assistantMessage, conversation: conversation, modelContext: modelContext, conversationID: conversationID)
         } catch {
+            finalActivityStatus = .failed
             finishWithError(
                 message: assistantMessage,
                 conversation: conversation,
@@ -616,8 +639,8 @@ final class BackgroundGenerationService {
             messageID: messageID
         )
 
-        // If the app is backgrounded, post a local notification.
-        if UIApplication.shared.applicationState == .background {
+        // If the app is not active, post a local notification.
+        if UIApplication.shared.applicationState != .active {
             NotificationService.shared.scheduleResponseNotification(
                 conversationID: conversationID,
                 conversationTitle: conversationTitle,

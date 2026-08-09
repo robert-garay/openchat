@@ -7,9 +7,9 @@ struct OpenChatLiveActivityLockScreenView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: iconName)
-                    .foregroundStyle(iconTint)
-                Text(context.attributes.conversationTitle)
+            Image(systemName: context.state.status.iconName)
+                .foregroundStyle(context.state.status.iconTint)
+            Text(context.attributes.conversationTitle)
                     .font(.headline)
                 Spacer()
                 Text(context.state.detail)
@@ -17,33 +17,12 @@ struct OpenChatLiveActivityLockScreenView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if isGenerating {
-                ProgressView(value: 0.0)
+            if case .generating = context.state.status {
+                ProgressView()
                     .tint(.accentColor)
             }
         }
         .padding(.horizontal)
-    }
-
-    private var isGenerating: Bool {
-        if case .generating = context.state.status { return true }
-        return false
-    }
-
-    private var iconName: String {
-        switch context.state.status {
-        case .generating: "sparkles"
-        case .completed: "checkmark.circle.fill"
-        case .failed: "xmark.circle.fill"
-        }
-    }
-
-    private var iconTint: Color {
-        switch context.state.status {
-        case .generating: .accentColor
-        case .completed: .green
-        case .failed: .red
-        }
     }
 }
 
@@ -51,25 +30,9 @@ struct OpenChatLiveActivityExpandedLeading: View {
     let context: ActivityViewContext<OpenChatLiveActivityAttributes>
 
     var body: some View {
-        Image(systemName: iconName)
+        Image(systemName: context.state.status.iconName)
             .font(.title2)
-            .foregroundStyle(iconTint)
-    }
-
-    private var iconName: String {
-        switch context.state.status {
-        case .generating: "sparkles"
-        case .completed: "checkmark.circle.fill"
-        case .failed: "xmark.circle.fill"
-        }
-    }
-
-    private var iconTint: Color {
-        switch context.state.status {
-        case .generating: .accentColor
-        case .completed: .green
-        case .failed: .red
-        }
+            .foregroundStyle(context.state.status.iconTint)
     }
 }
 

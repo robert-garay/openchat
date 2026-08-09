@@ -4,6 +4,7 @@ import SwiftData
 struct RootView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Conversation.updatedAt, order: .reverse) private var conversations: [Conversation]
 
     @State private var selectedConversationID: UUID?
@@ -63,12 +64,18 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .notificationOpenedConversation)) { notification in
             guard let id = notification.userInfo?["conversationID"] as? UUID else { return }
+            guard conversations.contains(where: { $0.id == id }) else { return }
             selectedConversationID = id
             showingHistoryDrawer = false
         }
         .onChange(of: selectedConversationID) { previousID, newID in
             discardEphemeralChat(id: previousID)
             BackgroundGenerationService.shared.setVisibleConversationID(newID)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            BackgroundGenerationService.shared.setVisibleConversationID(
+                phase == .active ? selectedConversationID : nil
+            )
         }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty {

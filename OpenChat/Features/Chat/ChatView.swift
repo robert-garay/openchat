@@ -200,7 +200,7 @@ struct ChatView: View {
             bindViewModel()
         }
         .onDisappear {
-            BackgroundGenerationService.shared.setVisibleConversationID(nil)
+            BackgroundGenerationService.shared.clearVisibleConversationID(ifEquals: conversation.id)
         }
         .onChange(of: viewModel?.composerText) { _, _ in
             viewModel?.persistComposerState()
@@ -220,7 +220,7 @@ struct ChatView: View {
     }
 
     private func bindViewModel() {
-        if viewModel == nil {
+        if viewModel == nil || viewModel?.conversation.id != conversation.id {
             viewModel = ChatViewModel(
                 conversation: conversation,
                 modelContext: modelContext,

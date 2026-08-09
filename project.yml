@@ -120,7 +120,7 @@ targets:
       properties:
         CFBundleDisplayName: OpenChat Live Activity
         CFBundleName: OpenChatLiveActivity
-        CFBundleIdentifier: com.genion.openchat.liveactivity
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundlePackageType: XPC!

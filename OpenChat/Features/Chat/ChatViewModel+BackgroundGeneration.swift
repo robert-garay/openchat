@@ -121,13 +121,14 @@ extension ChatViewModel {
         pendingContactsActionsByMessageID.removeAll()
         pendingMemoryProposalsByMessageID.removeAll()
         pendingRuleProposalsByMessageID.removeAll()
-        pendingSkillProposalsByMessageID.removeAll()
         calendarActionStatusByMessageID.removeAll()
         remindersActionStatusByMessageID.removeAll()
         contactsActionStatusByMessageID.removeAll()
         memoryActionStatusByMessageID.removeAll()
         ruleActionStatusByMessageID.removeAll()
-        skillActionStatusByMessageID.removeAll()
+        // Skill proposals and their statuses are captured from tool calls during
+        // streaming, not from message content, so they cannot be restored here.
+        // Keep the existing entries so background generations still show them.
 
         for message in conversation.sortedMessages where message.role == .assistant {
             captureCalendarProposals(from: message)
@@ -135,8 +136,6 @@ extension ChatViewModel {
             captureContactsProposals(from: message)
             captureMemoryProposals(from: message)
             captureRuleProposals(from: message)
-            // Skill proposals are captured from tool calls during streaming, not
-            // from message content, so they cannot be restored here.
         }
     }
 

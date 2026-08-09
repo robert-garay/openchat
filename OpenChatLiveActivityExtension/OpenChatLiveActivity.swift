@@ -13,11 +13,7 @@ struct OpenChatLiveActivityWidget: Widget {
         ActivityConfiguration(for: OpenChatLiveActivityAttributes.self) { context in
             OpenChatLiveActivityLockScreenView(context: context)
         } dynamicIsland: { context in
-            let status = context.state.status
-            let isGenerating = if case .generating = status { true } else { false }
-            let isFailed = if case .failed = status { true } else { false }
-
-            return DynamicIsland {
+            DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     OpenChatLiveActivityExpandedLeading(context: context)
                 }
@@ -31,15 +27,15 @@ struct OpenChatLiveActivityWidget: Widget {
                     OpenChatLiveActivityExpandedBottom(context: context)
                 }
             } compactLeading: {
-                Image(systemName: isGenerating ? "sparkles" : "checkmark.circle.fill")
-                    .foregroundStyle(isFailed ? .red : .accentColor)
+                Image(systemName: context.state.status.iconName)
+                    .foregroundStyle(context.state.status.iconTint)
             } compactTrailing: {
                 Text(context.state.detail)
                     .font(.caption2)
                     .lineLimit(1)
             } minimal: {
-                Image(systemName: isGenerating ? "sparkles" : "checkmark.circle.fill")
-                    .foregroundStyle(isFailed ? .red : .accentColor)
+                Image(systemName: context.state.status.iconName)
+                    .foregroundStyle(context.state.status.iconTint)
             }
         }
     }

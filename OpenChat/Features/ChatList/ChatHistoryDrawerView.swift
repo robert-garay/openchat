@@ -393,9 +393,13 @@ struct ConversationRow: View {
                 .fill(isSelected ? Color.primary.opacity(0.12) : Color.clear)
         )
         .accessibilityLabel(
-            conversation.isPinned
-                ? "Pinned, \(conversation.title)"
-                : conversation.title
+            [
+                conversation.hasUnreadMessages ? "Unread" : nil,
+                conversation.isPinned ? "Pinned" : nil,
+                conversation.title
+            ]
+            .compactMap { $0 }
+            .joined(separator: ", ")
         )
     }
 }
