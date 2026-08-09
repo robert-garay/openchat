@@ -125,8 +125,13 @@ struct ChatHistoryDrawerView: View {
 
     private var header: some View {
         HStack(spacing: 0) {
-            Text("OpenChat")
-                .font(.title2.weight(.bold))
+            Button(action: onShowSettings) {
+                Text("OpenChat")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(.primary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("OpenChat Settings")
 
             Spacer(minLength: 12)
 
