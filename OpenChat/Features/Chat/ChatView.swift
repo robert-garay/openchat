@@ -197,18 +197,10 @@ struct ChatView: View {
             }
         }
         .task(id: conversation.id) {
-            if viewModel == nil {
-                viewModel = ChatViewModel(
-                    conversation: conversation,
-                    modelContext: modelContext,
-                    providerStore: providerStore,
-                    dataSourceStore: dataSourceStore,
-                    webSearchStore: webSearchStore,
-                    rulesStore: rulesStore,
-                    memoryStore: memoryStore,
-                    skillsStore: skillsStore
-                )
-            }
+            bindViewModel()
+        }
+        .onDisappear {
+            BackgroundGenerationService.shared.clearVisibleConversationID(ifEquals: conversation.id)
         }
         .onChange(of: viewModel?.composerText) { _, _ in
             viewModel?.persistComposerState()
@@ -225,6 +217,23 @@ struct ChatView: View {
         .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
             viewModel?.persistComposerState()
         }
+    }
+
+    private func bindViewModel() {
+        if viewModel == nil || viewModel?.conversation.id != conversation.id {
+            viewModel = ChatViewModel(
+                conversation: conversation,
+                modelContext: modelContext,
+                providerStore: providerStore,
+                dataSourceStore: dataSourceStore,
+                webSearchStore: webSearchStore,
+                rulesStore: rulesStore,
+                memoryStore: memoryStore,
+                skillsStore: skillsStore
+            )
+        }
+        BackgroundGenerationService.shared.setVisibleConversationID(conversation.id)
+        viewModel?.markAllRead()
     }
 }
 
@@ -311,7 +320,7 @@ private struct ChatMessageListView: View {
                             calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
                             isApplyingCalendarActions: viewModel.isApplyingCalendarActions,
                             onConfirmCalendarActions: {
-                                viewModel.confirmCalendarActions(for: message.id)
+                                Task { await viewModel.confirmCalendarActions(for: message.id) }
                             },
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
@@ -320,7 +329,7 @@ private struct ChatMessageListView: View {
                             remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
                             isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
                             onConfirmRemindersActions: {
-                                viewModel.confirmRemindersActions(for: message.id)
+                                Task { await viewModel.confirmRemindersActions(for: message.id) }
                             },
                             onDismissRemindersActions: {
                                 viewModel.dismissRemindersActions(for: message.id)
@@ -329,7 +338,7 @@ private struct ChatMessageListView: View {
                             contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
                             isApplyingContactsActions: viewModel.isApplyingContactsActions,
                             onConfirmContactsActions: {
-                                viewModel.confirmContactsActions(for: message.id)
+                                Task { await viewModel.confirmContactsActions(for: message.id) }
                             },
                             onDismissContactsActions: {
                                 viewModel.dismissContactsActions(for: message.id)
@@ -580,4 +589,3 @@ private struct TemporaryChatBanner: View {
             .background(.bar)
     }
 }
-

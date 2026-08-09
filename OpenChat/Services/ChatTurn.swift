@@ -42,11 +42,17 @@ enum ChatServiceError: LocalizedError {
     case timedOut
     case modelLacksVision
     case modelLacksFiles
+    case serviceNotConfigured
+    case providerOrModelNotFound
 
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
             return "No API key configured for this provider."
+        case .serviceNotConfigured:
+            return "Background generation isn't fully configured yet."
+        case .providerOrModelNotFound:
+            return "The selected provider or model couldn't be found."
         case .invalidURL:
             return "The provider's base URL is invalid."
         case .http(let status, let body):

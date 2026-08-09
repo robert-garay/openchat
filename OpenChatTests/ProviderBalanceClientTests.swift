@@ -5,12 +5,12 @@ final class ProviderBalanceClientTests: XCTestCase {
     func testSupportsBalanceForKnownProviders() {
         XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "deepseek")!)))
         XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "moonshot")!)))
+        XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openrouter")!)))
     }
 
     func testSupportsBalanceFalseForOthers() {
         XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openai")!)))
         XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "anthropic")!)))
-        XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openrouter")!)))
 
         let custom = ConfiguredProvider.customEndpoint(
             name: "Local",
@@ -151,5 +151,53 @@ final class ProviderBalanceClientTests: XCTestCase {
         XCTAssertEqual(balance.currency, "CNY")
         XCTAssertEqual(balance.isSufficient, true)
         XCTAssertNil(balance.breakdown)
+    }
+
+    func testDecodeOpenRouterBalance() throws {
+        let json = Data("""
+        {
+          "data": {
+            "total_credits": 100.5,
+            "total_usage": 25.75
+          }
+        }
+        """.utf8)
+
+        let balance = try ProviderBalanceClient.decodeOpenRouterBalance(from: json)
+        XCTAssertEqual(balance.total, 74.75, accuracy: 0.001)
+        XCTAssertEqual(balance.currency, "USD")
+        XCTAssertEqual(balance.isSufficient, true)
+        XCTAssertNil(balance.breakdown)
+    }
+
+    func testDecodeOpenRouterBalanceZeroWhenUsageExceedsCredits() throws {
+        let json = Data("""
+        {
+          "data": {
+            "total_credits": 10.0,
+            "total_usage": 25.0
+          }
+        }
+        """.utf8)
+
+        let balance = try ProviderBalanceClient.decodeOpenRouterBalance(from: json)
+        XCTAssertEqual(balance.total, 0)
+        XCTAssertEqual(balance.isSufficient, false)
+    }
+
+    func testDecodeOpenRouterBalanceWithIntegerCredits() throws {
+        let json = Data("""
+        {
+          "data": {
+            "total_credits": 30,
+            "total_usage": 23.626411837
+          }
+        }
+        """.utf8)
+
+        let balance = try ProviderBalanceClient.decodeOpenRouterBalance(from: json)
+        XCTAssertEqual(balance.total, 6.373588163, accuracy: 0.000000001)
+        XCTAssertEqual(balance.currency, "USD")
+        XCTAssertEqual(balance.isSufficient, true)
     }
 }

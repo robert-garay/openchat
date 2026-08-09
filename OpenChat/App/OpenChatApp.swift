@@ -1,8 +1,23 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
+
+/// Early-launch delegate that wires up notification handling before the app finishes launching.
+final class OpenChatAppDelegate: NSObject, UIApplicationDelegate {
+    @MainActor
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = NotificationService.shared
+        return true
+    }
+}
 
 @main
 struct OpenChatApp: App {
+    @UIApplicationDelegateAdaptor(OpenChatAppDelegate.self) private var appDelegate
+
     let modelContainer: ModelContainer
     @State private var providerStore = ProviderStore()
     @State private var dataSourceStore = AgentDataSourceStore()
@@ -39,6 +54,17 @@ struct OpenChatApp: App {
                 .onAppear { appearance.applyToAllWindows() }
                 .onChange(of: appearance) { _, newValue in
                     newValue.applyToAllWindows()
+                }
+                .task {
+                    BackgroundGenerationService.shared.configure(
+                        providerStore: providerStore,
+                        dataSourceStore: dataSourceStore,
+                        webSearchStore: webSearchStore,
+                        rulesStore: rulesStore,
+                        memoryStore: memoryStore,
+                        skillsStore: skillsStore,
+                        modelContainer: modelContainer
+                    )
                 }
         }
         .modelContainer(modelContainer)

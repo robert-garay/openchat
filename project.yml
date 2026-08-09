@@ -46,6 +46,7 @@ targets:
     dependencies:
       - sdk: AppIntents.framework
       - package: SwiftStreamingMarkdown
+      - target: OpenChatLiveActivity
     info:
       path: OpenChat/Resources/Info.plist
       properties:
@@ -76,6 +77,7 @@ targets:
         NSCalendarsFullAccessUsageDescription: OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.
         NSContactsUsageDescription: OpenChat reads your contacts so agents can look up people. Agents may propose contact changes that you confirm in the app before anything is saved.
         NSRemindersFullAccessUsageDescription: OpenChat reads your reminders so agents can help with tasks and to-dos. If you allow editing, agents may propose reminder changes that you confirm in the app before anything is saved.
+        NSSupportsLiveActivities: true
     entitlements:
       path: OpenChat/Resources/OpenChat.entitlements
       properties:
@@ -107,11 +109,38 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.genion.openchat.tests
         GENERATE_INFOPLIST_FILE: YES
 
+  OpenChatLiveActivity:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: OpenChatLiveActivityExtension
+      - path: OpenChat/Services/OpenChatLiveActivityAttributes.swift
+    info:
+      path: OpenChatLiveActivityExtension/Info.plist
+      properties:
+        CFBundleDisplayName: OpenChat Live Activity
+        CFBundleName: OpenChatLiveActivity
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundlePackageType: XPC!
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_NAME: OpenChatLiveActivity
+        PRODUCT_BUNDLE_IDENTIFIER: com.genion.openchat.liveactivity
+        INFOPLIST_FILE: OpenChatLiveActivityExtension/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        SUPPORTS_MACCATALYST: NO
+
 schemes:
   OpenChat:
     build:
       targets:
         OpenChat: all
+        OpenChatLiveActivity: all
         OpenChatTests: [test]
     run:
       config: Debug

@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Provider settings now display a live credit balance for providers that expose a balance API (DeepSeek and Moonshot).
+- Background assistant-response generation that survives leaving a chat and backgrounding the app, with a Dynamic Island Live Activity, a local notification on completion, and unread-response markers in the chat history list.
+- Provider settings now display a live credit balance for providers that expose a balance API (DeepSeek, Moonshot, and OpenRouter).
 
 ### Changed
 
 - Long-pressing a chat history item now shows the context menu near the tapped row instead of centered on the screen.
+- Removed the selected-state highlight from the currently open chat in the history drawer.
 
 ### Fixed
 
@@ -53,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Assistant replies with generated images now extract `<image>` / markdown data URI embeds and strip `{image}` placeholders so all images render instead of appearing as raw tags.
 - OpenRouter model catalog context formatting now rounds millions-of-tokens display and capability inference tests reflect the current tool-call heuristics.
 - Keychain-backed tests now use an isolated per-test keychain service to prevent cross-test contamination and pass reliably under parallel, randomized execution.
+- Fixed Swift 6 strict-concurrency build errors: removed `@MainActor` from `ChatViewModel.deinit`, marked observer tokens and the notification center `nonisolated(unsafe)`, and made `NotificationService` delegate methods `nonisolated`.
+- Addressed review feedback for background response generation: guarded visible-conversation lifecycle in `ChatView`/`RootView`, validated notification payloads, preserved skill proposals across refreshes, converted `LiveActivityService` to an actor, and fixed the Live Activity extension bundle identifier.
+- Extracted shared memory/rule/skill proposal persistence into `ProposalSaveCoordinator` so the in-chat and background-generation paths no longer duplicate the same save loops.
+- Addressed additional review feedback for background generation: isolated `ChatViewModel` deinit, durable starter assistant message, distinct configuration/provider errors, a single `.cancelled` event, `@MainActor` background-task expiration handling, per-generation Live Activities, notification category registration with async scheduling, and moved EventKit/Contacts proposal writes off the main actor.
 - Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
 
 ### Removed

@@ -47,6 +47,8 @@
 	<string>OpenChat accesses photos you select so agents can analyze images.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>OpenChat reads your reminders so agents can help with tasks and to-dos. If you allow editing, agents may propose reminder changes that you confirm in the app before anything is saved.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
