@@ -13,21 +13,21 @@ final class ChatViewModel {
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
-    internal(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
+    var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
-    internal(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
+    var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
     private(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingRemindersActions = false
-    internal(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
+    var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
     private(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingContactsActions = false
-    internal(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
-    internal(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
-    internal(set) var skillActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
-    internal(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
+    var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
+    var memoryActionStatusByMessageID: [UUID: String] = [:]
+    var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
+    var skillActionStatusByMessageID: [UUID: String] = [:]
+    var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
