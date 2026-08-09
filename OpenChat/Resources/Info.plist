@@ -33,8 +33,6 @@
 	<string>OpenChat reads your calendar so agents can help with schedules. If you allow editing, agents may propose event changes that you confirm in the app before anything is saved.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>OpenChat uses the camera so agents can analyze photos or documents you capture.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>OpenChat reads your contacts so agents can look up people. Agents may propose contact changes that you confirm in the app before anything is saved.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>OpenChat reads only fitness-related Apple Health data you enable—steps, heart rate, workouts, energy, exercise time, walking/running distance, and sleep—for coaching insights. It does not access clinical records. This is not medical advice.</string>
 	<key>NSHealthUpdateUsageDescription</key>
@@ -45,8 +43,6 @@
 	<string>OpenChat saves images to your photo library when you choose Save to Photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>OpenChat accesses photos you select so agents can analyze images.</string>
-	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>OpenChat reads your reminders so agents can help with tasks and to-dos. If you allow editing, agents may propose reminder changes that you confirm in the app before anything is saved.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
