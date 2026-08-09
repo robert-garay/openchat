@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed provider logos from the chat thread next to assistant responses.
+
 ### Security
 
 ## [1.0.1] - 2026-08-09

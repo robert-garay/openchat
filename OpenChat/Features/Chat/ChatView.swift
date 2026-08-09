@@ -304,13 +304,9 @@ private struct ChatMessageListView: View {
                     let sortedMessages = conversation.sortedMessages
                     let lastMessageID = sortedMessages.last?.id
                     ForEach(sortedMessages) { message in
-                        let messageProvider = viewModel.provider(for: message)
                         MessageBubbleView(
                             message: message,
                             conversation: conversation,
-                            providerTint: messageProvider.map { Color(hex: $0.tint) } ?? .accentColor,
-                            providerSymbol: messageProvider?.symbolName ?? "sparkles",
-                            providerLogoAssetName: messageProvider?.logoAssetName,
                             pendingCalendarActions: viewModel.pendingCalendarActionsByMessageID[message.id] ?? [],
                             calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
                             isApplyingCalendarActions: viewModel.isApplyingCalendarActions,

@@ -7,9 +7,6 @@ import Photos
 struct MessageBubbleView: View {
     let message: ChatMessage
     let conversation: Conversation
-    let providerTint: Color
-    let providerSymbol: String
-    var providerLogoAssetName: String? = nil
     var pendingCalendarActions: [CalendarActionProposal] = []
     var calendarActionStatus: String? = nil
     var isApplyingCalendarActions: Bool = false
@@ -163,13 +160,6 @@ struct MessageBubbleView: View {
 
     private var assistantContent: some View {
         HStack(alignment: .top, spacing: 8) {
-            ProviderLogoView(
-                logoAssetName: providerLogoAssetName,
-                symbolName: providerSymbol,
-                tint: providerTint,
-                size: 22
-            )
-
             VStack(alignment: .leading, spacing: 8) {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .leading)
