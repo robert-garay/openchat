@@ -6,28 +6,28 @@ import Observation
 @MainActor
 @Observable
 final class ChatViewModel {
-    internal(set) var isStreaming = false
+    var isStreaming = false
     var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
     var pendingDocumentAttachments: [ChatDocumentAttachment] = []
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
-    internal(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
-    internal(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var isApplyingCalendarActions = false
-    internal(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
-    internal(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var isApplyingRemindersActions = false
-    internal(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
-    internal(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var isApplyingContactsActions = false
-    internal(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
-    internal(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
-    internal(set) var skillActionStatusByMessageID: [UUID: String] = [:]
-    internal(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
-    internal(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
+    var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
+    var calendarActionStatusByMessageID: [UUID: String] = [:]
+    var isApplyingCalendarActions = false
+    var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
+    var remindersActionStatusByMessageID: [UUID: String] = [:]
+    var isApplyingRemindersActions = false
+    var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
+    var contactsActionStatusByMessageID: [UUID: String] = [:]
+    var isApplyingContactsActions = false
+    var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
+    var memoryActionStatusByMessageID: [UUID: String] = [:]
+    var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
+    var skillActionStatusByMessageID: [UUID: String] = [:]
+    var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -69,13 +69,13 @@ final class ChatViewModel {
     internal let skillsStore: SkillsStore
     private var titleGenerationTask: Task<Void, Never>?
     private var compactionTask: Task<Void, Never>?
-    nonisolated(unsafe) var generationObserver: NSObjectProtocol?
-    nonisolated(unsafe) var calendarProposalObserver: NSObjectProtocol?
-    nonisolated(unsafe) var remindersProposalObserver: NSObjectProtocol?
-    nonisolated(unsafe) var contactsProposalObserver: NSObjectProtocol?
-    nonisolated(unsafe) var memoryProposalObserver: NSObjectProtocol?
-    nonisolated(unsafe) var ruleProposalObserver: NSObjectProtocol?
-    nonisolated(unsafe) var skillProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var generationObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var calendarProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var remindersProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var contactsProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var memoryProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var ruleProposalObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) var skillProposalObserver: NSObjectProtocol?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Always starts off for a freshly
@@ -114,7 +114,7 @@ final class ChatViewModel {
         refreshPendingProposals()
     }
 
-    isolated deinit {
+    deinit {
         [
             generationObserver,
             calendarProposalObserver,

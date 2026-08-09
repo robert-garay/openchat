@@ -25,7 +25,7 @@ actor LiveActivityService {
         )
 
         do {
-            let activity = try await Activity.request(
+            let activity = try Activity.request(
                 attributes: attributes,
                 content: ActivityContent(state: initialState, staleDate: nil),
                 pushType: nil
