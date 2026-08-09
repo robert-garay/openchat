@@ -10,7 +10,6 @@ struct ChatHistoryDrawerView: View {
     let onShowSettings: () -> Void
 
     @Environment(\.modelContext) private var modelContext
-    @Environment(ProviderStore.self) private var providerStore
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
     @State private var conversationPendingRename: Conversation?
@@ -103,6 +102,7 @@ struct ChatHistoryDrawerView: View {
                 .listStyle(.plain)
                 .listRowSpacing(0)
                 .listSectionSpacing(0)
+                .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.interactively)
             }
 
@@ -252,7 +252,6 @@ struct ChatHistoryDrawerView: View {
             Haptics.medium()
             activeMenu = conversation
         }
-        .environment(providerStore)
     }
 
     private func contextMenuOverlay(for conversation: Conversation) -> some View {
@@ -373,26 +372,8 @@ struct ConversationRow: View {
     let conversation: Conversation
     let isSelected: Bool
 
-    @Environment(ProviderStore.self) private var providerStore
-
-    private var provider: ConfiguredProvider? {
-        providerStore.provider(withID: conversation.providerID)
-    }
-
-    private var providerTint: Color {
-        provider.map { Color(hex: $0.tint) } ?? .accentColor
-    }
-
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            ProviderLogoView(
-                logoAssetName: provider?.logoAssetName,
-                symbolName: provider?.symbolName ?? "sparkles",
-                tint: providerTint,
-                size: 28,
-                cornerRadius: 7
-            )
-
             Text(conversation.title)
                 .font(.body)
                 .lineLimit(1)

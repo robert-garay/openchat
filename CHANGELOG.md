@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the custom Markdown renderer with SwiftStreamingMarkdown for cleaner, streaming-optimized assistant message rendering; removed the unused parser, syntax highlighter, and preview formatter.
 - Tapping the "OpenChat" title in the history drawer now opens Settings, in addition to the existing gear icon.
 - History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused, and exits search mode when the drawer closes.
-- The message composer now automatically focuses when opening any chat and dismisses the keyboard when opening the history drawer.
+- The message composer now toggles focus with the chat/history view: the keyboard opens when the chat is visible and closes when the history drawer is open.
 - History drawer now uses a push-style transition: the chat view slides out to the right as the drawer slides in, removing the overlap between the two views.
+- History drawer no longer shows the vertical scroll indicator.
 
 ### Fixed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed provider logos from the chat history drawer rows; chat titles are now shown without a provider icon.
 - Removed the "Select text" chip from assistant responses; text selection remains available via the user-message context menu.
 
 ## [1.0.0] - 2026-08-07

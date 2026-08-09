@@ -48,6 +48,10 @@ struct ChatView: View {
                         .isEmpty,
                     canUseChatRules: rulesStore.useChatRules,
                     conversation: conversation,
+                    isFocused: Binding(
+                        get: { !isHistoryDrawerOpen },
+                        set: { _ in }
+                    ),
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
@@ -234,6 +238,7 @@ private struct ChatComposerHost: View {
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
+    var isFocused: Binding<Bool> = .constant(false)
     let onSend: () -> Void
 
     var body: some View {
@@ -265,6 +270,7 @@ private struct ChatComposerHost: View {
             skills: skills,
             effortLevel: $viewModel.effortLevel,
             isReasoningEnabled: $viewModel.isReasoningEnabled,
+            isFocused: isFocused,
             supportsEffort: viewModel.supportsEffort,
             supportedEffortLevels: viewModel.pickerEffortLevels,
             hasSeparateThinkingToggle: viewModel.hasSeparateThinkingToggle,
@@ -313,6 +319,24 @@ private struct ChatMessageListView: View {
                             },
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
+                            },
+                            pendingRemindersActions: viewModel.pendingRemindersActionsByMessageID[message.id] ?? [],
+                            remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
+                            isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
+                            onConfirmRemindersActions: {
+                                viewModel.confirmRemindersActions(for: message.id)
+                            },
+                            onDismissRemindersActions: {
+                                viewModel.dismissRemindersActions(for: message.id)
+                            },
+                            pendingContactsActions: viewModel.pendingContactsActionsByMessageID[message.id] ?? [],
+                            contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
+                            isApplyingContactsActions: viewModel.isApplyingContactsActions,
+                            onConfirmContactsActions: {
+                                viewModel.confirmContactsActions(for: message.id)
+                            },
+                            onDismissContactsActions: {
+                                viewModel.dismissContactsActions(for: message.id)
                             },
                             pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
                             memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],

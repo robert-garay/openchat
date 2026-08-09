@@ -126,6 +126,103 @@ final class AgentContextProviderTests: XCTestCase {
         XCTAssertEqual(block?.contains("should not appear"), false)
     }
 
+    func testRemindersSectionFormatsDueDatesAndAccessMode() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let due = calendar.date(from: DateComponents(year: 2026, month: 8, day: 4, hour: 17))!
+
+        let reminders = [
+            ReminderSnapshot(title: "Buy milk", dueDate: due, isCompleted: false, notes: nil),
+        ]
+
+        let section = RemindersContextReader.contextSection(reminders: reminders, calendar: calendar, accessMode: .readOnly)
+        XCTAssertTrue(section.contains("## Reminders"))
+        XCTAssertTrue(section.contains("Buy milk"))
+        XCTAssertTrue(section.contains("Read only"))
+        XCTAssertFalse(section.contains("[id:"))
+    }
+
+    func testRemindersSectionIncludesIdsAndEditInstructionsWhenWritable() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let due = calendar.date(from: DateComponents(year: 2026, month: 8, day: 4, hour: 17))!
+
+        let reminders = [
+            ReminderSnapshot(reminderIdentifier: "rem-1", title: "Buy milk", dueDate: due, isCompleted: false, notes: nil),
+        ]
+
+        let section = RemindersContextReader.contextSection(reminders: reminders, calendar: calendar, accessMode: .readWrite)
+        XCTAssertTrue(section.contains("[id: rem-1]"))
+        XCTAssertTrue(section.contains("openchat-reminders"))
+        XCTAssertTrue(section.contains("Can edit"))
+    }
+
+    func testEmptyRemindersStillProducesSection() {
+        let section = RemindersContextReader.contextSection(reminders: [], accessMode: .readOnly)
+        XCTAssertTrue(section.contains("No open reminders"))
+    }
+
+    func testContactsSectionOmitsIdsWhenNotEditable() {
+        let contacts = [
+            ContactSnapshot(contactIdentifier: "c-1", givenName: "Jane", familyName: "Doe", phoneNumbers: ["555-1234"], emailAddresses: []),
+        ]
+
+        let section = ContactsContextReader.contextSection(contacts: contacts, canEdit: false)
+        XCTAssertTrue(section.contains("## Contacts"))
+        XCTAssertTrue(section.contains("Jane Doe"))
+        XCTAssertTrue(section.contains("Read only"))
+        XCTAssertFalse(section.contains("[id:"))
+    }
+
+    func testContactsSectionIncludesIdsAndEditInstructionsWhenEditable() {
+        let contacts = [
+            ContactSnapshot(contactIdentifier: "c-1", givenName: "Jane", familyName: "Doe", phoneNumbers: [], emailAddresses: []),
+        ]
+
+        let section = ContactsContextReader.contextSection(contacts: contacts, canEdit: true)
+        XCTAssertTrue(section.contains("[id: c-1]"))
+        XCTAssertTrue(section.contains("openchat-contacts"))
+        XCTAssertTrue(section.contains("Can edit"))
+    }
+
+    func testEmptyContactsStillProducesSection() {
+        let section = ContactsContextReader.contextSection(contacts: [], canEdit: false)
+        XCTAssertTrue(section.contains("No contacts"))
+    }
+
+    func testContextProviderIncludesEnabledRemindersAndContacts() async {
+        store.markAvailableForTesting(.reminders, remindersMode: .readWrite)
+        store.markAvailableForTesting(.contacts)
+
+        var provider = AgentContextProvider(dataSourceStore: store)
+        provider.remindersSection = { mode in
+            "## Reminders (\(mode.shortLabel))\n- Buy milk"
+        }
+        provider.contactsSection = { canEdit in
+            "## Contacts (\(canEdit ? "Can edit" : "Read only"))\n- Jane Doe"
+        }
+
+        let block = await provider.makeContextBlock()
+        XCTAssertNotNil(block)
+        XCTAssertTrue(block!.contains("Buy milk"))
+        XCTAssertTrue(block!.contains("Jane Doe"))
+        XCTAssertTrue(block!.contains("Reminders section"))
+        XCTAssertTrue(block!.contains("Contacts section"))
+    }
+
+    func testContextProviderSkipsDisabledRemindersAndContacts() async {
+        store.markAvailableForTesting(.calendar)
+
+        var provider = AgentContextProvider(dataSourceStore: store)
+        provider.calendarSection = { _ in "## Calendar\n- Meeting" }
+        provider.remindersSection = { _ in "## Reminders\n- should not appear" }
+        provider.contactsSection = { _ in "## Contacts\n- should not appear" }
+
+        let block = await provider.makeContextBlock()
+        XCTAssertEqual(block?.contains("Meeting"), true)
+        XCTAssertEqual(block?.contains("should not appear"), false)
+    }
+
     func testContextProviderIncludesMemoryWhenItemsProvided() async {
         var provider = AgentContextProvider(dataSourceStore: store)
         provider.memoryItems = [MemoryItem(content: "Prefers concise answers")]
