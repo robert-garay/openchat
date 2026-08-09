@@ -4,7 +4,11 @@ import Security
 /// Thin wrapper around the Keychain Services API for storing provider API
 /// keys. Nothing ever touches disk in plaintext.
 enum KeychainStore {
-    private static let service = "com.openchat.apikeys"
+    /// The keychain service name. Tests may change this to an isolated value so
+    /// repeated runs do not share keychain state with the production app or each
+    /// other. In production this value is never modified; tests always set it
+    /// from a single sequential `setUp` hook, so `nonisolated(unsafe)` is safe.
+    nonisolated(unsafe) static var service = "com.openchat.apikeys"
 
     static func set(_ value: String, forKey key: String) {
         let data = Data(value.utf8)
@@ -15,7 +19,11 @@ enum KeychainStore {
         let status = SecItemAdd(query as CFDictionary, nil)
         if status == errSecDuplicateItem {
             let update: [String: Any] = [kSecValueData as String: data]
-            SecItemUpdate(baseQuery(for: key) as CFDictionary, update as CFDictionary)
+            let updateStatus = SecItemUpdate(baseQuery(for: key) as CFDictionary, update as CFDictionary)
+            if updateStatus != errSecSuccess {
+                SecItemDelete(baseQuery(for: key) as CFDictionary)
+                SecItemAdd(query as CFDictionary, nil)
+            }
         }
     }
 
@@ -32,6 +40,16 @@ enum KeychainStore {
 
     static func remove(_ key: String) {
         SecItemDelete(baseQuery(for: key) as CFDictionary)
+    }
+
+    /// Delete every item stored under the current ``service``. Intended for test
+    /// cleanup only.
+    static func removeAll() {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 
     private static func baseQuery(for key: String) -> [String: Any] {

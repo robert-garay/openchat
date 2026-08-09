@@ -8,6 +8,8 @@ final class ProviderStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
+        KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
+        KeychainStore.removeAll()
         defaults = UserDefaults(suiteName: "com.openchat.tests.\(UUID().uuidString)")
         store = ProviderStore(defaults: defaults)
     }
@@ -16,6 +18,7 @@ final class ProviderStoreTests: XCTestCase {
         for provider in store.providers {
             store.removeAPIKey(for: provider)
         }
+        KeychainStore.removeAll()
         try await super.tearDown()
     }
 
