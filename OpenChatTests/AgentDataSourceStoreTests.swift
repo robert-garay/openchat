@@ -23,7 +23,7 @@ final class AgentDataSourceStoreTests: XCTestCase {
     }
 
     func testLoadsPersistedEnabledSourcesAndDropsRemovedOnes() {
-        defaults.set(["appleHealth", "calendar", "home", "contacts"], forKey: "com.openchat.agentDataSources")
+        defaults.set(["appleHealth", "calendar", "home"], forKey: "com.openchat.agentDataSources")
         store = AgentDataSourceStore(defaults: defaults)
 
         XCTAssertTrue(store.isEnabled(.appleHealth))
@@ -39,7 +39,6 @@ final class AgentDataSourceStoreTests: XCTestCase {
 
         let persisted = defaults.array(forKey: "com.openchat.agentDataSources") as? [String] ?? []
         XCTAssertFalse(persisted.contains("home"))
-        XCTAssertFalse(persisted.contains("contacts"))
     }
 
     func testEnabledHealthIsAvailableEvenWithoutCachedAuthorizedStatus() {
@@ -90,9 +89,39 @@ final class AgentDataSourceStoreTests: XCTestCase {
             "camera",
             "microphone",
             "photos",
+            "contacts",
             "calendar",
+            "reminders",
             "notifications",
         ])
+    }
+
+    func testRemindersModeDefaultsNilAndClearsOnDisable() async {
+        XCTAssertNil(store.remindersAccessMode)
+        store.markAvailableForTesting(.reminders, remindersMode: .readWrite)
+        XCTAssertEqual(store.remindersAccessMode, .readWrite)
+        XCTAssertTrue(store.canEditReminders)
+
+        await store.setEnabled(false, for: .reminders)
+        XCTAssertNil(store.remindersAccessMode)
+        XCTAssertFalse(store.canEditReminders)
+    }
+
+    func testPersistedReadOnlyRemindersMode() {
+        defaults.set(["reminders"], forKey: "com.openchat.agentDataSources")
+        defaults.set(RemindersAccessMode.readOnly.rawValue, forKey: "com.openchat.remindersAccessMode")
+        store = AgentDataSourceStore(defaults: defaults)
+
+        XCTAssertTrue(store.isEnabled(.reminders))
+        XCTAssertEqual(store.remindersAccessMode, .readOnly)
+        XCTAssertFalse(store.canEditReminders)
+    }
+
+    func testContactsHasNoAccessModeButCanEditWhenEnabled() {
+        XCTAssertFalse(store.canEditContacts)
+        store.markAvailableForTesting(.contacts)
+        XCTAssertTrue(store.isEnabled(.contacts))
+        XCTAssertTrue(store.canEditContacts)
     }
 
     func testFitnessHealthAllowlistExcludesBodyMetricsAndIsWorkoutFocused() {

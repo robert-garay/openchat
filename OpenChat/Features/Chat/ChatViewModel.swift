@@ -16,6 +16,12 @@ final class ChatViewModel {
     private(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
     private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isApplyingCalendarActions = false
+    private(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
+    private(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var isApplyingRemindersActions = false
+    private(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
+    private(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
+    private(set) var isApplyingContactsActions = false
     private(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
     private(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
     private(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
@@ -408,6 +414,66 @@ final class ChatViewModel {
     func dismissCalendarActions(for messageID: UUID) {
         pendingCalendarActionsByMessageID[messageID] = nil
         calendarActionStatusByMessageID[messageID] = "Calendar changes discarded."
+        Haptics.light()
+    }
+
+    func confirmRemindersActions(for messageID: UUID) {
+        guard !isApplyingRemindersActions else { return }
+        guard dataSourceStore.canEditReminders else {
+            remindersActionStatusByMessageID[messageID] = RemindersWriterError.editingDisabled.localizedDescription
+            pendingRemindersActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingRemindersActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingRemindersActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try RemindersWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        remindersActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingRemindersActionsByMessageID[messageID] = nil
+        isApplyingRemindersActions = false
+        Haptics.success()
+    }
+
+    func dismissRemindersActions(for messageID: UUID) {
+        pendingRemindersActionsByMessageID[messageID] = nil
+        remindersActionStatusByMessageID[messageID] = "Reminders changes discarded."
+        Haptics.light()
+    }
+
+    func confirmContactsActions(for messageID: UUID) {
+        guard !isApplyingContactsActions else { return }
+        guard dataSourceStore.canEditContacts else {
+            contactsActionStatusByMessageID[messageID] = ContactsWriterError.editingDisabled.localizedDescription
+            pendingContactsActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingContactsActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingContactsActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try ContactsWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        contactsActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingContactsActionsByMessageID[messageID] = nil
+        isApplyingContactsActions = false
+        Haptics.success()
+    }
+
+    func dismissContactsActions(for messageID: UUID) {
+        pendingContactsActionsByMessageID[messageID] = nil
+        contactsActionStatusByMessageID[messageID] = "Contacts changes discarded."
         Haptics.light()
     }
 
@@ -875,6 +941,8 @@ final class ChatViewModel {
             assistantMessage.isStreaming = false
             assistantMessage.completedAt = .now
             captureCalendarProposals(from: assistantMessage)
+            captureRemindersProposals(from: assistantMessage)
+            captureContactsProposals(from: assistantMessage)
             captureMemoryProposals(from: assistantMessage)
             captureRuleProposals(from: assistantMessage)
             let invokedSkills = await skillCollector.invokedSkills
@@ -900,6 +968,20 @@ final class ChatViewModel {
         let proposals = CalendarActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }
         pendingCalendarActionsByMessageID[message.id] = proposals
+    }
+
+    private func captureRemindersProposals(from message: ChatMessage) {
+        guard dataSourceStore.canEditReminders else { return }
+        let proposals = RemindersActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        pendingRemindersActionsByMessageID[message.id] = proposals
+    }
+
+    private func captureContactsProposals(from message: ChatMessage) {
+        guard dataSourceStore.canEditContacts else { return }
+        let proposals = ContactsActionParser.parse(message.content)
+        guard !proposals.isEmpty else { return }
+        pendingContactsActionsByMessageID[message.id] = proposals
     }
 
     private func captureMemoryProposals(from message: ChatMessage) {

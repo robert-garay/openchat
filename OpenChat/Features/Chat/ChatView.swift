@@ -307,6 +307,24 @@ private struct ChatMessageListView: View {
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
                             },
+                            pendingRemindersActions: viewModel.pendingRemindersActionsByMessageID[message.id] ?? [],
+                            remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
+                            isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
+                            onConfirmRemindersActions: {
+                                viewModel.confirmRemindersActions(for: message.id)
+                            },
+                            onDismissRemindersActions: {
+                                viewModel.dismissRemindersActions(for: message.id)
+                            },
+                            pendingContactsActions: viewModel.pendingContactsActionsByMessageID[message.id] ?? [],
+                            contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
+                            isApplyingContactsActions: viewModel.isApplyingContactsActions,
+                            onConfirmContactsActions: {
+                                viewModel.confirmContactsActions(for: message.id)
+                            },
+                            onDismissContactsActions: {
+                                viewModel.dismissContactsActions(for: message.id)
+                            },
                             pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
                             memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
                             onConfirmMemoryProposals: {

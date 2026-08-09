@@ -9,6 +9,12 @@ struct AgentContextProvider {
     var calendarSection: (CalendarAccessMode) -> String? = { mode in
         CalendarContextReader.contextSection(accessMode: mode)
     }
+    var remindersSection: (RemindersAccessMode) async -> String? = { mode in
+        await RemindersContextReader.contextSection(accessMode: mode)
+    }
+    var contactsSection: (Bool) -> String? = { canEdit in
+        ContactsContextReader.contextSection(canEdit: canEdit)
+    }
     var fitnessSection: () async -> String? = {
         await FitnessContextReader.contextSection()
     }
@@ -26,6 +32,19 @@ struct AgentContextProvider {
             }
         }
 
+        if dataSourceStore.isAvailableForAgents(.reminders) {
+            let mode = dataSourceStore.remindersAccessMode ?? .readOnly
+            if let reminders = await remindersSection(mode) {
+                sections.append(reminders)
+            }
+        }
+
+        if dataSourceStore.isAvailableForAgents(.contacts) {
+            if let contacts = contactsSection(dataSourceStore.canEditContacts) {
+                sections.append(contacts)
+            }
+        }
+
         if dataSourceStore.isAvailableForAgents(.appleHealth),
            let fitness = await fitnessSection() {
             sections.append(fitness)
@@ -39,8 +58,10 @@ struct AgentContextProvider {
 
         return """
         On-device context the user enabled in OpenChat settings. Use it when relevant. \
-        Do not invent calendar events, fitness metrics, or memory facts beyond what appears here. \
+        Do not invent calendar events, reminders, contacts, fitness metrics, or memory facts beyond what appears here. \
         If the user asks about agenda/schedule, prefer the Calendar section. \
+        If they ask about tasks or to-dos, prefer the Reminders section. \
+        If they ask about people or their contact details, prefer the Contacts section. \
         If they ask about steps, heart rate, workouts, sleep, or training, prefer the Fitness section. \
         If they ask about saved preferences or long-term facts, prefer the Memory section.
 
