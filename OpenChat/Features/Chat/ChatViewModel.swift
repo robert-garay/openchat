@@ -629,7 +629,6 @@ final class ChatViewModel {
         streamingTask?.cancel()
     }
 
-    // swiftlint:disable function_body_length
     private func requestAssistantReply() {
         guard let provider = currentProvider, let model = currentModel else { return }
         let apiKey = providerStore.apiKey(for: provider)
@@ -697,7 +696,6 @@ final class ChatViewModel {
             )
         }
     }
-    // swiftlint:enable function_body_length
 
     private func performAssistantReplyStream(
         assistantMessage: ChatMessage,
@@ -873,7 +871,7 @@ final class ChatViewModel {
                 assistantMessage.content += contentBuffer
             }
 
-            extractInlineImages(for: assistantMessage)
+            assistantMessage.extractInlineImages()
 
             assistantMessage.isStreaming = false
             assistantMessage.completedAt = .now
@@ -896,19 +894,6 @@ final class ChatViewModel {
         }
         conversation.updatedAt = .now
         isStreaming = false
-    }
-
-    private func extractInlineImages(for assistantMessage: ChatMessage) {
-        let inlineImageResult = GeneratedImageParser.extractInlineImages(
-            from: assistantMessage.content,
-            hasExistingImages: !assistantMessage.imageAttachments.isEmpty
-        )
-        assistantMessage.content = inlineImageResult.text
-        if !inlineImageResult.images.isEmpty {
-            var existing = assistantMessage.imageAttachments
-            existing.append(contentsOf: inlineImageResult.images)
-            assistantMessage.imageAttachments = existing
-        }
     }
 
     private func captureCalendarProposals(from message: ChatMessage) {
