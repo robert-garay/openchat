@@ -56,7 +56,18 @@ struct SettingsView: View {
                     NavigationLink {
                         SkillsSettingsView()
                     } label: {
-                        Label("Skills", systemImage: "bolt.fill")
+                        HStack {
+                            Label("Skills", systemImage: "bolt.fill")
+                            Spacer()
+                            Text("Beta")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.orange)
+                                .foregroundStyle(.white)
+                                .clipShape(Capsule())
+                        }
                     }
                     Toggle("Compact Context", isOn: $compactEnabled)
                 }
