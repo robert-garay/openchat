@@ -8,7 +8,7 @@ import UIKit
 final class NotificationService: NSObject {
     static let shared = NotificationService()
 
-    private let center = UNUserNotificationCenter.current()
+    nonisolated(unsafe) private let center = UNUserNotificationCenter.current()
 
     private override init() {
         super.init()
