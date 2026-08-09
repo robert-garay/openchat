@@ -40,6 +40,17 @@ struct OpenChatApp: App {
                 .onChange(of: appearance) { _, newValue in
                     newValue.applyToAllWindows()
                 }
+                .task {
+                    BackgroundGenerationService.shared.configure(
+                        providerStore: providerStore,
+                        dataSourceStore: dataSourceStore,
+                        webSearchStore: webSearchStore,
+                        rulesStore: rulesStore,
+                        memoryStore: memoryStore,
+                        skillsStore: skillsStore,
+                        modelContainer: modelContainer
+                    )
+                }
         }
         .modelContainer(modelContainer)
     }

@@ -375,10 +375,17 @@ struct ConversationRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             Text(conversation.title)
-                .font(.body)
+                .font(.body.weight(conversation.hasUnreadMessages ? .semibold : .regular))
                 .lineLimit(1)
 
             Spacer(minLength: 0)
+
+            if conversation.hasUnreadMessages {
+                Circle()
+                    .fill(Color.accentColor)
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
+            }
         }
         .padding(.vertical, 8)
         .background(

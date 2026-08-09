@@ -19,6 +19,8 @@ final class ChatMessage {
     var errorMessage: String?
     /// Timestamp when streaming finished. Nil for user/system turns or in-progress assistant turns.
     var completedAt: Date?
+    /// True for assistant turns generated while the conversation was not visible.
+    var isUnread: Bool
     /// Provider that generated this assistant turn. Nil for user/system or legacy rows.
     var providerID: String?
     /// Model that generated this assistant turn. Nil for user/system or legacy rows.
@@ -74,6 +76,7 @@ final class ChatMessage {
         content: String,
         createdAt: Date = .now,
         isStreaming: Bool = false,
+        isUnread: Bool = false,
         errorMessage: String? = nil,
         providerID: String? = nil,
         modelID: String? = nil,
@@ -85,6 +88,7 @@ final class ChatMessage {
         self.content = content
         self.createdAt = createdAt
         self.isStreaming = isStreaming
+        self.isUnread = isUnread
         self.errorMessage = errorMessage
         self.providerID = providerID
         self.modelID = modelID

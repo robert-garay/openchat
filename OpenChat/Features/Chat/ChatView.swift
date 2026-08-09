@@ -197,18 +197,10 @@ struct ChatView: View {
             }
         }
         .task(id: conversation.id) {
-            if viewModel == nil {
-                viewModel = ChatViewModel(
-                    conversation: conversation,
-                    modelContext: modelContext,
-                    providerStore: providerStore,
-                    dataSourceStore: dataSourceStore,
-                    webSearchStore: webSearchStore,
-                    rulesStore: rulesStore,
-                    memoryStore: memoryStore,
-                    skillsStore: skillsStore
-                )
-            }
+            bindViewModel()
+        }
+        .onDisappear {
+            BackgroundGenerationService.shared.setVisibleConversationID(nil)
         }
         .onChange(of: viewModel?.composerText) { _, _ in
             viewModel?.persistComposerState()
@@ -225,6 +217,23 @@ struct ChatView: View {
         .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
             viewModel?.persistComposerState()
         }
+    }
+
+    private func bindViewModel() {
+        if viewModel == nil {
+            viewModel = ChatViewModel(
+                conversation: conversation,
+                modelContext: modelContext,
+                providerStore: providerStore,
+                dataSourceStore: dataSourceStore,
+                webSearchStore: webSearchStore,
+                rulesStore: rulesStore,
+                memoryStore: memoryStore,
+                skillsStore: skillsStore
+            )
+        }
+        BackgroundGenerationService.shared.setVisibleConversationID(conversation.id)
+        viewModel?.markAllRead()
     }
 }
 
@@ -590,4 +599,3 @@ private struct TemporaryChatBanner: View {
         .background(.bar)
     }
 }
-

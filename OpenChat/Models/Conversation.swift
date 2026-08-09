@@ -137,4 +137,16 @@ final class Conversation {
         }
         return last.imageAttachments.count == 1 ? "Photo" : "Photos"
     }
+
+    /// True when at least one assistant message in this conversation has not been read yet.
+    var hasUnreadMessages: Bool {
+        messages.contains { $0.isUnread }
+    }
+
+    /// Marks every message in the conversation as read.
+    func markAllRead() {
+        for message in messages where message.isUnread {
+            message.isUnread = false
+        }
+    }
 }

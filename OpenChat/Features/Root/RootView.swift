@@ -61,8 +61,14 @@ struct RootView: View {
                 startNewChat(temporary: false)
             }
         }
-        .onChange(of: selectedConversationID) { previousID, _ in
+        .onReceive(NotificationCenter.default.publisher(for: .notificationOpenedConversation)) { notification in
+            guard let id = notification.userInfo?["conversationID"] as? UUID else { return }
+            selectedConversationID = id
+            showingHistoryDrawer = false
+        }
+        .onChange(of: selectedConversationID) { previousID, newID in
             discardEphemeralChat(id: previousID)
+            BackgroundGenerationService.shared.setVisibleConversationID(newID)
         }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty {

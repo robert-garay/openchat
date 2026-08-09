@@ -3,6 +3,151 @@ import SwiftData
 
 @MainActor
 extension ChatViewModel {
+    // MARK: - Calendar / reminders / contacts actions
+
+    func confirmCalendarActions(for messageID: UUID) {
+        guard !isApplyingCalendarActions else { return }
+        guard dataSourceStore.canEditCalendar else {
+            calendarActionStatusByMessageID[messageID] = CalendarEventWriterError.editingDisabled.localizedDescription
+            pendingCalendarActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingCalendarActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingCalendarActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try CalendarEventWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        calendarActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingCalendarActionsByMessageID[messageID] = nil
+        isApplyingCalendarActions = false
+        Haptics.success()
+    }
+
+    func dismissCalendarActions(for messageID: UUID) {
+        pendingCalendarActionsByMessageID[messageID] = nil
+        calendarActionStatusByMessageID[messageID] = "Calendar changes discarded."
+        Haptics.light()
+    }
+
+    func confirmRemindersActions(for messageID: UUID) {
+        guard !isApplyingRemindersActions else { return }
+        guard dataSourceStore.canEditReminders else {
+            remindersActionStatusByMessageID[messageID] = RemindersWriterError.editingDisabled.localizedDescription
+            pendingRemindersActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingRemindersActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingRemindersActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try RemindersWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        remindersActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingRemindersActionsByMessageID[messageID] = nil
+        isApplyingRemindersActions = false
+        Haptics.success()
+    }
+
+    func dismissRemindersActions(for messageID: UUID) {
+        pendingRemindersActionsByMessageID[messageID] = nil
+        remindersActionStatusByMessageID[messageID] = "Reminders changes discarded."
+        Haptics.light()
+    }
+
+    func confirmContactsActions(for messageID: UUID) {
+        guard !isApplyingContactsActions else { return }
+        guard dataSourceStore.canEditContacts else {
+            contactsActionStatusByMessageID[messageID] = ContactsWriterError.editingDisabled.localizedDescription
+            pendingContactsActionsByMessageID[messageID] = nil
+            return
+        }
+        guard let proposals = pendingContactsActionsByMessageID[messageID], !proposals.isEmpty else { return }
+
+        isApplyingContactsActions = true
+        var results: [String] = []
+        for proposal in proposals {
+            do {
+                results.append(try ContactsWriter.apply(proposal))
+            } catch {
+                results.append(error.localizedDescription)
+            }
+        }
+        contactsActionStatusByMessageID[messageID] = results.joined(separator: "\n")
+        pendingContactsActionsByMessageID[messageID] = nil
+        isApplyingContactsActions = false
+        Haptics.success()
+    }
+
+    func dismissContactsActions(for messageID: UUID) {
+        pendingContactsActionsByMessageID[messageID] = nil
+        contactsActionStatusByMessageID[messageID] = "Contacts changes discarded."
+        Haptics.light()
+    }
+
+    // MARK: - Memory / rule / skill proposals
+
+    func confirmMemoryProposals(for messageID: UUID) {
+        guard let proposals = pendingMemoryProposalsByMessageID[messageID], !proposals.isEmpty else { return }
+        saveMemoryProposals(proposals, source: .confirmedFromChat, messageID: messageID)
+        pendingMemoryProposalsByMessageID[messageID] = nil
+        try? modelContext.save()
+        Haptics.success()
+    }
+
+    func dismissMemoryProposals(for messageID: UUID) {
+        pendingMemoryProposalsByMessageID[messageID] = nil
+        memoryActionStatusByMessageID[messageID] = "Memory discarded."
+        Haptics.light()
+    }
+
+    /// Clears a pending skill proposal after the user saved it via the review sheet
+    /// (SkillEditorView performs the actual save; this only clears the bookkeeping).
+    func clearSkillProposalAfterReview(for messageID: UUID) {
+        pendingSkillProposalsByMessageID[messageID] = nil
+        skillActionStatusByMessageID[messageID] = "Skill saved."
+        Haptics.success()
+    }
+
+    func dismissSkillProposals(for messageID: UUID) {
+        pendingSkillProposalsByMessageID[messageID] = nil
+        skillActionStatusByMessageID[messageID] = "Skill discarded."
+        Haptics.light()
+    }
+
+    /// Clears a pending rule proposal after the user saved it via the review sheet
+    /// (RuleReviewSheet performs the actual save; this only clears the bookkeeping).
+    /// Removes only the reviewed proposal — any remaining proposals for this message stay pending.
+    func clearRuleProposalAfterReview(for messageID: UUID, proposalID: UUID) {
+        guard var proposals = pendingRuleProposalsByMessageID[messageID] else { return }
+        proposals.removeAll { $0.id == proposalID }
+        if proposals.isEmpty {
+            pendingRuleProposalsByMessageID[messageID] = nil
+            ruleActionStatusByMessageID[messageID] = "Rule saved."
+        } else {
+            pendingRuleProposalsByMessageID[messageID] = proposals
+        }
+        Haptics.success()
+    }
+
+    func dismissRuleProposals(for messageID: UUID) {
+        pendingRuleProposalsByMessageID[messageID] = nil
+        ruleActionStatusByMessageID[messageID] = "Rule discarded."
+        Haptics.light()
+    }
+
+    // MARK: - Capture / save helpers
+
     func captureCalendarProposals(from message: ChatMessage) {
         guard dataSourceStore.canEditCalendar else { return }
         let proposals = CalendarActionParser.parse(message.content)
