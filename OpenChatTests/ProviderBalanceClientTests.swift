@@ -5,12 +5,12 @@ final class ProviderBalanceClientTests: XCTestCase {
     func testSupportsBalanceForKnownProviders() {
         XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "deepseek")!)))
         XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "moonshot")!)))
-        XCTAssertTrue(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openrouter")!)))
     }
 
     func testSupportsBalanceFalseForOthers() {
         XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openai")!)))
         XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "anthropic")!)))
+        XCTAssertFalse(ProviderBalanceClient.supportsBalance(for: .fromTemplate(.template(for: "openrouter")!)))
 
         let custom = ConfiguredProvider.customEndpoint(
             name: "Local",
@@ -40,6 +40,96 @@ final class ProviderBalanceClientTests: XCTestCase {
         XCTAssertEqual(balance.total, 110.0)
         XCTAssertEqual(balance.currency, "CNY")
         XCTAssertEqual(balance.isSufficient, true)
+        XCTAssertEqual(balance.breakdown?.count, 1)
+        XCTAssertEqual(balance.breakdown?[0].total, 110.0)
+        XCTAssertEqual(balance.breakdown?[0].currency, "CNY")
+    }
+
+    func testDecodeDeepSeekBalancePreservesMultipleEntries() throws {
+        let json = Data("""
+        {
+          "is_available": true,
+          "balance_infos": [
+            {
+              "currency": "CNY",
+              "total_balance": "100.00"
+            },
+            {
+              "currency": "USD",
+              "total_balance": "15.50"
+            }
+          ]
+        }
+        """.utf8)
+
+        let balance = try ProviderBalanceClient.decodeDeepSeekBalance(from: json)
+        XCTAssertEqual(balance.total, 100.0)
+        XCTAssertEqual(balance.currency, "CNY")
+        XCTAssertEqual(balance.breakdown?.count, 2)
+        XCTAssertEqual(balance.breakdown?[0].currency, "CNY")
+        XCTAssertEqual(balance.breakdown?[0].total, 100.0)
+        XCTAssertEqual(balance.breakdown?[1].currency, "USD")
+        XCTAssertEqual(balance.breakdown?[1].total, 15.5)
+    }
+
+    func testDecodeDeepSeekBalanceThrowsWhenBalanceInfosMissing() {
+        let json = Data("""
+        {
+          "is_available": true,
+          "balance_infos": []
+        }
+        """.utf8)
+
+        XCTAssertThrowsError(try ProviderBalanceClient.decodeDeepSeekBalance(from: json)) { error in
+            XCTAssertEqual(error as? ProviderBalanceClient.BalanceError, .invalidResponse)
+        }
+    }
+
+    func testDecodeDeepSeekBalanceThrowsWhenTotalBalanceIsNonnumeric() {
+        let json = Data("""
+        {
+          "is_available": true,
+          "balance_infos": [
+            {
+              "currency": "CNY",
+              "total_balance": "not-a-number"
+            }
+          ]
+        }
+        """.utf8)
+
+        XCTAssertThrowsError(try ProviderBalanceClient.decodeDeepSeekBalance(from: json)) { error in
+            XCTAssertEqual(error as? ProviderBalanceClient.BalanceError, .invalidResponse)
+        }
+    }
+
+    func testDecodeDeepSeekBalanceThrowsWhenTotalBalanceMissing() {
+        let json = Data("""
+        {
+          "is_available": true,
+          "balance_infos": [
+            {
+              "currency": "CNY"
+            }
+          ]
+        }
+        """.utf8)
+
+        XCTAssertThrowsError(try ProviderBalanceClient.decodeDeepSeekBalance(from: json)) { error in
+            XCTAssertEqual(error as? ProviderBalanceClient.BalanceError, .invalidResponse)
+        }
+    }
+
+    func testDecodeDeepSeekBalancePropagatesMalformedJSON() {
+        let json = Data("""
+        {
+          "is_available": true,
+          "balance_infos": [
+        """.utf8)
+
+        XCTAssertThrowsError(try ProviderBalanceClient.decodeDeepSeekBalance(from: json)) { error in
+            XCTAssertFalse(error is ProviderBalanceClient.BalanceError)
+        }
     }
 
     func testDecodeMoonshotBalance() throws {
@@ -60,36 +150,6 @@ final class ProviderBalanceClientTests: XCTestCase {
         XCTAssertEqual(balance.total, 49.58894, accuracy: 0.00001)
         XCTAssertEqual(balance.currency, "CNY")
         XCTAssertEqual(balance.isSufficient, true)
-    }
-
-    func testDecodeOpenRouterBalance() throws {
-        let json = Data("""
-        {
-          "data": {
-            "total_credits": 100.5,
-            "total_usage": 25.75
-          }
-        }
-        """.utf8)
-
-        let balance = try ProviderBalanceClient.decodeOpenRouterBalance(from: json)
-        XCTAssertEqual(balance.total, 74.75, accuracy: 0.001)
-        XCTAssertEqual(balance.currency, "USD")
-        XCTAssertEqual(balance.isSufficient, true)
-    }
-
-    func testDecodeOpenRouterBalanceZeroWhenUsageExceedsCredits() throws {
-        let json = Data("""
-        {
-          "data": {
-            "total_credits": 10.0,
-            "total_usage": 25.0
-          }
-        }
-        """.utf8)
-
-        let balance = try ProviderBalanceClient.decodeOpenRouterBalance(from: json)
-        XCTAssertEqual(balance.total, 0)
-        XCTAssertEqual(balance.isSufficient, false)
+        XCTAssertNil(balance.breakdown)
     }
 }

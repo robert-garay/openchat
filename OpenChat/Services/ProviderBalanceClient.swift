@@ -10,6 +10,14 @@ struct ProviderBalanceClient: Sendable {
         var currency: String
         /// Whether the provider reports the balance as sufficient for API calls.
         var isSufficient: Bool?
+        /// Per-currency breakdown when the provider reports more than one balance.
+        var breakdown: [BalanceEntry]?
+    }
+
+    /// A single per-currency balance entry.
+    struct BalanceEntry: Sendable {
+        var currency: String
+        var total: Double
     }
 
     enum BalanceError: Error {
@@ -21,7 +29,7 @@ struct ProviderBalanceClient: Sendable {
     /// Returns whether the given provider exposes a balance endpoint.
     static func supportsBalance(for provider: ConfiguredProvider) -> Bool {
         switch provider.id {
-        case "deepseek", "moonshot", "openrouter":
+        case "deepseek", "moonshot":
             return true
         default:
             return false
@@ -42,8 +50,6 @@ struct ProviderBalanceClient: Sendable {
             return try await fetchDeepSeek(apiKey: apiKey)
         case "moonshot":
             return try await fetchMoonshot(apiKey: apiKey)
-        case "openrouter":
-            return try await fetchOpenRouter(apiKey: apiKey)
         default:
             throw BalanceError.unsupportedProvider
         }
@@ -61,14 +67,23 @@ struct ProviderBalanceClient: Sendable {
     static func decodeDeepSeekBalance(from data: Data) throws -> Balance {
         let decoded = try JSONDecoder().decode(DeepSeekBalanceResponse.self, from: data)
 
-        guard let info = decoded.balance_infos.first else {
+        guard !decoded.balance_infos.isEmpty else {
             throw BalanceError.invalidResponse
         }
 
+        let entries = try decoded.balance_infos.map { info -> BalanceEntry in
+            guard let totalBalance = info.total_balance, let total = Double(totalBalance) else {
+                throw BalanceError.invalidResponse
+            }
+            return BalanceEntry(currency: info.currency, total: total)
+        }
+
+        let first = entries[0]
         return Balance(
-            total: Double(info.total_balance) ?? 0,
-            currency: info.currency,
-            isSufficient: decoded.is_available
+            total: first.total,
+            currency: first.currency,
+            isSufficient: decoded.is_available,
+            breakdown: entries
         )
     }
 
@@ -79,7 +94,7 @@ struct ProviderBalanceClient: Sendable {
 
     struct DeepSeekBalanceInfo: Decodable {
         var currency: String
-        var total_balance: String
+        var total_balance: String?
     }
 
     // MARK: - Moonshot
@@ -107,34 +122,6 @@ struct ProviderBalanceClient: Sendable {
 
     struct MoonshotBalanceData: Decodable {
         var available_balance: Double
-    }
-
-    // MARK: - OpenRouter
-
-    private func fetchOpenRouter(apiKey: String) async throws -> Balance {
-        var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/credits")!)
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        let data = try await perform(request)
-        return try Self.decodeOpenRouterBalance(from: data)
-    }
-
-    static func decodeOpenRouterBalance(from data: Data) throws -> Balance {
-        let decoded = try JSONDecoder().decode(OpenRouterCreditsResponse.self, from: data)
-
-        return Balance(
-            total: max(decoded.data.total_credits - decoded.data.total_usage, 0),
-            currency: "USD",
-            isSufficient: decoded.data.total_credits > decoded.data.total_usage
-        )
-    }
-
-    struct OpenRouterCreditsResponse: Decodable {
-        var data: OpenRouterCreditsData
-    }
-
-    struct OpenRouterCreditsData: Decodable {
-        var total_credits: Double
-        var total_usage: Double
     }
 
     // MARK: - Shared
