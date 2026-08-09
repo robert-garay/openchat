@@ -45,7 +45,7 @@ enum KeychainStore {
     /// Delete every item stored under the current ``service``. Intended for test
     /// cleanup only.
     static func removeAll() {
-        var query: [String: Any] = [
+        let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
         ]

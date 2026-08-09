@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Background assistant-response generation that survives leaving a chat and backgrounding the app, with a Dynamic Island Live Activity, a local notification on completion, and unread-response markers in the chat history list.
+- Provider settings now display a live credit balance for providers that expose a balance API (DeepSeek, Moonshot, and OpenRouter).
+
+### Changed
+
+### Fixed
+
+- Fixed GitHub Actions release workflow YAML parsing by moving the changelog extraction into a standalone script and removing heredoc-style `<<` tokens that the Actions parser rejected.
+
+### Deprecated
+
+### Removed
+
+- Removed provider logos from the chat thread next to assistant responses.
+
+### Security
+
+## [1.0.1] - 2026-08-09
+
+### Added
+
 - Dynamic reasoning configuration from provider model catalogs, with a separate brain-chip toggle for providers that expose a distinct thinking on/off parameter (OpenRouter `reasoning.enabled`, Anthropic `thinking`, DeepSeek `thinking.type`) and a ChatGPT-style effort gauge for providers that encode "off" as an effort level.
 - Initial versioning and release workflow for OpenChat.
 

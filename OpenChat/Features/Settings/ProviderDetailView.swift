@@ -38,6 +38,10 @@ struct ProviderDetailView: View {
                 )
             }
 
+            if providerStore.supportsBalance(for: provider) {
+                balanceSection
+            }
+
             Section {
                 Button("Remove Provider", role: .destructive) {
                     showingDeleteConfirmation = true
@@ -102,6 +106,73 @@ struct ProviderDetailView: View {
         .animation(Theme.springFast, value: showingAddNewKeyDialog)
         .animation(Theme.springFast, value: showingRemoveKeyConfirmation)
         .animation(Theme.springFast, value: showingDeleteConfirmation)
+        .onAppear {
+            providerStore.refreshBalanceIfNeeded(for: provider)
+        }
+    }
+
+    @ViewBuilder
+    private var balanceSection: some View {
+        let balance = providerStore.balance(for: provider)
+        let error = providerStore.balanceError(for: provider)
+        let isLoading = providerStore.isLoadingBalance(for: provider)
+
+        Section {
+            HStack {
+                Text("Credit Balance")
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else if let balance {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(formattedBalance(balance))
+                            .font(.body.monospaced())
+                            .foregroundStyle(balanceColor(for: balance))
+
+                        if let isSufficient = balance.isSufficient {
+                            Text(isSufficient ? "Sufficient" : "Low balance")
+                                .font(.caption)
+                                .foregroundStyle(isSufficient ? Color.secondary : Color.orange)
+                        }
+                    }
+                } else if let error {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                } else {
+                    Text("—")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Account")
+        } footer: {
+            if error != nil {
+                Text("Tap to retry")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .onTapGesture {
+            providerStore.refreshBalanceIfNeeded(for: provider, force: true)
+        }
+    }
+
+    private func formattedBalance(_ balance: ProviderBalanceClient.Balance) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = balance.currency
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: balance.total)) ?? "\(balance.total) \(balance.currency)"
+    }
+
+    private func balanceColor(for balance: ProviderBalanceClient.Balance) -> Color {
+        guard let isSufficient = balance.isSufficient else { return .primary }
+        return isSufficient ? .primary : .orange
     }
 
     private func saveAPIKey() {
@@ -110,6 +181,7 @@ struct ProviderDetailView: View {
         providerStore.setAPIKey(trimmed, for: provider)
         apiKey = ""
         Haptics.success()
+        providerStore.refreshBalanceIfNeeded(for: provider, force: true)
     }
 
     private func dismissAddNewKeyDialog() {
