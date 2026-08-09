@@ -159,7 +159,7 @@ final class AgentDataSourcePermissionService {
 
     private func mapContactsStatus(_ status: CNAuthorizationStatus) -> AgentDataSourceAuthorizationStatus {
         switch status {
-        case .authorized: .authorized
+        case .authorized, .limited: .authorized
         case .denied: .denied
         case .restricted: .restricted
         case .notDetermined: .notDetermined
