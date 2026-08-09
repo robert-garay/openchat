@@ -26,7 +26,6 @@ enum CalendarEventWriterError: LocalizedError {
 
 /// Applies confirmed calendar create/update/delete proposals via EventKit.
 enum CalendarEventWriter {
-    @MainActor
     static func apply(
         _ proposal: CalendarActionProposal,
         eventStore: EKEventStore = EKEventStore()
@@ -41,7 +40,6 @@ enum CalendarEventWriter {
         }
     }
 
-    @MainActor
     private static func create(_ proposal: CalendarActionProposal, eventStore: EKEventStore) throws -> String {
         guard let title = proposal.title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
               let start = proposal.start, let end = proposal.end else {
@@ -69,7 +67,6 @@ enum CalendarEventWriter {
         return "Created \"\(title)\"."
     }
 
-    @MainActor
     private static func update(_ proposal: CalendarActionProposal, eventStore: EKEventStore) throws -> String {
         guard let identifier = proposal.eventIdentifier,
               let event = eventStore.event(withIdentifier: identifier) else {
@@ -98,7 +95,6 @@ enum CalendarEventWriter {
         return "Updated \"\(name)\"."
     }
 
-    @MainActor
     private static func delete(_ proposal: CalendarActionProposal, eventStore: EKEventStore) throws -> String {
         guard let identifier = proposal.eventIdentifier,
               let event = eventStore.event(withIdentifier: identifier) else {

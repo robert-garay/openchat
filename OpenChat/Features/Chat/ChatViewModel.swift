@@ -6,28 +6,28 @@ import Observation
 @MainActor
 @Observable
 final class ChatViewModel {
-    private(set) var isStreaming = false
+    internal(set) var isStreaming = false
     var composerText = ""
     var pendingAttachments: [ChatImageAttachment] = []
     var pendingDocumentAttachments: [ChatDocumentAttachment] = []
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
-    var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
-    private(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
-    private(set) var isApplyingCalendarActions = false
-    var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
-    private(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
-    private(set) var isApplyingRemindersActions = false
-    var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
-    private(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
-    private(set) var isApplyingContactsActions = false
-    var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
-    var memoryActionStatusByMessageID: [UUID: String] = [:]
-    var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
-    var skillActionStatusByMessageID: [UUID: String] = [:]
-    var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
-    var ruleActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
+    internal(set) var calendarActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var isApplyingCalendarActions = false
+    internal(set) var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
+    internal(set) var remindersActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var isApplyingRemindersActions = false
+    internal(set) var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
+    internal(set) var contactsActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var isApplyingContactsActions = false
+    internal(set) var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
+    internal(set) var memoryActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
+    internal(set) var skillActionStatusByMessageID: [UUID: String] = [:]
+    internal(set) var pendingRuleProposalsByMessageID: [UUID: [RuleProposal]] = [:]
+    internal(set) var ruleActionStatusByMessageID: [UUID: String] = [:]
     private(set) var isCompacting = false
     private(set) var compactStatusMessage: String?
     private(set) var editingMessageID: UUID?
@@ -67,8 +67,15 @@ final class ChatViewModel {
     internal let rulesStore: RulesStore
     internal let memoryStore: MemoryStore
     internal let skillsStore: SkillsStore
-    private var streamingTask: Task<Void, Never>?
     private var titleGenerationTask: Task<Void, Never>?
+    private var compactionTask: Task<Void, Never>?
+    nonisolated(unsafe) var generationObserver: NSObjectProtocol?
+    nonisolated(unsafe) var calendarProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var remindersProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var contactsProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var memoryProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var ruleProposalObserver: NSObjectProtocol?
+    nonisolated(unsafe) var skillProposalObserver: NSObjectProtocol?
 
     /// Per-chat override. When false, this conversation will not call search
     /// even if a provider is configured. Always starts off for a freshly
@@ -102,7 +109,27 @@ final class ChatViewModel {
         self.effortLevel = conversation.effortLevel
         self.isReasoningEnabled = conversation.isReasoningEnabled
         restoreComposerState()
+        self.isStreaming = BackgroundGenerationService.shared.isGenerating(for: conversation.id)
+        setupGenerationObserver()
+        refreshPendingProposals()
     }
+
+    isolated deinit {
+        [
+            generationObserver,
+            calendarProposalObserver,
+            remindersProposalObserver,
+            contactsProposalObserver,
+            memoryProposalObserver,
+            ruleProposalObserver,
+            skillProposalObserver
+        ]
+        .compactMap { $0 }
+        .forEach(NotificationCenter.default.removeObserver)
+    }
+
+    // Generation observer, proposal refresh, and related helpers live in
+    // ChatViewModel+BackgroundGeneration.swift.
 
     private func restoreComposerState() {
         composerText = conversation.draftMessage
@@ -336,7 +363,7 @@ final class ChatViewModel {
             ChatTurn(role: .user, content: ConversationCompactionService.summarizationUserPrompt(transcript: transcript))
         ]
 
-        streamingTask = Task { [weak self] in
+        compactionTask = Task { [weak self] in
             guard let self else { return }
             do {
                 var summary = ""
@@ -387,150 +414,13 @@ final class ChatViewModel {
         }
     }
 
-    func confirmCalendarActions(for messageID: UUID) {
-        guard !isApplyingCalendarActions else { return }
-        guard dataSourceStore.canEditCalendar else {
-            calendarActionStatusByMessageID[messageID] = CalendarEventWriterError.editingDisabled.localizedDescription
-            pendingCalendarActionsByMessageID[messageID] = nil
-            return
-        }
-        guard let proposals = pendingCalendarActionsByMessageID[messageID], !proposals.isEmpty else { return }
-
-        isApplyingCalendarActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try CalendarEventWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
-            }
-        }
-        calendarActionStatusByMessageID[messageID] = results.joined(separator: "\n")
-        pendingCalendarActionsByMessageID[messageID] = nil
-        isApplyingCalendarActions = false
-        Haptics.success()
-    }
-
-    func dismissCalendarActions(for messageID: UUID) {
-        pendingCalendarActionsByMessageID[messageID] = nil
-        calendarActionStatusByMessageID[messageID] = "Calendar changes discarded."
-        Haptics.light()
-    }
-
-    func confirmRemindersActions(for messageID: UUID) {
-        guard !isApplyingRemindersActions else { return }
-        guard dataSourceStore.canEditReminders else {
-            remindersActionStatusByMessageID[messageID] = RemindersWriterError.editingDisabled.localizedDescription
-            pendingRemindersActionsByMessageID[messageID] = nil
-            return
-        }
-        guard let proposals = pendingRemindersActionsByMessageID[messageID], !proposals.isEmpty else { return }
-
-        isApplyingRemindersActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try RemindersWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
-            }
-        }
-        remindersActionStatusByMessageID[messageID] = results.joined(separator: "\n")
-        pendingRemindersActionsByMessageID[messageID] = nil
-        isApplyingRemindersActions = false
-        Haptics.success()
-    }
-
-    func dismissRemindersActions(for messageID: UUID) {
-        pendingRemindersActionsByMessageID[messageID] = nil
-        remindersActionStatusByMessageID[messageID] = "Reminders changes discarded."
-        Haptics.light()
-    }
-
-    func confirmContactsActions(for messageID: UUID) {
-        guard !isApplyingContactsActions else { return }
-        guard dataSourceStore.canEditContacts else {
-            contactsActionStatusByMessageID[messageID] = ContactsWriterError.editingDisabled.localizedDescription
-            pendingContactsActionsByMessageID[messageID] = nil
-            return
-        }
-        guard let proposals = pendingContactsActionsByMessageID[messageID], !proposals.isEmpty else { return }
-
-        isApplyingContactsActions = true
-        var results: [String] = []
-        for proposal in proposals {
-            do {
-                results.append(try ContactsWriter.apply(proposal))
-            } catch {
-                results.append(error.localizedDescription)
-            }
-        }
-        contactsActionStatusByMessageID[messageID] = results.joined(separator: "\n")
-        pendingContactsActionsByMessageID[messageID] = nil
-        isApplyingContactsActions = false
-        Haptics.success()
-    }
-
-    func dismissContactsActions(for messageID: UUID) {
-        pendingContactsActionsByMessageID[messageID] = nil
-        contactsActionStatusByMessageID[messageID] = "Contacts changes discarded."
-        Haptics.light()
-    }
-
-    func confirmMemoryProposals(for messageID: UUID) {
-        guard let proposals = pendingMemoryProposalsByMessageID[messageID], !proposals.isEmpty else { return }
-        saveMemoryProposals(proposals, source: .confirmedFromChat, messageID: messageID)
-        pendingMemoryProposalsByMessageID[messageID] = nil
-        try? modelContext.save()
-        Haptics.success()
-    }
-
-    func dismissMemoryProposals(for messageID: UUID) {
-        pendingMemoryProposalsByMessageID[messageID] = nil
-        memoryActionStatusByMessageID[messageID] = "Memory discarded."
-        Haptics.light()
-    }
-
-    /// Clears a pending skill proposal after the user saved it via the review sheet
-    /// (SkillEditorView performs the actual save; this only clears the bookkeeping).
-    func clearSkillProposalAfterReview(for messageID: UUID) {
-        pendingSkillProposalsByMessageID[messageID] = nil
-        skillActionStatusByMessageID[messageID] = "Skill saved."
-        Haptics.success()
-    }
-
-    func dismissSkillProposals(for messageID: UUID) {
-        pendingSkillProposalsByMessageID[messageID] = nil
-        skillActionStatusByMessageID[messageID] = "Skill discarded."
-        Haptics.light()
-    }
-
-    /// Clears a pending rule proposal after the user saved it via the review sheet
-    /// (RuleReviewSheet performs the actual save; this only clears the bookkeeping).
-    /// Removes only the reviewed proposal — any remaining proposals for this message stay pending.
-    func clearRuleProposalAfterReview(for messageID: UUID, proposalID: UUID) {
-        guard var proposals = pendingRuleProposalsByMessageID[messageID] else { return }
-        proposals.removeAll { $0.id == proposalID }
-        if proposals.isEmpty {
-            pendingRuleProposalsByMessageID[messageID] = nil
-            ruleActionStatusByMessageID[messageID] = "Rule saved."
-        } else {
-            pendingRuleProposalsByMessageID[messageID] = proposals
-        }
-        Haptics.success()
-    }
-
-    func dismissRuleProposals(for messageID: UUID) {
-        pendingRuleProposalsByMessageID[messageID] = nil
-        ruleActionStatusByMessageID[messageID] = "Rule discarded."
-        Haptics.light()
-    }
+    // Proposal action/capture helpers live in ChatViewModel+Proposals.swift.
 
     func send() {
         let rawText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingAttachments
         let documents = pendingDocumentAttachments
-        guard (!rawText.isEmpty || !images.isEmpty || !documents.isEmpty), !isStreaming else { return }
+        guard !rawText.isEmpty || !images.isEmpty || !documents.isEmpty, !isStreaming else { return }
 
         if !images.isEmpty, !supportsVision {
             capabilityWarning = ChatServiceError.modelLacksVision.errorDescription
@@ -691,278 +581,50 @@ final class ChatViewModel {
         return true
     }
 
-    func cancelStreaming() {
-        streamingTask?.cancel()
-    }
-
     private func requestAssistantReply() {
-        guard let provider = currentProvider, let model = currentModel else { return }
-        let apiKey = providerStore.apiKey(for: provider)
-        guard !provider.requiresAPIKey || apiKey != nil else { return }
+        let provider = currentProvider
+        let model = currentModel
+        let apiKey = provider.flatMap { providerStore.apiKey(for: $0) }
+        let immediateError: Error? = if provider == nil || model == nil {
+            ChatServiceError.providerOrModelNotFound
+        } else if provider?.requiresAPIKey == true && apiKey == nil {
+            ChatServiceError.missingAPIKey
+        } else {
+            nil
+        }
 
         let assistantMessage = ChatMessage(
             role: .assistant,
             content: "",
             isStreaming: true,
-            providerID: provider.id,
-            modelID: model.id
+            providerID: provider?.id ?? conversation.providerID,
+            modelID: model?.id ?? conversation.modelID
         )
         assistantMessage.conversation = conversation
         conversation.messages.append(assistantMessage)
         modelContext.insert(assistantMessage)
 
+        if let immediateError {
+            assistantMessage.isStreaming = false
+            assistantMessage.completedAt = .now
+            assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: immediateError)
+            conversation.updatedAt = .now
+            try? modelContext.save()
+            return
+        }
+
+        try? modelContext.save()
+
         isStreaming = true
-        let client = ChatService.client(for: provider.apiFormat)
-        let baseURL = provider.baseURL
-        let modelID = model.id
-        let supportsTools = model.supportsTools
-        let supportsVision = model.supportsVision
-        let supportsFiles = model.supportsFiles
-        let supportsImageGen = model.supportsImageGen
-        let conversationSystemPrompt = conversation.systemPrompt
-        let skillMatches = fetchSkillMatches()
-        let skillToolsEnabled = skillsStore.isEnabled && supportsTools
-        let skillIndex = skillToolsEnabled ? SkillResolver.index(from: skillMatches) : nil
-        let historyTurns = ConversationCompactionService.apiHistoryTurns(
-            sortedMessages: conversation.sortedMessages,
-            compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
-            compactedThroughMessageID: conversation.compactedThroughMessageID,
-            includeImages: supportsVision,
-            includeDocuments: supportsFiles,
-            excludingMessageID: assistantMessage.id
+        requestNotificationAuthorizationIfNeeded()
+        BackgroundGenerationService.shared.startGeneration(
+            for: assistantMessage,
+            in: conversation,
+            using: modelContext
         )
-        let latestUserText = historyTurns.last(where: { $0.role == .user })?.content ?? ""
-        let searchAPIKey = webSearchStore.activeAPIKey()
-        let searchProviderName = webSearchStore.activeProviderDisplayName
-        let searchClient = webSearchStore.makeActiveClient()
-        let searchMode = WebSearchService.preferredMode(
-            supportsTools: supportsTools,
-            isActive: isWebSearchEnabledForChat && webSearchStore.isActive
-        )
-
-        streamingTask = Task { [weak self] in
-            guard let self else { return }
-            await performAssistantReplyStream(
-                assistantMessage: assistantMessage,
-                client: client,
-                baseURL: baseURL,
-                modelID: modelID,
-                supportsImageGen: supportsImageGen,
-                conversationSystemPrompt: conversationSystemPrompt,
-                skillMatches: skillMatches,
-                skillToolsEnabled: skillToolsEnabled,
-                skillIndex: skillIndex,
-                historyTurns: historyTurns,
-                latestUserText: latestUserText,
-                searchAPIKey: searchAPIKey,
-                searchProviderName: searchProviderName,
-                searchClient: searchClient,
-                searchMode: searchMode,
-                apiKey: apiKey
-            )
-        }
     }
 
-    private func performAssistantReplyStream(
-        assistantMessage: ChatMessage,
-        client: ChatCompletionClient,
-        baseURL: String,
-        modelID: String,
-        supportsImageGen: Bool,
-        conversationSystemPrompt: String,
-        skillMatches: [SkillMatchable],
-        skillToolsEnabled: Bool,
-        skillIndex: String?,
-        historyTurns: [ChatTurn],
-        latestUserText: String,
-        searchAPIKey: String?,
-        searchProviderName: String,
-        searchClient: (any WebSearchClient)?,
-        searchMode: WebSearchMode?,
-        apiKey: String?
-    ) async {
-        do {
-            var middleSections: [String] = []
-
-            if shouldUseMemory {
-                let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
-                let injectionItems = memoryStore.injectionItems(from: items)
-                if let memorySection = MemoryStore.contextSection(for: injectionItems) {
-                    middleSections.append(memorySection)
-                }
-                middleSections.append(MemoryStore.modelInstruction())
-            }
-
-            if shouldAllowRuleProposals {
-                let globalRuleItems = rulesStore.useGlobalRules
-                    ? [] : ((try? rulesStore.fetchItems(modelContext: modelContext)) ?? [])
-                let chatRuleItems = rulesStore.useChatRules ? [] : conversation.rules
-                let existingRuleItems = globalRuleItems + chatRuleItems
-                if let rulesSection = RulesStore.contextSection(for: existingRuleItems) {
-                    middleSections.append(rulesSection)
-                }
-                middleSections.append(RulesStore.modelInstruction())
-            }
-
-            if let skillIndex, !skillIndex.isEmpty {
-                middleSections.append(skillIndex)
-            }
-
-            dataSourceStore.refreshAuthorizationStatuses()
-            if let agentContext = await AgentContextProvider(dataSourceStore: dataSourceStore).makeContextBlock() {
-                middleSections.append(agentContext)
-            }
-
-            var tools: [ChatToolDefinition] = []
-            var webSearchToolPrompt: String?
-            if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
-                do {
-                    let injected = try await WebSearchService.makeInjectedContext(
-                        query: latestUserText,
-                        apiKey: searchAPIKey,
-                        client: searchClient
-                    )
-                    middleSections.append(injected)
-                } catch {
-                    middleSections.append(
-                        "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
-                    )
-                }
-            } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
-                tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-                webSearchToolPrompt =
-                    "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
-            }
-
-            if skillToolsEnabled {
-                tools.append(SkillToolService.invokeToolDefinition())
-                tools.append(SkillToolService.createToolDefinition())
-            }
-
-            rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
-
-            let globalRulesText: String
-            if rulesStore.useGlobalRules {
-                let ruleItems = (try? rulesStore.fetchItems(modelContext: modelContext)) ?? []
-                globalRulesText = RulesStore.injectionText(from: ruleItems)
-            } else {
-                globalRulesText = ""
-            }
-            let chatRulesText: String
-            if rulesStore.useChatRules {
-                let perChatRulesText = RulesStore.injectionText(from: conversation.rules)
-                chatRulesText = [perChatRulesText, conversationSystemPrompt]
-                    .filter { !$0.isEmpty }
-                    .joined(separator: "\n\n")
-            } else {
-                chatRulesText = ""
-            }
-
-            let systemContent = ChatSystemPromptBuilder.assemble(
-                globalRules: globalRulesText,
-                chatRules: chatRulesText,
-                middleSections: middleSections,
-                webSearchToolPrompt: webSearchToolPrompt
-            )
-
-            var turns: [ChatTurn] = []
-            if let systemContent {
-                turns.append(ChatTurn(role: .system, content: systemContent))
-            }
-            turns.append(contentsOf: historyTurns)
-
-            let skillCollector = SkillInvocationCollector()
-            let executeTool: @Sendable (ChatToolCall) async throws -> String = { call in
-                switch call.name {
-                case SkillToolService.invokeToolName:
-                    guard let slashName = SkillToolService.slashName(fromInvokeArguments: call.argumentsJSON),
-                          let matched = skillMatches.first(where: { $0.slashName == SkillResolver.normalizeSlashName(slashName) })
-                    else {
-                        return "No skill found with that slash name."
-                    }
-                    await skillCollector.recordInvoke(matched)
-                    return SkillResolver.systemBlock(for: matched)
-                case SkillToolService.createToolName:
-                    guard let proposal = SkillToolService.proposal(fromCreateArguments: call.argumentsJSON) else {
-                        return "Could not parse the skill draft — name, slash_name, and instructions must be non-empty."
-                    }
-                    await skillCollector.recordProposal(proposal)
-                    return "Draft captured. The user will review \"\(proposal.name)\" (/\(proposal.slashName)) before it's saved."
-                default:
-                    guard let searchAPIKey, let searchClient else {
-                        return "Search API key is not configured."
-                    }
-                    return try await WebSearchService.executeToolCall(
-                        call,
-                        apiKey: searchAPIKey,
-                        client: searchClient
-                    )
-                }
-            }
-
-            // Coalesce deltas so we don't mutate SwiftData / redraw the message view on every token.
-            var contentBuffer = ""
-            var lastFlush = ContinuousClock().now
-            let flushInterval: Duration = .milliseconds(80)
-
-            for try await event in client.streamReply(
-                turns: turns,
-                model: modelID,
-                baseURL: baseURL,
-                apiKey: apiKey,
-                tools: tools,
-                executeTool: executeTool,
-                supportsImageGen: supportsImageGen,
-                effort: (supportsEffort && (!hasSeparateThinkingToggle || isReasoningEnabled)) ? effectiveEffortLevel : nil,
-                reasoningEnabled: hasSeparateThinkingToggle ? effectiveReasoningEnabled : nil
-            ) {
-                switch event {
-                case .text(let delta):
-                    contentBuffer += delta
-                    let now = ContinuousClock().now
-                    if now >= lastFlush + flushInterval {
-                        assistantMessage.content += contentBuffer
-                        contentBuffer = ""
-                        lastFlush = now
-                    }
-                case .images(let images):
-                    var existing = assistantMessage.imageAttachments
-                    existing.append(contentsOf: images)
-                    assistantMessage.imageAttachments = existing
-                }
-            }
-
-            // Flush any remaining buffered content.
-            if !contentBuffer.isEmpty {
-                assistantMessage.content += contentBuffer
-            }
-
-            assistantMessage.extractInlineImages()
-
-            assistantMessage.isStreaming = false
-            assistantMessage.completedAt = .now
-            captureCalendarProposals(from: assistantMessage)
-            captureRemindersProposals(from: assistantMessage)
-            captureContactsProposals(from: assistantMessage)
-            captureMemoryProposals(from: assistantMessage)
-            captureRuleProposals(from: assistantMessage)
-            let invokedSkills = await skillCollector.invokedSkills
-            for skill in invokedSkills {
-                insertSkillSystemMessage(for: skill)
-            }
-            let skillProposals = await skillCollector.proposals
-            captureSkillProposals(skillProposals, messageID: assistantMessage.id)
-        } catch is CancellationError {
-            assistantMessage.isStreaming = false
-            assistantMessage.completedAt = .now
-        } catch {
-            assistantMessage.isStreaming = false
-            assistantMessage.completedAt = .now
-            assistantMessage.errorMessage = ChatServiceError.userFacingMessage(for: error)
-        }
-        conversation.updatedAt = .now
-        isStreaming = false
-    }
+    // Background-generation helpers live in ChatViewModel+BackgroundGeneration.swift.
 }
 
 // swiftlint:enable type_body_length
