@@ -15,6 +15,16 @@ struct MessageBubbleView: View {
     var isApplyingCalendarActions: Bool = false
     var onConfirmCalendarActions: (() -> Void)? = nil
     var onDismissCalendarActions: (() -> Void)? = nil
+    var pendingRemindersActions: [RemindersActionProposal] = []
+    var remindersActionStatus: String? = nil
+    var isApplyingRemindersActions: Bool = false
+    var onConfirmRemindersActions: (() -> Void)? = nil
+    var onDismissRemindersActions: (() -> Void)? = nil
+    var pendingContactsActions: [ContactsActionProposal] = []
+    var contactsActionStatus: String? = nil
+    var isApplyingContactsActions: Bool = false
+    var onConfirmContactsActions: (() -> Void)? = nil
+    var onDismissContactsActions: (() -> Void)? = nil
     var pendingMemoryProposals: [MemoryProposal] = []
     var memoryActionStatus: String? = nil
     var onConfirmMemoryProposals: (() -> Void)? = nil
@@ -179,10 +189,6 @@ struct MessageBubbleView: View {
                 if !displayContent.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
-                        SelectChip {
-                            selectionText = displayContent
-                            showingTextSelection = true
-                        }
                         if isLastMessage && !message.isStreaming {
                             RegenerateChip(action: onRetry)
                         }
@@ -202,6 +208,22 @@ struct MessageBubbleView: View {
                     calendarConfirmationCard
                 } else if let calendarActionStatus, !calendarActionStatus.isEmpty {
                     Text(calendarActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if !pendingRemindersActions.isEmpty {
+                    remindersConfirmationCard
+                } else if let remindersActionStatus, !remindersActionStatus.isEmpty {
+                    Text(remindersActionStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if !pendingContactsActions.isEmpty {
+                    contactsConfirmationCard
+                } else if let contactsActionStatus, !contactsActionStatus.isEmpty {
+                    Text(contactsActionStatus)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -246,7 +268,13 @@ struct MessageBubbleView: View {
 
     private var displayContent: String {
         RuleActionParser.strippingFences(
-            from: MemoryActionParser.strippingFences(from: CalendarActionParser.strippingFences(from: message.content))
+            from: MemoryActionParser.strippingFences(
+                from: ContactsActionParser.strippingFences(
+                    from: RemindersActionParser.strippingFences(
+                        from: CalendarActionParser.strippingFences(from: message.content)
+                    )
+                )
+            )
         )
     }
 
@@ -282,6 +310,74 @@ struct MessageBubbleView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(isApplyingCalendarActions)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var remindersConfirmationCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Confirm reminders changes", systemImage: "checklist")
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(pendingRemindersActions) { action in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(action.summaryTitle)
+                        .font(.caption.weight(.semibold))
+                    Text(action.summaryDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 10) {
+                Button("Apply") {
+                    onConfirmRemindersActions?()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isApplyingRemindersActions)
+
+                Button("Discard") {
+                    onDismissRemindersActions?()
+                }
+                .buttonStyle(.bordered)
+                .disabled(isApplyingRemindersActions)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var contactsConfirmationCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Confirm contacts changes", systemImage: "person.crop.circle.badge.checkmark")
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(pendingContactsActions) { action in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(action.summaryTitle)
+                        .font(.caption.weight(.semibold))
+                    Text(action.summaryDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 10) {
+                Button("Apply") {
+                    onConfirmContactsActions?()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isApplyingContactsActions)
+
+                Button("Discard") {
+                    onDismissContactsActions?()
+                }
+                .buttonStyle(.bordered)
+                .disabled(isApplyingContactsActions)
             }
         }
         .padding(12)
@@ -515,25 +611,6 @@ private struct RegenerateChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Regenerate response")
-    }
-}
-
-private struct SelectChip: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.light()
-            action()
-        } label: {
-            Image(systemName: "text.cursor")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(4)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Select text")
     }
 }
 

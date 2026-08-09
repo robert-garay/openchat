@@ -9,12 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Dynamic reasoning configuration from provider model catalogs, with a separate brain-chip toggle for providers that expose a distinct thinking on/off parameter (OpenRouter `reasoning.enabled`, Anthropic `thinking`, DeepSeek `thinking.type`) and a ChatGPT-style effort gauge for providers that encode "off" as an effort level.
 - Initial versioning and release workflow for OpenChat.
+
+### Changed
+
+- Tapping the "OpenChat" title in the history drawer now opens Settings, in addition to the existing gear icon.
+- History drawer now transitions the settings and new-chat buttons into a single exit-search button when the search field is focused, and exits search mode when the drawer closes.
+- The message composer now toggles focus with the chat/history view: the keyboard opens when the chat is visible and closes when the history drawer is open.
+- History drawer now uses a push-style transition: the chat view slides out to the right as the drawer slides in, removing the overlap between the two views.
+- History drawer no longer shows the vertical scroll indicator.
 
 ### Fixed
 
-- Fixed unit-test failures by isolating Keychain-backed tests to a per-test keychain service and updating OpenRouter model catalog expectations to match current capability inference.
-- Restored parallel and randomized test execution now that keychain tests are isolated.
+- OpenRouter model catalog context formatting now rounds millions-of-tokens display and capability inference tests reflect the current tool-call heuristics.
+- Keychain-backed tests now use an isolated per-test keychain service to prevent cross-test contamination and pass reliably under parallel, randomized execution.
+- Long model names in the chat header are now truncated with an ellipsis instead of pushing the layout.
+
+### Removed
+
+- Removed provider logos from the chat history drawer rows; chat titles are now shown without a provider icon.
+- Removed the "Select text" chip from assistant responses; text selection remains available via the user-message context menu.
 
 ## [1.0.0] - 2026-08-07
 

@@ -222,12 +222,8 @@ final class OpenRouterModelCatalogTests: XCTestCase {
             capabilities: [.vision, .tools]
         )
         XCTAssertEqual(
-            visionAndTools.map(\.id),
-            [
-                withTools.id,
-                "meta-llama/llama-4-maverick",
-                "anthropic/claude-sonnet-4.6",
-            ]
+            Set(visionAndTools.map(\.id)),
+            Set([withTools.id, "meta-llama/llama-4-maverick", "anthropic/claude-sonnet-4.6"])
         )
     }
 

@@ -40,21 +40,23 @@ struct ChatView: View {
                     }
                 }
 
-                if !isHistoryDrawerOpen {
-                    ChatComposerHost(
-                        viewModel: viewModel,
-                        skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
-                        hasChatRules: !conversation.systemPrompt
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .isEmpty,
-                        canUseChatRules: rulesStore.useChatRules,
-                        conversation: conversation,
-                        onSend: {
-                            stickToBottom = true
-                            viewModel.send()
-                        }
-                    )
-                }
+                ChatComposerHost(
+                    viewModel: viewModel,
+                    skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
+                    hasChatRules: !conversation.systemPrompt
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .isEmpty,
+                    canUseChatRules: rulesStore.useChatRules,
+                    conversation: conversation,
+                    isFocused: Binding(
+                        get: { !isHistoryDrawerOpen },
+                        set: { _ in }
+                    ),
+                    onSend: {
+                        stickToBottom = true
+                        viewModel.send()
+                    }
+                )
             }
         }
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
@@ -65,10 +67,13 @@ struct ChatView: View {
                     Haptics.light()
                     onShowHistory?()
                 } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.primary)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.secondarySystemBackground), in: Circle())
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Chat history")
             }
 
@@ -82,6 +87,8 @@ struct ChatView: View {
                             Text(viewModel.currentModel?.displayName ?? "Choose Model")
                                 .font(.subheadline.weight(.semibold))
                                 .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(maxWidth: conversation.messages.isEmpty ? 180 : 240)
                             ModelCapabilitySigns(
                                 capabilities: viewModel.currentModel?.capabilities ?? [],
                                 limit: 3
@@ -106,6 +113,14 @@ struct ChatView: View {
                     .accessibilityLabel(conversation.isTemporary ? "Exit temporary chat" : "Temporary chat")
                     .accessibilityAddTraits(conversation.isTemporary ? .isSelected : AccessibilityTraits())
                 }
+            }
+        }
+        .toolbar(isHistoryDrawerOpen ? .hidden : .visible, for: .navigationBar)
+        .onChange(of: isHistoryDrawerOpen) { _, isOpen in
+            if isOpen {
+                #if canImport(UIKit)
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                #endif
             }
         }
         .sheet(isPresented: $showingModelPicker) {
@@ -207,6 +222,9 @@ struct ChatView: View {
         .onChange(of: viewModel?.effortLevel) { _, _ in
             viewModel?.persistComposerState()
         }
+        .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
+            viewModel?.persistComposerState()
+        }
     }
 }
 
@@ -220,6 +238,7 @@ private struct ChatComposerHost: View {
     var hasChatRules: Bool = false
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
+    var isFocused: Binding<Bool> = .constant(false)
     let onSend: () -> Void
 
     var body: some View {
@@ -250,7 +269,11 @@ private struct ChatComposerHost: View {
             conversation: conversation,
             skills: skills,
             effortLevel: $viewModel.effortLevel,
+            isReasoningEnabled: $viewModel.isReasoningEnabled,
+            isFocused: isFocused,
             supportsEffort: viewModel.supportsEffort,
+            supportedEffortLevels: viewModel.pickerEffortLevels,
+            hasSeparateThinkingToggle: viewModel.hasSeparateThinkingToggle,
             onSetEffortLevel: viewModel.setEffortLevel,
             onSend: onSend,
             onStop: viewModel.cancelStreaming
@@ -296,6 +319,24 @@ private struct ChatMessageListView: View {
                             },
                             onDismissCalendarActions: {
                                 viewModel.dismissCalendarActions(for: message.id)
+                            },
+                            pendingRemindersActions: viewModel.pendingRemindersActionsByMessageID[message.id] ?? [],
+                            remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
+                            isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
+                            onConfirmRemindersActions: {
+                                viewModel.confirmRemindersActions(for: message.id)
+                            },
+                            onDismissRemindersActions: {
+                                viewModel.dismissRemindersActions(for: message.id)
+                            },
+                            pendingContactsActions: viewModel.pendingContactsActionsByMessageID[message.id] ?? [],
+                            contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
+                            isApplyingContactsActions: viewModel.isApplyingContactsActions,
+                            onConfirmContactsActions: {
+                                viewModel.confirmContactsActions(for: message.id)
+                            },
+                            onDismissContactsActions: {
+                                viewModel.dismissContactsActions(for: message.id)
                             },
                             pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
                             memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
@@ -549,3 +590,4 @@ private struct TemporaryChatBanner: View {
         .background(.bar)
     }
 }
+

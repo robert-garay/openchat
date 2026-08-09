@@ -27,6 +27,11 @@ final class Conversation {
     var draftAttachmentsData: Data?
     /// Persisted raw value of `EffortLevel` for this chat. Defaults to `medium`.
     var effortLevelRawValue: String = EffortLevel.default.rawValue
+    /// Persisted reasoning/thinking toggle. Meaningful for models/providers that
+    /// expose a separate thinking on/off parameter (e.g. OpenRouter `reasoning.enabled`,
+    /// DeepSeek `thinking.type`). For providers that encode "off" as an effort level
+    /// (e.g. OpenAI `reasoning_effort: "none"`), this is left on and the level is set to `none`.
+    var isReasoningEnabled: Bool = true
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessage.conversation)
     var messages: [ChatMessage] = []

@@ -45,7 +45,8 @@ struct ProviderModelsClient: Sendable {
                         supportedParameters: remote.supported_parameters ?? [],
                         modelID: remote.id,
                         modelName: remote.id
-                    )
+                    ),
+                    reasoningConfig: remote.reasoning
                 )
             }
     }
@@ -239,6 +240,7 @@ private struct OpenAIRemoteModel: Decodable {
     var id: String
     var architecture: OpenAIRemoteArchitecture?
     var supported_parameters: [String]?
+    var reasoning: ModelReasoningConfig?
 }
 
 private struct OpenAIRemoteArchitecture: Decodable {

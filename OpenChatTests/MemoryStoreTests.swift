@@ -6,6 +6,17 @@ import SwiftData
     func testDefaults() { let s = MemoryStore(defaults: UserDefaults(suiteName: UUID().uuidString)!); XCTAssertFalse(s.useInChats); XCTAssertTrue(s.requireConfirmation) }
     func testTemporarySkips() { XCTAssertFalse(MemoryStore.shouldUseMemory(isTemporary: true, useInChats: true)) }
 
+    func testModelInstructionDistinguishesMemoryFromRule() {
+        let instruction = MemoryStore.modelInstruction()
+        XCTAssertTrue(instruction.contains("openchat-memory"))
+        XCTAssertTrue(instruction.contains("Rule"))
+    }
+
+    func testModelInstructionWarnsAgainstRestatingOtherProposals() {
+        let instruction = MemoryStore.modelInstruction()
+        XCTAssertTrue(instruction.contains("Skill"))
+    }
+
     func testInjectionItemsOrdersByUpdatedAt() {
         let old = MemoryItem(content: "Old", updatedAt: .distantPast)
         let recent = MemoryItem(content: "Recent", updatedAt: .now)

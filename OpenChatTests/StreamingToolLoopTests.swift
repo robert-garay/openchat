@@ -70,7 +70,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 tools: tools,
                 executeTool: { _ in "unused" },
                 supportsImageGen: false,
-                effort: nil
+                effort: nil,
+                reasoningEnabled: nil
             )
         )
 
@@ -103,7 +104,8 @@ final class StreamingToolLoopTests: XCTestCase {
                     return "results"
                 },
                 supportsImageGen: false,
-                effort: nil
+                effort: nil,
+                reasoningEnabled: nil
             )
         )
 
@@ -139,7 +141,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 tools: tools,
                 executeTool: { _ in "unused" },
                 supportsImageGen: false,
-                effort: nil
+                effort: nil,
+                reasoningEnabled: nil
             )
         )
 
@@ -174,7 +177,8 @@ final class StreamingToolLoopTests: XCTestCase {
                     return "results"
                 },
                 supportsImageGen: false,
-                effort: nil
+                effort: nil,
+                reasoningEnabled: nil
             )
         )
 
@@ -206,7 +210,8 @@ final class StreamingToolLoopTests: XCTestCase {
                 tools: tools,
                 executeTool: { _ in "results" },
                 supportsImageGen: false,
-                effort: nil
+                effort: nil,
+                reasoningEnabled: nil
             )
         )
 

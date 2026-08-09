@@ -14,7 +14,8 @@ protocol ChatCompletionClient: Sendable {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         supportsImageGen: Bool,
-        effort: EffortLevel?
+        effort: EffortLevel?,
+        reasoningEnabled: Bool?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error>
 }
 
@@ -26,7 +27,8 @@ extension ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         supportsImageGen: Bool = false,
-        effort: EffortLevel? = nil
+        effort: EffortLevel? = nil,
+        reasoningEnabled: Bool? = nil
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         streamReply(
             turns: turns,
@@ -36,7 +38,8 @@ extension ChatCompletionClient {
             tools: [],
             executeTool: { _ in "" },
             supportsImageGen: supportsImageGen,
-            effort: effort
+            effort: effort,
+            reasoningEnabled: reasoningEnabled
         )
     }
 }

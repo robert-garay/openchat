@@ -31,7 +31,11 @@ struct MessageComposerView: View {
     var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
     @Binding var effortLevel: EffortLevel
+    @Binding var isReasoningEnabled: Bool
+    var isFocused: Binding<Bool> = .constant(false)
     var supportsEffort: Bool = false
+    var supportedEffortLevels: [EffortLevel] = []
+    var hasSeparateThinkingToggle: Bool = false
     var onSetEffortLevel: ((EffortLevel) -> Void)? = nil
     let onSend: () -> Void
     let onStop: () -> Void
@@ -39,6 +43,12 @@ struct MessageComposerView: View {
     @State private var showingWebSearchDisabledAlert = false
     @State private var showingChatRules = false
     @State private var showingEffortPicker = false
+
+    /// The level shown in the gauge and sent to the API, clamped to the model's supported set.
+    private var effectiveLevel: EffortLevel {
+        guard supportsEffort, !supportedEffortLevels.isEmpty else { return .default }
+        return supportedEffortLevels.contains(effortLevel) ? effortLevel : (supportedEffortLevels.last ?? .default)
+    }
 
     /// Avoid `trimmingCharacters` on huge pastes — that allocates and scans the full string.
     private var canSend: Bool {
@@ -68,7 +78,10 @@ struct MessageComposerView: View {
             }
             compactButton
             Spacer(minLength: 0)
-            if supportsEffort {
+            if hasSeparateThinkingToggle {
+                reasoningToggleButton
+            }
+            if supportsEffort && (!hasSeparateThinkingToggle || isReasoningEnabled) {
                 effortButton
             }
             sendButton
@@ -103,7 +116,8 @@ struct MessageComposerView: View {
                 minHeight: 22,
                 maxHeight: 120,
                 onPasteImages: onPasteImages,
-                onPasteDocument: onPasteDocument
+                onPasteDocument: onPasteDocument,
+                isFocused: isFocused
             )
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -270,27 +284,41 @@ struct MessageComposerView: View {
         }
     }
 
+    private var reasoningToggleButton: some View {
+        Button {
+            Haptics.light()
+            isReasoningEnabled.toggle()
+        } label: {
+            Image(systemName: isReasoningEnabled ? "brain.fill" : "brain")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(isReasoningEnabled ? Color.accentColor : Color(.tertiaryLabel))
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel(isReasoningEnabled ? "Reasoning enabled" : "Reasoning disabled")
+        .accessibilityHint("Toggle reasoning on or off")
+    }
+
     private var effortButton: some View {
         Button {
             Haptics.light()
             showingEffortPicker = true
         } label: {
-            HStack(spacing: 3) {
-                Image(systemName: "gauge.with.dots.needle.67percent")
-                    .font(.system(size: 13, weight: .semibold))
-                Text(effortLevel.displayName)
-                    .font(.system(size: 12, weight: .semibold))
-            }
-            .foregroundStyle(Color.accentColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Color.accentColor.opacity(0.12), in: Capsule())
+            EffortGaugeIcon(
+                level: effectiveLevel,
+                levels: supportedEffortLevels,
+                color: effectiveLevel == .none ? Color(.tertiaryLabel) : Color.accentColor,
+                size: 22
+            )
+            .frame(width: 34, height: 34)
+            .contentShape(Rectangle())
         }
-        .accessibilityLabel(effortLevel.accessibilityLabel)
+        .accessibilityLabel(effectiveLevel.accessibilityLabel)
         .accessibilityHint("Change reasoning effort level")
         .sheet(isPresented: $showingEffortPicker) {
             EffortLevelPicker(
-                level: effortLevel,
+                level: effectiveLevel,
+                levels: supportedEffortLevels,
                 onChange: { level in
                     effortLevel = level
                     onSetEffortLevel?(level)

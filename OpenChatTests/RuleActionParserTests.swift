@@ -76,4 +76,28 @@ final class RuleActionParserTests: XCTestCase {
         XCTAssertTrue(stripped.hasPrefix("Before"))
         XCTAssertTrue(stripped.hasSuffix("After"))
     }
+
+    func testStrippingFencesHidesUnclosedFenceMidStream() {
+        let markdown = """
+        Before
+        ```openchat-rule
+        {"content":"partial json still stream
+        """
+        let stripped = RuleActionParser.strippingFences(from: markdown)
+        XCTAssertEqual(stripped, "Before")
+    }
+
+    func testStrippingFencesHidesUnclosedTagMidStream() {
+        let markdown = """
+        Before
+        <rule_proposal>{"content":"partial json still stream
+        """
+        let stripped = RuleActionParser.strippingFences(from: markdown)
+        XCTAssertEqual(stripped, "Before")
+    }
+
+    func testStrippingFencesLeavesPlainTextUnchanged() {
+        let markdown = "Just a normal reply with no proposals."
+        XCTAssertEqual(RuleActionParser.strippingFences(from: markdown), markdown)
+    }
 }

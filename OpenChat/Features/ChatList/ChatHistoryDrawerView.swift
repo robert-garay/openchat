@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// ChatGPT-style minimal conversation history drawer.
+/// Grok-style full-screen conversation history drawer.
 struct ChatHistoryDrawerView: View {
     let conversations: [Conversation]
     @Binding var selectedConversationID: UUID?
@@ -11,6 +11,7 @@ struct ChatHistoryDrawerView: View {
 
     @Environment(\.modelContext) private var modelContext
     @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
     @State private var conversationPendingRename: Conversation?
     @State private var renameText = ""
     @State private var activeMenu: Conversation?
@@ -42,6 +43,7 @@ struct ChatHistoryDrawerView: View {
                 contextMenuOverlay(for: activeMenu)
             }
         }
+        .onDisappear(perform: exitSearch)
         .alert("Rename Chat", isPresented: isRenameAlertPresented) {
             TextField("Title", text: $renameText)
             Button("Cancel", role: .cancel) {
@@ -93,13 +95,14 @@ struct ChatHistoryDrawerView: View {
                                 conversationRow(conversation)
                             }
                         } header: {
-                            sectionHeader("Recents")
+                            sectionHeader("Conversations")
                         }
                     }
                 }
                 .listStyle(.plain)
                 .listRowSpacing(0)
                 .listSectionSpacing(0)
+                .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.interactively)
             }
 
@@ -108,76 +111,116 @@ struct ChatHistoryDrawerView: View {
             bottomBar
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-
-            searchBar
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    if value.translation.width < -80 {
+                        Haptics.light()
+                        onClose()
+                    }
+                }
+        )
     }
 
     private var header: some View {
         HStack(spacing: 0) {
-            Text("OpenChat")
-                .font(.title2.weight(.bold))
-            Spacer(minLength: 12)
-            Button(action: onClose) {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 20, weight: .semibold))
+            Button(action: onShowSettings) {
+                Text("OpenChat")
+                    .font(.title2.weight(.bold))
                     .foregroundStyle(.primary)
             }
-            .accessibilityLabel("Close history")
+            .buttonStyle(.plain)
+            .accessibilityLabel("OpenChat Settings")
+
+            Spacer(minLength: 12)
+
+            Button(action: onClose) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color(.secondarySystemBackground), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back to chat")
         }
     }
 
     private var bottomBar: some View {
-        HStack(spacing: 0) {
-            Button(action: newChatAndClose) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.pencil")
-                    Text("New Chat")
-                        .font(.subheadline.weight(.semibold))
+        HStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                TextField("Search chats", text: $searchText)
+                    .font(.subheadline)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .focused($isSearchFocused)
+
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .foregroundStyle(.primary)
             }
-            .accessibilityLabel("New chat")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-            Spacer(minLength: 12)
-
-            Button(action: onShowSettings) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.primary)
-            }
-            .accessibilityLabel("Settings")
-        }
-    }
-
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            TextField("Search chats", text: $searchText)
-                .font(.subheadline)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
+            if isSearchFocused {
+                Button(action: exitSearch) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.secondarySystemBackground), in: Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Exit search")
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.8).combined(with: .opacity),
+                    removal: .opacity
+                ))
+            } else {
+                HStack(spacing: 12) {
+                    Button(action: onShowSettings) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.primary)
+                            .frame(width: 36, height: 36)
+                            .background(Color(.secondarySystemBackground), in: Circle())
+                    }
+                    .accessibilityLabel("Settings")
+
+                    Button(action: newChatAndClose) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(Color.accentColor, in: Circle())
+                    }
+                    .accessibilityLabel("New chat")
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity,
+                    removal: .scale(scale: 0.8).combined(with: .opacity)
+                ))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.top, 4)
-        .padding(.bottom, 8)
+        .animation(.easeInOut(duration: 0.2), value: isSearchFocused)
+    }
+
+    private func exitSearch() {
+        searchText = ""
+        isSearchFocused = false
     }
 
     private func sectionHeader(_ title: String) -> some View {
@@ -330,10 +373,11 @@ struct ConversationRow: View {
     let isSelected: Bool
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(alignment: .center, spacing: 10) {
             Text(conversation.title)
                 .font(.body)
                 .lineLimit(1)
+
             Spacer(minLength: 0)
         }
         .padding(.vertical, 8)

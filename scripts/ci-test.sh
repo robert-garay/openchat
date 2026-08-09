@@ -63,7 +63,8 @@ XCODEBUILD_ARGS=(
   -parallel-testing-enabled YES
   -enableCodeCoverage YES
   -resultBundlePath "$RESULT_BUNDLE"
-  CODE_SIGNING_ALLOWED=NO
+  CODE_SIGN_IDENTITY="-"
+  CODE_SIGNING_ALLOWED=YES
 )
 
 if command -v xcbeautify >/dev/null 2>&1; then
