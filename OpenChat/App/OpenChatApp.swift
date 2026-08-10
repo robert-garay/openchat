@@ -18,10 +18,12 @@ final class OpenChatAppDelegate: NSObject, UIApplicationDelegate {
         handleEventsForBackgroundURLSession identifier: String,
         completionHandler: @escaping () -> Void
     ) {
-        // Re-create the shared background session so its delegate is wired up, then stash the
-        // completion handler so the session can call it after all events are delivered.
+        // Re-create the shared background session so its delegate is wired up, then stash
+        // the completion handler on the main queue so it can be read and invoked safely.
         _ = BackgroundNetworkSession.shared
-        BackgroundNetworkSession.backgroundSessionCompletionHandler = completionHandler
+        DispatchQueue.main.async {
+            BackgroundNetworkSession.backgroundSessionCompletionHandler = completionHandler
+        }
     }
 }
 

@@ -16,10 +16,9 @@ final class BackgroundNetworkSession: NSObject, @unchecked Sendable {
     private let continuations = ContinuationStore()
     private let queue = OperationQueue()
 
-    private var session: URLSession
+    private var session: URLSession!
 
     private override init() {
-        self.session = URLSession(configuration: .default)
         super.init()
         queue.name = "com.openchat.background-network"
         queue.qualityOfService = .utility
@@ -31,7 +30,7 @@ final class BackgroundNetworkSession: NSObject, @unchecked Sendable {
         configuration.waitsForConnectivity = true
         configuration.timeoutIntervalForRequest = 600
         configuration.timeoutIntervalForResource = 3_600
-        self.session = URLSession(
+        session = URLSession(
             configuration: configuration,
             delegate: self,
             delegateQueue: queue
@@ -74,13 +73,17 @@ final class BackgroundNetworkSession: NSObject, @unchecked Sendable {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("tmp")
-        try request.httpBody?.write(to: tempURL)
+        // Always write a file (even an empty one) so uploadTask(with:fromFile:) has a
+        // valid body file for bodyless requests such as DELETE.
+        let body = request.httpBody ?? Data()
+        try body.write(to: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         // The upload task uses the file as the request body, so clear any in-memory body
         // to avoid duplicating it in the request.
         var uploadRequest = request
         uploadRequest.httpBody = nil
+        uploadRequest.httpBodyStream = nil
 
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
@@ -151,8 +154,13 @@ extension BackgroundNetworkSession: URLSessionTaskDelegate {
     }
 
     func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
-        BackgroundNetworkSession.backgroundSessionCompletionHandler?()
-        BackgroundNetworkSession.backgroundSessionCompletionHandler = nil
+        // UIKit requires the background session completion handler to be called on the
+        // main thread. Read and clear it atomically on the main queue.
+        DispatchQueue.main.async {
+            let handler = BackgroundNetworkSession.backgroundSessionCompletionHandler
+            BackgroundNetworkSession.backgroundSessionCompletionHandler = nil
+            handler?()
+        }
     }
 }
 
@@ -185,6 +193,9 @@ private final class ContinuationStore: @unchecked Sendable {
 
     private var entries: [Int: Entry] = [:]
     private var idToTaskID: [UUID: Int] = [:]
+    /// Request IDs that were cancelled before their continuation was registered.
+    /// A later `set` for that ID immediately resumes with `CancellationError`.
+    private var cancelledIDs: Set<UUID> = []
     private let lock = NSLock()
 
     func set(
@@ -193,6 +204,12 @@ private final class ContinuationStore: @unchecked Sendable {
         task: URLSessionTask
     ) {
         lock.lock()
+        if cancelledIDs.remove(id) != nil {
+            lock.unlock()
+            task.cancel()
+            continuation.resume(throwing: CancellationError())
+            return
+        }
         entries[task.taskIdentifier] = Entry(
             id: id,
             continuation: continuation,
@@ -212,6 +229,9 @@ private final class ContinuationStore: @unchecked Sendable {
         lock.lock()
         let taskID = idToTaskID.removeValue(forKey: id)
         let entry = taskID.flatMap { entries.removeValue(forKey: $0) }
+        if entry == nil {
+            cancelledIDs.insert(id)
+        }
         lock.unlock()
         guard let entry else { return }
         entry.task.cancel()
