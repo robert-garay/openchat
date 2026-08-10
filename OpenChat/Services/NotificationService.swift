@@ -40,13 +40,14 @@ final class NotificationService: NSObject {
         failed: Bool
     ) async {
         let content = UNMutableNotificationContent()
-        content.title = failed ? "OpenChat — Response failed" : "OpenChat — Response ready"
+        content.title = "OpenChat"
+        content.subtitle = failed ? "Couldn't finish" : "Response ready"
         let preview = messagePreview
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\n", with: " ")
         let trimmedPreview = preview.count > 120 ? String(preview.prefix(120)) + "…" : preview
         content.body = failed
-            ? "Tap to view the details."
+            ? "Tap to see what happened."
             : (trimmedPreview.isEmpty ? "Tap to read the response." : trimmedPreview)
         content.sound = failed ? nil : .default
         content.userInfo = ["conversationID": conversationID.uuidString]
