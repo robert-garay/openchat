@@ -12,6 +12,19 @@ final class OpenChatAppDelegate: NSObject, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = NotificationService.shared
         return true
     }
+
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        // Re-create the shared background session so its delegate is wired up, then stash
+        // the completion handler on the main queue so it can be read and invoked safely.
+        _ = BackgroundNetworkSession.shared
+        DispatchQueue.main.async {
+            BackgroundNetworkSession.backgroundSessionCompletionHandler = completionHandler
+        }
+    }
 }
 
 @main

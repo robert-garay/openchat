@@ -22,6 +22,8 @@ struct SerpAPIClient: WebSearchClient {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
+        // SerpAPI sends the API key as a query parameter, so keep this request on the
+        // foreground session to avoid persisting the secret URL in the background daemon.
         let (data, response) = try await session.data(for: request)
         try Self.throwIfNeeded(response: response, data: data)
 

@@ -15,7 +15,7 @@ struct SerperClient: WebSearchClient {
         request.setValue(apiKey, forHTTPHeaderField: "X-API-KEY")
         request.httpBody = try JSONEncoder().encode(RequestBody(q: trimmedQuery, num: maxResults))
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         try Self.throwIfNeeded(response: response, data: data)
 
         let decoded = try JSONDecoder().decode(APIResponse.self, from: data)
