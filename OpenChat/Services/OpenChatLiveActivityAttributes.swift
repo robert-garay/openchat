@@ -30,8 +30,7 @@ extension OpenChatLiveActivityAttributes.Status {
 
     /// Only meaningful while `.generating`; other states report 0.
     var elapsed: TimeInterval {
-        if case .generating(let elapsed) = self { elapsed }
-        else { 0 }
+        if case .generating(let elapsed) = self { elapsed } else { 0 }
     }
 
     var isGenerating: Bool {
