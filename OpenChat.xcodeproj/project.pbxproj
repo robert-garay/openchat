@@ -43,6 +43,7 @@
 		2EB7CD08B7ABA3B6B69A54A0 /* ProviderBalanceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5792E56555CD0350218DF5CF /* ProviderBalanceClient.swift */; };
 		2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */; };
 		30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38179096B024B94EA48B03CA /* MessageBubbleView.swift */; };
+		3105C671BFCF852E8B3A7851 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50314D181B9BB80E61828FCE /* SharedAssets.xcassets */; };
 		3133335079619130518EF11E /* MessageComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA7BF3262C5159168758827 /* MessageComposerView.swift */; };
 		34063BD09D1204EC0997C3D7 /* ContactsContextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAF5EEA83AC5E195A2F5BF7 /* ContactsContextReader.swift */; };
 		3474B52DCF74343DB67A449B /* ChatDocumentAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270DCBEC4C6AA93FD591DB7A /* ChatDocumentAttachment.swift */; };
@@ -94,6 +95,7 @@
 		695BB5AE181BC04E36C135D4 /* ChatHistoryDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152329A233CE865AB1083AB /* ChatHistoryDrawerView.swift */; };
 		6A2E36A2686F94E3015A90D2 /* CalendarActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7EBB374CCCA1074ECEAF1D /* CalendarActionParser.swift */; };
 		6B26347062ADF89FDA13017A /* EffortGaugeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3436B71AE5018DC293AC3E14 /* EffortGaugeIcon.swift */; };
+		6B7957BB891264634DE6B1BB /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50314D181B9BB80E61828FCE /* SharedAssets.xcassets */; };
 		6B98CE2DF1DAD66D158901F2 /* SerpAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701D582B715E1A1CE50EEBF8 /* SerpAPIClient.swift */; };
 		6BAB533F2FE3DAC4F2131FA5 /* SkillToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */; };
 		6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */; };
@@ -262,6 +264,7 @@
 		48E3FABE0FEED5EABA61F6ED /* BackgroundGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundGenerationService.swift; sourceTree = "<group>"; };
 		4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		4CF529654A520BC45155B2D7 /* EffortLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffortLevel.swift; sourceTree = "<group>"; };
+		50314D181B9BB80E61828FCE /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
 		50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredProvider.swift; sourceTree = "<group>"; };
 		52E97518312D6A634ECD090A /* WebSearchProviderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchProviderPicker.swift; sourceTree = "<group>"; };
 		5332911ABD740626614DC38E /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -439,6 +442,7 @@
 			children = (
 				174C8A720DB382316B6679A5 /* Assets.xcassets */,
 				5D10A860DD130AEA8FF9A235 /* OpenChat.entitlements */,
+				50314D181B9BB80E61828FCE /* SharedAssets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -720,6 +724,7 @@
 			buildConfigurationList = 609C110E6A7730BA72F8793B /* Build configuration list for PBXNativeTarget "OpenChatLiveActivity" */;
 			buildPhases = (
 				F73F6D8E040599294A7D992B /* Sources */,
+				CC38A5D109E6E879F95975AC /* Resources */,
 			);
 			buildRules = (
 			);
@@ -823,6 +828,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				8375DD6EB2BD80199A6BFC11 /* Assets.xcassets in Resources */,
+				3105C671BFCF852E8B3A7851 /* SharedAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC38A5D109E6E879F95975AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6B7957BB891264634DE6B1BB /* SharedAssets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

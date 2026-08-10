@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Long-pressing a chat history item now shows the context menu near the tapped row instead of centered on the screen.
 - Removed the selected-state highlight from the currently open chat in the history drawer.
+- Redesigned the Live Activity (Dynamic Island + Lock Screen) and completion notification around the OpenChat mark: the compact/minimal Dynamic Island now shows only the rotating mark (no text), turning solid green when a response is ready; the notification splits into a clean title/subtitle/body layout.
 
 ### Fixed
 
