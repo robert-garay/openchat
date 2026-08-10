@@ -90,6 +90,12 @@ final class ProviderStore {
         isLoadingOpenRouterModels || !loadingModelProviderIDs.isEmpty
     }
 
+    /// Total models available across live catalogs; changes when a catalog fetch completes.
+    /// Used to detect when a `defaultModelForNewChat()` retry might now succeed.
+    var loadedModelCount: Int {
+        openRouterModels.count + liveModelsByProviderID.values.reduce(0) { $0 + $1.count }
+    }
+
     func hasUsableCredentials(_ provider: ConfiguredProvider) -> Bool {
         !provider.requiresAPIKey || apiKey(for: provider) != nil
     }
@@ -330,11 +336,17 @@ final class ProviderStore {
            model(providerID: last.providerID, modelID: last.modelID) != nil {
             return last
         }
-        guard let provider = enabledProviders.first,
-              let model = provider.models.first else {
-            return nil
+        guard let provider = enabledProviders.first else { return nil }
+        if let saved = provider.models.first {
+            return (providerID: provider.id, modelID: saved.id)
         }
-        return (providerID: provider.id, modelID: model.id)
+        if provider.id == "openrouter", let catalogModel = openRouterModels.first {
+            return (providerID: provider.id, modelID: catalogModel.asAIModel.id)
+        }
+        if let live = liveModelsByProviderID[provider.id]?.first {
+            return (providerID: provider.id, modelID: live.id)
+        }
+        return nil
     }
 
     func isModelStarred(providerID: String, modelID: String) -> Bool {

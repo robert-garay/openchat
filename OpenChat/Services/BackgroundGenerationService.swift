@@ -109,12 +109,12 @@ final class BackgroundGenerationService {
         let startDate = Date()
 
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") { @MainActor [weak self] in
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "OpenChat generation \(conversationID)") { @MainActor [weak self, conversationID] in
             // The system is about to suspend us; end the expired task and record
             // that it is no longer active so performGeneration's cleanup is safe.
             guard let self else { return }
-            endBackgroundTask(backgroundTaskID)
             if var active = tasks[conversationID] {
+                endBackgroundTask(active.backgroundTaskID)
                 active.backgroundTaskID = .invalid
                 tasks[conversationID] = active
             }

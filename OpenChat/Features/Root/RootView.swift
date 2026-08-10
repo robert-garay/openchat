@@ -45,6 +45,7 @@ struct RootView: View {
         }
         .onAppear {
             guard !providerStore.enabledProviders.isEmpty else { return }
+            providerStore.refreshModelsIfNeeded()
             discardOrphanedEphemeralChats()
             providerStore.seedModelUsageFromConversationsIfNeeded(
                 conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
@@ -82,6 +83,10 @@ struct RootView: View {
                 selectedConversationID = nil
                 showingHistoryDrawer = false
             }
+        }
+        .onChange(of: providerStore.loadedModelCount) { _, _ in
+            guard selectedConversationID == nil, !providerStore.enabledProviders.isEmpty else { return }
+            startNewChat(temporary: false)
         }
     }
 

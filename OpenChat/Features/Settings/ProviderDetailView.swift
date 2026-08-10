@@ -128,17 +128,9 @@ struct ProviderDetailView: View {
                     ProgressView()
                         .scaleEffect(0.8)
                 } else if let balance {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(formattedBalance(balance))
-                            .font(.body.monospaced())
-                            .foregroundStyle(balanceColor(for: balance))
-
-                        if let isSufficient = balance.isSufficient {
-                            Text(isSufficient ? "Sufficient" : "Low balance")
-                                .font(.caption)
-                                .foregroundStyle(isSufficient ? Color.secondary : Color.orange)
-                        }
-                    }
+                    Text(formattedBalance(balance))
+                        .font(.body.monospaced())
+                        .foregroundStyle(balanceColor(for: balance))
                 } else if let error {
                     Text(error)
                         .font(.caption)

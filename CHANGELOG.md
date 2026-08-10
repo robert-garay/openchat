@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Long-pressing a chat history item now shows the context menu near the tapped row instead of centered on the screen.
+- Removed the selected-state highlight from the currently open chat in the history drawer.
+
 ### Fixed
 
 - Fixed GitHub Actions release workflow YAML parsing by moving the changelog extraction into a standalone script and removing heredoc-style `<<` tokens that the Actions parser rejected.
