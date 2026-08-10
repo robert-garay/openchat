@@ -164,7 +164,7 @@ struct AnthropicClient: ChatCompletionClient {
         let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools, reasoningEnabled: reasoningEnabled)
         request.httpBody = body
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             let bodyText = String(data: data, encoding: .utf8) ?? ""
             throw ChatServiceError.http(status: http.statusCode, body: bodyText)

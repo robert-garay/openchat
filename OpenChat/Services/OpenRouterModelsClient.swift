@@ -9,7 +9,7 @@ struct OpenRouterModelsClient: Sendable {
         var request = URLRequest(url: endpoint)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             throw OpenRouterModelsError.httpStatus(http.statusCode)
         }

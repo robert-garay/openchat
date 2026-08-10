@@ -21,7 +21,7 @@ struct ExaClient: WebSearchClient {
             )
         )
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         try Self.throwIfNeeded(response: response, data: data)
 
         let decoded = try JSONDecoder().decode(APIResponse.self, from: data)

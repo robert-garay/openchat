@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed GitHub Actions release workflow YAML parsing by moving the changelog extraction into a standalone script and removing heredoc-style `<<` tokens that the Actions parser rejected.
+- Fixed web search and other non-streaming network requests failing when the app is backgrounded by routing them through a background URLSession with download/upload tasks and the corresponding `handleEventsForBackgroundURLSession` AppDelegate hook.
 
 ### Deprecated
 

@@ -140,6 +140,7 @@
 		B3971BFBB5789756EB4C07A8 /* OpenAICompatibleClient+WireTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */; };
 		B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */; };
 		B7354F0D7E69E62AAB5F1955 /* RuleReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD0509650F72AD06DFB5CDE /* RuleReviewSheet.swift */; };
+		B924DA90FC60082B2255A052 /* BackgroundNetworkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FC75289E26C86836CE9F6B /* BackgroundNetworkSession.swift */; };
 		B9B31479BD07E09ACA54CD31 /* BackgroundGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E3FABE0FEED5EABA61F6ED /* BackgroundGenerationService.swift */; };
 		B9CCF4A8CEE98C3C1F9023EB /* ChatMessageProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374A1E442B137C07DDA666EB /* ChatMessageProviderTests.swift */; };
 		BD1770BB13C4C00FDB3F807C /* FuzzyMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F4107DB67495A3124A91BB /* FuzzyMatcher.swift */; };
@@ -305,6 +306,7 @@
 		83E7E0496AC042185FEBCC58 /* AssistantMarkdownMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantMarkdownMessageView.swift; sourceTree = "<group>"; };
 		83EDB4B9E2AA5C012D6E7DF4 /* RemindersActionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersActionParserTests.swift; sourceTree = "<group>"; };
 		85DBF651694D60DF74467C43 /* EffortLevelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffortLevelPicker.swift; sourceTree = "<group>"; };
+		85FC75289E26C86836CE9F6B /* BackgroundNetworkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundNetworkSession.swift; sourceTree = "<group>"; };
 		869C87CC70474E6D2E98F89F /* ContactsWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsWriter.swift; sourceTree = "<group>"; };
 		86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
 		8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesSettingsView.swift; sourceTree = "<group>"; };
@@ -502,6 +504,7 @@
 				F539AA6FA57B47B500D2880B /* AnyCodableJSON.swift */,
 				48E3FABE0FEED5EABA61F6ED /* BackgroundGenerationService.swift */,
 				6472C87413D244B6FD8F16C8 /* BackgroundGenerationService+Proposals.swift */,
+				85FC75289E26C86836CE9F6B /* BackgroundNetworkSession.swift */,
 				6C7A805BCB76208FC5FDDCB5 /* BraveSearchClient.swift */,
 				2F7EBB374CCCA1074ECEAF1D /* CalendarActionParser.swift */,
 				001515E7D612955EE697BC2B /* CalendarContextReader.swift */,
@@ -849,6 +852,7 @@
 				778EF96B0EEF09EC10FA72B2 /* AttachmentComposerBox.swift in Sources */,
 				1EA6D465514F771B63945E6D /* BackgroundGenerationService+Proposals.swift in Sources */,
 				B9B31479BD07E09ACA54CD31 /* BackgroundGenerationService.swift in Sources */,
+				B924DA90FC60082B2255A052 /* BackgroundNetworkSession.swift in Sources */,
 				1EDE3AC0B9984331EDBE16EC /* BraveSearchClient.swift in Sources */,
 				8DA024846ECAD29F7746EFD9 /* CalendarAccessMode.swift in Sources */,
 				6A2E36A2686F94E3015A90D2 /* CalendarActionParser.swift in Sources */,

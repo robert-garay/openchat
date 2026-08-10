@@ -143,7 +143,7 @@ struct ProviderModelsClient: Sendable {
     // MARK: - Shared helpers
 
     private func perform(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             let body = String(data: data, encoding: .utf8) ?? ""
             throw ProviderModelsError.http(status: http.statusCode, body: body)

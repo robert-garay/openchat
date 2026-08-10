@@ -158,7 +158,7 @@ struct ProviderBalanceClient: Sendable {
     // MARK: - Shared
 
     private func perform(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.backgroundCompatibleData(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw BalanceError.invalidResponse
         }
