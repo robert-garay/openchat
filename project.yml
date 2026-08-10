@@ -115,6 +115,7 @@ targets:
     sources:
       - path: OpenChatLiveActivityExtension
       - path: OpenChat/Services/OpenChatLiveActivityAttributes.swift
+      - path: OpenChat/Resources/SharedAssets.xcassets
     info:
       path: OpenChatLiveActivityExtension/Info.plist
       properties:
