@@ -20,8 +20,7 @@ actor LiveActivityService {
             modelName: modelName ?? "Assistant"
         )
         let initialState = OpenChatLiveActivityAttributes.ContentState(
-            status: .generating(elapsed: 0),
-            detail: "Generating response…"
+            status: .generating(elapsed: 0)
         )
 
         do {
@@ -45,28 +44,7 @@ actor LiveActivityService {
             return
         }
 
-        let contentState: OpenChatLiveActivityAttributes.ContentState
-        switch status {
-        case .generating(let elapsed):
-            let detail = elapsed < 60
-                ? "Generating response…"
-                : "Still generating \(Int(elapsed / 60))m…"
-            contentState = OpenChatLiveActivityAttributes.ContentState(
-                status: .generating(elapsed: elapsed),
-                detail: detail
-            )
-        case .completed:
-            contentState = OpenChatLiveActivityAttributes.ContentState(
-                status: .completed,
-                detail: "Response ready"
-            )
-        case .failed:
-            contentState = OpenChatLiveActivityAttributes.ContentState(
-                status: .failed,
-                detail: "Response failed"
-            )
-        }
-
+        let contentState = OpenChatLiveActivityAttributes.ContentState(status: status)
         await activity.update(ActivityContent(state: contentState, staleDate: nil))
     }
 
@@ -75,11 +53,7 @@ actor LiveActivityService {
         guard let activityID, activityIDs.remove(activityID) != nil else { return }
         guard let activity = Activity<OpenChatLiveActivityAttributes>.activities.first(where: { $0.id == activityID }) else { return }
 
-        let detail = status == .failed ? "Response failed" : "Response ready"
-        let finalState = OpenChatLiveActivityAttributes.ContentState(
-            status: status,
-            detail: detail
-        )
+        let finalState = OpenChatLiveActivityAttributes.ContentState(status: status)
         await activity.end(ActivityContent(state: finalState, staleDate: nil), dismissalPolicy: .default)
     }
 }

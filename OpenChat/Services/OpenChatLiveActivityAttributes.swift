@@ -7,7 +7,6 @@ import ActivityKit
 struct OpenChatLiveActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var status: Status
-        var detail: String
     }
 
     enum Status: Codable, Hashable {
@@ -21,19 +20,21 @@ struct OpenChatLiveActivityAttributes: ActivityAttributes {
 }
 
 extension OpenChatLiveActivityAttributes.Status {
-    var iconName: String {
-        switch self {
-        case .generating: "sparkles"
-        case .completed: "checkmark.circle.fill"
-        case .failed: "xmark.circle.fill"
-        }
-    }
-
-    var iconTint: Color {
+    var tintColor: Color {
         switch self {
         case .generating: .accentColor
         case .completed: .green
         case .failed: .red
         }
+    }
+
+    /// Only meaningful while `.generating`; other states report 0.
+    var elapsed: TimeInterval {
+        if case .generating(let elapsed) = self { elapsed }
+        else { 0 }
+    }
+
+    var isGenerating: Bool {
+        if case .generating = self { true } else { false }
     }
 }
