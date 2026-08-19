@@ -270,22 +270,44 @@ final class BackgroundGenerationService {
                 effectiveReasoningEnabled: effectiveReasoningEnabled
             )
 
-            try await runStream(
-                client: client,
-                modelID: modelID,
-                baseURL: baseURL,
-                apiKey: apiKey,
-                turns: result.turns,
-                tools: result.tools,
-                executeTool: result.executeTool,
-                supportsImageGen: supportsImageGen,
-                effort: effectiveEffortLevel,
-                reasoningEnabled: effectiveReasoningEnabled,
-                assistantMessage: assistantMessage,
-                activityID: activityID,
-                conversationID: conversationID,
-                startDate: startDate
-            )
+            var workingTurns = result.turns
+            var continuationAttempts = 0
+            let maxContinuationAttempts = 1
+
+            while true {
+                do {
+                    try await runStream(
+                        client: client,
+                        modelID: modelID,
+                        baseURL: baseURL,
+                        apiKey: apiKey,
+                        turns: workingTurns,
+                        tools: result.tools,
+                        executeTool: result.executeTool,
+                        supportsImageGen: supportsImageGen,
+                        effort: effectiveEffortLevel,
+                        reasoningEnabled: effectiveReasoningEnabled,
+                        assistantMessage: assistantMessage,
+                        activityID: activityID,
+                        conversationID: conversationID,
+                        startDate: startDate
+                    )
+                    break
+                } catch ChatServiceError.connectionDropped
+                where continuationAttempts < maxContinuationAttempts && !assistantMessage.content.isEmpty {
+                    // Silent auto-retry, resume in place: nothing has streamed
+                    // has been lost (Task 8's flush fix guarantees that), so
+                    // we ask the model to continue from exactly where it
+                    // stopped rather than re-sending the original request.
+                    continuationAttempts += 1
+                    await NetworkMonitor.shared.waitForConnection()
+                    try Task.checkCancellation()
+                    workingTurns = Self.continuationTurns(
+                        previousTurns: workingTurns,
+                        partialContent: assistantMessage.content
+                    )
+                }
+            }
 
             await applyPostStream(
                 assistantMessage: assistantMessage,
@@ -348,6 +370,21 @@ final class BackgroundGenerationService {
         conversation.updatedAt = .now
         try? modelContext.save()
         notify(event: .cancelled, conversationID: conversationID, messageID: message.id)
+    }
+
+    /// Builds the follow-up turns for a single silent continuation attempt
+    /// after a mid-stream connection drop: the original turns, the partial
+    /// reply already received (as if the model had said exactly that much),
+    /// and an instruction to continue. This is a genuinely new request, not
+    /// a re-send of the failed one — see `ChatServiceError.connectionDropped`.
+    nonisolated static func continuationTurns(previousTurns: [ChatTurn], partialContent: String) -> [ChatTurn] {
+        previousTurns + [
+            ChatTurn(role: .assistant, content: partialContent),
+            ChatTurn(
+                role: .user,
+                content: "Continue your previous response exactly where it left off. Do not repeat any earlier part of the reply."
+            ),
+        ]
     }
 
     private func buildTurns(

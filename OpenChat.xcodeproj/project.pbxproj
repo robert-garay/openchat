@@ -185,6 +185,7 @@
 		F9EA6CDD147CCF17C939B37F /* ChatSystemPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171BE7CFCD7882F664507EAB /* ChatSystemPromptBuilder.swift */; };
 		FBF1A6CE34FD4FEAD3F93E8B /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1692A75A2DCFA5BCF9779CC5 /* DataSourcesSettingsView.swift */; };
 		FD96651C338CDB01CAAC76DE /* ConversationDraftPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06065844B4FECEFA73D1FB41 /* ConversationDraftPersistenceTests.swift */; };
+		E50A76CA11D2214F97411C76 /* ContinuationTurnsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD866C655A5A27EB1EDEE643 /* ContinuationTurnsTests.swift */; };
 		B2C3D4E5F6A1B2C3D4E5F6A1 /* BackgroundCompatibleDataRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A1B2C3D4E5F6 /* BackgroundCompatibleDataRetryTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -401,6 +402,7 @@
 		F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
 		FCDA60F07EBC0A7BA930CCE6 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageMarkdownSourceTests.swift; sourceTree = "<group>"; };
+		FD866C655A5A27EB1EDEE643 /* ContinuationTurnsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuationTurnsTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A1B2C3D4E5F6 /* BackgroundCompatibleDataRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundCompatibleDataRetryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -692,6 +694,7 @@
 				FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */,
 				374A1E442B137C07DDA666EB /* ChatMessageProviderTests.swift */,
 				55D4B1B3ADF60896170175AC /* ChatRequestHistoryTests.swift */,
+				FD866C655A5A27EB1EDEE643 /* ContinuationTurnsTests.swift */,
 				B2BC4C0EF7D75F93D0553A0D /* ChatServiceErrorTests.swift */,
 				B7D741ACF3D3896C2351AB40 /* ChatSystemPromptBuilderTests.swift */,
 				E56D158903EE14F6EC3BA262 /* ContactsActionParserTests.swift */,
@@ -1051,6 +1054,7 @@
 				B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */,
 				74C11B2C907F886EC2F51D9A /* RetryPolicyTests.swift in Sources */,
 				F9B33BC39CB6E9005C6FE2B6 /* NetworkMonitorTests.swift in Sources */,
+				E50A76CA11D2214F97411C76 /* ContinuationTurnsTests.swift in Sources */,
 				E067E1A87930037A77421356 /* NetworkRetrierTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
