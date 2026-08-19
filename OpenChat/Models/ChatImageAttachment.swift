@@ -94,7 +94,7 @@ enum GeneratedImageParser {
     ) -> (text: String, images: [ChatImageAttachment]) {
         let tagResult = extractImageTagDataURIs(from: text)
         let markdownResult = extractMarkdownDataURIImages(from: tagResult.text)
-        let images = tagResult.images + markdownResult.images
+        let images = GeneratedImageDeduper.unique(from: tagResult.images + markdownResult.images)
         var cleaned = markdownResult.text
 
         if hasExistingImages || !images.isEmpty {

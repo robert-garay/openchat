@@ -167,12 +167,12 @@ struct OpenAICompatibleClient: ChatCompletionClient {
     ) throws {
         try Task.checkCancellation()
         var text = result.text
-        var images = result.images
+        var images = GeneratedImageDeduper.unique(from: result.images)
 
         if images.isEmpty {
             let extracted = GeneratedImageParser.extractMarkdownDataURIImages(from: text)
             text = extracted.text
-            images = extracted.images
+            images = GeneratedImageDeduper.unique(from: extracted.images)
         }
 
         if !text.isEmpty {
@@ -236,6 +236,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         }
         // Some providers put image parts inside multimodal `content` arrays.
         images.append(contentsOf: message.content.inlineImages)
+        images = GeneratedImageDeduper.unique(from: images)
 
         return ChatCompletionResult(
             text: message.content.text,
@@ -329,7 +330,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             }
             streamImages.append(contentsOf: delta?.content.inlineImages ?? [])
             if !streamImages.isEmpty {
-                continuation.yield(.images(streamImages))
+                continuation.yield(.images(GeneratedImageDeduper.unique(from: streamImages)))
             }
         }
 
