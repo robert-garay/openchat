@@ -39,6 +39,15 @@ enum ConversationTitleGenerator {
         }
         title = title.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // Markdown syntax characters are never meaningful literal content in a short
+        // generated title, so they're removed outright rather than merely trimmed —
+        // this also handles inline cases like "`inline code` title".
+        for markdownCharacter in ["*", "_", "`"] {
+            title = title.replacingOccurrences(of: markdownCharacter, with: "")
+        }
+        title = String(title.drop(while: { $0 == "#" }))
+        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+
         let quoteScalars = CharacterSet(charactersIn: "\"'`“”‘’«»")
         let punctuationScalars = CharacterSet(charactersIn: ".!?。…")
         var previous = ""
