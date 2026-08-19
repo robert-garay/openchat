@@ -185,6 +185,7 @@
 		F9EA6CDD147CCF17C939B37F /* ChatSystemPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171BE7CFCD7882F664507EAB /* ChatSystemPromptBuilder.swift */; };
 		FBF1A6CE34FD4FEAD3F93E8B /* DataSourcesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1692A75A2DCFA5BCF9779CC5 /* DataSourcesSettingsView.swift */; };
 		FD96651C338CDB01CAAC76DE /* ConversationDraftPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06065844B4FECEFA73D1FB41 /* ConversationDraftPersistenceTests.swift */; };
+		B2C3D4E5F6A1B2C3D4E5F6A1 /* BackgroundCompatibleDataRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A1B2C3D4E5F6 /* BackgroundCompatibleDataRetryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -400,6 +401,7 @@
 		F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
 		FCDA60F07EBC0A7BA930CCE6 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageMarkdownSourceTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* BackgroundCompatibleDataRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundCompatibleDataRetryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -719,6 +721,7 @@
 				C6397C1C4CF524093E7D2B60 /* ServerSentEventStreamTests.swift */,
 				A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */,
 				9D007FC412BDCB9164328E99 /* StreamingToolLoopTests.swift */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* BackgroundCompatibleDataRetryTests.swift */,
 				A7C4523F290B464D9B270632 /* MockURLProtocol.swift */,
 				D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */,
 				B9AF41F3686F47694F588952 /* RetryPolicyTests.swift */,
@@ -1043,6 +1046,7 @@
 				11792C1C40F3C32052F6CBBE /* ServerSentEventStreamTests.swift in Sources */,
 				F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */,
 				6D76E9D70EA7EDF9982AC8B9 /* StreamingToolLoopTests.swift in Sources */,
+				B2C3D4E5F6A1B2C3D4E5F6A1 /* BackgroundCompatibleDataRetryTests.swift in Sources */,
 				0DE5C08CF5644047B351F3F2 /* MockURLProtocol.swift in Sources */,
 				B4AA749E1FDFC6AB51A36630 /* WebSearchServiceTests.swift in Sources */,
 				74C11B2C907F886EC2F51D9A /* RetryPolicyTests.swift in Sources */,
