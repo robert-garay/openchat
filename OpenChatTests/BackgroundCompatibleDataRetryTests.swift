@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import OpenChat
 
+@Suite(.serialized)
 struct BackgroundCompatibleDataRetryTests {
     private func makeSession() -> URLSession {
         let configuration = URLSessionConfiguration.ephemeral
