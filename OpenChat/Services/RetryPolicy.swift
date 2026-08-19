@@ -42,6 +42,21 @@ struct RetryPolicy: Sendable {
         return ambiguousCodes.contains(urlError.code)
     }
 
+    /// Whether a failure looks like a transient network interruption worth
+    /// resuming from — distinct from `isRetryable`, which answers "is it
+    /// safe to re-send this exact request?". A mid-stream drop is never
+    /// re-sent (see `ServerSentEventStream`), so it asks this question
+    /// instead: pre-connection codes and the ambiguous set (`.timedOut`,
+    /// `.networkConnectionLost`) are both transient network interruptions,
+    /// and so is a 429/5xx.
+    static func isTransientNetworkFailure(_ error: Error) -> Bool {
+        if case ChatServiceError.http(let status, _) = error {
+            return status == 429 || (500...599).contains(status)
+        }
+        guard let urlError = error as? URLError else { return false }
+        return preConnectionCodes.contains(urlError.code) || ambiguousCodes.contains(urlError.code)
+    }
+
     func delay(forAttempt attempt: Int) -> Duration {
         let exponent = Double(max(attempt - 1, 0))
         let raw = baseDelayMilliseconds * pow(2, exponent)

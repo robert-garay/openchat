@@ -294,11 +294,19 @@ final class BackgroundGenerationService {
                     )
                     break
                 } catch ChatServiceError.connectionDropped
-                where continuationAttempts < maxContinuationAttempts && !assistantMessage.content.isEmpty {
-                    // Silent auto-retry, resume in place: nothing has streamed
+                where continuationAttempts < maxContinuationAttempts
+                    && !assistantMessage.content.isEmpty
+                    && result.tools.isEmpty {
+                    // Silent auto-retry, resume in place: nothing that streamed
                     // has been lost (Task 8's flush fix guarantees that), so
                     // we ask the model to continue from exactly where it
                     // stopped rather than re-sending the original request.
+                    // Continuation is only attempted when no tools were available
+                    // for this generation: the continuation only knows the
+                    // pre-loop turns and the streamed text, not any tool
+                    // calls/results the client's internal tool loop may have
+                    // already run — resuming would risk silently re-executing
+                    // (and re-billing) those tools.
                     continuationAttempts += 1
                     await NetworkMonitor.shared.waitForConnection()
                     try Task.checkCancellation()

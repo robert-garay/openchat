@@ -2,11 +2,15 @@ import Foundation
 
 /// Serves queued canned responses (or errors) and counts how many requests were issued.
 /// Shared across test targets that need to stub `URLSession` traffic.
-final class MockURLProtocol: URLProtocol {
+// Instances are only ever touched by URLSession's loading machinery for a
+// single request/response cycle; the `dropAfterBody` delayed-error path below
+// hands `self` to a background timer that outlives that synchronous cycle.
+final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     private struct Stub {
         let body: Data?
         let contentType: String?
         let error: Error?
+        var dropAfterBody: Bool = false
     }
 
     private static let lock = NSLock()
@@ -48,6 +52,16 @@ final class MockURLProtocol: URLProtocol {
         stubs.append(Stub(body: nil, contentType: nil, error: error))
     }
 
+    /// Queues a response that starts successfully (delivers `sse` as SSE
+    /// body bytes) and then fails mid-body with `error` — simulating a
+    /// connection that drops partway through an in-progress stream, as
+    /// opposed to `enqueue(error:)` which fails before any bytes arrive.
+    static func enqueue(sseBeforeDrop sse: String, thenFailWith error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        stubs.append(Stub(body: Data(sse.utf8), contentType: "text/event-stream", error: error, dropAfterBody: true))
+    }
+
     static var requestCount: Int {
         lock.lock()
         defer { lock.unlock() }
@@ -75,6 +89,25 @@ final class MockURLProtocol: URLProtocol {
             return
         }
         if let error = stub.error {
+            if stub.dropAfterBody, let body = stub.body {
+                let response = HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: "HTTP/1.1",
+                    headerFields: ["Content-Type": stub.contentType ?? "application/json"]
+                )!
+                client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                client?.urlProtocol(self, didLoad: body)
+                // `bytes.lines` consumes loaded data asynchronously; failing on the
+                // same run-loop turn as the load can lose the race and drop the
+                // buffered line before the consumer reads it. A short delay lets
+                // the stream actually deliver "hello" before the drop.
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    guard let self else { return }
+                    self.client?.urlProtocol(self, didFailWithError: error)
+                }
+                return
+            }
             client?.urlProtocol(self, didFailWithError: error)
             return
         }

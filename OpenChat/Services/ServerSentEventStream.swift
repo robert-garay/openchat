@@ -64,6 +64,7 @@ enum ServerSentEventStream {
                         } else {
                             await networkMonitor.waitForConnection()
                         }
+                        try Task.checkCancellation()
                         attempt += 1
                     }
                 }
@@ -82,7 +83,7 @@ enum ServerSentEventStream {
     }
 
     private static func midStreamError(for error: Error) -> Error {
-        if RetryPolicy.isRetryable(error, costSensitive: true) {
+        if RetryPolicy.isTransientNetworkFailure(error) {
             return ChatServiceError.connectionDropped
         }
         return error

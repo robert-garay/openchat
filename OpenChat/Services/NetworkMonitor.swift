@@ -7,9 +7,15 @@ protocol PathMonitoring: Sendable {
     func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async
 }
 
-struct SystemPathMonitor: PathMonitoring {
+// `monitor` is only ever written from `start`, which `NetworkMonitor.start()`
+// guards to run at most once (via `isStarted`), so there is no concurrent
+// mutation despite the stored `var`.
+final class SystemPathMonitor: PathMonitoring, @unchecked Sendable {
+    private var monitor: NWPathMonitor?
+
     func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async {
         let monitor = NWPathMonitor()
+        self.monitor = monitor
         monitor.pathUpdateHandler = { path in
             Task { await onUpdate(path.status == .satisfied) }
         }
@@ -54,12 +60,21 @@ actor NetworkMonitor {
     }
 
     /// Suspends until the network becomes reachable, or returns immediately
-    /// if it already is.
+    /// if it already is. Cancellation-aware: a cancelled task's wait is
+    /// resumed immediately rather than hanging until connectivity returns.
     func waitForConnection() async {
         if isConnected { return }
         let id = UUID()
-        await withCheckedContinuation { continuation in
-            waiters[id] = continuation
+        await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                waiters[id] = continuation
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(id) }
         }
+    }
+
+    private func cancelWaiter(_ id: UUID) {
+        waiters.removeValue(forKey: id)?.resume()
     }
 }

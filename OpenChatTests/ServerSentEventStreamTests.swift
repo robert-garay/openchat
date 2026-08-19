@@ -52,16 +52,8 @@ final class ServerSentEventStreamTests: XCTestCase {
         XCTAssertEqual(MockURLProtocol.requestCount, 2)
     }
 
-    func testDoesNotRetryAfterAPayloadHasAlreadyBeenYielded() async {
+    func testSingleSuccessfulStreamMakesExactlyOneRequest() async {
         MockURLProtocol.reset()
-        // First connection yields one payload, then the byte stream itself
-        // fails with a transient error mid-read. There is no way to express
-        // "fail partway through a body" via MockURLProtocol's didLoad, so
-        // this scenario is covered at the BackgroundGenerationService level
-        // (Task 9) instead; this test only asserts the pre-payload path
-        // above never retries once `hasYieldedAny` would be true, by
-        // checking the request count stays at 1 for a normal successful
-        // single-shot stream.
         MockURLProtocol.enqueue(sse: "data: hello\n\ndata: [DONE]\n\n")
         let request = URLRequest(url: URL(string: "https://example.com")!)
         let payloads = try? await collect(
@@ -69,5 +61,36 @@ final class ServerSentEventStreamTests: XCTestCase {
         )
         XCTAssertEqual(payloads, ["hello"])
         XCTAssertEqual(MockURLProtocol.requestCount, 1)
+    }
+
+    func testMidBodyDropAfterYieldSurfacesAsConnectionDroppedWithoutRetrying() async {
+        MockURLProtocol.reset()
+        MockURLProtocol.enqueue(
+            sseBeforeDrop: "data: hello\n\n",
+            thenFailWith: URLError(.networkConnectionLost)
+        )
+        let request = URLRequest(url: URL(string: "https://example.com")!)
+        let stream = ServerSentEventStream.dataPayloads(
+            for: request,
+            session: makeSession(),
+            retryPolicy: RetryPolicy(maxAttempts: 3, baseDelayMilliseconds: 1, maxDelayMilliseconds: 5, costSensitive: true)
+        )
+
+        var payloads: [String] = []
+        var thrown: Error?
+        do {
+            for try await payload in stream {
+                payloads.append(payload)
+            }
+        } catch {
+            thrown = error
+        }
+
+        XCTAssertEqual(payloads, ["hello"])
+        XCTAssertEqual(MockURLProtocol.requestCount, 1)
+        guard case .some(ChatServiceError.connectionDropped) = thrown as? ChatServiceError else {
+            XCTFail("expected ChatServiceError.connectionDropped, got \(String(describing: thrown))")
+            return
+        }
     }
 }

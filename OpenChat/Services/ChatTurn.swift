@@ -75,7 +75,7 @@ enum ChatServiceError: LocalizedError {
         case .connectionDropped:
             return """
             The connection dropped partway through the response. \
-            OpenChat will automatically try to reconnect and resume where it left off.
+            OpenChat tries to reconnect and resume automatically when possible.
             """
         case .modelLacksVision:
             return "This model can't process images. Choose a vision-capable model."
