@@ -542,6 +542,16 @@ final class BackgroundGenerationService {
         var lastProgressNotify = ContinuousClock().now
         let progressNotifyInterval: Duration = .seconds(1)
 
+        // Runs on every exit path — including a mid-stream throw — so a
+        // network drop can never silently lose the last (up to
+        // flushInterval-old) chunk of text that already arrived.
+        defer {
+            if !contentBuffer.isEmpty {
+                assistantMessage.content += contentBuffer
+                contentBuffer = ""
+            }
+        }
+
         for try await event in client.streamReply(
             turns: turns,
             model: modelID,
@@ -576,10 +586,6 @@ final class BackgroundGenerationService {
                 existing.append(contentsOf: images)
                 assistantMessage.imageAttachments = existing
             }
-        }
-
-        if !contentBuffer.isEmpty {
-            assistantMessage.content += contentBuffer
         }
     }
 
