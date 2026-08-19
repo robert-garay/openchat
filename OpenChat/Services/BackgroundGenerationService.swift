@@ -12,7 +12,8 @@ import UIKit
 /// tasks, so navigating away from a thread does not cancel the stream. When the app
 /// moves to the background the task requests background execution time and updates
 /// a Live Activity; on completion it posts a local notification if the app is still
-/// backgrounded.
+/// backgrounded. While any generation is active and the app is foregrounded, the
+/// idle timer is disabled so the screen doesn't auto-lock mid-response.
 @MainActor
 final class BackgroundGenerationService {
     static let shared = BackgroundGenerationService()
@@ -141,6 +142,7 @@ final class BackgroundGenerationService {
             activityID: nil,
             backgroundTaskID: backgroundTaskID
         )
+        updateIdleTimer()
 
         notify(event: .started, conversationID: conversationID, messageID: assistantMessage.id)
         return taskID
@@ -148,6 +150,7 @@ final class BackgroundGenerationService {
 
     func cancelGeneration(for conversationID: UUID) {
         guard let active = tasks.removeValue(forKey: conversationID) else { return }
+        updateIdleTimer()
         active.task.cancel()
         endBackgroundTask(active.backgroundTaskID)
         Task {
@@ -172,6 +175,7 @@ final class BackgroundGenerationService {
                 if let active = tasks[conversationID], active.taskID == taskID {
                     endBackgroundTask(active.backgroundTaskID)
                     tasks.removeValue(forKey: conversationID)
+                    updateIdleTimer()
                 }
             }
             Task {
@@ -720,6 +724,14 @@ final class BackgroundGenerationService {
     private func endBackgroundTask(_ id: UIBackgroundTaskIdentifier?) {
         guard let id, id != .invalid else { return }
         UIApplication.shared.endBackgroundTask(id)
+    }
+
+    /// Keeps the screen from auto-locking while any generation is in flight,
+    /// so a long response isn't interrupted by idle sleep while the app is
+    /// foregrounded. Does not affect a manual lock-button press or the app
+    /// being backgrounded — only the OS idle timer.
+    private func updateIdleTimer() {
+        UIApplication.shared.isIdleTimerDisabled = !tasks.isEmpty
     }
 
     private func notify(event: BackgroundGenerationEvent, conversationID: UUID, messageID: UUID) {
