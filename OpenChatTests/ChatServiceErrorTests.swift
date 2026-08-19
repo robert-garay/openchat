@@ -23,6 +23,12 @@ final class ChatServiceErrorTests: XCTestCase {
         XCTAssertEqual(mapped, ChatServiceError.cancelled.localizedDescription)
     }
 
+    func testConnectionDroppedMessageExplainsReconnection() {
+        let message = ChatServiceError.connectionDropped.localizedDescription
+        XCTAssertTrue(message.localizedCaseInsensitiveContains("connection"))
+        XCTAssertTrue(message.localizedCaseInsensitiveContains("reconnect") || message.localizedCaseInsensitiveContains("resum"))
+    }
+
     func testChatSessionUsesExtendedIdleTimeout() {
         let configuration = ChatService.urlSession.configuration
         XCTAssertGreaterThan(configuration.timeoutIntervalForRequest, 60)
