@@ -69,6 +69,7 @@ struct OpenChatApp: App {
                     newValue.applyToAllWindows()
                 }
                 .task {
+                    await NetworkMonitor.shared.start()
                     BackgroundGenerationService.shared.configure(
                         providerStore: providerStore,
                         dataSourceStore: dataSourceStore,
