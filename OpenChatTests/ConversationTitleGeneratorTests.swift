@@ -35,6 +35,34 @@ final class ConversationTitleGeneratorTests: XCTestCase {
     func testSanitizeRejectsEmpty() {
         XCTAssertNil(ConversationTitleGenerator.sanitize("   \"\"  "))
     }
+
+    func testSanitizeStripsBoldAsterisks() {
+        XCTAssertEqual(
+            ConversationTitleGenerator.sanitize("**Trip Planning**"),
+            "Trip Planning"
+        )
+    }
+
+    func testSanitizeStripsLeadingHeadingMarker() {
+        XCTAssertEqual(
+            ConversationTitleGenerator.sanitize("# Weekend Getaway"),
+            "Weekend Getaway"
+        )
+    }
+
+    func testSanitizeStripsInlineCodeBackticks() {
+        XCTAssertEqual(
+            ConversationTitleGenerator.sanitize("`inline code` title"),
+            "inline code title"
+        )
+    }
+
+    func testSanitizeStripsUnderscoreEmphasis() {
+        XCTAssertEqual(
+            ConversationTitleGenerator.sanitize("_Quarterly Review_"),
+            "Quarterly Review"
+        )
+    }
 }
 
 final class ConversationRenameTests: XCTestCase {

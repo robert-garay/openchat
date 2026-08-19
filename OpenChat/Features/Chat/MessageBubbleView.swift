@@ -172,7 +172,7 @@ struct MessageBubbleView: View {
                     TypingIndicatorView()
                         .padding(.top, 6)
                 } else if !displayContent.isEmpty {
-                    AssistantMarkdownMessageView(content: displayContent)
+                    AssistantMarkdownMessageView(message: message, displayContent: Self.displayContent)
                 }
 
                 #if canImport(UIKit)
@@ -244,7 +244,7 @@ struct MessageBubbleView: View {
 
                 if let errorMessage = message.errorMessage {
                     VStack(alignment: .leading, spacing: 10) {
-                        AssistantMarkdownMessageView(content: errorMessage)
+                        StaticMarkdownMessageView(content: errorMessage)
                         Button("Retry", action: onRetry)
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.bordered)
@@ -255,7 +255,9 @@ struct MessageBubbleView: View {
         }
     }
 
-    private var displayContent: String {
+    private var displayContent: String { Self.displayContent(message) }
+
+    nonisolated static func displayContent(_ message: ChatMessage) -> String {
         let stripped = RuleActionParser.strippingFences(
             from: MemoryActionParser.strippingFences(
                 from: ContactsActionParser.strippingFences(
