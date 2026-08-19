@@ -68,6 +68,7 @@
 		41AE54096BF4EC15A5FC64FB /* SkillsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3EAB9F6FED35ED8294CFC48 /* SkillsStore.swift */; };
 		4280F4C8BBA345EE2CA157A9 /* MemorySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E9ED4DCFD6273748937FE8 /* MemorySettingsView.swift */; };
 		42BF265CE3F9CA656D200940 /* ModelCapabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BA588DEFC44B3FF011184B /* ModelCapabilityTests.swift */; };
+		4355ED178DB82571219CCA2D /* GeneratedImageDeduperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C9ED3D8659F72074C289F8 /* GeneratedImageDeduperTests.swift */; };
 		44D422EC5A53523EB4624F35 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031CE6B165039967ACAE5CC7 /* ChatRequestHistory.swift */; };
 		459793214E976CAF826C72A5 /* MultimodalAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625207D9421CDC2E865C48AC /* MultimodalAttachmentTests.swift */; };
 		47284C1919392B64A9139F82 /* WebSearchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3754E66D7BDE277BB7FF4A82 /* WebSearchSettingsView.swift */; };
@@ -80,6 +81,7 @@
 		548F6750188F2D6C1F4FBCBA /* ChatMessageMarkdownSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB68353AE6ECD3C05D9300D /* ChatMessageMarkdownSource.swift */; };
 		5559CA344EFD6C3DC1EEFA12 /* TypingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86ACAFAB9CF492F81B5E337B /* TypingIndicatorView.swift */; };
 		55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B6833C665EE14E8DE94E5F1 /* ModelPickerSheet.swift */; };
+		55E2C2A686CC5507F008196B /* GeneratedImageDeduper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB975D54D6DC13D831701F18 /* GeneratedImageDeduper.swift */; };
 		5649D4924D165D5D27566019 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227AEA38B8D189D59EB9E32A /* KeychainStore.swift */; };
 		5676EA23A90AE84B83C5208C /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F37641FF5C574A5F3F8F6FCC /* AppIntents.framework */; };
 		56AD98224DF3BB5BC0756F65 /* AssistantMarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E7E0496AC042185FEBCC58 /* AssistantMarkdownMessageView.swift */; };
@@ -343,6 +345,7 @@
 		B6731146FCF7A2CD31987C15 /* AgentDataSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSourceStore.swift; sourceTree = "<group>"; };
 		B7D741ACF3D3896C2351AB40 /* ChatSystemPromptBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilderTests.swift; sourceTree = "<group>"; };
 		B9100221764BF1ED1D5CEFB5 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		BB975D54D6DC13D831701F18 /* GeneratedImageDeduper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedImageDeduper.swift; sourceTree = "<group>"; };
 		BC5E5C0A676815512C4B534A /* APIKeySettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeySettingsSection.swift; sourceTree = "<group>"; };
 		BE39E5FE1932B11E6E4ABE57 /* OpenChatLiveActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatLiveActivityAttributes.swift; sourceTree = "<group>"; };
 		BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
@@ -356,6 +359,7 @@
 		C7C10CF67F7746EB18A4AB68 /* GhostIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostIcon.swift; sourceTree = "<group>"; };
 		C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		C943CFE0C30D296EF07914C9 /* RemindersContextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersContextReader.swift; sourceTree = "<group>"; };
+		C9C9ED3D8659F72074C289F8 /* GeneratedImageDeduperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedImageDeduperTests.swift; sourceTree = "<group>"; };
 		CB0956E2D14D6BFC60E14884 /* EditMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditMessageView.swift; sourceTree = "<group>"; };
 		CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterModelCatalogTests.swift; sourceTree = "<group>"; };
 		CE4B65EB10BF80F18249F7B9 /* ImagePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePreviewView.swift; sourceTree = "<group>"; };
@@ -620,6 +624,7 @@
 				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
 				4CF529654A520BC45155B2D7 /* EffortLevel.swift */,
 				7CFB22E5DAA02F87C7556EF5 /* FitnessHealthDataTypes.swift */,
+				BB975D54D6DC13D831701F18 /* GeneratedImageDeduper.swift */,
 				D14F0680AC3183CE199CC8CE /* MemoryItem.swift */,
 				D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */,
 				22CC8779198901D9F6395995 /* ModelReasoningConfig.swift */,
@@ -685,6 +690,7 @@
 				90DF21A990A4989A7177E07A /* DocumentAttachmentTests.swift */,
 				0446C9738EA458A95A0F9BB7 /* EffortLevelTests.swift */,
 				0A679C0B8E756AC29DB04741 /* FuzzyMatcherTests.swift */,
+				C9C9ED3D8659F72074C289F8 /* GeneratedImageDeduperTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
 				5DBFA78292C34C4CA8FBAF53 /* MemoryActionParserTests.swift */,
 				9BD94C32159B334893A22A33 /* MemoryStoreTests.swift */,
@@ -915,6 +921,7 @@
 				CF8D88908B2E08C1A2DEA587 /* FitnessContextReader.swift in Sources */,
 				34A8CC9DAE9BCDEF74815C9C /* FitnessHealthDataTypes.swift in Sources */,
 				BD1770BB13C4C00FDB3F807C /* FuzzyMatcher.swift in Sources */,
+				55E2C2A686CC5507F008196B /* GeneratedImageDeduper.swift in Sources */,
 				68FC5BE673CD1693B2B880E4 /* GhostIcon.swift in Sources */,
 				48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */,
 				407459942BB263BEEEFB02F6 /* ImagePreviewView.swift in Sources */,
@@ -1006,6 +1013,7 @@
 				71E0EA719984C7C5E98AC3BD /* DocumentAttachmentTests.swift in Sources */,
 				5E332FDFB6FDC2DE4D79DA0C /* EffortLevelTests.swift in Sources */,
 				84990B5D4C2B7EAB1FD4D710 /* FuzzyMatcherTests.swift in Sources */,
+				4355ED178DB82571219CCA2D /* GeneratedImageDeduperTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
 				3DEC186E77E53B5546B37AA5 /* MemoryActionParserTests.swift in Sources */,
 				CD612CC6BD541B43BC28BCDD /* MemoryStoreTests.swift in Sources */,

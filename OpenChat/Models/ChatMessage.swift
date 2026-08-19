@@ -116,9 +116,7 @@ extension ChatMessage {
         )
         content = result.text
         if !result.images.isEmpty {
-            var existing = imageAttachments
-            existing.append(contentsOf: result.images)
-            imageAttachments = existing
+            imageAttachments = GeneratedImageDeduper.merging(result.images, into: imageAttachments)
         }
     }
 }

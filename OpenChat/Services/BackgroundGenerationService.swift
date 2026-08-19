@@ -572,9 +572,10 @@ final class BackgroundGenerationService {
                     lastProgressNotify = now
                 }
             case .images(let images):
-                var existing = assistantMessage.imageAttachments
-                existing.append(contentsOf: images)
-                assistantMessage.imageAttachments = existing
+                assistantMessage.imageAttachments = GeneratedImageDeduper.merging(
+                    images,
+                    into: assistantMessage.imageAttachments
+                )
             }
         }
 
@@ -595,6 +596,7 @@ final class BackgroundGenerationService {
         modelContext: ModelContext,
         conversationID: UUID
     ) async {
+        assistantMessage.extractInlineImages()
         assistantMessage.isStreaming = false
         assistantMessage.completedAt = .now
         assistantMessage.isUnread = visibleConversationID != conversation.id
