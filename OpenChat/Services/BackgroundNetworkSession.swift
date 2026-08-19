@@ -267,10 +267,16 @@ extension URLSession {
     /// Returns data using the shared background-capable session for the app's production
     /// sessions (`URLSession.shared` and `ChatService.urlSession`), while preserving the
     /// ability to inject mock sessions in tests.
-    func backgroundCompatibleData(for request: URLRequest) async throws -> (Data, URLResponse) {
-        if self === URLSession.shared || self === ChatService.urlSession {
-            return try await BackgroundNetworkSession.shared.data(for: request)
+    func backgroundCompatibleData(
+        for request: URLRequest,
+        retryPolicy: RetryPolicy = .default,
+        networkMonitor: NetworkMonitor = .shared
+    ) async throws -> (Data, URLResponse) {
+        try await NetworkRetrier.perform(policy: retryPolicy, networkMonitor: networkMonitor) {
+            if self === URLSession.shared || self === ChatService.urlSession {
+                return try await BackgroundNetworkSession.shared.data(for: request)
+            }
+            return try await self.data(for: request)
         }
-        return try await self.data(for: request)
     }
 }

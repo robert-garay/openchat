@@ -40,6 +40,7 @@ enum ChatServiceError: LocalizedError {
     case decoding(String)
     case cancelled
     case timedOut
+    case connectionDropped
     case modelLacksVision
     case modelLacksFiles
     case serviceNotConfigured
@@ -70,6 +71,11 @@ enum ChatServiceError: LocalizedError {
             The request timed out before the model finished responding. \
             This often happens with very long prompts, large attachments, or a slow provider. \
             Try again, shorten the conversation (Compact), or remove large images.
+            """
+        case .connectionDropped:
+            return """
+            The connection dropped partway through the response. \
+            OpenChat tries to reconnect and resume automatically when possible.
             """
         case .modelLacksVision:
             return "This model can't process images. Choose a vision-capable model."
