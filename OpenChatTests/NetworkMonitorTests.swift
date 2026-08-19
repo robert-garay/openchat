@@ -2,14 +2,14 @@ import Testing
 @testable import OpenChat
 
 private actor FakePathMonitor: PathMonitoring {
-    private var onUpdate: (@Sendable (Bool) -> Void)?
+    private var onUpdate: (@Sendable (Bool) async -> Void)?
 
-    func start(onUpdate: @escaping @Sendable (Bool) -> Void) async {
+    func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async {
         self.onUpdate = onUpdate
     }
 
-    func simulate(connected: Bool) {
-        onUpdate?(connected)
+    func simulate(connected: Bool) async {
+        await onUpdate?(connected)
     }
 }
 

@@ -4,14 +4,14 @@ import Network
 /// Abstracts `NWPathMonitor` so `NetworkMonitor` can be unit tested without
 /// touching real system connectivity.
 protocol PathMonitoring: Sendable {
-    func start(onUpdate: @escaping @Sendable (Bool) -> Void) async
+    func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async
 }
 
 struct SystemPathMonitor: PathMonitoring {
-    func start(onUpdate: @escaping @Sendable (Bool) -> Void) async {
+    func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async {
         let monitor = NWPathMonitor()
         monitor.pathUpdateHandler = { path in
-            onUpdate(path.status == .satisfied)
+            Task { await onUpdate(path.status == .satisfied) }
         }
         monitor.start(queue: DispatchQueue(label: "com.openchat.network-monitor"))
     }
@@ -39,7 +39,7 @@ actor NetworkMonitor {
         guard !isStarted else { return }
         isStarted = true
         await pathMonitor.start { [weak self] connected in
-            Task { await self?.updateConnected(connected) }
+            await self?.updateConnected(connected)
         }
     }
 

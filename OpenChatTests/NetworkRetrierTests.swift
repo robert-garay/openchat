@@ -76,5 +76,5 @@ private actor Counter {
 }
 
 private struct AlwaysConnected: PathMonitoring {
-    func start(onUpdate: @escaping @Sendable (Bool) -> Void) async {}
+    func start(onUpdate: @escaping @Sendable (Bool) async -> Void) async {}
 }
