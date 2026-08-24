@@ -127,7 +127,7 @@ struct ChatView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                if conversation.messages.isEmpty {
+                if conversation.messages.isEmpty || conversation.isTemporary {
                     Button {
                         Haptics.light()
                         onToggleTemporary?()
