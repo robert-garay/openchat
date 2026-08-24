@@ -1,7 +1,9 @@
 import Foundation
+import os
 
 /// Creates ChatGPT-style short titles from the first user message.
 enum ConversationTitleGenerator {
+    private static let logger = Logger(subsystem: "com.openchat.app", category: "ConversationTitleGenerator")
     static let systemPrompt = """
     Generate a concise chat title of 2 to 6 words that captures the user's message. \
     Reply with only the title. Do not use quotation marks, trailing punctuation, \
@@ -116,9 +118,14 @@ enum ConversationTitleGenerator {
                 }
             }
         } catch {
+            logger.error("title generation stream failed: \(String(describing: error), privacy: .public)")
             return nil
         }
 
-        return sanitize(collected)
+        let sanitized = sanitize(collected)
+        if sanitized == nil {
+            logger.error("title generation produced unusable output, raw=\(collected, privacy: .public)")
+        }
+        return sanitized
     }
 }
