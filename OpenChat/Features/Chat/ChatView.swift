@@ -72,7 +72,7 @@ struct ChatView: View {
                 skillsStore: skillsStore,
                 rulesStore: rulesStore,
                 memoryStore: memoryStore,
-                model: voiceModeStore.model.rawValue,
+                model: voiceModeStore.modelID,
                 voice: voiceModeStore.voice.rawValue
             )
         }

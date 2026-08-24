@@ -57,7 +57,7 @@ final class VoiceConversationController {
         skillsStore: SkillsStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
-        model: String = RealtimeModelOption.gpt4oRealtimePreview.rawValue,
+        model: String = "gpt-4o-realtime-preview",
         voice: String = RealtimeVoiceOption.alloy.rawValue,
         session: RealtimeVoiceSession = RealtimeVoiceSession(),
         audioEngine: any VoiceAudioEngineProtocol = VoiceAudioEngine()
