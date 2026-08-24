@@ -122,19 +122,22 @@ private struct ZoomableScrollView: UIViewRepresentable {
             centerImage()
         }
 
+        /// Recenters by repositioning the image view's own frame rather than mutating
+        /// `scrollView.contentInset`. Adjusting `contentInset` from inside `scrollViewDidZoom`
+        /// fights the scroll view's own offset clamping during a live pinch+pan gesture — the
+        /// inset keeps changing while the gesture is still in flight, which lets the content
+        /// drift past its bounds instead of being clamped. Frame-origin centering (Apple's
+        /// PhotoScroller pattern) never touches the offset-clamping metadata, so the image
+        /// can't be dragged past its edges.
         func centerImage() {
             guard let scrollView, let imageView else { return }
             let boundsSize = scrollView.bounds.size
-            let frameSize = imageView.frame.size
+            var frame = imageView.frame
 
-            let horizontalInset = max(0, (boundsSize.width - frameSize.width) / 2)
-            let verticalInset = max(0, (boundsSize.height - frameSize.height) / 2)
-            scrollView.contentInset = UIEdgeInsets(
-                top: verticalInset,
-                left: horizontalInset,
-                bottom: verticalInset,
-                right: horizontalInset
-            )
+            frame.origin.x = frame.width < boundsSize.width ? (boundsSize.width - frame.width) / 2 : 0
+            frame.origin.y = frame.height < boundsSize.height ? (boundsSize.height - frame.height) / 2 : 0
+            imageView.frame = frame
+            scrollView.contentInset = .zero
         }
 
         @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {

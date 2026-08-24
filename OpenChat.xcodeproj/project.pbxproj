@@ -115,6 +115,7 @@
 		6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */; };
 		6C8A1E116FC67511BAA57265 /* OpenRouterModelsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC4732631B2C5F041942EF5 /* OpenRouterModelsClient.swift */; };
 		6D05C2E8ECA1822BDC404D0E /* LiveActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4716EACCDB0094D1CFA518E /* LiveActivityService.swift */; };
+		6D583BFCCE6FA21FF546F2FB /* ImageContextSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC4EC152D6A3F70A2450A54 /* ImageContextSelector.swift */; };
 		6D76E9D70EA7EDF9982AC8B9 /* StreamingToolLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D007FC412BDCB9164328E99 /* StreamingToolLoopTests.swift */; };
 		6EB8A63C45BE513B792F4E68 /* AgentDataSourcePermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3432E3B59D9CD35605D465A9 /* AgentDataSourcePermissionService.swift */; };
 		71E0EA719984C7C5E98AC3BD /* DocumentAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DF21A990A4989A7177E07A /* DocumentAttachmentTests.swift */; };
@@ -358,6 +359,7 @@
 		8B1DE3D1221DDE6B4A4B3225 /* RealtimeVoiceEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeVoiceEvent.swift; sourceTree = "<group>"; };
 		8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesSettingsView.swift; sourceTree = "<group>"; };
 		8BC67CC5B4AAEF2C899513DA /* OpenChatLiveActivity.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = OpenChatLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8DC4EC152D6A3F70A2450A54 /* ImageContextSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContextSelector.swift; sourceTree = "<group>"; };
 		8E52A58032F4CAB432F0D30F /* RealtimeVoiceEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeVoiceEventTests.swift; sourceTree = "<group>"; };
 		90DF21A990A4989A7177E07A /* DocumentAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentAttachmentTests.swift; sourceTree = "<group>"; };
 		94154EBA48AEFE0B9C894607 /* OpenAICompatibleClient+WireTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAICompatibleClient+WireTypes.swift"; sourceTree = "<group>"; };
@@ -598,6 +600,7 @@
 				69FEE1C80223D627AF9EA03F /* ExaClient.swift */,
 				1332BED16DEE3A6013BB5072 /* FitnessContextReader.swift */,
 				00F4107DB67495A3124A91BB /* FuzzyMatcher.swift */,
+				8DC4EC152D6A3F70A2450A54 /* ImageContextSelector.swift */,
 				227AEA38B8D189D59EB9E32A /* KeychainStore.swift */,
 				C4716EACCDB0094D1CFA518E /* LiveActivityService.swift */,
 				7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */,
@@ -1021,6 +1024,7 @@
 				55E2C2A686CC5507F008196B /* GeneratedImageDeduper.swift in Sources */,
 				68FC5BE673CD1693B2B880E4 /* GhostIcon.swift in Sources */,
 				48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */,
+				6D583BFCCE6FA21FF546F2FB /* ImageContextSelector.swift in Sources */,
 				407459942BB263BEEEFB02F6 /* ImagePreviewView.swift in Sources */,
 				5649D4924D165D5D27566019 /* KeychainStore.swift in Sources */,
 				6D05C2E8ECA1822BDC404D0E /* LiveActivityService.swift in Sources */,

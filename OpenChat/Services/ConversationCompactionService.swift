@@ -138,6 +138,7 @@ enum ConversationCompactionService {
         compactedSummary: String?,
         compactedThroughMessageID: UUID?,
         includeImages: Bool = true,
+        imageSelection: Set<UUID>? = nil,
         includeDocuments: Bool = true,
         excludingMessageID: UUID? = nil
     ) -> [ChatTurn] {
@@ -174,6 +175,7 @@ enum ConversationCompactionService {
             contentsOf: ChatRequestHistory.turns(
                 from: postWatermarkMessages,
                 includeImages: includeImages,
+                imageSelection: imageSelection,
                 includeDocuments: includeDocuments
             )
         )

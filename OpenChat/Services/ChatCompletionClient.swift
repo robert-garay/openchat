@@ -48,11 +48,14 @@ extension ChatCompletionClient {
 enum ChatService {
     /// Dedicated session for chat completions. `URLSession.shared` uses a 60s
     /// request idle timeout, which fails long prompts (slow first token) and
-    /// sparse streaming. Keep resource timeout generous for full replies.
+    /// sparse streaming. Self-hosted image models in particular can sit silent
+    /// for a long stretch before the first byte, so both timeouts are generous —
+    /// a network error here should mean the connection actually died, not that
+    /// the model was still working.
     static let urlSession: URLSession = {
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 600
-        configuration.timeoutIntervalForResource = 3_600
+        configuration.timeoutIntervalForRequest = 1_800
+        configuration.timeoutIntervalForResource = 86_400
         configuration.waitsForConnectivity = true
         return URLSession(configuration: configuration)
     }()
