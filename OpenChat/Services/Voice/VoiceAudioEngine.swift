@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 
 /// Live amplitude readings (0...1) for driving the voice UI's waveform.
 struct VoiceAudioLevels: Equatable, Sendable {
@@ -81,6 +81,8 @@ actor VoiceAudioEngine: VoiceAudioEngineProtocol {
 
         #if canImport(UIKit)
         let session = AVAudioSession.sharedInstance()
+        // `.allowBluetoothHFP` (the non-deprecated replacement) isn't available in the
+        // Xcode/SDK version this project's CI builds against yet — keep the older symbol.
         try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
         try session.setActive(true)
         #endif
@@ -170,7 +172,10 @@ actor VoiceAudioEngine: VoiceAudioEngineProtocol {
         guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return nil }
 
         var error: NSError?
-        var consumed = false
+        // `AVAudioConverter.convert(to:error:withInputFrom:)` invokes this block
+        // synchronously and only from the calling thread — never concurrently —
+        // so `nonisolated(unsafe)` is safe despite the block's `@Sendable` type.
+        nonisolated(unsafe) var consumed = false
         converter.convert(to: outputBuffer, error: &error) { _, inputStatus in
             if consumed {
                 inputStatus.pointee = .noDataNow
