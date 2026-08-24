@@ -46,6 +46,7 @@ enum ProviderLogo {
         case "anthropic": return "ProviderLogoAnthropic"
         case "google": return "ProviderLogoGoogle" // Gemini mark kept intentionally
         case "openrouter": return "ProviderLogoOpenRouter"
+        case "cheaperinference": return "ProviderLogoCheaperInference"
         default: return nil
         }
     }

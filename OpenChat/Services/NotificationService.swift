@@ -44,7 +44,7 @@ final class NotificationService: NSObject {
     ) async {
         let content = UNMutableNotificationContent()
         content.title = conversationTitle
-        let preview = messagePreview
+        let preview = Self.plainText(fromMarkdown: messagePreview)
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\n", with: " ")
         let trimmedPreview = preview.count > 120 ? String(preview.prefix(120)) + "…" : preview
@@ -84,6 +84,19 @@ final class NotificationService: NSObject {
 
     private static func notificationIdentifier(for conversationID: UUID) -> String {
         "response-\(conversationID.uuidString)"
+    }
+
+    /// Notification bodies are plain text on iOS — Markdown syntax renders as
+    /// literal characters rather than formatting, so assistant replies (which
+    /// are Markdown) are parsed and reduced to their plain-text content here.
+    static func plainText(fromMarkdown markdown: String) -> String {
+        guard let attributed = try? AttributedString(
+            markdown: markdown,
+            options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .full)
+        ) else {
+            return markdown
+        }
+        return String(attributed.characters)
     }
 }
 

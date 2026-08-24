@@ -30,6 +30,8 @@ struct MessageComposerView: View {
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
     var skills: [SkillMatchable] = []
+    var canUseVoiceMode: Bool = false
+    var onStartVoiceMode: (() -> Void)? = nil
     @Binding var effortLevel: EffortLevel
     @Binding var isReasoningEnabled: Bool
     var isFocused: Binding<Bool> = .constant(false)
@@ -84,11 +86,14 @@ struct MessageComposerView: View {
             if supportsEffort && (!hasSeparateThinkingToggle || isReasoningEnabled) {
                 effortButton
             }
-            sendButton
+            if canUseVoiceMode, !isStreaming, !canSend {
+                voiceModeButton
+            } else {
+                sendButton
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(.bar)
+        .padding(.top, 8)
         .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -327,6 +332,19 @@ struct MessageComposerView: View {
             .presentationDetents([.height(220)])
             .presentationBackground(.bar)
         }
+    }
+
+    private var voiceModeButton: some View {
+        Button {
+            Haptics.light()
+            onStartVoiceMode?()
+        } label: {
+            Image(systemName: "waveform.circle.fill")
+                .font(.system(size: 30))
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, Color.accentColor)
+        }
+        .accessibilityLabel("Start voice mode")
     }
 
     private var sendButton: some View {
