@@ -166,7 +166,8 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
         let markers = [
             "dall-e", "dalle", "gpt-image", "imagen-", "flux-", "stable-diffusion",
             "black-forest", "flash-image", "image-preview", "riverflow", "seedream",
-            "recraft", "mai-image", "gpt-5-image", "image-gen"
+            "recraft", "mai-image", "gpt-5-image", "image-gen",
+            "-i2i", "i2i-", "img2img", "image-to-image", "-t2i", "t2i-", "text-to-image"
         ]
         return markers.contains { haystack.contains($0) }
     }

@@ -40,7 +40,21 @@ struct CustomProviderView: View {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
             .filter { seen.insert($0).inserted }
-            .map { AIModel(id: $0, displayName: $0) }
+            .map { modelID in
+                // Custom models have no `/models` metadata to infer from, so this
+                // falls back entirely to the name-based heuristic (e.g. catching
+                // "-i2i", "img2img" in a self-hosted model's ID).
+                AIModel(
+                    id: modelID,
+                    displayName: modelID,
+                    capabilities: ModelCapability.inferred(
+                        inputModalities: [],
+                        outputModalities: [],
+                        modelID: modelID,
+                        modelName: modelID
+                    )
+                )
+            }
     }
 
     // MARK: - Validation
