@@ -30,39 +30,34 @@ protocol RealtimeVoiceTransport: Sendable {
 }
 
 /// `URLSessionWebSocketTask`-backed transport talking to the OpenAI Realtime API.
-final class URLSessionRealtimeTransport: RealtimeVoiceTransport, @unchecked Sendable {
-    private let session: URLSession
+///
+/// `connect()` doesn't return until the handshake has genuinely completed —
+/// `task.resume()` only *starts* it asynchronously. Without waiting, the
+/// caller's first `send()` (the initial `session.update`, sent immediately
+/// after `connect()` returns) races the handshake and fails with "Socket is
+/// not connected" whenever real network latency beats the race, which
+/// local/simulator testing rarely surfaces since latency there is near zero.
+/// `URLSessionWebSocketDelegate` is the reliable way to observe handshake
+/// completion — `didOpenWithProtocol` fires on success, `didCompleteWithError`
+/// on failure (auth rejected, non-101 response, network failure, etc.).
+final class URLSessionRealtimeTransport: NSObject, RealtimeVoiceTransport, URLSessionWebSocketDelegate, @unchecked Sendable {
+    private lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
     private var task: URLSessionWebSocketTask?
+    private var connectContinuation: CheckedContinuation<Void, Error>?
     private let lock = NSLock()
-
-    init(session: URLSession = .shared) {
-        self.session = session
-    }
 
     func connect(url: URL, apiKey: String) async throws {
         var request = URLRequest(url: url)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("realtime=v1", forHTTPHeaderField: "OpenAI-Beta")
         let task = session.webSocketTask(with: request)
-        task.resume()
-        lock.withLock { self.task = task }
 
-        // `resume()` only starts the handshake asynchronously — it does not wait
-        // for the socket to actually be open. Without this, the caller's first
-        // `send()` (session.update, sent immediately after `connect()` returns)
-        // races the handshake and fails with "Socket is not connected" whenever
-        // real network latency beats the race, which local/simulator testing
-        // rarely surfaces. A ping's completion handler only fires once the
-        // WebSocket connection is genuinely established (or failed), so it's the
-        // standard way to await that with `URLSessionWebSocketTask`.
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            task.sendPing { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
+            lock.withLock {
+                self.task = task
+                self.connectContinuation = continuation
             }
+            task.resume()
         }
     }
 
@@ -105,6 +100,32 @@ final class URLSessionRealtimeTransport: RealtimeVoiceTransport, @unchecked Send
             return self.task
         }
         task?.cancel(with: .normalClosure, reason: nil)
+    }
+
+    // MARK: - URLSessionWebSocketDelegate
+
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        resumeConnectContinuation(throwing: nil)
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        resumeConnectContinuation(throwing: error ?? RealtimeVoiceError.notConnected)
+    }
+
+    /// Only actually resumes on the *first* callback after `connect()` starts —
+    /// `didCompleteWithError` also fires on a normal `close()` of an already-open
+    /// connection, by which point the continuation has already been consumed.
+    private func resumeConnectContinuation(throwing error: Error?) {
+        let continuation = lock.withLock { () -> CheckedContinuation<Void, Error>? in
+            defer { connectContinuation = nil }
+            return connectContinuation
+        }
+        guard let continuation else { return }
+        if let error {
+            continuation.resume(throwing: error)
+        } else {
+            continuation.resume()
+        }
     }
 }
 
