@@ -21,36 +21,24 @@ struct OpenAICompatibleClient: ChatCompletionClient {
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         // Belt-and-suspenders: a manually-added custom provider model may have no
         // inferred capabilities at all (no `/models` metadata to infer from), so fall
-        // back to the name heuristic here too — this is what actually decides whether
-        // the request takes the background-safe non-streaming path below, and a model
-        // saved before capability inference existed shouldn't have to be re-added to
-        // benefit from it.
+        // back to the name heuristic here too when deciding whether to request image
+        // output modalities. A model saved before capability inference existed
+        // shouldn't have to be re-added to benefit from it.
         let supportsImageGen = supportsImageGen
             || ModelCapability.inferred(inputModalities: [], outputModalities: [], modelID: model).contains(.imageGen)
 
+        // Image-gen requests stay on the streaming path deliberately: self-hosted
+        // image models can sit silent for minutes before responding, and only a
+        // streaming connection lets a well-behaved server send SSE keep-alive
+        // comments to stop proxies/middleboxes from treating the idle connection as
+        // dead and resetting it. A non-streaming request can't carry that signal —
+        // there's no way to interleave heartbeat bytes into a single JSON body
+        // without corrupting it — so switching to non-streaming here would remove
+        // the only viable mitigation for that failure mode.
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    if tools.isEmpty, supportsImageGen {
-                        // Image generation is a one-shot result with little meaningful text to
-                        // stream before it lands, and self-hosted image models can sit silent
-                        // for minutes. Use the non-streaming path so the request goes through
-                        // `backgroundCompatibleData` (survives app backgrounding, long timeouts)
-                        // instead of a plain foreground SSE connection that iOS can suspend or
-                        // that an idle-timing-out reverse proxy can drop mid-wait.
-                        let result = try await Self.complete(
-                            turns: turns,
-                            model: model,
-                            baseURL: baseURL,
-                            apiKey: apiKey,
-                            tools: tools,
-                            supportsImageGen: supportsImageGen,
-                            effort: effort,
-                            reasoningEnabled: reasoningEnabled,
-                            session: session
-                        )
-                        try Self.yieldCompletion(result, to: continuation)
-                    } else if tools.isEmpty {
+                    if tools.isEmpty {
                         try await Self.streamText(
                             turns: turns,
                             model: model,
