@@ -142,7 +142,9 @@ actor VoiceAudioEngine: VoiceAudioEngineProtocol {
         let ratio = outputFormat.sampleRate / Self.realtimeFormat.sampleRate
         guard let outputBuffer = Self.convert(sourceBuffer, using: converter, ratio: ratio, to: outputFormat) else { return }
 
-        playerNode.scheduleBuffer(outputBuffer, completionHandler: nil)
+        // Fire-and-forget: don't await completion, or streaming playback would
+        // serialize on each chunk finishing before the next one gets scheduled.
+        Task { _ = await playerNode.scheduleBuffer(outputBuffer, completionCallbackType: .dataConsumed) }
         emitOutputLevel(for: outputBuffer)
     }
 
