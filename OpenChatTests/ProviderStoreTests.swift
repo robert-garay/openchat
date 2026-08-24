@@ -49,6 +49,19 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.enabledProviders.count, 1)
     }
 
+    func testCustomEndpointWithoutChosenLogoFallsBackToServerIcon() {
+        store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [], requiresAPIKey: false)
+        let provider = store.providers.first!
+        XCTAssertNil(provider.logoAssetName)
+        XCTAssertEqual(provider.symbolName, "server.rack")
+    }
+
+    func testCustomEndpointWithChosenLogoUsesBrandMark() {
+        store.addCustom(name: "My RunPod", baseURL: "https://example.com/v1", models: [], requiresAPIKey: false, logoID: "runpod")
+        let provider = store.providers.first!
+        XCTAssertEqual(provider.logoAssetName, "ProviderLogoRunPod")
+    }
+
     func testRemoveDeletesProviderAndKey() {
         let template = ProviderTemplate.template(for: "deepseek")!
         store.addFromTemplate(template)

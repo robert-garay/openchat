@@ -17,14 +17,20 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
     /// Some local servers (Ollama, LM Studio) don't require a key at all.
     var requiresAPIKey: Bool
     var isEnabled: Bool
+    /// User-picked brand mark (see `CustomEndpointLogoOption`) for a custom endpoint.
+    /// Purely cosmetic; nil falls back to the generic server icon.
+    var customLogoID: String? = nil
 
     var template: ProviderTemplate? {
         templateID.flatMap(ProviderTemplate.template(for:))
     }
 
-    /// Official brand mark in the asset catalog, resolved from the template or provider id.
+    /// Official brand mark in the asset catalog, resolved from the template, a
+    /// user-picked custom logo, or the provider id.
     var logoAssetName: String? {
-        ProviderLogo.assetName(for: templateID) ?? ProviderLogo.assetName(for: id)
+        ProviderLogo.assetName(for: templateID)
+            ?? CustomEndpointLogoOption.option(for: customLogoID)?.logoAssetName
+            ?? ProviderLogo.assetName(for: id)
     }
 
     static func fromTemplate(_ template: ProviderTemplate) -> ConfiguredProvider {
@@ -42,7 +48,13 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         )
     }
 
-    static func customEndpoint(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) -> ConfiguredProvider {
+    static func customEndpoint(
+        name: String,
+        baseURL: String,
+        models: [AIModel],
+        requiresAPIKey: Bool,
+        logoID: String? = nil
+    ) -> ConfiguredProvider {
         ConfiguredProvider(
             id: "custom-\(UUID().uuidString.prefix(8))",
             templateID: nil,
@@ -53,7 +65,8 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
             apiFormat: .openAI,
             models: models,
             requiresAPIKey: requiresAPIKey,
-            isEnabled: true
+            isEnabled: true,
+            customLogoID: logoID
         )
     }
 }

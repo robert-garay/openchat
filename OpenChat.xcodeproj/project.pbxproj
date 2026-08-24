@@ -74,6 +74,7 @@
 		4355ED178DB82571219CCA2D /* GeneratedImageDeduperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C9ED3D8659F72074C289F8 /* GeneratedImageDeduperTests.swift */; };
 		44D422EC5A53523EB4624F35 /* ChatRequestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031CE6B165039967ACAE5CC7 /* ChatRequestHistory.swift */; };
 		459793214E976CAF826C72A5 /* MultimodalAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625207D9421CDC2E865C48AC /* MultimodalAttachmentTests.swift */; };
+		46CC1E232C4A9C1A522DE3D9 /* CustomEndpointLogoOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741F0AEA5B5732461B588481 /* CustomEndpointLogoOption.swift */; };
 		47284C1919392B64A9139F82 /* WebSearchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3754E66D7BDE277BB7FF4A82 /* WebSearchSettingsView.swift */; };
 		48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9485D5CB91D1A9E8C7915F97 /* Haptics.swift */; };
 		49E8C48899CBF2258E1DC577 /* RemindersActionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83EDB4B9E2AA5C012D6E7DF4 /* RemindersActionParserTests.swift */; };
@@ -118,6 +119,7 @@
 		7C7541B6CE88FF9C9238B305 /* BackgroundCompatibleDataRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6902553ED78590DA7467051 /* BackgroundCompatibleDataRetryTests.swift */; };
 		7DE154DC090948F0667020EC /* ChatMessageMarkdownSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */; };
 		7DF61A34C15F495811360773 /* AgentDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D348B817101C72DCC52C7AC /* AgentDataSource.swift */; };
+		7F8874A34E1CF14935992F35 /* CustomEndpointLogoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2269086063370AF49910B8 /* CustomEndpointLogoButton.swift */; };
 		835FDD1B85EDBD3BB3D77297 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F37641FF5C574A5F3F8F6FCC /* AppIntents.framework */; };
 		8375DD6EB2BD80199A6BFC11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174C8A720DB382316B6679A5 /* Assets.xcassets */; };
 		843C97B5D226D6F8CEF3A43E /* EditMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0956E2D14D6BFC60E14884 /* EditMessageView.swift */; };
@@ -310,6 +312,7 @@
 		7277147830AD3F2ECC4C396D /* SigningTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = SigningTests.xcconfig; sourceTree = "<group>"; };
 		739001E3EF4625FCC111FAC1 /* OpenChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatApp.swift; sourceTree = "<group>"; };
 		7415602CE5D47D71F672CB31 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
+		741F0AEA5B5732461B588481 /* CustomEndpointLogoOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEndpointLogoOption.swift; sourceTree = "<group>"; };
 		7660E53D7D78D2E9F0582C03 /* ProviderBalanceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderBalanceClientTests.swift; sourceTree = "<group>"; };
 		7AA31B3544CF0EA1AA0EDE74 /* AgentContextProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProviderTests.swift; sourceTree = "<group>"; };
 		7B43513FAD22D47E418C48BD /* ProposalSaveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalSaveCoordinator.swift; sourceTree = "<group>"; };
@@ -393,6 +396,7 @@
 		D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapability.swift; sourceTree = "<group>"; };
 		D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchServiceTests.swift; sourceTree = "<group>"; };
 		DA0E07DBF3592F5D49661253 /* CustomProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProviderView.swift; sourceTree = "<group>"; };
+		DD2269086063370AF49910B8 /* CustomEndpointLogoButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEndpointLogoButton.swift; sourceTree = "<group>"; };
 		DED061940FBC318AE5A2CA53 /* ChatViewModel+Reasoning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatViewModel+Reasoning.swift"; sourceTree = "<group>"; };
 		E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TavilyClient.swift; sourceTree = "<group>"; };
 		E152329A233CE865AB1083AB /* ChatHistoryDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryDrawerView.swift; sourceTree = "<group>"; };
@@ -648,6 +652,7 @@
 				C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */,
 				50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */,
 				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
+				741F0AEA5B5732461B588481 /* CustomEndpointLogoOption.swift */,
 				4CF529654A520BC45155B2D7 /* EffortLevel.swift */,
 				7CFB22E5DAA02F87C7556EF5 /* FitnessHealthDataTypes.swift */,
 				BB975D54D6DC13D831701F18 /* GeneratedImageDeduper.swift */,
@@ -683,6 +688,7 @@
 				BC5E5C0A676815512C4B534A /* APIKeySettingsSection.swift */,
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
+				DD2269086063370AF49910B8 /* CustomEndpointLogoButton.swift */,
 				C7C10CF67F7746EB18A4AB68 /* GhostIcon.swift */,
 				9485D5CB91D1A9E8C7915F97 /* Haptics.swift */,
 				43DB5C3B62409E96E11239E9 /* ModelCapabilitySign.swift */,
@@ -944,6 +950,8 @@
 				1ECC5B45B7CC4CA24787C98A /* Conversation.swift in Sources */,
 				B059A9B45E294DF428B1B54F /* ConversationCompactionService.swift in Sources */,
 				3F694008E6DCD7D9FF3E3143 /* ConversationTitleGenerator.swift in Sources */,
+				7F8874A34E1CF14935992F35 /* CustomEndpointLogoButton.swift in Sources */,
+				46CC1E232C4A9C1A522DE3D9 /* CustomEndpointLogoOption.swift in Sources */,
 				910D48FA64BF3E204F35685B /* CustomProviderView.swift in Sources */,
 				FBF1A6CE34FD4FEAD3F93E8B /* DataSourcesSettingsView.swift in Sources */,
 				8E73451C3463680BE8BABB1D /* DocumentPreviewView.swift in Sources */,
