@@ -22,7 +22,26 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    if tools.isEmpty {
+                    if tools.isEmpty, supportsImageGen {
+                        // Image generation is a one-shot result with little meaningful text to
+                        // stream before it lands, and self-hosted image models can sit silent
+                        // for minutes. Use the non-streaming path so the request goes through
+                        // `backgroundCompatibleData` (survives app backgrounding, long timeouts)
+                        // instead of a plain foreground SSE connection that iOS can suspend or
+                        // that an idle-timing-out reverse proxy can drop mid-wait.
+                        let result = try await Self.complete(
+                            turns: turns,
+                            model: model,
+                            baseURL: baseURL,
+                            apiKey: apiKey,
+                            tools: tools,
+                            supportsImageGen: supportsImageGen,
+                            effort: effort,
+                            reasoningEnabled: reasoningEnabled,
+                            session: session
+                        )
+                        try Self.yieldCompletion(result, to: continuation)
+                    } else if tools.isEmpty {
                         try await Self.streamText(
                             turns: turns,
                             model: model,
