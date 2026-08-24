@@ -42,6 +42,7 @@
 		2A76CB95870A0AA3A71AA69A /* MemoryActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */; };
 		2BBE844EA01D31AC8B7CCC65 /* OpenChatLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE39E5FE1932B11E6E4ABE57 /* OpenChatLiveActivityAttributes.swift */; };
 		2C09ADF479A6CE4ABC3DC2F1 /* AnthropicClientReasoningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FACE5CEBC15E012B87B3C3D /* AnthropicClientReasoningTests.swift */; };
+		2D98DCAA8FB6A472D19F2013 /* NotificationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D108FFE452E0C8924C7A6B4 /* NotificationServiceTests.swift */; };
 		2EB7CD08B7ABA3B6B69A54A0 /* ProviderBalanceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5792E56555CD0350218DF5CF /* ProviderBalanceClient.swift */; };
 		2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */; };
 		30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38179096B024B94EA48B03CA /* MessageBubbleView.swift */; };
@@ -293,6 +294,7 @@
 		5998FAB407D632FD1EED8060 /* AgentContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProvider.swift; sourceTree = "<group>"; };
 		5AB6E25E943F288DFF8C04EF /* DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPreviewView.swift; sourceTree = "<group>"; };
 		5C52BECF01BEA49A4D0DCAC5 /* ProviderModelsClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderModelsClientTests.swift; sourceTree = "<group>"; };
+		5D108FFE452E0C8924C7A6B4 /* NotificationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationServiceTests.swift; sourceTree = "<group>"; };
 		5D10A860DD130AEA8FF9A235 /* OpenChat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenChat.entitlements; sourceTree = "<group>"; };
 		5DBFA78292C34C4CA8FBAF53 /* MemoryActionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryActionParserTests.swift; sourceTree = "<group>"; };
 		60E88FA5334D59F31A5DF955 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -725,6 +727,7 @@
 				625207D9421CDC2E865C48AC /* MultimodalAttachmentTests.swift */,
 				07EA80D9C4E7F9D21770D43E /* NetworkMonitorTests.swift */,
 				8122D8833D27FBD578598522 /* NetworkRetrierTests.swift */,
+				5D108FFE452E0C8924C7A6B4 /* NotificationServiceTests.swift */,
 				438BD89175051A0D6C3F8560 /* OpenAICompatibleClientEffortTests.swift */,
 				CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */,
 				7660E53D7D78D2E9F0582C03 /* ProviderBalanceClientTests.swift */,
@@ -1058,6 +1061,7 @@
 				459793214E976CAF826C72A5 /* MultimodalAttachmentTests.swift in Sources */,
 				8646F08D0491BBBF04533CE7 /* NetworkMonitorTests.swift in Sources */,
 				686A8C4C4C1A67ED52429A4A /* NetworkRetrierTests.swift in Sources */,
+				2D98DCAA8FB6A472D19F2013 /* NotificationServiceTests.swift in Sources */,
 				16F0CE50DA33465166693B29 /* OpenAICompatibleClientEffortTests.swift in Sources */,
 				EF62D1912A3C1D296B195F24 /* OpenRouterModelCatalogTests.swift in Sources */,
 				3F2903AAABFD3AF5EB3C901C /* ProviderBalanceClientTests.swift in Sources */,
