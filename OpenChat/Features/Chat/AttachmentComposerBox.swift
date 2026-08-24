@@ -66,7 +66,11 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
             }
             .background(alignment: .top) {
                 UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(.ultraThinMaterial)
+                    .overlay(alignment: .top) {
+                        UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
+                    }
             }
             .ignoresSafeArea(edges: .bottom)
         }
