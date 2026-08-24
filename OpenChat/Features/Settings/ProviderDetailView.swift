@@ -42,6 +42,16 @@ struct ProviderDetailView: View {
                 balanceSection
             }
 
+            if provider.templateID == nil {
+                Section {
+                    logoPicker
+                } header: {
+                    Text("Logo")
+                } footer: {
+                    Text("Pick a brand mark if this endpoint is a known host. Otherwise a generic server icon is used.")
+                }
+            }
+
             Section {
                 Button("Remove Provider", role: .destructive) {
                     showingDeleteConfirmation = true
@@ -108,6 +118,34 @@ struct ProviderDetailView: View {
         .animation(Theme.springFast, value: showingDeleteConfirmation)
         .onAppear {
             providerStore.refreshBalanceIfNeeded(for: provider)
+        }
+    }
+
+    private var logoPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                CustomEndpointLogoButton(
+                    logoAssetName: nil,
+                    symbolName: "server.rack",
+                    name: "Default",
+                    isSelected: provider.customLogoID == nil
+                ) {
+                    provider.customLogoID = nil
+                    providerStore.update(provider)
+                }
+                ForEach(CustomEndpointLogoOption.all) { option in
+                    CustomEndpointLogoButton(
+                        logoAssetName: option.logoAssetName,
+                        symbolName: "server.rack",
+                        name: option.name,
+                        isSelected: provider.customLogoID == option.id
+                    ) {
+                        provider.customLogoID = option.id
+                        providerStore.update(provider)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
         }
     }
 
