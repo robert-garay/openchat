@@ -258,6 +258,7 @@ final class ChatViewModel {
     /// once turned on. Gated on the feature being enabled and an OpenAI key existing.
     var canUseVoiceMode: Bool {
         guard voiceModeStore.isEnabled,
+              !voiceModeStore.modelID.isEmpty,
               let openAI = providerStore.provider(withID: "openai") else { return false }
         return providerStore.apiKey(for: openAI) != nil
     }

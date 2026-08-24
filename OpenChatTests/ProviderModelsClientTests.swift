@@ -123,4 +123,30 @@ final class ProviderModelsClientTests: XCTestCase {
         XCTAssertFalse(ProviderModelsClient.isLikelyChatModelID("whisper-1"))
         XCTAssertFalse(ProviderModelsClient.isLikelyChatModelID("text-embedding-3-small"))
     }
+
+    func testIsLikelyRealtimeVoiceModelID() {
+        XCTAssertTrue(ProviderModelsClient.isLikelyRealtimeVoiceModelID("gpt-4o-realtime-preview"))
+        XCTAssertTrue(ProviderModelsClient.isLikelyRealtimeVoiceModelID("gpt-4o-mini-realtime-preview"))
+        XCTAssertFalse(ProviderModelsClient.isLikelyRealtimeVoiceModelID("gpt-4o-mini"))
+        XCTAssertFalse(ProviderModelsClient.isLikelyRealtimeVoiceModelID("gpt-4o-transcribe"))
+        XCTAssertFalse(ProviderModelsClient.isLikelyRealtimeVoiceModelID("whisper-1"))
+    }
+
+    func testDecodeRealtimeVoiceModelsFiltersAndSorts() throws {
+        let json = Data("""
+        {
+          "data": [
+            { "id": "gpt-4o" },
+            { "id": "gpt-4o-realtime-preview" },
+            { "id": "whisper-1" },
+            { "id": "gpt-4o-mini-realtime-preview" },
+            { "id": "gpt-4o-transcribe" }
+          ]
+        }
+        """.utf8)
+
+        let models = try ProviderModelsClient.decodeRealtimeVoiceModels(from: json)
+        XCTAssertEqual(models.map(\.id), ["gpt-4o-mini-realtime-preview", "gpt-4o-realtime-preview"])
+        XCTAssertEqual(models[0].displayName, "gpt-4o-mini-realtime-preview")
+    }
 }

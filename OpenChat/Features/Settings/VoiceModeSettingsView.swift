@@ -3,10 +3,23 @@ import SwiftUI
 struct VoiceModeSettingsView: View {
     @Environment(VoiceModeStore.self) private var voiceModeStore
     @Environment(ProviderStore.self) private var providerStore
+    @State private var showingModelPicker = false
 
     private var hasOpenAIKey: Bool {
         guard let provider = providerStore.provider(withID: "openai") else { return false }
         return providerStore.apiKey(for: provider) != nil
+    }
+
+    private var selectedModelDisplayName: String {
+        guard !voiceModeStore.modelID.isEmpty else { return "Choose a model" }
+        if let match = voiceModeStore.realtimeModels.first(where: { $0.id == voiceModeStore.modelID }) {
+            return match.displayName
+        }
+        return voiceModeStore.modelID
+    }
+
+    private var availableVoices: [RealtimeVoiceOption] {
+        voiceModeStore.voices(for: voiceModeStore.modelID)
     }
 
     var body: some View {
@@ -39,28 +52,40 @@ struct VoiceModeSettingsView: View {
             }
 
             Section {
-                Picker("Model", selection: Binding(
-                    get: { voiceModeStore.model },
-                    set: { voiceModeStore.setModel($0) }
-                )) {
-                    ForEach(RealtimeModelOption.allCases) { option in
-                        Text(option.displayName).tag(option)
+                Button {
+                    showingModelPicker = true
+                } label: {
+                    HStack {
+                        Text("Model")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(selectedModelDisplayName)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
                 }
+
                 Picker("Voice", selection: Binding(
                     get: { voiceModeStore.voice },
                     set: { voiceModeStore.setVoice($0) }
                 )) {
-                    ForEach(RealtimeVoiceOption.allCases) { option in
+                    ForEach(availableVoices) { option in
                         Text(option.displayName).tag(option)
                     }
                 }
             } footer: {
-                Text("Applies the next time you start a voice mode call.")
+                Text("The model list is fetched live from OpenAI. Changes apply the next time you start a voice mode call.")
             }
             .disabled(!voiceModeStore.isEnabled)
         }
         .navigationTitle("Voice Mode")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingModelPicker) {
+            VoiceModelPickerSheet(currentModelID: voiceModeStore.modelID) { modelID in
+                voiceModeStore.setModel(modelID)
+            }
+        }
     }
 }

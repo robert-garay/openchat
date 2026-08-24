@@ -1,5 +1,11 @@
 import Foundation
 
+/// A live-fetched model that supports OpenAI's Realtime API (voice mode).
+struct RealtimeModelInfo: Identifiable, Equatable, Sendable {
+    var id: String
+    var displayName: String
+}
+
 /// Fetches a provider's live model catalog via `GET {baseURL}/models`.
 struct ProviderModelsClient: Sendable {
     var session: URLSession = .shared
@@ -14,6 +20,31 @@ struct ProviderModelsClient: Sendable {
         case .anthropic:
             return try await fetchAnthropic(baseURL: provider.baseURL, apiKey: apiKey)
         }
+    }
+
+    /// Fetches OpenAI's live model catalog, filtered for Realtime API (voice
+    /// mode) models. Voice mode's model picker uses this instead of
+    /// `fetchOpenAICompatible`, which deliberately excludes realtime models
+    /// from the regular chat-model catalog.
+    func fetchRealtimeVoiceModels(baseURL: String, apiKey: String?) async throws -> [RealtimeModelInfo] {
+        let request = try Self.makeRequest(baseURL: baseURL, apiKey: apiKey, format: .openAI)
+        let data = try await perform(request)
+        return try Self.decodeRealtimeVoiceModels(from: data)
+    }
+
+    static func decodeRealtimeVoiceModels(from data: Data) throws -> [RealtimeModelInfo] {
+        let decoded = try JSONDecoder().decode(OpenAIModelsResponse.self, from: data)
+        return decoded.data
+            .filter { isLikelyRealtimeVoiceModelID($0.id) }
+            .map { RealtimeModelInfo(id: $0.id, displayName: $0.id) }
+            .sorted { $0.id < $1.id }
+    }
+
+    /// OpenAI's `/models` response reports no modality metadata, so realtime
+    /// capability is inferred from the id — the same heuristic
+    /// `isLikelyChatModelID` already uses to exclude these from chat models.
+    static func isLikelyRealtimeVoiceModelID(_ id: String) -> Bool {
+        id.lowercased().contains("realtime")
     }
 
     // MARK: - OpenAI-compatible
