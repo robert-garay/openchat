@@ -569,6 +569,21 @@ final class BackgroundGenerationService {
         )
     }
 
+    /// Flush cadence for streamed content, widening as the message grows.
+    ///
+    /// `StreamedMarkdownView` re-parses the full accumulated text from scratch on
+    /// every flush, so a fixed 80ms cadence makes total parse work scale
+    /// quadratically with response length — long responses visibly stutter. Widening
+    /// the interval as content grows keeps per-flush cost roughly bounded, at the
+    /// cost of chunkier (but still live) updates late in long responses. Capped at
+    /// 400ms so it never reads as stalled.
+    private static func flushInterval(forContentLength length: Int) -> Duration {
+        let base = Duration.milliseconds(80)
+        let extra = Duration.milliseconds(length / 25)
+        let cap = Duration.milliseconds(400)
+        return min(base + extra, cap)
+    }
+
     private func runStream(
         client: ChatCompletionClient,
         modelID: String,
@@ -587,7 +602,6 @@ final class BackgroundGenerationService {
     ) async throws {
         var contentBuffer = ""
         var lastFlush = ContinuousClock().now
-        let flushInterval: Duration = .milliseconds(80)
         var lastProgressNotify = ContinuousClock().now
         let progressNotifyInterval: Duration = .seconds(1)
 
@@ -616,7 +630,7 @@ final class BackgroundGenerationService {
             case .text(let delta):
                 contentBuffer += delta
                 let now = ContinuousClock().now
-                if now >= lastFlush + flushInterval {
+                if now >= lastFlush + Self.flushInterval(forContentLength: assistantMessage.content.count) {
                     assistantMessage.content += contentBuffer
                     contentBuffer = ""
                     lastFlush = now
