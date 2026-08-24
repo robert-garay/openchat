@@ -28,8 +28,11 @@ final class BackgroundNetworkSession: NSObject, @unchecked Sendable {
         configuration.isDiscretionary = false
         configuration.sessionSendsLaunchEvents = true
         configuration.waitsForConnectivity = true
-        configuration.timeoutIntervalForRequest = 600
-        configuration.timeoutIntervalForResource = 3_600
+        // Kept in sync with `ChatService.urlSession` — chat completions route through this
+        // session (see `backgroundCompatibleData`), and self-hosted image models need long
+        // headroom before/between bytes rather than a mid-generation "network error".
+        configuration.timeoutIntervalForRequest = 1_800
+        configuration.timeoutIntervalForResource = 86_400
         session = URLSession(
             configuration: configuration,
             delegate: self,

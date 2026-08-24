@@ -24,11 +24,14 @@ extension BackgroundGenerationService {
         let skillMatches = fetchSkillMatches(using: skillsStore, modelContext: modelContext)
         let skillIndex = skillToolsEnabled ? SkillResolver.index(from: skillMatches) : nil
 
+        let priorMessages = conversation.sortedMessages.filter { $0.id != assistantMessage.id }
+        let imageSelection = ImageContextSelector.selectedImageIDs(from: priorMessages)
         let historyTurns = ConversationCompactionService.apiHistoryTurns(
             sortedMessages: conversation.sortedMessages,
             compactedSummary: conversation.compactedSummary.isEmpty ? nil : conversation.compactedSummary,
             compactedThroughMessageID: conversation.compactedThroughMessageID,
             includeImages: supportsVision,
+            imageSelection: imageSelection,
             includeDocuments: supportsFiles,
             excludingMessageID: assistantMessage.id
         )
@@ -43,6 +46,10 @@ extension BackgroundGenerationService {
         )
 
         var middleSections: [String] = []
+
+        if supportsVision, priorMessages.contains(where: { !$0.imageAttachments.isEmpty }) {
+            middleSections.append(ImageContextSelector.policyInstruction)
+        }
 
         if MemoryStore.shouldUseMemory(isTemporary: conversation.isTemporary, useInChats: memoryStore.useInChats) {
             let items = (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
