@@ -22,13 +22,6 @@ struct ChatView: View {
     /// Shared with the message list so Send re-attaches follow-to-bottom.
     @State private var stickToBottom = true
 
-    /// Voice mode always talks to OpenAI's Realtime API, independent of the
-    /// chat's selected provider/model — gated only on an OpenAI API key.
-    private var canUseVoiceMode: Bool {
-        guard let openAI = providerStore.provider(withID: "openai") else { return false }
-        return providerStore.apiKey(for: openAI) != nil
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             if conversation.isTemporary {
@@ -60,7 +53,7 @@ struct ChatView: View {
                         get: { !isHistoryDrawerOpen },
                         set: { _ in }
                     ),
-                    canUseVoiceMode: canUseVoiceMode,
+                    canUseVoiceMode: viewModel.canUseVoiceMode,
                     onStartVoiceMode: { showingVoiceMode = true },
                     onSend: {
                         stickToBottom = true

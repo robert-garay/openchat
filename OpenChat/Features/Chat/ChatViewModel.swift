@@ -249,6 +249,14 @@ final class ChatViewModel {
         currentModel?.supportsEffort ?? false
     }
 
+    /// Voice mode always talks to OpenAI's Realtime API, so it's only offered
+    /// when this chat's selected provider is OpenAI (with a key configured) —
+    /// not just whenever an OpenAI key exists somewhere in Settings.
+    var canUseVoiceMode: Bool {
+        guard let provider = currentProvider, provider.id == "openai" else { return false }
+        return providerStore.apiKey(for: provider) != nil
+    }
+
     func setEffortLevel(_ level: EffortLevel) {
         effortLevel = level
         conversation.effortLevel = level

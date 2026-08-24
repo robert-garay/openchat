@@ -24,9 +24,16 @@ struct VoiceModeView: View {
                 orb
                 statusText
                 Spacer()
-                controls
             }
-            .padding(.bottom, 56)
+
+            VStack {
+                HStack {
+                    Spacer()
+                    closeButton
+                }
+                Spacer()
+            }
+            .padding(20)
         }
         .task {
             guard controller == nil else { return }
@@ -114,31 +121,17 @@ struct VoiceModeView: View {
         }
     }
 
-    private var controls: some View {
-        HStack(spacing: 48) {
-            Button {
-                Haptics.light()
-                controller?.toggleMute()
-            } label: {
-                Image(systemName: (controller?.isMuted ?? false) ? "mic.slash.fill" : "mic.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 56, height: 56)
-                    .background(.white.opacity(0.15), in: Circle())
-            }
-            .accessibilityLabel((controller?.isMuted ?? false) ? "Unmute" : "Mute")
-
-            Button {
-                Haptics.medium()
-                dismiss()
-            } label: {
-                Image(systemName: "phone.down.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 64, height: 64)
-                    .background(Color.red, in: Circle())
-            }
-            .accessibilityLabel("End voice mode")
+    private var closeButton: some View {
+        Button {
+            Haptics.medium()
+            dismiss()
+        } label: {
+            Image(systemName: "xmark")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(.white.opacity(0.15), in: Circle())
         }
+        .accessibilityLabel("End voice mode")
     }
 }
