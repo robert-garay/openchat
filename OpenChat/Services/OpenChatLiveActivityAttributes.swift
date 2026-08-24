@@ -11,7 +11,7 @@ struct OpenChatLiveActivityAttributes: ActivityAttributes {
 
     enum Status: Codable, Hashable {
         case generating(elapsed: TimeInterval)
-        case completed
+        case completed(at: Date)
         case failed
     }
 
@@ -35,5 +35,10 @@ extension OpenChatLiveActivityAttributes.Status {
 
     var isGenerating: Bool {
         if case .generating = self { true } else { false }
+    }
+
+    /// Only meaningful while `.completed`; other states report nil.
+    var completedAt: Date? {
+        if case .completed(let at) = self { at } else { nil }
     }
 }

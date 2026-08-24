@@ -119,6 +119,7 @@
 		6EB8A63C45BE513B792F4E68 /* AgentDataSourcePermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3432E3B59D9CD35605D465A9 /* AgentDataSourcePermissionService.swift */; };
 		71E0EA719984C7C5E98AC3BD /* DocumentAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DF21A990A4989A7177E07A /* DocumentAttachmentTests.swift */; };
 		73A09DDE5E5D71927B9AF1FE /* FakeRealtimeVoiceTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3496CB6C295DA16F02BB7BF /* FakeRealtimeVoiceTransport.swift */; };
+		760123A678E2DB9C68409A0B /* BackgroundGenerationService+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F27E27A0371819EF2F94456 /* BackgroundGenerationService+Notifications.swift */; };
 		769CFBBCD9C98B17EDF59F02 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */; };
 		778EF96B0EEF09EC10FA72B2 /* AttachmentComposerBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2483DF5ABAA3CC0FD146BEDB /* AttachmentComposerBox.swift */; };
 		77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F3972663C6A879F3059B3B /* NetworkMonitor.swift */; };
@@ -343,6 +344,7 @@
 		7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryActionParser.swift; sourceTree = "<group>"; };
 		7C9B6AAA9BC37A9E45671DFA /* ChatTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTool.swift; sourceTree = "<group>"; };
 		7CFB22E5DAA02F87C7556EF5 /* FitnessHealthDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessHealthDataTypes.swift; sourceTree = "<group>"; };
+		7F27E27A0371819EF2F94456 /* BackgroundGenerationService+Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundGenerationService+Notifications.swift"; sourceTree = "<group>"; };
 		8122D8833D27FBD578598522 /* NetworkRetrierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRetrierTests.swift; sourceTree = "<group>"; };
 		81E3BA8DAB14E78A655E5DFE /* SkillToolService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillToolService.swift; sourceTree = "<group>"; };
 		8278B52A14134A4DE0197F82 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
@@ -578,6 +580,7 @@
 				EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */,
 				F539AA6FA57B47B500D2880B /* AnyCodableJSON.swift */,
 				48E3FABE0FEED5EABA61F6ED /* BackgroundGenerationService.swift */,
+				7F27E27A0371819EF2F94456 /* BackgroundGenerationService+Notifications.swift */,
 				6472C87413D244B6FD8F16C8 /* BackgroundGenerationService+Proposals.swift */,
 				C56AE078B69665F46B132915 /* BackgroundGenerationService+Streaming.swift */,
 				85FC75289E26C86836CE9F6B /* BackgroundNetworkSession.swift */,
@@ -970,6 +973,7 @@
 				F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */,
 				56AD98224DF3BB5BC0756F65 /* AssistantMarkdownMessageView.swift in Sources */,
 				778EF96B0EEF09EC10FA72B2 /* AttachmentComposerBox.swift in Sources */,
+				760123A678E2DB9C68409A0B /* BackgroundGenerationService+Notifications.swift in Sources */,
 				1EA6D465514F771B63945E6D /* BackgroundGenerationService+Proposals.swift in Sources */,
 				057296BFC380BCF5BBAFEF3F /* BackgroundGenerationService+Streaming.swift in Sources */,
 				B9B31479BD07E09ACA54CD31 /* BackgroundGenerationService.swift in Sources */,

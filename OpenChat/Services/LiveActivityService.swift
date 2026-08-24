@@ -48,12 +48,16 @@ actor LiveActivityService {
         await activity.update(ActivityContent(state: contentState, staleDate: nil))
     }
 
-    /// Ends the Live Activity, showing the final state for a moment before dismissal.
-    func end(activityID: String?, status: OpenChatLiveActivityAttributes.Status = .completed) async {
+    /// Ends the Live Activity, showing the final state until `dismissalPolicy` removes it.
+    func end(
+        activityID: String?,
+        status: OpenChatLiveActivityAttributes.Status,
+        dismissalPolicy: ActivityUIDismissalPolicy = .default
+    ) async {
         guard let activityID, activityIDs.remove(activityID) != nil else { return }
         guard let activity = Activity<OpenChatLiveActivityAttributes>.activities.first(where: { $0.id == activityID }) else { return }
 
         let finalState = OpenChatLiveActivityAttributes.ContentState(status: status)
-        await activity.end(ActivityContent(state: finalState, staleDate: nil), dismissalPolicy: .default)
+        await activity.end(ActivityContent(state: finalState, staleDate: nil), dismissalPolicy: dismissalPolicy)
     }
 }

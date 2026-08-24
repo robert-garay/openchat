@@ -31,7 +31,7 @@ final class BackgroundGenerationService {
 
     /// The conversation currently visible to the user. Used to decide whether a
     /// finished assistant turn should be marked unread.
-    private var visibleConversationID: UUID?
+    var visibleConversationID: UUID?
 
     // MARK: - Active tasks
 
@@ -154,7 +154,9 @@ final class BackgroundGenerationService {
         active.task.cancel()
         endBackgroundTask(active.backgroundTaskID)
         Task {
-            await LiveActivityService.shared.end(activityID: active.activityID, status: .failed)
+            // Immediate dismissal: a cancelled response isn't a failure, so it
+            // shouldn't flash the red "failed" ring before disappearing.
+            await LiveActivityService.shared.end(activityID: active.activityID, status: .failed, dismissalPolicy: .immediate)
         }
     }
 
@@ -169,7 +171,7 @@ final class BackgroundGenerationService {
         startDate: Date
     ) async {
         var activityID = tasks[conversationID]?.activityID
-        var finalActivityStatus: OpenChatLiveActivityAttributes.Status = .completed
+        var finalActivityStatus: OpenChatLiveActivityAttributes.Status?
         defer {
             Task { @MainActor in
                 if let active = tasks[conversationID], active.taskID == taskID {
@@ -178,8 +180,17 @@ final class BackgroundGenerationService {
                     updateIdleTimer()
                 }
             }
+            // Computed here (not at task start) so a successful completion's
+            // timestamp reflects when the response actually finished.
+            let status = finalActivityStatus ?? .completed(at: .now)
+            let dismissalPolicy: ActivityUIDismissalPolicy = {
+                switch status {
+                case .completed: .after(Date.now.addingTimeInterval(15 * 60))
+                case .generating, .failed: .default
+                }
+            }()
             Task {
-                await LiveActivityService.shared.end(activityID: activityID, status: finalActivityStatus)
+                await LiveActivityService.shared.end(activityID: activityID, status: status, dismissalPolicy: dismissalPolicy)
             }
         }
 
@@ -366,6 +377,7 @@ final class BackgroundGenerationService {
             messageID: message.id,
             conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
             assistantMessage: message,
+            modelContext: modelContext,
             error: error
         )
     }
@@ -436,47 +448,9 @@ final class BackgroundGenerationService {
             conversationID: conversationID,
             messageID: assistantMessage.id,
             conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
-            assistantMessage: assistantMessage
+            assistantMessage: assistantMessage,
+            modelContext: modelContext
         )
-    }
-
-    // MARK: - Completion handling
-
-    private func notifyCompletion(
-        conversationID: UUID,
-        messageID: UUID,
-        conversationTitle: String,
-        assistantMessage: ChatMessage,
-        error: Error? = nil
-    ) {
-        let didFail = error != nil || assistantMessage.errorMessage != nil
-        notify(
-            event: didFail ? .failed : .completed,
-            conversationID: conversationID,
-            messageID: messageID
-        )
-
-        // If the app is not active, post a local notification.
-        if UIApplication.shared.applicationState != .active {
-            Task {
-                await NotificationService.shared.scheduleResponseNotification(
-                    conversationID: conversationID,
-                    conversationTitle: conversationTitle,
-                    messagePreview: assistantMessage.content,
-                    failed: didFail
-                )
-            }
-        }
-    }
-
-    func notifyProgress(activityID: String?, conversationID: UUID, messageID: UUID, elapsed: TimeInterval) {
-        notify(event: .progress(elapsed: elapsed), conversationID: conversationID, messageID: messageID)
-        Task {
-            await LiveActivityService.shared.update(
-                activityID: activityID,
-                status: .generating(elapsed: elapsed)
-            )
-        }
     }
 
     // MARK: - Helpers
@@ -492,18 +466,6 @@ final class BackgroundGenerationService {
     /// being backgrounded — only the OS idle timer.
     private func updateIdleTimer() {
         UIApplication.shared.isIdleTimerDisabled = !tasks.isEmpty
-    }
-
-    private func notify(event: BackgroundGenerationEvent, conversationID: UUID, messageID: UUID) {
-        NotificationCenter.default.post(
-            name: .bgGenDidUpdate,
-            object: nil,
-            userInfo: [
-                "event": event,
-                "conversationID": conversationID,
-                "messageID": messageID
-            ]
-        )
     }
 }
 
