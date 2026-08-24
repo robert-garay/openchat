@@ -46,6 +46,24 @@ final class URLSessionRealtimeTransport: RealtimeVoiceTransport, @unchecked Send
         let task = session.webSocketTask(with: request)
         task.resume()
         lock.withLock { self.task = task }
+
+        // `resume()` only starts the handshake asynchronously — it does not wait
+        // for the socket to actually be open. Without this, the caller's first
+        // `send()` (session.update, sent immediately after `connect()` returns)
+        // races the handshake and fails with "Socket is not connected" whenever
+        // real network latency beats the race, which local/simulator testing
+        // rarely surfaces. A ping's completion handler only fires once the
+        // WebSocket connection is genuinely established (or failed), so it's the
+        // standard way to await that with `URLSessionWebSocketTask`.
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            task.sendPing { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
     }
 
     func send(_ data: Data) async throws {
