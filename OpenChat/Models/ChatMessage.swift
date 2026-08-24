@@ -9,6 +9,13 @@ enum MessageRole: String, Codable, Sendable {
     case tool
 }
 
+/// How a message entered the conversation. Used to show a small indicator on
+/// bubbles produced by a spoken voice-mode turn.
+enum MessageOrigin: String, Codable, Sendable {
+    case text
+    case voice
+}
+
 @Model
 final class ChatMessage {
     var id: UUID
@@ -29,11 +36,18 @@ final class ChatMessage {
     var attachmentsData: Data?
     /// JSON-encoded `[ChatDocumentAttachment]` for PDF-bearing user turns.
     var documentAttachmentsData: Data?
+    /// Raw value of `MessageOrigin`. Defaults to `.text` for legacy rows.
+    var originRaw: String = MessageOrigin.text.rawValue
     var conversation: Conversation?
 
     var role: MessageRole {
         get { MessageRole(rawValue: roleRaw) ?? .user }
         set { roleRaw = newValue.rawValue }
+    }
+
+    var origin: MessageOrigin {
+        get { MessageOrigin(rawValue: originRaw) ?? .text }
+        set { originRaw = newValue.rawValue }
     }
 
     /// Elapsed time between `createdAt` and `completedAt`, in seconds. Nil until the turn finishes.
@@ -81,7 +95,8 @@ final class ChatMessage {
         providerID: String? = nil,
         modelID: String? = nil,
         imageAttachments: [ChatImageAttachment] = [],
-        documentAttachments: [ChatDocumentAttachment] = []
+        documentAttachments: [ChatDocumentAttachment] = [],
+        origin: MessageOrigin = .text
     ) {
         self.id = id
         self.roleRaw = role.rawValue
@@ -92,6 +107,7 @@ final class ChatMessage {
         self.errorMessage = errorMessage
         self.providerID = providerID
         self.modelID = modelID
+        self.originRaw = origin.rawValue
         if imageAttachments.isEmpty {
             self.attachmentsData = nil
         } else {

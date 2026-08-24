@@ -14,4 +14,12 @@ actor SkillInvocationCollector {
     func recordProposal(_ proposal: SkillProposal) {
         proposals.append(proposal)
     }
+
+    /// Returns and clears accumulated proposals. Used by voice mode, where one
+    /// collector spans a whole call and proposals must be captured per assistant
+    /// turn rather than once at the end of a single text-chat generation.
+    func drainProposals() -> [SkillProposal] {
+        defer { proposals.removeAll() }
+        return proposals
+    }
 }
