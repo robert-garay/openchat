@@ -31,7 +31,7 @@ final class BackgroundGenerationService {
 
     /// The conversation currently visible to the user. Used to decide whether a
     /// finished assistant turn should be marked unread.
-    private var visibleConversationID: UUID?
+    var visibleConversationID: UUID?
 
     // MARK: - Active tasks
 
@@ -693,59 +693,6 @@ final class BackgroundGenerationService {
         )
     }
 
-    // MARK: - Completion handling
-
-    private func notifyCompletion(
-        conversationID: UUID,
-        messageID: UUID,
-        conversationTitle: String,
-        assistantMessage: ChatMessage,
-        modelContext: ModelContext,
-        error: Error? = nil
-    ) {
-        let didFail = error != nil || assistantMessage.errorMessage != nil
-        notify(
-            event: didFail ? .failed : .completed,
-            conversationID: conversationID,
-            messageID: messageID
-        )
-
-        // Post a local notification unless this is the conversation currently
-        // on screen — matching Messages/Slack, which still banner a finished
-        // reply in a different chat even while the app is foregrounded.
-        let isConversationVisible = UIApplication.shared.applicationState == .active
-            && visibleConversationID == conversationID
-        if !isConversationVisible {
-            let unreadCount = Self.unreadConversationCount(modelContext: modelContext)
-            Task {
-                await NotificationService.shared.scheduleResponseNotification(
-                    conversationID: conversationID,
-                    conversationTitle: conversationTitle,
-                    messagePreview: assistantMessage.content,
-                    failed: didFail,
-                    badgeCount: unreadCount
-                )
-            }
-        }
-    }
-
-    /// Number of conversations with at least one unread assistant message —
-    /// the standard basis for an app icon badge count.
-    static func unreadConversationCount(modelContext: ModelContext) -> Int {
-        let conversations = (try? modelContext.fetch(FetchDescriptor<Conversation>())) ?? []
-        return conversations.filter(\.hasUnreadMessages).count
-    }
-
-    private func notifyProgress(activityID: String?, conversationID: UUID, messageID: UUID, elapsed: TimeInterval) {
-        notify(event: .progress(elapsed: elapsed), conversationID: conversationID, messageID: messageID)
-        Task {
-            await LiveActivityService.shared.update(
-                activityID: activityID,
-                status: .generating(elapsed: elapsed)
-            )
-        }
-    }
-
     // MARK: - Helpers
 
     private func endBackgroundTask(_ id: UIBackgroundTaskIdentifier?) {
@@ -759,18 +706,6 @@ final class BackgroundGenerationService {
     /// being backgrounded — only the OS idle timer.
     private func updateIdleTimer() {
         UIApplication.shared.isIdleTimerDisabled = !tasks.isEmpty
-    }
-
-    private func notify(event: BackgroundGenerationEvent, conversationID: UUID, messageID: UUID) {
-        NotificationCenter.default.post(
-            name: .bgGenDidUpdate,
-            object: nil,
-            userInfo: [
-                "event": event,
-                "conversationID": conversationID,
-                "messageID": messageID
-            ]
-        )
     }
 }
 
