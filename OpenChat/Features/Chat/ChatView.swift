@@ -84,6 +84,15 @@ struct ChatView: View {
                         showingModelPicker = true
                     } label: {
                         HStack(spacing: 4) {
+                            if let provider = viewModel.currentProvider {
+                                ProviderLogoView(
+                                    logoAssetName: provider.logoAssetName,
+                                    symbolName: provider.symbolName,
+                                    tint: Color(hex: provider.tint),
+                                    size: 16,
+                                    cornerRadius: 4
+                                )
+                            }
                             Text(viewModel.currentModel?.displayName ?? "Choose Model")
                                 .font(.subheadline.weight(.semibold))
                                 .lineLimit(1)
