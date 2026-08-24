@@ -120,6 +120,16 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://aistudio.google.com/apikey"),
             apiKeyPlaceholder: "API key"
         ),
+        ProviderTemplate(
+            id: "cheaperinference",
+            name: "Cheaper Inference",
+            symbolName: "arrow.down.circle.fill",
+            tint: "#16A34A",
+            baseURL: "https://api.cheaperinference.com/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://cheaperinference.com/signup"),
+            apiKeyPlaceholder: "ir_live_..."
+        ),
     ]
 
     static func template(for id: String) -> ProviderTemplate? {
