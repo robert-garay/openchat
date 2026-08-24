@@ -12,6 +12,7 @@ struct CustomProviderView: View {
     @State private var modelsText = ""
     @State private var requiresAPIKey = false
     @State private var apiKey = ""
+    @State private var selectedLogoID: String?
 
     @State private var isTestingConnection = false
     @State private var connectionStatus: String?
@@ -216,6 +217,14 @@ struct CustomProviderView: View {
                     }
                 }
             }
+
+            Section {
+                logoPicker
+            } header: {
+                Text("Logo")
+            } footer: {
+                Text("Pick a brand mark if this endpoint is a known host. Otherwise a generic server icon is used.")
+            }
         }
         .navigationTitle("Custom Endpoint")
         .navigationBarTitleDisplayMode(.inline)
@@ -225,6 +234,32 @@ struct CustomProviderView: View {
                     .fontWeight(.semibold)
                     .disabled(!canSave)
             }
+        }
+    }
+
+    private var logoPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                CustomEndpointLogoButton(
+                    logoAssetName: nil,
+                    symbolName: "server.rack",
+                    name: "Default",
+                    isSelected: selectedLogoID == nil
+                ) {
+                    selectedLogoID = nil
+                }
+                ForEach(CustomEndpointLogoOption.all) { option in
+                    CustomEndpointLogoButton(
+                        logoAssetName: option.logoAssetName,
+                        symbolName: "server.rack",
+                        name: option.name,
+                        isSelected: selectedLogoID == option.id
+                    ) {
+                        selectedLogoID = option.id
+                    }
+                }
+            }
+            .padding(.vertical, 4)
         }
     }
 
@@ -270,7 +305,8 @@ struct CustomProviderView: View {
             name: trimmedName,
             baseURL: normalizedURL,
             models: models,
-            requiresAPIKey: requiresAPIKey
+            requiresAPIKey: requiresAPIKey,
+            logoID: selectedLogoID
         )
         if requiresAPIKey, let added {
             providerStore.setAPIKey(apiKey.trimmingCharacters(in: .whitespaces), for: added)

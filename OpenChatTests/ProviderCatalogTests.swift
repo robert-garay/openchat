@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import OpenChat
 
 final class ProviderCatalogTests: XCTestCase {
@@ -41,5 +42,24 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(ProviderLogo.assetName(for: "deepseek"), "ProviderLogoDeepSeek")
         XCTAssertEqual(ProviderLogo.assetName(for: "openai"), "ProviderLogoOpenAI")
         XCTAssertEqual(ProviderLogo.assetName(for: "anthropic"), "ProviderLogoAnthropic")
+    }
+}
+
+final class CustomEndpointLogoOptionTests: XCTestCase {
+    func testAllOptionsHaveUniqueIDs() {
+        let ids = CustomEndpointLogoOption.all.map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+    }
+
+    func testAllOptionsHaveAnAssetInTheCatalog() {
+        for option in CustomEndpointLogoOption.all {
+            XCTAssertNotNil(UIImage(named: option.logoAssetName), "\(option.name) is missing its logo asset")
+        }
+    }
+
+    func testOptionLookupByIDSucceeds() {
+        XCTAssertEqual(CustomEndpointLogoOption.option(for: "runpod")?.name, "RunPod")
+        XCTAssertNil(CustomEndpointLogoOption.option(for: "does-not-exist"))
+        XCTAssertNil(CustomEndpointLogoOption.option(for: nil))
     }
 }
