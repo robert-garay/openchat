@@ -18,8 +18,16 @@ struct ChatView: View {
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
     @State private var showingNewSkill = false
+    @State private var showingVoiceMode = false
     /// Shared with the message list so Send re-attaches follow-to-bottom.
     @State private var stickToBottom = true
+
+    /// Voice mode always talks to OpenAI's Realtime API, independent of the
+    /// chat's selected provider/model — gated only on an OpenAI API key.
+    private var canUseVoiceMode: Bool {
+        guard let openAI = providerStore.provider(withID: "openai") else { return false }
+        return providerStore.apiKey(for: openAI) != nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,12 +60,25 @@ struct ChatView: View {
                         get: { !isHistoryDrawerOpen },
                         set: { _ in }
                     ),
+                    canUseVoiceMode: canUseVoiceMode,
+                    onStartVoiceMode: { showingVoiceMode = true },
                     onSend: {
                         stickToBottom = true
                         viewModel.send()
                     }
                 )
             }
+        }
+        .fullScreenCover(isPresented: $showingVoiceMode) {
+            VoiceModeView(
+                conversation: conversation,
+                modelContext: modelContext,
+                providerStore: providerStore,
+                webSearchStore: webSearchStore,
+                skillsStore: skillsStore,
+                rulesStore: rulesStore,
+                memoryStore: memoryStore
+            )
         }
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -248,6 +269,8 @@ private struct ChatComposerHost: View {
     var canUseChatRules: Bool = true
     var conversation: Conversation? = nil
     var isFocused: Binding<Bool> = .constant(false)
+    var canUseVoiceMode: Bool = false
+    var onStartVoiceMode: (() -> Void)? = nil
     let onSend: () -> Void
 
     var body: some View {
@@ -277,6 +300,8 @@ private struct ChatComposerHost: View {
             canUseChatRules: canUseChatRules,
             conversation: conversation,
             skills: skills,
+            canUseVoiceMode: canUseVoiceMode,
+            onStartVoiceMode: onStartVoiceMode,
             effortLevel: $viewModel.effortLevel,
             isReasoningEnabled: $viewModel.isReasoningEnabled,
             isFocused: isFocused,

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Voice mode: tap the mic button in the composer for a live, interruptible spoken conversation (OpenAI Realtime API), with web search and skills available as voice-callable tools. Transcripts land in the same conversation as regular messages, so you can switch freely between typing and talking. Requires an OpenAI API key.
 - Background assistant-response generation that survives leaving a chat and backgrounding the app, with a Dynamic Island Live Activity, a local notification on completion, and unread-response markers in the chat history list.
 - Provider settings now display a live credit balance for providers that expose a balance API (DeepSeek, Moonshot, and OpenRouter).
 
