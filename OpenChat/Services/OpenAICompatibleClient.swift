@@ -19,7 +19,16 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         effort: EffortLevel?,
         reasoningEnabled: Bool?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
-        AsyncThrowingStream { continuation in
+        // Belt-and-suspenders: a manually-added custom provider model may have no
+        // inferred capabilities at all (no `/models` metadata to infer from), so fall
+        // back to the name heuristic here too — this is what actually decides whether
+        // the request takes the background-safe non-streaming path below, and a model
+        // saved before capability inference existed shouldn't have to be re-added to
+        // benefit from it.
+        let supportsImageGen = supportsImageGen
+            || ModelCapability.inferred(inputModalities: [], outputModalities: [], modelID: model).contains(.imageGen)
+
+        return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     if tools.isEmpty, supportsImageGen {
