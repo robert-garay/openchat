@@ -22,7 +22,6 @@ final class VoiceConversationController {
     }
 
     static let model = "gpt-4o-realtime-preview"
-    static let voice = "alloy"
 
     private(set) var state: ConnectionState = .idle
     private(set) var partialUserTranscript = ""
@@ -49,6 +48,7 @@ final class VoiceConversationController {
     private var hasAttemptedReconnect = false
     private let skillCollector = SkillInvocationCollector()
     private var toolContext: (tools: [ChatToolDefinition], execute: @Sendable (ChatToolCall) async throws -> String) = ([], { _ in "" })
+    private let voice: String
 
     init(
         conversation: Conversation,
@@ -58,6 +58,7 @@ final class VoiceConversationController {
         skillsStore: SkillsStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
+        voice: String = RealtimeVoiceOption.alloy.rawValue,
         session: RealtimeVoiceSession = RealtimeVoiceSession(),
         audioEngine: any VoiceAudioEngineProtocol = VoiceAudioEngine()
     ) {
@@ -68,6 +69,7 @@ final class VoiceConversationController {
         self.skillsStore = skillsStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
+        self.voice = voice
         self.session = session
         self.audioEngine = audioEngine
     }
@@ -132,7 +134,7 @@ final class VoiceConversationController {
             let events = try await session.connect(
                 apiKey: apiKey,
                 model: Self.model,
-                voice: Self.voice,
+                voice: voice,
                 instructions: buildInstructions(),
                 tools: toolContext.tools
             )

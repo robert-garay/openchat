@@ -38,6 +38,7 @@ struct OpenChatApp: App {
     @State private var rulesStore = RulesStore()
     @State private var memoryStore = MemoryStore()
     @State private var skillsStore = SkillsStore()
+    @State private var voiceModeStore = VoiceModeStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
@@ -63,6 +64,7 @@ struct OpenChatApp: App {
                 .environment(rulesStore)
                 .environment(memoryStore)
                 .environment(skillsStore)
+                .environment(voiceModeStore)
                 .preferredColorScheme(appearance.colorScheme)
                 .onAppear { appearance.applyToAllWindows() }
                 .onChange(of: appearance) { _, newValue in

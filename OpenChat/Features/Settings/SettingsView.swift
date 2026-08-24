@@ -44,6 +44,11 @@ struct SettingsView: View {
                         Label("Web Search", systemImage: "globe")
                     }
                     NavigationLink {
+                        VoiceModeSettingsView()
+                    } label: {
+                        Label("Voice Mode", systemImage: "waveform")
+                    }
+                    NavigationLink {
                         MemorySettingsView()
                     } label: {
                         Label("Memory", systemImage: "brain.head.profile")
