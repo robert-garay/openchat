@@ -1,18 +1,80 @@
 import SwiftUI
-#if canImport(UIKit)
 import UIKit
 
 /// Full-screen image preview with pinch / double-tap zoom and pan.
+///
+/// Pan/zoom is implemented directly with SwiftUI gestures and an explicitly
+/// clamped offset, rather than a `UIScrollView` wrapper. The offset is always
+/// computed and clamped by this view's own code, so it can never end up
+/// outside the image's bounds no matter what sequence of gestures produced it —
+/// there's no UIKit-internal scroll/zoom state to get out of sync with.
 struct ImagePreviewView: View {
     let image: UIImage
     @Environment(\.dismiss) private var dismiss
+
+    @State private var scale: CGFloat = 1
+    @State private var committedScale: CGFloat = 1
+    @State private var offset: CGSize = .zero
+    @State private var committedOffset: CGSize = .zero
+
+    private let minScale: CGFloat = 1
+    private let maxScale: CGFloat = 5
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Color.black.ignoresSafeArea()
 
-            ZoomableScrollView(image: image)
-                .ignoresSafeArea()
+            GeometryReader { proxy in
+                let containerSize = proxy.size
+                let fittedSize = Self.fittedSize(of: image.size, in: containerSize)
+
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: containerSize.width, height: containerSize.height)
+                    .scaleEffect(scale)
+                    .offset(offset)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        SimultaneousGesture(
+                            MagnificationGesture()
+                                .onChanged { value in
+                                    scale = (committedScale * value).clamped(to: minScale...maxScale)
+                                    offset = Self.clampedOffset(offset, fittedSize: fittedSize, scale: scale, containerSize: containerSize)
+                                }
+                                .onEnded { _ in
+                                    committedScale = scale
+                                    committedOffset = offset
+                                },
+                            DragGesture()
+                                .onChanged { value in
+                                    guard scale > minScale * 1.001 else { return }
+                                    let proposed = CGSize(
+                                        width: committedOffset.width + value.translation.width,
+                                        height: committedOffset.height + value.translation.height
+                                    )
+                                    offset = Self.clampedOffset(proposed, fittedSize: fittedSize, scale: scale, containerSize: containerSize)
+                                }
+                                .onEnded { _ in
+                                    committedOffset = offset
+                                }
+                        )
+                    )
+                    .onTapGesture(count: 2) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            if scale > minScale * 1.05 {
+                                scale = minScale
+                                offset = .zero
+                            } else {
+                                scale = min(minScale * 2.5, maxScale)
+                                offset = Self.clampedOffset(offset, fittedSize: fittedSize, scale: scale, containerSize: containerSize)
+                            }
+                            committedScale = scale
+                            committedOffset = offset
+                        }
+                    }
+            }
+            .ignoresSafeArea()
 
             Button {
                 Haptics.light()
@@ -28,142 +90,40 @@ struct ImagePreviewView: View {
         }
         .statusBarHidden(true)
     }
-}
 
-/// UIScrollView-backed zoom so pinch and double-tap feel native.
-private struct ZoomableScrollView: UIViewRepresentable {
-    let image: UIImage
-
-    func makeUIView(context: Context) -> UIScrollView {
-        let scrollView = LayoutAwareScrollView()
-        scrollView.delegate = context.coordinator
-        scrollView.minimumZoomScale = 1
-        scrollView.maximumZoomScale = 5
-        scrollView.bouncesZoom = true
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.backgroundColor = .black
-        scrollView.contentInsetAdjustmentBehavior = .never
-        scrollView.onBoundsChange = { [weak coordinator = context.coordinator] in
-            coordinator?.layoutImageIfNeeded(force: false)
+    /// The size the image actually renders at under `.scaledToFit()` inside `containerSize`.
+    private static func fittedSize(of imageSize: CGSize, in containerSize: CGSize) -> CGSize {
+        guard imageSize.width > 0, imageSize.height > 0,
+              containerSize.width > 0, containerSize.height > 0 else { return containerSize }
+        let imageAspect = imageSize.width / imageSize.height
+        let containerAspect = containerSize.width / containerSize.height
+        if imageAspect > containerAspect {
+            let width = containerSize.width
+            return CGSize(width: width, height: width / imageAspect)
+        } else {
+            let height = containerSize.height
+            return CGSize(width: height * imageAspect, height: height)
         }
+    }
 
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        imageView.isUserInteractionEnabled = true
-        scrollView.addSubview(imageView)
-
-        let doubleTap = UITapGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handleDoubleTap(_:))
+    /// Clamps a proposed pan offset so the image can never be dragged past its own edges:
+    /// the maximum offset in each axis is exactly half of how much the scaled image
+    /// overhangs the container in that axis (zero once the image is smaller than the
+    /// container, e.g. a letterboxed axis at low zoom).
+    private static func clampedOffset(_ proposed: CGSize, fittedSize: CGSize, scale: CGFloat, containerSize: CGSize) -> CGSize {
+        let scaledWidth = fittedSize.width * scale
+        let scaledHeight = fittedSize.height * scale
+        let maxX = max(0, (scaledWidth - containerSize.width) / 2)
+        let maxY = max(0, (scaledHeight - containerSize.height) / 2)
+        return CGSize(
+            width: proposed.width.clamped(to: -maxX...maxX),
+            height: proposed.height.clamped(to: -maxY...maxY)
         )
-        doubleTap.numberOfTapsRequired = 2
-        scrollView.addGestureRecognizer(doubleTap)
-
-        context.coordinator.scrollView = scrollView
-        context.coordinator.imageView = imageView
-        return scrollView
-    }
-
-    func updateUIView(_ scrollView: UIScrollView, context: Context) {
-        context.coordinator.layoutImageIfNeeded(force: false)
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(image: image)
-    }
-
-    final class LayoutAwareScrollView: UIScrollView {
-        var onBoundsChange: (() -> Void)?
-        private var lastBoundsSize: CGSize = .zero
-
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            guard bounds.size != lastBoundsSize else { return }
-            lastBoundsSize = bounds.size
-            onBoundsChange?()
-        }
-    }
-
-    final class Coordinator: NSObject, UIScrollViewDelegate {
-        let image: UIImage
-        weak var scrollView: UIScrollView?
-        weak var imageView: UIImageView?
-        private var configuredBoundsSize: CGSize = .zero
-
-        init(image: UIImage) {
-            self.image = image
-        }
-
-        func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-            imageView
-        }
-
-        func scrollViewDidZoom(_ scrollView: UIScrollView) {
-            centerImage()
-        }
-
-        func layoutImageIfNeeded(force: Bool) {
-            guard let scrollView, let imageView else { return }
-            let boundsSize = scrollView.bounds.size
-            guard boundsSize.width > 0, boundsSize.height > 0 else { return }
-            guard force || boundsSize != configuredBoundsSize else { return }
-            configuredBoundsSize = boundsSize
-
-            imageView.frame = CGRect(origin: .zero, size: image.size)
-            let widthScale = boundsSize.width / max(image.size.width, 1)
-            let heightScale = boundsSize.height / max(image.size.height, 1)
-            let fitScale = min(widthScale, heightScale)
-
-            scrollView.minimumZoomScale = fitScale
-            scrollView.maximumZoomScale = max(fitScale * 5, fitScale + 0.01)
-            scrollView.zoomScale = fitScale
-            scrollView.contentSize = image.size
-            centerImage()
-        }
-
-        /// Recenters by repositioning the image view's own frame rather than mutating
-        /// `scrollView.contentInset`. Adjusting `contentInset` from inside `scrollViewDidZoom`
-        /// fights the scroll view's own offset clamping during a live pinch+pan gesture — the
-        /// inset keeps changing while the gesture is still in flight, which lets the content
-        /// drift past its bounds instead of being clamped. Frame-origin centering (Apple's
-        /// PhotoScroller pattern) never touches the offset-clamping metadata, so the image
-        /// can't be dragged past its edges.
-        func centerImage() {
-            guard let scrollView, let imageView else { return }
-            let boundsSize = scrollView.bounds.size
-            var frame = imageView.frame
-
-            frame.origin.x = frame.width < boundsSize.width ? (boundsSize.width - frame.width) / 2 : 0
-            frame.origin.y = frame.height < boundsSize.height ? (boundsSize.height - frame.height) / 2 : 0
-            imageView.frame = frame
-            scrollView.contentInset = .zero
-        }
-
-        @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
-            guard let scrollView else { return }
-            if scrollView.zoomScale > scrollView.minimumZoomScale * 1.05 {
-                scrollView.setZoomScale(scrollView.minimumZoomScale, animated: true)
-            } else {
-                let target = min(scrollView.minimumZoomScale * 2.5, scrollView.maximumZoomScale)
-                let point = gesture.location(in: imageView)
-                zoom(to: point, scale: target, in: scrollView)
-            }
-        }
-
-        private func zoom(to point: CGPoint, scale: CGFloat, in scrollView: UIScrollView) {
-            let size = scrollView.bounds.size
-            let width = size.width / scale
-            let height = size.height / scale
-            let rect = CGRect(
-                x: point.x - width / 2,
-                y: point.y - height / 2,
-                width: width,
-                height: height
-            )
-            scrollView.zoom(to: rect, animated: true)
-        }
     }
 }
 
-#endif
+private extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        min(max(self, range.lowerBound), range.upperBound)
+    }
+}
