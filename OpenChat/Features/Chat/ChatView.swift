@@ -14,6 +14,7 @@ struct ChatView: View {
     @Environment(RulesStore.self) private var rulesStore
     @Environment(MemoryStore.self) private var memoryStore
     @Environment(SkillsStore.self) private var skillsStore
+    @Environment(VoiceModeStore.self) private var voiceModeStore
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var viewModel: ChatViewModel?
     @State private var showingModelPicker = false
@@ -70,7 +71,8 @@ struct ChatView: View {
                 webSearchStore: webSearchStore,
                 skillsStore: skillsStore,
                 rulesStore: rulesStore,
-                memoryStore: memoryStore
+                memoryStore: memoryStore,
+                voice: voiceModeStore.voice.rawValue
             )
         }
         .navigationTitle(conversation.isTemporary ? "Temporary Chat" : conversation.title)
