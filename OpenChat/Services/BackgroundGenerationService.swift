@@ -154,7 +154,9 @@ final class BackgroundGenerationService {
         active.task.cancel()
         endBackgroundTask(active.backgroundTaskID)
         Task {
-            await LiveActivityService.shared.end(activityID: active.activityID, status: .failed)
+            // Immediate dismissal: a cancelled response isn't a failure, so it
+            // shouldn't flash the red "failed" ring before disappearing.
+            await LiveActivityService.shared.end(activityID: active.activityID, status: .failed, dismissalPolicy: .immediate)
         }
     }
 
@@ -169,7 +171,7 @@ final class BackgroundGenerationService {
         startDate: Date
     ) async {
         var activityID = tasks[conversationID]?.activityID
-        var finalActivityStatus: OpenChatLiveActivityAttributes.Status = .completed
+        var finalActivityStatus: OpenChatLiveActivityAttributes.Status?
         defer {
             Task { @MainActor in
                 if let active = tasks[conversationID], active.taskID == taskID {
@@ -178,8 +180,17 @@ final class BackgroundGenerationService {
                     updateIdleTimer()
                 }
             }
+            // Computed here (not at task start) so a successful completion's
+            // timestamp reflects when the response actually finished.
+            let status = finalActivityStatus ?? .completed(at: .now)
+            let dismissalPolicy: ActivityUIDismissalPolicy = {
+                switch status {
+                case .completed: .after(Date.now.addingTimeInterval(15 * 60))
+                case .generating, .failed: .default
+                }
+            }()
             Task {
-                await LiveActivityService.shared.end(activityID: activityID, status: finalActivityStatus)
+                await LiveActivityService.shared.end(activityID: activityID, status: status, dismissalPolicy: dismissalPolicy)
             }
         }
 
@@ -366,6 +377,7 @@ final class BackgroundGenerationService {
             messageID: message.id,
             conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
             assistantMessage: message,
+            modelContext: modelContext,
             error: error
         )
     }
@@ -676,7 +688,8 @@ final class BackgroundGenerationService {
             conversationID: conversationID,
             messageID: assistantMessage.id,
             conversationTitle: conversation.isTemporary ? "Temporary Chat" : conversation.title,
-            assistantMessage: assistantMessage
+            assistantMessage: assistantMessage,
+            modelContext: modelContext
         )
     }
 
@@ -687,6 +700,7 @@ final class BackgroundGenerationService {
         messageID: UUID,
         conversationTitle: String,
         assistantMessage: ChatMessage,
+        modelContext: ModelContext,
         error: Error? = nil
     ) {
         let didFail = error != nil || assistantMessage.errorMessage != nil
@@ -696,17 +710,30 @@ final class BackgroundGenerationService {
             messageID: messageID
         )
 
-        // If the app is not active, post a local notification.
-        if UIApplication.shared.applicationState != .active {
+        // Post a local notification unless this is the conversation currently
+        // on screen — matching Messages/Slack, which still banner a finished
+        // reply in a different chat even while the app is foregrounded.
+        let isConversationVisible = UIApplication.shared.applicationState == .active
+            && visibleConversationID == conversationID
+        if !isConversationVisible {
+            let unreadCount = Self.unreadConversationCount(modelContext: modelContext)
             Task {
                 await NotificationService.shared.scheduleResponseNotification(
                     conversationID: conversationID,
                     conversationTitle: conversationTitle,
                     messagePreview: assistantMessage.content,
-                    failed: didFail
+                    failed: didFail,
+                    badgeCount: unreadCount
                 )
             }
         }
+    }
+
+    /// Number of conversations with at least one unread assistant message —
+    /// the standard basis for an app icon badge count.
+    static func unreadConversationCount(modelContext: ModelContext) -> Int {
+        let conversations = (try? modelContext.fetch(FetchDescriptor<Conversation>())) ?? []
+        return conversations.filter(\.hasUnreadMessages).count
     }
 
     private func notifyProgress(activityID: String?, conversationID: UUID, messageID: UUID, elapsed: TimeInterval) {

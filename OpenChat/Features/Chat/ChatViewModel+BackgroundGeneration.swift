@@ -151,7 +151,14 @@ extension ChatViewModel {
 
     /// Marks every message in this conversation as read. Called when the chat becomes visible.
     func markAllRead() {
+        guard conversation.hasUnreadMessages else { return }
         conversation.markAllRead()
         try? modelContext.save()
+
+        NotificationService.shared.clearNotification(conversationID: conversation.id)
+        let unreadCount = BackgroundGenerationService.unreadConversationCount(modelContext: modelContext)
+        Task {
+            await NotificationService.shared.setBadgeCount(unreadCount)
+        }
     }
 }

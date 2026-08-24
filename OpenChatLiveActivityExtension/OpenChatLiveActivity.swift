@@ -30,6 +30,27 @@ struct LiveActivityMark: View {
     private static let degreesPerSecond: Double = 180
 }
 
+/// The compact Dynamic Island trailing slot: a glanceable timer, matching how
+/// Timer/Maps/Uber always put a number there rather than leaving it empty.
+struct CompactLiveActivityTimer: View {
+    let status: OpenChatLiveActivityAttributes.Status
+
+    var body: some View {
+        Group {
+            if status.isGenerating {
+                Text(timerInterval: (Date.now - status.elapsed)...(Date.now + 3600), countsDown: false)
+            } else if case .failed = status {
+                Text("!")
+            } else if let completedAt = status.completedAt {
+                Text(timerInterval: completedAt...(completedAt + 3600), countsDown: false)
+            }
+        }
+        .font(.caption2)
+        .monospacedDigit()
+        .foregroundStyle(status.tintColor)
+    }
+}
+
 struct OpenChatLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: OpenChatLiveActivityAttributes.self) { context in
@@ -52,7 +73,7 @@ struct OpenChatLiveActivityWidget: Widget {
                 LiveActivityMark(status: context.state.status)
                     .frame(width: 18, height: 18)
             } compactTrailing: {
-                EmptyView()
+                CompactLiveActivityTimer(status: context.state.status)
             } minimal: {
                 LiveActivityMark(status: context.state.status)
                     .frame(width: 18, height: 18)

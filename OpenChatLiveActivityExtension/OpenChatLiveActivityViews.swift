@@ -68,9 +68,9 @@ struct OpenChatLiveActivityExpandedBottom: View {
     }
 }
 
-/// Live-ticking elapsed time while generating, or a static status word once
-/// finished. Never shown in the compact/minimal Dynamic Island — those stay
-/// icon-only.
+/// Live-ticking elapsed time — while generating, time spent so far; once
+/// ready, time since the response finished — or a status word on failure.
+/// Never shown in the compact/minimal Dynamic Island — those stay icon-only.
 struct LiveActivityStatusText: View {
     let status: OpenChatLiveActivityAttributes.Status
 
@@ -81,13 +81,14 @@ struct LiveActivityStatusText: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
         } else if case .failed = status {
-            Text("Response failed")
+            Text("Failed")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        } else {
-            Text("Response ready")
+        } else if let completedAt = status.completedAt {
+            Text(timerInterval: completedAt...(completedAt + 3600), countsDown: false)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .monospacedDigit()
         }
     }
 }
