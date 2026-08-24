@@ -62,13 +62,13 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
                 }
                 .padding(.leading, 2)
                 .padding(.trailing, 4)
-                .padding(.bottom, 4)
+                .padding(.bottom, 8)
             }
             .background(alignment: .top) {
                 UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
                     .fill(Color(.secondarySystemBackground))
-                    .ignoresSafeArea(edges: .bottom)
             }
+            .ignoresSafeArea(edges: .bottom)
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $photoPickerItems, maxSelectionCount: 4, matching: .images)
         .onChange(of: photoPickerItems) { _, items in
