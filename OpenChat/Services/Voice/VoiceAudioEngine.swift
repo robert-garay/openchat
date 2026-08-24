@@ -81,9 +81,14 @@ actor VoiceAudioEngine: VoiceAudioEngineProtocol {
 
         #if canImport(UIKit)
         let session = AVAudioSession.sharedInstance()
-        // `.allowBluetoothHFP` (the non-deprecated replacement) isn't available in the
-        // Xcode/SDK version this project's CI builds against yet — keep the older symbol.
-        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
+        // `.allowBluetoothHFP` is the modern, non-deprecated name for this option, but
+        // isn't declared in the Xcode/SDK version this project's CI builds against.
+        // Both `.allowBluetooth` and `.allowBluetoothHFP` alias the same raw value
+        // (0x4) — building the option set from that raw value avoids referencing
+        // either symbol name, so it compiles cleanly (no deprecation warning, no
+        // missing-symbol error) on every SDK.
+        let allowBluetoothHFP = AVAudioSession.CategoryOptions(rawValue: 0x4)
+        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [allowBluetoothHFP, .defaultToSpeaker])
         try session.setActive(true)
         #endif
 
