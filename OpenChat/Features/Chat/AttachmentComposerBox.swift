@@ -62,17 +62,16 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
                 }
                 .padding(.leading, 2)
                 .padding(.trailing, 4)
-                .padding(.bottom, 8)
+                .padding(.bottom, 6)
             }
-            .background(alignment: .top) {
-                UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
+            .background {
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
                     .fill(.ultraThinMaterial)
-                    .overlay(alignment: .top) {
-                        UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
                             .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
                     }
             }
-            .ignoresSafeArea(edges: .bottom)
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $photoPickerItems, maxSelectionCount: 4, matching: .images)
         .onChange(of: photoPickerItems) { _, items in
