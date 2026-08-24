@@ -81,7 +81,9 @@ actor VoiceAudioEngine: VoiceAudioEngineProtocol {
 
         #if canImport(UIKit)
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .defaultToSpeaker])
+        // `.allowBluetoothHFP` (the non-deprecated replacement) isn't available in the
+        // Xcode/SDK version this project's CI builds against yet — keep the older symbol.
+        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
         try session.setActive(true)
         #endif
 
