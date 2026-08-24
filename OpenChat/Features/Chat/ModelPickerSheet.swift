@@ -67,20 +67,14 @@ struct ModelPickerSheet: View {
         if !trimmed.isEmpty {
             return "No models match “\(trimmed)”."
         }
-        if !selectedProviderIDs.isEmpty, !selectedCapabilities.isEmpty {
-            return "No models match the selected filters."
-        }
-        if !selectedProviderIDs.isEmpty {
-            return "No models match the selected providers."
-        }
-        if !selectedCapabilities.isEmpty {
-            return "No models match the selected capabilities."
+        if isFiltering {
+            return "No models found for these filters."
         }
         return "No models available right now."
     }
 
     private var isInitialLoading: Bool {
-        providerStore.isLoadingModels && allResults.isEmpty
+        providerStore.isLoadingModels && allResults.isEmpty && !isFiltering
     }
 
     private var fetchErrors: [(providerName: String, message: String)] {
