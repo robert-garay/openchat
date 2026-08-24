@@ -72,6 +72,7 @@ struct ChatView: View {
                 skillsStore: skillsStore,
                 rulesStore: rulesStore,
                 memoryStore: memoryStore,
+                model: voiceModeStore.model.rawValue,
                 voice: voiceModeStore.voice.rawValue
             )
         }
@@ -254,7 +255,8 @@ struct ChatView: View {
                 webSearchStore: webSearchStore,
                 rulesStore: rulesStore,
                 memoryStore: memoryStore,
-                skillsStore: skillsStore
+                skillsStore: skillsStore,
+                voiceModeStore: voiceModeStore
             )
         }
         BackgroundGenerationService.shared.setVisibleConversationID(conversation.id)

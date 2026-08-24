@@ -21,8 +21,6 @@ final class VoiceConversationController {
         case failed(String)
     }
 
-    static let model = "gpt-4o-realtime-preview"
-
     private(set) var state: ConnectionState = .idle
     private(set) var partialUserTranscript = ""
     private(set) var partialAssistantTranscript = ""
@@ -48,6 +46,7 @@ final class VoiceConversationController {
     private var hasAttemptedReconnect = false
     private let skillCollector = SkillInvocationCollector()
     private var toolContext: (tools: [ChatToolDefinition], execute: @Sendable (ChatToolCall) async throws -> String) = ([], { _ in "" })
+    private let model: String
     private let voice: String
 
     init(
@@ -58,6 +57,7 @@ final class VoiceConversationController {
         skillsStore: SkillsStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
+        model: String = RealtimeModelOption.gpt4oRealtimePreview.rawValue,
         voice: String = RealtimeVoiceOption.alloy.rawValue,
         session: RealtimeVoiceSession = RealtimeVoiceSession(),
         audioEngine: any VoiceAudioEngineProtocol = VoiceAudioEngine()
@@ -69,6 +69,7 @@ final class VoiceConversationController {
         self.skillsStore = skillsStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
+        self.model = model
         self.voice = voice
         self.session = session
         self.audioEngine = audioEngine
@@ -133,7 +134,7 @@ final class VoiceConversationController {
         do {
             let events = try await session.connect(
                 apiKey: apiKey,
-                model: Self.model,
+                model: model,
                 voice: voice,
                 instructions: buildInstructions(),
                 tools: toolContext.tools
@@ -267,7 +268,7 @@ final class VoiceConversationController {
             role: role,
             content: trimmed,
             providerID: role == .assistant ? "openai" : nil,
-            modelID: role == .assistant ? Self.model : nil,
+            modelID: role == .assistant ? model : nil,
             origin: .voice
         )
         message.conversation = conversation

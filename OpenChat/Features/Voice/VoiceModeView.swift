@@ -11,6 +11,7 @@ struct VoiceModeView: View {
     let skillsStore: SkillsStore
     let rulesStore: RulesStore
     let memoryStore: MemoryStore
+    let model: String
     let voice: String
 
     @Environment(\.dismiss) private var dismiss
@@ -57,6 +58,7 @@ struct VoiceModeView: View {
             skillsStore: skillsStore,
             rulesStore: rulesStore,
             memoryStore: memoryStore,
+            model: model,
             voice: voice
         )
     }

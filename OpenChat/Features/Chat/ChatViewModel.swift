@@ -67,6 +67,7 @@ final class ChatViewModel {
     internal let rulesStore: RulesStore
     internal let memoryStore: MemoryStore
     internal let skillsStore: SkillsStore
+    private let voiceModeStore: VoiceModeStore
     private var titleGenerationTask: Task<Void, Never>?
     private var compactionTask: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) var generationObserver: NSObjectProtocol?
@@ -95,7 +96,8 @@ final class ChatViewModel {
         webSearchStore: WebSearchStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
-        skillsStore: SkillsStore
+        skillsStore: SkillsStore,
+        voiceModeStore: VoiceModeStore
     ) {
         self.conversation = conversation
         self.modelContext = modelContext
@@ -105,6 +107,7 @@ final class ChatViewModel {
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
         self.skillsStore = skillsStore
+        self.voiceModeStore = voiceModeStore
         self.isWebSearchEnabledForChat = false
         self.effortLevel = conversation.effortLevel
         self.isReasoningEnabled = conversation.isReasoningEnabled
@@ -249,12 +252,14 @@ final class ChatViewModel {
         currentModel?.supportsEffort ?? false
     }
 
-    /// Voice mode always talks to OpenAI's Realtime API, so it's only offered
-    /// when this chat's selected provider is OpenAI (with a key configured) —
-    /// not just whenever an OpenAI key exists somewhere in Settings.
+    /// Voice mode always talks to OpenAI's Realtime API using the model/voice
+    /// configured in Settings — independent of this chat's own selected
+    /// provider/model, same as web search or skills being available everywhere
+    /// once turned on. Gated on the feature being enabled and an OpenAI key existing.
     var canUseVoiceMode: Bool {
-        guard let provider = currentProvider, provider.id == "openai" else { return false }
-        return providerStore.apiKey(for: provider) != nil
+        guard voiceModeStore.isEnabled,
+              let openAI = providerStore.provider(withID: "openai") else { return false }
+        return providerStore.apiKey(for: openAI) != nil
     }
 
     func setEffortLevel(_ level: EffortLevel) {
