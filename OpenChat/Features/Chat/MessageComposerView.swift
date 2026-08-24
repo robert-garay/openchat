@@ -93,8 +93,7 @@ struct MessageComposerView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(.bar)
+        .padding(.top, 8)
         .alert("Web search unavailable", isPresented: $showingWebSearchDisabledAlert) {
             Button("OK", role: .cancel) {}
         } message: {

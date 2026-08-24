@@ -202,7 +202,7 @@ final class ProviderStore {
     }
 
     @discardableResult
-    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool) -> ConfiguredProvider? {
+    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool, logoID: String? = nil) -> ConfiguredProvider? {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         var normalizedURL = baseURL.trimmingCharacters(in: .whitespaces)
         while normalizedURL.hasSuffix("/") {
@@ -224,7 +224,8 @@ final class ProviderStore {
             name: trimmedName,
             baseURL: normalizedURL,
             models: models,
-            requiresAPIKey: requiresAPIKey
+            requiresAPIKey: requiresAPIKey,
+            logoID: logoID
         )
         providers.append(provider)
         persist()
