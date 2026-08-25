@@ -25,13 +25,19 @@ struct ImagePreviewView: View {
     }
 
     private var dismissProgress: CGFloat {
-        min(1, max(0, dismissOffset) / 320)
+        min(1.0, max(0.0, dismissOffset) / 320.0)
     }
+
+    private var backdropOpacity: CGFloat { 1.0 - dismissProgress * 0.75 }
+
+    private var imageScale: CGFloat { 1.0 - dismissProgress * 0.08 }
+
+    private var chromeOpacity: CGFloat { 1.0 - dismissProgress }
 
     var body: some View {
         ZStack {
             Color.black
-                .opacity(1 - dismissProgress * 0.75)
+                .opacity(backdropOpacity)
                 .ignoresSafeArea()
 
             TabView(selection: $gallery.selectedIndex) {
@@ -47,7 +53,7 @@ struct ImagePreviewView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .scrollDisabled(isZoomed || isDraggingToDismiss)
             .offset(y: max(0, dismissOffset))
-            .scaleEffect(1 - dismissProgress * 0.08, anchor: .top)
+            .scaleEffect(imageScale, anchor: .top)
             .ignoresSafeArea()
             .onChange(of: gallery.selectedIndex) { _, _ in
                 isZoomed = false
@@ -72,7 +78,7 @@ struct ImagePreviewView: View {
                     .padding(16)
             }
             .accessibilityLabel("Close preview")
-            .opacity(1 - dismissProgress)
+            .opacity(chromeOpacity)
         }
         .overlay(alignment: .leading) {
             if gallery.attachments.count > 1 {
@@ -84,7 +90,7 @@ struct ImagePreviewView: View {
                     selectPrevious()
                 }
                 .padding(.leading, 8)
-                .opacity(1 - dismissProgress)
+                .opacity(chromeOpacity)
             }
         }
         .overlay(alignment: .trailing) {
@@ -97,7 +103,7 @@ struct ImagePreviewView: View {
                     selectNext()
                 }
                 .padding(.trailing, 8)
-                .opacity(1 - dismissProgress)
+                .opacity(chromeOpacity)
             }
         }
         .overlay(alignment: .bottom) {
@@ -111,7 +117,7 @@ struct ImagePreviewView: View {
                     .padding(.bottom, 28)
                     .accessibilityLabel("Image \(gallery.selectedIndex + 1) of \(gallery.attachments.count)")
                     .allowsHitTesting(false)
-                    .opacity(1 - dismissProgress)
+                    .opacity(chromeOpacity)
             }
         }
         .presentationBackground(.clear)
