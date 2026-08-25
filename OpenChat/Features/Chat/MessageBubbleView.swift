@@ -62,9 +62,10 @@ struct MessageBubbleView: View {
         }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
-            if let uiImage = UIImage(data: attachment.data) {
-                ImagePreviewView(image: uiImage)
-            }
+            ImagePreviewView(
+                attachments: ImageGallery.attachments(in: conversation.sortedMessages),
+                initialID: attachment.id
+            )
         }
         .fullScreenCover(item: $previewDocument) { attachment in
             DocumentPreviewView(attachment: attachment)

@@ -118,9 +118,7 @@ struct AttachmentComposerBox<Field: View, Buttons: View>: View {
         }
         #if canImport(UIKit)
         .fullScreenCover(item: $previewAttachment) { attachment in
-            if let uiImage = UIImage(data: attachment.data) {
-                ImagePreviewView(image: uiImage)
-            }
+            ImagePreviewView(attachments: attachments, initialID: attachment.id)
         }
         .fullScreenCover(item: $previewDocument) { attachment in
             DocumentPreviewView(attachment: attachment)
