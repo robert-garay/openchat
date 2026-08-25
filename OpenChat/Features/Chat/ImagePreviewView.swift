@@ -11,8 +11,10 @@ import UIKit
 /// there's no UIKit-internal scroll/zoom state to get out of sync with.
 ///
 /// Horizontal paging is disabled while zoomed so a pan cannot accidentally
-/// flip to the next image. At 1x, swipe left/right (or the chevrons) moves
-/// between images, and swipe down dismisses the viewer.
+/// flip to the next image. At 1x, swipe left/right moves between images,
+/// and swipe down dismisses the viewer. Deliberately chromeless — no close
+/// button, paging arrows, or page indicator — so nothing but the image
+/// itself is on screen.
 struct ImagePreviewView: View {
     @State private var gallery: ImageGallery
     @State private var isZoomed = false
@@ -31,8 +33,6 @@ struct ImagePreviewView: View {
     private var backdropOpacity: CGFloat { 1.0 - dismissProgress * 0.75 }
 
     private var imageScale: CGFloat { 1.0 - dismissProgress * 0.08 }
-
-    private var chromeOpacity: CGFloat { 1.0 - dismissProgress }
 
     var body: some View {
         ZStack {
@@ -66,60 +66,6 @@ struct ImagePreviewView: View {
                 isDraggingToDismiss = false
             }
         }
-        .overlay(alignment: .topTrailing) {
-            Button {
-                Haptics.light()
-                dismiss()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 28))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, .white.opacity(0.28))
-                    .padding(16)
-            }
-            .accessibilityLabel("Close preview")
-            .opacity(chromeOpacity)
-        }
-        .overlay(alignment: .leading) {
-            if gallery.attachments.count > 1 {
-                pagingButton(
-                    systemName: "chevron.left.circle.fill",
-                    label: "Previous image",
-                    enabled: gallery.canGoPrevious
-                ) {
-                    selectPrevious()
-                }
-                .padding(.leading, 8)
-                .opacity(chromeOpacity)
-            }
-        }
-        .overlay(alignment: .trailing) {
-            if gallery.attachments.count > 1 {
-                pagingButton(
-                    systemName: "chevron.right.circle.fill",
-                    label: "Next image",
-                    enabled: gallery.canGoNext
-                ) {
-                    selectNext()
-                }
-                .padding(.trailing, 8)
-                .opacity(chromeOpacity)
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if gallery.attachments.count > 1 {
-                Text("\(gallery.selectedIndex + 1) of \(gallery.attachments.count)")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.white.opacity(0.18), in: Capsule())
-                    .padding(.bottom, 28)
-                    .accessibilityLabel("Image \(gallery.selectedIndex + 1) of \(gallery.attachments.count)")
-                    .allowsHitTesting(false)
-                    .opacity(chromeOpacity)
-            }
-        }
         .presentationBackground(.clear)
         .statusBarHidden(true)
         .accessibilityAction(named: "Previous image") { selectPrevious() }
@@ -150,29 +96,6 @@ struct ImagePreviewView: View {
                     }
                 }
             }
-    }
-
-    private func pagingButton(
-        systemName: String,
-        label: String,
-        enabled: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button {
-            action()
-        } label: {
-            Image(systemName: systemName)
-                .font(.system(size: 32))
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, .white.opacity(enabled ? 0.28 : 0.12))
-                .padding(12)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.45)
-        .accessibilityLabel(label)
-        .accessibilityHidden(!enabled)
     }
 
     private func selectPrevious() {
