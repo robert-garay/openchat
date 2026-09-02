@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Security
+
+## [1.1.0] - 2026-09-02
+
+### Added
+
 - Full-screen image preview now pages left and right across every image in the current chat thread (and across multiple composer attachments), so you can swipe or tap the chevrons instead of closing the viewer to open the next picture. Swipe down to close.
 - Voice mode: tap the mic button in the composer for a live, interruptible spoken conversation (OpenAI Realtime API), with web search and skills available as voice-callable tools. Transcripts land in the same conversation as regular messages, so you can switch freely between typing and talking. Turn it on in Settings → Tools → Voice Mode, then pick which Realtime model to use from a live-fetched, provider-grouped picker (matching the chat model picker) and which voice it speaks with — once enabled, it's available in every chat regardless of that chat's own selected model.
 - Background assistant-response generation that survives leaving a chat and backgrounding the app, with a Dynamic Island Live Activity, a local notification on completion, and unread-response markers in the chat history list.
