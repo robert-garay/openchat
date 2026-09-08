@@ -12,9 +12,9 @@ final class ProviderStoreTests: XCTestCase {
         try await super.setUp()
         KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
         KeychainStore.removeAll()
-        MockURLProtocol.reset()
+        CatalogMockURLProtocol.reset()
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [MockURLProtocol.self]
+        configuration.protocolClasses = [CatalogMockURLProtocol.self]
         session = URLSession(configuration: configuration)
         defaults = UserDefaults(suiteName: "com.openchat.tests.\(UUID().uuidString)")
         store = makeStore(defaults: defaults)
@@ -260,7 +260,7 @@ final class ProviderStoreTests: XCTestCase {
     }
 
     func testSetAPIKeyFetchesOpenRouterCatalogImmediately() async {
-        MockURLProtocol.enqueue(json: #"{"data":[{"id":"openai/gpt-4o","name":"OpenAI: GPT-4o"}]}"#)
+        CatalogMockURLProtocol.enqueue(json: #"{"data":[{"id":"openai/gpt-4o","name":"OpenAI: GPT-4o"}]}"#)
         store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)
         store.setAPIKey("sk-or-test", for: store.provider(withID: "openrouter")!)
 
@@ -269,11 +269,11 @@ final class ProviderStoreTests: XCTestCase {
             message: "Timed out waiting for OpenRouter catalog fetch"
         )
         XCTAssertEqual(store.openRouterModels.first?.id, "openai/gpt-4o")
-        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-or-test")
+        XCTAssertEqual(CatalogMockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-or-test")
     }
 
     func testSetAPIKeyFetchesProviderCatalogImmediately() async {
-        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-chat"}]}"#)
+        CatalogMockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-chat"}]}"#)
         store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
         store.setAPIKey("sk-test", for: store.provider(withID: "deepseek")!)
 
@@ -282,11 +282,11 @@ final class ProviderStoreTests: XCTestCase {
             message: "Timed out waiting for DeepSeek catalog fetch"
         )
         XCTAssertEqual(store.liveModelsByProviderID["deepseek"]?.first?.id, "deepseek-chat")
-        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-test")
+        XCTAssertEqual(CatalogMockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-test")
     }
 
     func testAddCustomWithoutAPIKeyFetchesCatalogImmediately() async {
-        MockURLProtocol.enqueue(json: #"{"data":[{"id":"llama3.1"}]}"#)
+        CatalogMockURLProtocol.enqueue(json: #"{"data":[{"id":"llama3.1"}]}"#)
         let provider = store.addCustom(
             name: "Local Server",
             baseURL: "http://localhost:11434/v1",

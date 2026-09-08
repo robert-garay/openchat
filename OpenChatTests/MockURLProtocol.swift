@@ -1,11 +1,12 @@
 import Foundation
 
 /// Serves queued canned responses (or errors) and counts how many requests were issued.
-/// Shared across test targets that need to stub `URLSession` traffic.
+/// Stub queues are isolated per subclass so XCTest catalog helpers can run
+/// beside Swift Testing suites that also stub `URLSession`.
 // Instances are only ever touched by URLSession's loading machinery for a
 // single request/response cycle; the `dropAfterBody` delayed-error path below
 // hands `self` to a background timer that outlives that synchronous cycle.
-final class MockURLProtocol: URLProtocol, @unchecked Sendable {
+class MockURLProtocol: URLProtocol, @unchecked Sendable {
     private struct Stub {
         let body: Data?
         let contentType: String?
@@ -13,87 +14,110 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
         var dropAfterBody: Bool = false
     }
 
+    private struct Store {
+        var stubs: [Stub] = []
+        var count = 0
+        var capturedRequestBody: Data?
+        var capturedRequest: URLRequest?
+    }
+
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var stubs: [Stub] = []
-    nonisolated(unsafe) private static var count = 0
-    nonisolated(unsafe) private static var capturedRequestBody: Data?
-    nonisolated(unsafe) private static var capturedRequest: URLRequest?
+    nonisolated(unsafe) private static var stores: [ObjectIdentifier: Store] = [:]
 
-    static func reset() {
+    private class var storeKey: ObjectIdentifier { ObjectIdentifier(self) }
+
+    private class func mutate(_ body: (inout Store) -> Void) {
         lock.lock()
         defer { lock.unlock() }
-        stubs = []
-        count = 0
-        capturedRequestBody = nil
-        capturedRequest = nil
+        var store = stores[storeKey] ?? Store()
+        body(&store)
+        stores[storeKey] = store
     }
 
-    static var lastRequestBody: Data? {
+    class func reset() {
         lock.lock()
         defer { lock.unlock() }
-        return capturedRequestBody
+        stores[storeKey] = Store()
     }
 
-    static var lastRequest: URLRequest? {
+    class var lastRequestBody: Data? {
         lock.lock()
         defer { lock.unlock() }
-        return capturedRequest
+        return stores[storeKey]?.capturedRequestBody
     }
 
-    static func enqueue(sse: String) {
+    class var lastRequest: URLRequest? {
         lock.lock()
         defer { lock.unlock() }
-        stubs.append(Stub(body: Data(sse.utf8), contentType: "text/event-stream", error: nil))
+        return stores[storeKey]?.capturedRequest
     }
 
-    static func enqueue(json: String) {
-        lock.lock()
-        defer { lock.unlock() }
-        stubs.append(Stub(body: Data(json.utf8), contentType: "application/json", error: nil))
+    class func enqueue(sse: String) {
+        mutate { store in
+            store.stubs.append(Stub(body: Data(sse.utf8), contentType: "text/event-stream", error: nil))
+        }
+    }
+
+    class func enqueue(json: String) {
+        mutate { store in
+            store.stubs.append(Stub(body: Data(json.utf8), contentType: "application/json", error: nil))
+        }
     }
 
     /// Queues a request failure. Use this to simulate transient network errors
     /// (e.g. `URLError(.networkConnectionLost)`) for retry tests.
-    static func enqueue(error: Error) {
-        lock.lock()
-        defer { lock.unlock() }
-        stubs.append(Stub(body: nil, contentType: nil, error: error))
+    class func enqueue(error: Error) {
+        mutate { store in
+            store.stubs.append(Stub(body: nil, contentType: nil, error: error))
+        }
     }
 
     /// Queues a response that starts successfully (delivers `sse` as SSE
     /// body bytes) and then fails mid-body with `error` — simulating a
     /// connection that drops partway through an in-progress stream, as
     /// opposed to `enqueue(error:)` which fails before any bytes arrive.
-    static func enqueue(sseBeforeDrop sse: String, thenFailWith error: Error) {
-        lock.lock()
-        defer { lock.unlock() }
-        stubs.append(Stub(body: Data(sse.utf8), contentType: "text/event-stream", error: error, dropAfterBody: true))
+    class func enqueue(sseBeforeDrop sse: String, thenFailWith error: Error) {
+        mutate { store in
+            store.stubs.append(
+                Stub(body: Data(sse.utf8), contentType: "text/event-stream", error: error, dropAfterBody: true)
+            )
+        }
     }
 
-    static var requestCount: Int {
+    class var requestCount: Int {
         lock.lock()
         defer { lock.unlock() }
-        return count
+        return stores[storeKey]?.count ?? 0
     }
 
-    private static func next() -> Stub? {
-        lock.lock()
-        defer { lock.unlock() }
-        count += 1
-        return stubs.isEmpty ? nil : stubs.removeFirst()
+    private class func next() -> Stub? {
+        var stub: Stub?
+        mutate { store in
+            store.count += 1
+            if !store.stubs.isEmpty {
+                stub = store.stubs.removeFirst()
+            }
+        }
+        return stub
     }
 
-    override static func canInit(with request: URLRequest) -> Bool { true }
-    override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        Self.lock.lock()
-        Self.capturedRequest = request
-        Self.capturedRequestBody = request.httpBody ?? request.httpBodyStream.flatMap {
+    private class func capture(_ request: URLRequest) {
+        let body = request.httpBody ?? request.httpBodyStream.flatMap {
             $0.readToEnd(maxLength: 10_000_000)
         }
-        Self.lock.unlock()
-        guard let stub = Self.next() else {
+        mutate { store in
+            store.capturedRequest = request
+            store.capturedRequestBody = body
+        }
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        let protocolType = type(of: self)
+        protocolType.capture(request)
+        guard let stub = protocolType.next() else {
             client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable))
             return
         }
@@ -133,6 +157,10 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
 
     override func stopLoading() {}
 }
+
+/// Isolated stub queue for ProviderStore catalog fetches so they cannot
+/// consume `MockURLProtocol` stubs used by Swift Testing network suites.
+final class CatalogMockURLProtocol: MockURLProtocol {}
 
 private extension InputStream {
     func readToEnd(maxLength: Int) -> Data? {

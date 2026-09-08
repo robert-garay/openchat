@@ -28,9 +28,9 @@ struct VoiceConversationControllerTests {
         KeychainStore.service = "com.openchat.tests.voice.\(suiteID)"
         KeychainStore.removeAll()
 
-        MockURLProtocol.reset()
+        CatalogMockURLProtocol.reset()
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [MockURLProtocol.self]
+        configuration.protocolClasses = [CatalogMockURLProtocol.self]
         let urlSession = URLSession(configuration: configuration)
         let providerStore = ProviderStore(
             defaults: UserDefaults(suiteName: "com.openchat.tests.voice.providers.\(suiteID)")!,
