@@ -5,11 +5,19 @@ struct OpenRouterModelsClient: Sendable {
     var session: URLSession = .shared
     var endpoint: URL = URL(string: "https://openrouter.ai/api/v1/models")!
 
-    func fetchModels() async throws -> [OpenRouterCatalogModel] {
+    func fetchModels(apiKey: String? = nil) async throws -> [OpenRouterCatalogModel] {
         var request = URLRequest(url: endpoint)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let apiKey, !apiKey.isEmpty {
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
+        let preparedRequest = request
 
-        let (data, response) = try await session.backgroundCompatibleData(for: request)
+        // Catalog fetch is launch-critical and must complete in the simulator;
+        // the shared background session's download tasks often never finish there.
+        let (data, response) = try await NetworkRetrier.perform {
+            try await session.data(for: preparedRequest)
+        }
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             throw OpenRouterModelsError.httpStatus(http.statusCode)
         }

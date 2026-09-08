@@ -6,20 +6,51 @@ final class ProviderStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var store: ProviderStore!
 
+    private var session: URLSession!
+
     override func setUp() async throws {
         try await super.setUp()
         KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
         KeychainStore.removeAll()
+        MockURLProtocol.reset()
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        session = URLSession(configuration: configuration)
         defaults = UserDefaults(suiteName: "com.openchat.tests.\(UUID().uuidString)")
-        store = ProviderStore(defaults: defaults)
+        store = makeStore(defaults: defaults)
     }
 
     override func tearDown() async throws {
+        try await Task.sleep(nanoseconds: 50_000_000)
+        let deadline = Date().addingTimeInterval(2)
+        while store.isLoadingModels, Date() < deadline {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         for provider in store.providers {
             store.removeAPIKey(for: provider)
         }
         KeychainStore.removeAll()
         try await super.tearDown()
+    }
+
+    private func makeStore(defaults: UserDefaults) -> ProviderStore {
+        ProviderStore(
+            defaults: defaults,
+            openRouterClient: OpenRouterModelsClient(session: session),
+            modelsClient: ProviderModelsClient(session: session)
+        )
+    }
+
+    private func waitUntil(
+        _ condition: @escaping () -> Bool,
+        timeout: TimeInterval = 2,
+        message: String
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
+        XCTAssertTrue(condition(), message)
     }
 
     func testAddFromTemplateAddsExactlyOnce() {
@@ -190,6 +221,84 @@ final class ProviderStoreTests: XCTestCase {
         let choice = store.defaultModelForNewChat()
         XCTAssertEqual(choice?.providerID, provider.id)
         XCTAssertEqual(choice?.modelID, provider.models.first?.id)
+    }
+
+    func testDefaultModelForNewChatUsesOpenRouterFallbackWhenCatalogIsEmpty() {
+        store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)
+        store.setAPIKey("sk-or-test", for: store.provider(withID: "openrouter")!)
+
+        XCTAssertTrue(store.openRouterModels.isEmpty)
+        XCTAssertTrue(store.provider(withID: "openrouter")!.models.isEmpty)
+
+        let choice = store.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "openrouter")
+        XCTAssertEqual(choice?.modelID, ProviderStore.openRouterFallbackModel.id)
+        XCTAssertEqual(
+            store.model(providerID: "openrouter", modelID: ProviderStore.openRouterFallbackModel.id)?.id,
+            ProviderStore.openRouterFallbackModel.id
+        )
+    }
+
+    func testDefaultModelForNewChatPrefersCachedOpenRouterCatalogOverFallback() throws {
+        let catalogModel = OpenRouterCatalogModel(
+            id: "meta-llama/llama-4-maverick",
+            name: "Llama 4 Maverick",
+            promptPrice: 0,
+            completionPrice: 0,
+            inputModalities: ["text"],
+            outputModalities: ["text"],
+            isAlias: false
+        )
+        defaults.set(try JSONEncoder().encode([catalogModel]), forKey: "com.openchat.openRouterModelsCache")
+        let reloaded = makeStore(defaults: defaults)
+        reloaded.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)
+        reloaded.setAPIKey("sk-or-test", for: reloaded.provider(withID: "openrouter")!)
+
+        let choice = reloaded.defaultModelForNewChat()
+        XCTAssertEqual(choice?.providerID, "openrouter")
+        XCTAssertEqual(choice?.modelID, "meta-llama/llama-4-maverick")
+    }
+
+    func testSetAPIKeyFetchesOpenRouterCatalogImmediately() async {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"openai/gpt-4o","name":"OpenAI: GPT-4o"}]}"#)
+        store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)
+        store.setAPIKey("sk-or-test", for: store.provider(withID: "openrouter")!)
+
+        await waitUntil(
+            { !self.store.openRouterModels.isEmpty },
+            message: "Timed out waiting for OpenRouter catalog fetch"
+        )
+        XCTAssertEqual(store.openRouterModels.first?.id, "openai/gpt-4o")
+        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-or-test")
+    }
+
+    func testSetAPIKeyFetchesProviderCatalogImmediately() async {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-chat"}]}"#)
+        store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "deepseek")!)
+
+        await waitUntil(
+            { !(self.store.liveModelsByProviderID["deepseek"]?.isEmpty ?? true) },
+            message: "Timed out waiting for DeepSeek catalog fetch"
+        )
+        XCTAssertEqual(store.liveModelsByProviderID["deepseek"]?.first?.id, "deepseek-chat")
+        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-test")
+    }
+
+    func testAddCustomWithoutAPIKeyFetchesCatalogImmediately() async {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"llama3.1"}]}"#)
+        let provider = store.addCustom(
+            name: "Local Server",
+            baseURL: "http://localhost:11434/v1",
+            models: [],
+            requiresAPIKey: false
+        )!
+
+        await waitUntil(
+            { !(self.store.liveModelsByProviderID[provider.id]?.isEmpty ?? true) },
+            message: "Timed out waiting for custom endpoint catalog fetch"
+        )
+        XCTAssertEqual(store.liveModelsByProviderID[provider.id]?.first?.id, "llama3.1")
     }
 
     func testSeedLastSelectedModelOnlyWhenEmpty() {
