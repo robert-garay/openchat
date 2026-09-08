@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).
+
 ### Fixed
+
+- First launch no longer hangs on an infinite spinner after connecting OpenRouter (or after relaunching before the model catalog has cached). A new chat starts immediately with OpenRouter Auto, and the live catalog loads in the background.
 
 ### Deprecated
 

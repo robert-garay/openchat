@@ -17,6 +17,7 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) private static var stubs: [Stub] = []
     nonisolated(unsafe) private static var count = 0
     nonisolated(unsafe) private static var capturedRequestBody: Data?
+    nonisolated(unsafe) private static var capturedRequest: URLRequest?
 
     static func reset() {
         lock.lock()
@@ -24,12 +25,19 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
         stubs = []
         count = 0
         capturedRequestBody = nil
+        capturedRequest = nil
     }
 
     static var lastRequestBody: Data? {
         lock.lock()
         defer { lock.unlock() }
         return capturedRequestBody
+    }
+
+    static var lastRequest: URLRequest? {
+        lock.lock()
+        defer { lock.unlock() }
+        return capturedRequest
     }
 
     static func enqueue(sse: String) {
@@ -80,6 +88,7 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
 
     override func startLoading() {
         Self.lock.lock()
+        Self.capturedRequest = request
         Self.capturedRequestBody = request.httpBody ?? request.httpBodyStream.flatMap {
             $0.readToEnd(maxLength: 10_000_000)
         }

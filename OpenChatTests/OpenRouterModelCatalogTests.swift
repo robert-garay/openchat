@@ -345,8 +345,16 @@ final class OpenRouterModelCatalogTests: XCTestCase {
     func testRememberOpenRouterModelPersistsSelection() {
         KeychainStore.service = "com.openchat.apikeys.tests.\(UUID().uuidString)"
         KeychainStore.removeAll()
+        MockURLProtocol.reset()
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        let session = URLSession(configuration: configuration)
         let defaults = UserDefaults(suiteName: "com.openchat.tests.openrouter.\(UUID().uuidString)")!
-        let store = ProviderStore(defaults: defaults)
+        let store = ProviderStore(
+            defaults: defaults,
+            openRouterClient: OpenRouterModelsClient(session: session),
+            modelsClient: ProviderModelsClient(session: session)
+        )
         store.addFromTemplate(ProviderTemplate.template(for: "openrouter")!)
         store.setAPIKey("sk-or-test", for: store.provider(withID: "openrouter")!)
 
@@ -355,5 +363,21 @@ final class OpenRouterModelCatalogTests: XCTestCase {
 
         XCTAssertEqual(store.provider(withID: "openrouter")?.models.first?.id, model.id)
         XCTAssertEqual(store.model(providerID: "openrouter", modelID: model.id)?.displayName, "Llama 4 Maverick")
+    }
+
+    func testFetchModelsSendsBearerAuthorization() async throws {
+        MockURLProtocol.reset()
+        MockURLProtocol.enqueue(json: #"{"data":[]}"#)
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        let client = OpenRouterModelsClient(
+            session: URLSession(configuration: configuration),
+            endpoint: URL(string: "https://openrouter.ai/api/v1/models")!
+        )
+
+        _ = try await client.fetchModels(apiKey: "sk-or-test-key")
+
+        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-or-test-key")
     }
 }
