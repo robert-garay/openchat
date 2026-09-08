@@ -184,6 +184,7 @@
 		C0F6A6DE9AF73452136885C7 /* TavilyClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DB2EFD9DE594C21E5D7AA4 /* TavilyClient.swift */; };
 		C3027559EDF03A153FBF52C2 /* ChatTurn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CDF1813E984EAC421E082F /* ChatTurn.swift */; };
 		C3A5CFD3AC9276E1E5E7CF84 /* ProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B059E831C9E43DC9CFC7B055 /* ProviderLogoView.swift */; };
+		C842972396A407EB4DE46B65 /* BetaBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202EC80C188813F20FA6E841 /* BetaBadge.swift */; };
 		CB7DB418F7CCEB57BA84BE28 /* OpenRouterCatalogModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB12C1E44071ECB896883D0 /* OpenRouterCatalogModel.swift */; };
 		CCEF9E25670D5454B4540619 /* ContactsActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B464DD15D46958919ED673 /* ContactsActionParser.swift */; };
 		CD612CC6BD541B43BC28BCDD /* MemoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD94C32159B334893A22A33 /* MemoryStoreTests.swift */; };
@@ -275,6 +276,7 @@
 		1B0A810AD421E91E40BB0B4F /* SkillResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillResolver.swift; sourceTree = "<group>"; };
 		1DCF6297CB2289586C086699 /* VoiceConversationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceConversationController.swift; sourceTree = "<group>"; };
 		1FD0509650F72AD06DFB5CDE /* RuleReviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleReviewSheet.swift; sourceTree = "<group>"; };
+		202EC80C188813F20FA6E841 /* BetaBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetaBadge.swift; sourceTree = "<group>"; };
 		227AEA38B8D189D59EB9E32A /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		22CC8779198901D9F6395995 /* ModelReasoningConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelReasoningConfig.swift; sourceTree = "<group>"; };
 		246039F653A51B0234426056 /* RealtimeVoiceOutboundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeVoiceOutboundTests.swift; sourceTree = "<group>"; };
@@ -760,6 +762,7 @@
 			children = (
 				BC5E5C0A676815512C4B534A /* APIKeySettingsSection.swift */,
 				4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */,
+				202EC80C188813F20FA6E841 /* BetaBadge.swift */,
 				A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */,
 				DD2269086063370AF49910B8 /* CustomEndpointLogoButton.swift */,
 				C7C10CF67F7746EB18A4AB68 /* GhostIcon.swift */,
@@ -1002,6 +1005,7 @@
 				057296BFC380BCF5BBAFEF3F /* BackgroundGenerationService+Streaming.swift in Sources */,
 				B9B31479BD07E09ACA54CD31 /* BackgroundGenerationService.swift in Sources */,
 				B924DA90FC60082B2255A052 /* BackgroundNetworkSession.swift in Sources */,
+				C842972396A407EB4DE46B65 /* BetaBadge.swift in Sources */,
 				1EDE3AC0B9984331EDBE16EC /* BraveSearchClient.swift in Sources */,
 				8DA024846ECAD29F7746EFD9 /* CalendarAccessMode.swift in Sources */,
 				6A2E36A2686F94E3015A90D2 /* CalendarActionParser.swift in Sources */,
