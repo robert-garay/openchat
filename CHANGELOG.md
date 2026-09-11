@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed Apple Health, Calendar, Contacts, and Reminders agent data sources (HealthKit and EventKit) for the App Store 1.0 submission. Camera, microphone, and photo library access remain.
+
 ### Security
 
 ## [1.1.0] - 2026-09-02

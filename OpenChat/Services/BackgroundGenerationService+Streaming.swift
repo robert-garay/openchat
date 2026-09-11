@@ -10,7 +10,6 @@ extension BackgroundGenerationService {
         apiKey: String?,
         memoryStore: MemoryStore,
         rulesStore: RulesStore,
-        dataSourceStore: AgentDataSourceStore,
         webSearchStore: WebSearchStore,
         skillsStore: SkillsStore,
         modelContext: ModelContext,
@@ -73,14 +72,6 @@ extension BackgroundGenerationService {
 
         if let skillIndex, !skillIndex.isEmpty {
             middleSections.append(skillIndex)
-        }
-
-        dataSourceStore.refreshAuthorizationStatuses()
-        if let agentContext = await AgentContextProvider(
-            dataSourceStore: dataSourceStore,
-            memoryItems: (try? memoryStore.fetchItems(modelContext: modelContext)) ?? []
-        ).makeContextBlock() {
-            middleSections.append(agentContext)
         }
 
         var tools: [ChatToolDefinition] = []
