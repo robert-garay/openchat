@@ -53,7 +53,7 @@ Settings → Web Search → add a key for one or more search providers (Tavily, 
 
 ## Privacy
 
-OpenChat has no backend, no analytics, and no third-party dependencies — it's built with SwiftUI + SwiftData only. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally on-device. See the [privacy policy](docs/privacy-policy.html) for the full details on optional calendar/health data access.
+OpenChat has no backend, no analytics, and no third-party dependencies — it's built with SwiftUI + SwiftData only. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally on-device. See the [privacy policy](docs/privacy-policy.html) for details on photos, camera, microphone, and on-device storage.
 
 ## Building from source
 

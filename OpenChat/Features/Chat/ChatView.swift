@@ -9,7 +9,6 @@ struct ChatView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(ProviderStore.self) private var providerStore
-    @Environment(AgentDataSourceStore.self) private var dataSourceStore
     @Environment(WebSearchStore.self) private var webSearchStore
     @Environment(RulesStore.self) private var rulesStore
     @Environment(MemoryStore.self) private var memoryStore
@@ -251,7 +250,6 @@ struct ChatView: View {
                 conversation: conversation,
                 modelContext: modelContext,
                 providerStore: providerStore,
-                dataSourceStore: dataSourceStore,
                 webSearchStore: webSearchStore,
                 rulesStore: rulesStore,
                 memoryStore: memoryStore,
@@ -347,33 +345,6 @@ private struct ChatMessageListView: View {
                         MessageBubbleView(
                             message: message,
                             conversation: conversation,
-                            pendingCalendarActions: viewModel.pendingCalendarActionsByMessageID[message.id] ?? [],
-                            calendarActionStatus: viewModel.calendarActionStatusByMessageID[message.id],
-                            isApplyingCalendarActions: viewModel.isApplyingCalendarActions,
-                            onConfirmCalendarActions: {
-                                Task { await viewModel.confirmCalendarActions(for: message.id) }
-                            },
-                            onDismissCalendarActions: {
-                                viewModel.dismissCalendarActions(for: message.id)
-                            },
-                            pendingRemindersActions: viewModel.pendingRemindersActionsByMessageID[message.id] ?? [],
-                            remindersActionStatus: viewModel.remindersActionStatusByMessageID[message.id],
-                            isApplyingRemindersActions: viewModel.isApplyingRemindersActions,
-                            onConfirmRemindersActions: {
-                                Task { await viewModel.confirmRemindersActions(for: message.id) }
-                            },
-                            onDismissRemindersActions: {
-                                viewModel.dismissRemindersActions(for: message.id)
-                            },
-                            pendingContactsActions: viewModel.pendingContactsActionsByMessageID[message.id] ?? [],
-                            contactsActionStatus: viewModel.contactsActionStatusByMessageID[message.id],
-                            isApplyingContactsActions: viewModel.isApplyingContactsActions,
-                            onConfirmContactsActions: {
-                                Task { await viewModel.confirmContactsActions(for: message.id) }
-                            },
-                            onDismissContactsActions: {
-                                viewModel.dismissContactsActions(for: message.id)
-                            },
                             pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
                             memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
                             onConfirmMemoryProposals: {
