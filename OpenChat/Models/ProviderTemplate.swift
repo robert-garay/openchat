@@ -130,6 +130,18 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://cheaperinference.com/signup"),
             apiKeyPlaceholder: "ir_live_..."
         ),
+        ProviderTemplate(
+            id: "modelrunner",
+            name: "ModelRunner",
+            symbolName: "hurricane",
+            tint: "#0318F9",
+            baseURL: "https://queue.modelrunner.run/v1",
+            apiFormat: .openAI,
+            // Keys are 64 hex characters with no vendor prefix, so there is
+            // nothing distinctive to show the way "sk-..." does.
+            keyHelpURL: URL(string: "https://modelrunner.ai/settings/api-keys"),
+            apiKeyPlaceholder: "API key"
+        ),
     ]
 
     static func template(for id: String) -> ProviderTemplate? {
