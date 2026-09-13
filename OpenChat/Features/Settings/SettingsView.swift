@@ -46,7 +46,11 @@ struct SettingsView: View {
                     NavigationLink {
                         VoiceModeSettingsView()
                     } label: {
-                        Label("Voice Mode", systemImage: "waveform")
+                        HStack {
+                            Label("Voice Mode", systemImage: "waveform")
+                            Spacer()
+                            BetaBadge()
+                        }
                     }
                     NavigationLink {
                         MemorySettingsView()
@@ -64,14 +68,7 @@ struct SettingsView: View {
                         HStack {
                             Label("Skills", systemImage: "bolt.fill")
                             Spacer()
-                            Text("Beta")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.orange)
-                                .foregroundStyle(.white)
-                                .clipShape(Capsule())
+                            BetaBadge()
                         }
                     }
                     Toggle("Compact Context", isOn: $compactEnabled)
