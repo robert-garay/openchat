@@ -115,6 +115,7 @@ final class ProviderStore {
     func setAPIKey(_ apiKey: String, for provider: ConfiguredProvider) {
         KeychainStore.set(apiKey, forKey: provider.id)
         credentialsEpoch &+= 1
+        refreshModels(for: provider, force: true)
     }
 
     func removeAPIKey(for provider: ConfiguredProvider) {
@@ -229,6 +230,9 @@ final class ProviderStore {
         )
         providers.append(provider)
         persist()
+        if !requiresAPIKey {
+            refreshModels(for: provider, force: true)
+        }
         return provider
     }
 
@@ -260,7 +264,12 @@ final class ProviderStore {
             return saved
         }
         if providerID == "openrouter" {
-            return openRouterModels.first(where: { $0.id == modelID })?.asAIModel
+            if let catalog = openRouterModels.first(where: { $0.id == modelID })?.asAIModel {
+                return catalog
+            }
+            if modelID == Self.openRouterFallbackModel.id {
+                return Self.openRouterFallbackModel
+            }
         }
         return liveModelsByProviderID[providerID]?.first(where: { $0.id == modelID })
     }
@@ -330,6 +339,12 @@ final class ProviderStore {
         rememberLastSelectedModel(providerID: providerID, modelID: modelID)
     }
 
+    /// Usable before the live OpenRouter catalog arrives so first-chat never blocks on network.
+    static let openRouterFallbackModel = AIModel(
+        id: "openrouter/auto",
+        displayName: "Auto"
+    )
+
     /// Provider/model pair to use when creating a new chat.
     func defaultModelForNewChat() -> (providerID: String, modelID: String)? {
         if let last = lastSelectedModel,
@@ -346,6 +361,9 @@ final class ProviderStore {
         }
         if let live = liveModelsByProviderID[provider.id]?.first {
             return (providerID: provider.id, modelID: live.id)
+        }
+        if provider.id == "openrouter" {
+            return (providerID: provider.id, modelID: Self.openRouterFallbackModel.id)
         }
         return nil
     }
@@ -444,11 +462,17 @@ final class ProviderStore {
     /// Refresh live catalogs for every enabled provider.
     func refreshModelsIfNeeded(force: Bool = false) {
         for provider in enabledProviders {
-            if provider.id == "openrouter" {
-                refreshOpenRouterModelsIfNeeded(force: force)
-            } else {
-                refreshProviderModelsIfNeeded(provider, force: force)
-            }
+            refreshModels(for: provider, force: force)
+        }
+    }
+
+    /// Refresh the live catalog for a single provider.
+    func refreshModels(for provider: ConfiguredProvider, force: Bool = false) {
+        guard hasUsableCredentials(provider) else { return }
+        if provider.id == "openrouter" {
+            refreshOpenRouterModelsIfNeeded(force: force)
+        } else {
+            refreshProviderModelsIfNeeded(provider, force: force)
         }
     }
 
@@ -487,7 +511,8 @@ final class ProviderStore {
         openRouterModelsError = nil
 
         do {
-            let models = try await openRouterClient.fetchModels()
+            let apiKey = enabledProviders.first(where: { $0.id == "openrouter" }).flatMap { self.apiKey(for: $0) }
+            let models = try await openRouterClient.fetchModels(apiKey: apiKey)
             guard !Task.isCancelled else { return }
             openRouterModels = models
             persistOpenRouterCache(models)

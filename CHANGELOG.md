@@ -12,12 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Voice Mode in Settings now shows a "Beta" badge, matching Skills.
+- Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).
 
 ### Fixed
+
+- Large chat threads no longer freeze the UI: the message list uses a lazy stack (with last-bubble scroll materialization), and decoded message images are cached.
+- First launch no longer hangs on an infinite spinner after connecting OpenRouter (or after relaunching before the model catalog has cached). A new chat starts immediately with OpenRouter Auto, and the live catalog loads in the background.
+- Temporary-chat ghost icon outline is even all the way around; the top of the dome no longer clips to a hairline.
 
 ### Deprecated
 
 ### Removed
+
+- Removed Apple Health, Calendar, Contacts, and Reminders agent data sources (HealthKit and EventKit) for the App Store 1.0 submission. Camera, microphone, and photo library access remain.
 
 ### Security
 

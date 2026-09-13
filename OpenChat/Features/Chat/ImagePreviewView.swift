@@ -133,7 +133,7 @@ private struct ZoomableImagePage: View {
 
     var body: some View {
         Group {
-            if let image = UIImage(data: attachment.data) {
+            if let image = DecodedImageCache.image(for: attachment) {
                 zoomableImage(image)
             } else {
                 Image(systemName: "photo")

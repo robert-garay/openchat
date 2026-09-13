@@ -74,7 +74,6 @@ struct OpenChatApp: App {
                     await NetworkMonitor.shared.start()
                     BackgroundGenerationService.shared.configure(
                         providerStore: providerStore,
-                        dataSourceStore: dataSourceStore,
                         webSearchStore: webSearchStore,
                         rulesStore: rulesStore,
                         memoryStore: memoryStore,

@@ -22,7 +22,6 @@ final class BackgroundGenerationService {
     // MARK: - Dependencies
 
     var providerStore: ProviderStore?
-    var dataSourceStore: AgentDataSourceStore?
     var webSearchStore: WebSearchStore?
     var rulesStore: RulesStore?
     var memoryStore: MemoryStore?
@@ -59,7 +58,6 @@ final class BackgroundGenerationService {
 
     func configure(
         providerStore: ProviderStore,
-        dataSourceStore: AgentDataSourceStore,
         webSearchStore: WebSearchStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
@@ -67,7 +65,6 @@ final class BackgroundGenerationService {
         modelContainer: ModelContainer
     ) {
         self.providerStore = providerStore
-        self.dataSourceStore = dataSourceStore
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
@@ -194,7 +191,7 @@ final class BackgroundGenerationService {
             }
         }
 
-        guard let providerStore, let dataSourceStore, let webSearchStore, let rulesStore, let memoryStore, let skillsStore else {
+        guard let providerStore, let webSearchStore, let rulesStore, let memoryStore, let skillsStore else {
             finalActivityStatus = .failed
             finishWithError(
                 message: assistantMessage,
@@ -277,7 +274,6 @@ final class BackgroundGenerationService {
                 apiKey: apiKey,
                 memoryStore: memoryStore,
                 rulesStore: rulesStore,
-                dataSourceStore: dataSourceStore,
                 webSearchStore: webSearchStore,
                 skillsStore: skillsStore,
                 modelContext: modelContext,
@@ -340,7 +336,6 @@ final class BackgroundGenerationService {
                 skillsStore: skillsStore,
                 memoryStore: memoryStore,
                 rulesStore: rulesStore,
-                dataSourceStore: dataSourceStore,
                 modelContext: modelContext,
                 conversationID: conversationID
             )
@@ -419,7 +414,6 @@ final class BackgroundGenerationService {
         skillsStore: SkillsStore,
         memoryStore: MemoryStore,
         rulesStore: RulesStore,
-        dataSourceStore: AgentDataSourceStore,
         modelContext: ModelContext,
         conversationID: UUID
     ) async {
@@ -428,9 +422,6 @@ final class BackgroundGenerationService {
         assistantMessage.completedAt = .now
         assistantMessage.isUnread = visibleConversationID != conversation.id
 
-        captureCalendarProposals(from: assistantMessage, dataSourceStore: dataSourceStore)
-        captureRemindersProposals(from: assistantMessage, dataSourceStore: dataSourceStore)
-        captureContactsProposals(from: assistantMessage, dataSourceStore: dataSourceStore)
         captureMemoryProposals(from: assistantMessage, memoryStore: memoryStore, modelContext: modelContext, conversation: conversation)
         captureRuleProposals(from: assistantMessage, rulesStore: rulesStore, modelContext: modelContext, conversation: conversation)
 
@@ -481,9 +472,6 @@ enum BackgroundGenerationEvent {
 
 extension Notification.Name {
     static let bgGenDidUpdate = Notification.Name("com.openchat.bgGenDidUpdate")
-    static let bgGenCapturedCalendarProposals = Notification.Name("com.openchat.bgGenCapturedCalendarProposals")
-    static let bgGenCapturedRemindersProposals = Notification.Name("com.openchat.bgGenCapturedRemindersProposals")
-    static let bgGenCapturedContactsProposals = Notification.Name("com.openchat.bgGenCapturedContactsProposals")
     static let bgGenCapturedMemoryProposals = Notification.Name("com.openchat.bgGenCapturedMemoryProposals")
     static let bgGenCapturedRuleProposals = Notification.Name("com.openchat.bgGenCapturedRuleProposals")
     static let bgGenCapturedSkillProposals = Notification.Name("com.openchat.bgGenCapturedSkillProposals")

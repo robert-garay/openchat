@@ -5,12 +5,18 @@ struct GhostIcon: View {
     var size: CGFloat = 18
     var filled: Bool = false
 
+    private let outlineWidth: CGFloat = 1.25
+
     var body: some View {
         ZStack {
-            GhostBody()
-                .fill(filled ? AnyShapeStyle(.foreground) : AnyShapeStyle(.clear))
-            GhostBody()
-                .stroke(.foreground, style: StrokeStyle(lineWidth: filled ? 0 : 1.25, lineJoin: .round))
+            if filled {
+                GhostBody()
+                    .fill(.foreground)
+            } else {
+                // Inside stroke: a centered stroke on the dome apex is clipped to a hairline.
+                GhostBody()
+                    .strokeBorder(.foreground, style: StrokeStyle(lineWidth: outlineWidth, lineJoin: .round))
+            }
 
             HStack(spacing: size * 0.14) {
                 GhostEye(size: size, filled: filled)
@@ -18,6 +24,7 @@ struct GhostIcon: View {
             }
             .offset(y: -size * 0.06)
         }
+        .padding(1)
         .frame(width: size, height: size)
         .accessibilityHidden(true)
     }
@@ -35,14 +42,23 @@ private struct GhostEye: View {
 }
 
 /// Domed head, straight sides, three scalloped flaps — arcade ghost silhouette.
-private struct GhostBody: Shape {
+private struct GhostBody: InsettableShape {
+    var insetAmount: CGFloat = 0
+
+    func inset(by amount: CGFloat) -> GhostBody {
+        var copy = self
+        copy.insetAmount += amount
+        return copy
+    }
+
     func path(in rect: CGRect) -> Path {
-        let h = rect.height
-        let left = rect.minX
-        let right = rect.maxX
-        let top = rect.minY
-        let flapTop = rect.maxY - h * 0.20
-        let flapTip = rect.maxY
+        let bounds = rect.insetBy(dx: insetAmount, dy: insetAmount)
+        let h = bounds.height
+        let left = bounds.minX
+        let right = bounds.maxX
+        let top = bounds.minY
+        let flapTop = bounds.maxY - h * 0.20
+        let flapTip = bounds.maxY
         let span = right - left
         let radius = span * 0.5
         let domeCenterY = top + radius
@@ -51,7 +67,7 @@ private struct GhostBody: Shape {
         path.move(to: CGPoint(x: left, y: flapTop))
         path.addLine(to: CGPoint(x: left, y: domeCenterY))
         path.addArc(
-            center: CGPoint(x: rect.midX, y: domeCenterY),
+            center: CGPoint(x: bounds.midX, y: domeCenterY),
             radius: radius,
             startAngle: .degrees(180),
             endAngle: .degrees(0),

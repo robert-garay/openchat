@@ -19,48 +19,6 @@ extension BackgroundGenerationService {
         modelContext.insert(message)
     }
 
-    func captureCalendarProposals(
-        from message: ChatMessage,
-        dataSourceStore: AgentDataSourceStore
-    ) {
-        guard dataSourceStore.canEditCalendar else { return }
-        let proposals = CalendarActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        NotificationCenter.default.post(
-            name: .bgGenCapturedCalendarProposals,
-            object: nil,
-            userInfo: ["messageID": message.id, "proposals": proposals]
-        )
-    }
-
-    func captureRemindersProposals(
-        from message: ChatMessage,
-        dataSourceStore: AgentDataSourceStore
-    ) {
-        guard dataSourceStore.canEditReminders else { return }
-        let proposals = RemindersActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        NotificationCenter.default.post(
-            name: .bgGenCapturedRemindersProposals,
-            object: nil,
-            userInfo: ["messageID": message.id, "proposals": proposals]
-        )
-    }
-
-    func captureContactsProposals(
-        from message: ChatMessage,
-        dataSourceStore: AgentDataSourceStore
-    ) {
-        guard dataSourceStore.canEditContacts else { return }
-        let proposals = ContactsActionParser.parse(message.content)
-        guard !proposals.isEmpty else { return }
-        NotificationCenter.default.post(
-            name: .bgGenCapturedContactsProposals,
-            object: nil,
-            userInfo: ["messageID": message.id, "proposals": proposals]
-        )
-    }
-
     func captureMemoryProposals(
         from message: ChatMessage,
         memoryStore: MemoryStore,

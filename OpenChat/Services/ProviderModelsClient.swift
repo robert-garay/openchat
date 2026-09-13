@@ -174,7 +174,13 @@ struct ProviderModelsClient: Sendable {
     // MARK: - Shared helpers
 
     private func perform(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.backgroundCompatibleData(for: request)
+        let preparedRequest = request
+        let session = self.session
+        // Catalog fetches are launch-critical; background download tasks often
+        // never complete in the simulator.
+        let (data, response) = try await NetworkRetrier.perform {
+            try await session.data(for: preparedRequest)
+        }
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             let body = String(data: data, encoding: .utf8) ?? ""
             throw ProviderModelsError.http(status: http.statusCode, body: body)

@@ -44,24 +44,7 @@ struct RootView: View {
             SettingsView()
         }
         .onAppear {
-            guard !providerStore.enabledProviders.isEmpty else { return }
-            providerStore.refreshModelsIfNeeded()
-            discardOrphanedEphemeralChats()
-            providerStore.seedModelUsageFromConversationsIfNeeded(
-                conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
-            )
-            if let recent = conversations.first(where: { conversation in
-                providerStore.enabledProviders.contains(where: { $0.id == conversation.providerID })
-                    && providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID) != nil
-            }) {
-                providerStore.seedLastSelectedModelIfNeeded(
-                    providerID: recent.providerID,
-                    modelID: recent.modelID
-                )
-            }
-            if selectedConversationID == nil {
-                startNewChat(temporary: false)
-            }
+            bootstrapMainSession()
         }
         .onReceive(NotificationCenter.default.publisher(for: .notificationOpenedConversation)) { notification in
             guard let id = notification.userInfo?["conversationID"] as? UUID else { return }
@@ -82,6 +65,8 @@ struct RootView: View {
             if isEmpty {
                 selectedConversationID = nil
                 showingHistoryDrawer = false
+            } else {
+                bootstrapMainSession()
             }
         }
         .onChange(of: providerStore.loadedModelCount) { _, _ in
@@ -118,9 +103,8 @@ struct RootView: View {
                                 }
                         )
                     } else {
-                        // Stable placeholder while the first chat is created.
-                        ProgressView()
-                            .controlSize(.large)
+                        // Placeholder while the first chat is created, or after a catalog miss.
+                        firstChatPlaceholder
                             .offset(x: showingHistoryDrawer ? geometry.size.width : 0)
                     }
 
@@ -145,6 +129,58 @@ struct RootView: View {
                 onClose: { withAnimation(.easeInOut(duration: 0.25)) { showingHistoryDrawer = false } },
                 onShowSettings: { showingSettings = true }
             )
+        }
+    }
+
+    private var firstChatPlaceholder: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+            if providerStore.isLoadingModels {
+                Text("Loading models…")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else if let message = firstChatLoadError {
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                Button("Try Again") {
+                    providerStore.refreshModelsIfNeeded(force: true)
+                    startNewChat(temporary: false)
+                }
+            }
+        }
+    }
+
+    private var firstChatLoadError: String? {
+        if let message = providerStore.openRouterModelsError {
+            return message
+        }
+        return providerStore.liveModelErrors.values.first
+    }
+
+    /// Runs after launch and after the first provider is saved from onboarding.
+    /// `onAppear` alone is not enough: it already fired on `WelcomeView`.
+    private func bootstrapMainSession() {
+        guard !providerStore.enabledProviders.isEmpty else { return }
+        providerStore.refreshModelsIfNeeded()
+        discardOrphanedEphemeralChats()
+        providerStore.seedModelUsageFromConversationsIfNeeded(
+            conversations.map { (providerID: $0.providerID, modelID: $0.modelID) }
+        )
+        if let recent = conversations.first(where: { conversation in
+            providerStore.enabledProviders.contains(where: { $0.id == conversation.providerID })
+                && providerStore.model(providerID: conversation.providerID, modelID: conversation.modelID) != nil
+        }) {
+            providerStore.seedLastSelectedModelIfNeeded(
+                providerID: recent.providerID,
+                modelID: recent.modelID
+            )
+        }
+        if selectedConversationID == nil {
+            startNewChat(temporary: false)
         }
     }
 

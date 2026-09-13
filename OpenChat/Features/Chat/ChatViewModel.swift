@@ -13,15 +13,6 @@ final class ChatViewModel {
     var capabilityWarning: String?
     /// Non-vision model pick awaiting user confirmation when the thread (or composer) has images.
     private(set) var pendingModelSwitch: PendingModelSwitch?
-    var pendingCalendarActionsByMessageID: [UUID: [CalendarActionProposal]] = [:]
-    var calendarActionStatusByMessageID: [UUID: String] = [:]
-    var isApplyingCalendarActions = false
-    var pendingRemindersActionsByMessageID: [UUID: [RemindersActionProposal]] = [:]
-    var remindersActionStatusByMessageID: [UUID: String] = [:]
-    var isApplyingRemindersActions = false
-    var pendingContactsActionsByMessageID: [UUID: [ContactsActionProposal]] = [:]
-    var contactsActionStatusByMessageID: [UUID: String] = [:]
-    var isApplyingContactsActions = false
     var pendingMemoryProposalsByMessageID: [UUID: [MemoryProposal]] = [:]
     var memoryActionStatusByMessageID: [UUID: String] = [:]
     var pendingSkillProposalsByMessageID: [UUID: [SkillProposal]] = [:]
@@ -62,7 +53,6 @@ final class ChatViewModel {
     internal let conversation: Conversation
     internal let modelContext: ModelContext
     private let providerStore: ProviderStore
-    internal let dataSourceStore: AgentDataSourceStore
     private let webSearchStore: WebSearchStore
     internal let rulesStore: RulesStore
     internal let memoryStore: MemoryStore
@@ -71,9 +61,6 @@ final class ChatViewModel {
     private var titleGenerationTask: Task<Void, Never>?
     private var compactionTask: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) var generationObserver: NSObjectProtocol?
-    @ObservationIgnored nonisolated(unsafe) var calendarProposalObserver: NSObjectProtocol?
-    @ObservationIgnored nonisolated(unsafe) var remindersProposalObserver: NSObjectProtocol?
-    @ObservationIgnored nonisolated(unsafe) var contactsProposalObserver: NSObjectProtocol?
     @ObservationIgnored nonisolated(unsafe) var memoryProposalObserver: NSObjectProtocol?
     @ObservationIgnored nonisolated(unsafe) var ruleProposalObserver: NSObjectProtocol?
     @ObservationIgnored nonisolated(unsafe) var skillProposalObserver: NSObjectProtocol?
@@ -92,7 +79,6 @@ final class ChatViewModel {
         conversation: Conversation,
         modelContext: ModelContext,
         providerStore: ProviderStore,
-        dataSourceStore: AgentDataSourceStore,
         webSearchStore: WebSearchStore,
         rulesStore: RulesStore,
         memoryStore: MemoryStore,
@@ -102,7 +88,6 @@ final class ChatViewModel {
         self.conversation = conversation
         self.modelContext = modelContext
         self.providerStore = providerStore
-        self.dataSourceStore = dataSourceStore
         self.webSearchStore = webSearchStore
         self.rulesStore = rulesStore
         self.memoryStore = memoryStore
@@ -120,9 +105,6 @@ final class ChatViewModel {
     deinit {
         [
             generationObserver,
-            calendarProposalObserver,
-            remindersProposalObserver,
-            contactsProposalObserver,
             memoryProposalObserver,
             ruleProposalObserver,
             skillProposalObserver

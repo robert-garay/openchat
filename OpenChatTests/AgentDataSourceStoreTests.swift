@@ -1,4 +1,3 @@
-import HealthKit
 @preconcurrency import XCTest
 @testable import OpenChat
 
@@ -15,7 +14,6 @@ final class AgentDataSourceStoreTests: XCTestCase {
 
     func testDefaultsToAllDisabled() {
         XCTAssertEqual(store.enabledCount, 0)
-        XCTAssertFalse(store.hasAcknowledgedFitnessPrivacyNotice)
         for source in AgentDataSource.allCases {
             XCTAssertFalse(store.isEnabled(source))
             XCTAssertFalse(store.isAvailableForAgents(source))
@@ -23,35 +21,20 @@ final class AgentDataSourceStoreTests: XCTestCase {
     }
 
     func testLoadsPersistedEnabledSourcesAndDropsRemovedOnes() {
-        defaults.set(["appleHealth", "calendar", "home"], forKey: "com.openchat.agentDataSources")
+        defaults.set(["appleHealth", "calendar", "contacts", "reminders", "photos", "home"], forKey: "com.openchat.agentDataSources")
         store = AgentDataSourceStore(defaults: defaults)
 
-        XCTAssertTrue(store.isEnabled(.appleHealth))
-        XCTAssertTrue(store.isEnabled(.calendar))
-        XCTAssertEqual(store.enabledCount, 2)
-        XCTAssertEqual(Set(store.enabledSources.map(\.rawValue)), ["appleHealth", "calendar"])
-        XCTAssertTrue(defaults.bool(forKey: "com.openchat.healthAuthPromptCompleted"))
-        // Health read grants are opaque; an enabled Health toggle is enough for agent access
-        // whenever HealthKit exists on the device.
-        if HKHealthStore.isHealthDataAvailable() {
-            XCTAssertTrue(store.isAvailableForAgents(.appleHealth))
-        }
+        XCTAssertTrue(store.isEnabled(.photos))
+        XCTAssertFalse(store.isEnabled(.camera))
+        XCTAssertEqual(store.enabledCount, 1)
+        XCTAssertEqual(Set(store.enabledSources.map(\.rawValue)), ["photos"])
 
         let persisted = defaults.array(forKey: "com.openchat.agentDataSources") as? [String] ?? []
         XCTAssertFalse(persisted.contains("home"))
-    }
-
-    func testEnabledHealthIsAvailableEvenWithoutCachedAuthorizedStatus() {
-        defaults.set(["appleHealth"], forKey: "com.openchat.agentDataSources")
-        store = AgentDataSourceStore(defaults: defaults)
-        store.refreshAuthorizationStatuses()
-
-        XCTAssertTrue(store.isEnabled(.appleHealth))
-        if HKHealthStore.isHealthDataAvailable() {
-            XCTAssertTrue(store.isAvailableForAgents(.appleHealth))
-        } else {
-            XCTAssertFalse(store.isAvailableForAgents(.appleHealth))
-        }
+        XCTAssertFalse(persisted.contains("appleHealth"))
+        XCTAssertFalse(persisted.contains("calendar"))
+        XCTAssertFalse(persisted.contains("contacts"))
+        XCTAssertFalse(persisted.contains("reminders"))
     }
 
     func testDisablingClearsPersistence() async {
@@ -66,16 +49,6 @@ final class AgentDataSourceStoreTests: XCTestCase {
         XCTAssertFalse(persisted.contains("photos"))
     }
 
-    func testHealthRequiresFitnessPrivacyNoticeBeforeEnable() async {
-        let status = await store.setEnabled(true, for: .appleHealth)
-        XCTAssertEqual(status, .notDetermined)
-        XCTAssertFalse(store.isEnabled(.appleHealth))
-
-        store.acknowledgeFitnessPrivacyNotice()
-        XCTAssertTrue(store.hasAcknowledgedFitnessPrivacyNotice)
-        XCTAssertTrue(defaults.bool(forKey: "com.openchat.fitnessPrivacyNoticeAcknowledged"))
-    }
-
     func testSectionsCoverEverySourceExactlyOnce() {
         let grouped = AgentDataSourceSection.allCases.flatMap(\.sources)
         XCTAssertEqual(Set(grouped.map(\.rawValue)), Set(AgentDataSource.allCases.map(\.rawValue)))
@@ -85,63 +58,16 @@ final class AgentDataSourceStoreTests: XCTestCase {
     func testMVPSourceSet() {
         let ids = Set(AgentDataSource.allCases.map(\.rawValue))
         XCTAssertEqual(ids, [
-            "appleHealth",
             "camera",
             "microphone",
             "photos",
-            "contacts",
-            "calendar",
-            "reminders",
             "notifications",
         ])
     }
 
-    func testRemindersModeDefaultsNilAndClearsOnDisable() async {
-        XCTAssertNil(store.remindersAccessMode)
-        store.markAvailableForTesting(.reminders, remindersMode: .readWrite)
-        XCTAssertEqual(store.remindersAccessMode, .readWrite)
-        XCTAssertTrue(store.canEditReminders)
-
-        await store.setEnabled(false, for: .reminders)
-        XCTAssertNil(store.remindersAccessMode)
-        XCTAssertFalse(store.canEditReminders)
-    }
-
-    func testPersistedReadOnlyRemindersMode() {
-        defaults.set(["reminders"], forKey: "com.openchat.agentDataSources")
-        defaults.set(RemindersAccessMode.readOnly.rawValue, forKey: "com.openchat.remindersAccessMode")
-        store = AgentDataSourceStore(defaults: defaults)
-
-        XCTAssertTrue(store.isEnabled(.reminders))
-        XCTAssertEqual(store.remindersAccessMode, .readOnly)
-        XCTAssertFalse(store.canEditReminders)
-    }
-
-    func testContactsHasNoAccessModeButCanEditWhenEnabled() {
-        XCTAssertFalse(store.canEditContacts)
-        store.markAvailableForTesting(.contacts)
-        XCTAssertTrue(store.isEnabled(.contacts))
-        XCTAssertTrue(store.canEditContacts)
-    }
-
-    func testFitnessHealthAllowlistExcludesBodyMetricsAndIsWorkoutFocused() {
-        let ids = Set(FitnessHealthDataTypes.quantityIdentifiers.map(\.rawValue))
-        XCTAssertEqual(ids, [
-            "HKQuantityTypeIdentifierStepCount",
-            "HKQuantityTypeIdentifierHeartRate",
-            "HKQuantityTypeIdentifierRestingHeartRate",
-            "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
-            "HKQuantityTypeIdentifierActiveEnergyBurned",
-            "HKQuantityTypeIdentifierAppleExerciseTime",
-            "HKQuantityTypeIdentifierDistanceWalkingRunning",
-        ])
-        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierBodyMass"))
-        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierHeight"))
-        XCTAssertFalse(ids.contains("HKQuantityTypeIdentifierBloodGlucose"))
-
-        let readTypes = FitnessHealthDataTypes.readTypes
-        XCTAssertTrue(readTypes.contains(HKObjectType.workoutType()))
-        XCTAssertTrue(readTypes.contains(HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!))
-        XCTAssertFalse(readTypes.contains(where: { $0 is HKClinicalType }))
+    func testMarkAvailableForTestingEnablesSource() {
+        store.markAvailableForTesting(.camera)
+        XCTAssertTrue(store.isEnabled(.camera))
+        XCTAssertTrue(store.isAvailableForAgents(.camera))
     }
 }

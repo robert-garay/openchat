@@ -30,48 +30,6 @@ extension ChatViewModel {
             }
         }
 
-        calendarProposalObserver = center.addObserver(
-            forName: .bgGenCapturedCalendarProposals,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let messageID = notification.userInfo?["messageID"] as? UUID,
-                  let proposals = notification.userInfo?["proposals"] as? [CalendarActionProposal]
-            else { return }
-            Task { @MainActor in
-                guard let self else { return }
-                self.pendingCalendarActionsByMessageID[messageID] = proposals
-            }
-        }
-
-        remindersProposalObserver = center.addObserver(
-            forName: .bgGenCapturedRemindersProposals,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let messageID = notification.userInfo?["messageID"] as? UUID,
-                  let proposals = notification.userInfo?["proposals"] as? [RemindersActionProposal]
-            else { return }
-            Task { @MainActor in
-                guard let self else { return }
-                self.pendingRemindersActionsByMessageID[messageID] = proposals
-            }
-        }
-
-        contactsProposalObserver = center.addObserver(
-            forName: .bgGenCapturedContactsProposals,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let messageID = notification.userInfo?["messageID"] as? UUID,
-                  let proposals = notification.userInfo?["proposals"] as? [ContactsActionProposal]
-            else { return }
-            Task { @MainActor in
-                guard let self else { return }
-                self.pendingContactsActionsByMessageID[messageID] = proposals
-            }
-        }
-
         memoryProposalObserver = center.addObserver(
             forName: .bgGenCapturedMemoryProposals,
             object: nil,
@@ -116,14 +74,8 @@ extension ChatViewModel {
     }
 
     func refreshPendingProposals() {
-        pendingCalendarActionsByMessageID.removeAll()
-        pendingRemindersActionsByMessageID.removeAll()
-        pendingContactsActionsByMessageID.removeAll()
         pendingMemoryProposalsByMessageID.removeAll()
         pendingRuleProposalsByMessageID.removeAll()
-        calendarActionStatusByMessageID.removeAll()
-        remindersActionStatusByMessageID.removeAll()
-        contactsActionStatusByMessageID.removeAll()
         memoryActionStatusByMessageID.removeAll()
         ruleActionStatusByMessageID.removeAll()
         // Skill proposals and their statuses are captured from tool calls during
@@ -131,9 +83,6 @@ extension ChatViewModel {
         // Keep the existing entries so background generations still show them.
 
         for message in conversation.sortedMessages where message.role == .assistant {
-            captureCalendarProposals(from: message)
-            captureRemindersProposals(from: message)
-            captureContactsProposals(from: message)
             captureMemoryProposals(from: message)
             captureRuleProposals(from: message)
         }
