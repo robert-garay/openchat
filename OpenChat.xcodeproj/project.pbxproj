@@ -192,6 +192,7 @@
 		E69524A1350F91439C10649E /* VoiceModeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DEB989FE6609A51C291DFD /* VoiceModeSettingsView.swift */; };
 		EC154CF094937256E9CDD426 /* AnthropicClient+WireTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */; };
 		ECA07378B3AD3130BED1CDEB /* RealtimeVoiceSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CED6CAF2622A18BD34F328A /* RealtimeVoiceSessionTests.swift */; };
+		ED234341DDC79D4B155C5A3A /* DecodedImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCD1DE8DFF748869B2D3777 /* DecodedImageCache.swift */; };
 		EF62D1912A3C1D296B195F24 /* OpenRouterModelCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */; };
 		F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */; };
 		F7C64618CB964660D07C0191 /* ModelCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */; };
@@ -422,6 +423,7 @@
 		EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnthropicClient+WireTypes.swift"; sourceTree = "<group>"; };
 		EF7B0ACC08265539837490F8 /* MockURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocol.swift; sourceTree = "<group>"; };
+		EFCD1DE8DFF748869B2D3777 /* DecodedImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecodedImageCache.swift; sourceTree = "<group>"; };
 		F37641FF5C574A5F3F8F6FCC /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		F539AA6FA57B47B500D2880B /* AnyCodableJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodableJSON.swift; sourceTree = "<group>"; };
 		F8C3F3E71F431A979380CBAB /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
@@ -683,6 +685,7 @@
 				50F4DBDCB8D3C28253A868A6 /* ConfiguredProvider.swift */,
 				B9100221764BF1ED1D5CEFB5 /* Conversation.swift */,
 				741F0AEA5B5732461B588481 /* CustomEndpointLogoOption.swift */,
+				EFCD1DE8DFF748869B2D3777 /* DecodedImageCache.swift */,
 				4CF529654A520BC45155B2D7 /* EffortLevel.swift */,
 				BB975D54D6DC13D831701F18 /* GeneratedImageDeduper.swift */,
 				D14F0680AC3183CE199CC8CE /* MemoryItem.swift */,
@@ -982,6 +985,7 @@
 				46CC1E232C4A9C1A522DE3D9 /* CustomEndpointLogoOption.swift in Sources */,
 				910D48FA64BF3E204F35685B /* CustomProviderView.swift in Sources */,
 				FBF1A6CE34FD4FEAD3F93E8B /* DataSourcesSettingsView.swift in Sources */,
+				ED234341DDC79D4B155C5A3A /* DecodedImageCache.swift in Sources */,
 				8E73451C3463680BE8BABB1D /* DocumentPreviewView.swift in Sources */,
 				843C97B5D226D6F8CEF3A43E /* EditMessageView.swift in Sources */,
 				6B26347062ADF89FDA13017A /* EffortGaugeIcon.swift in Sources */,
