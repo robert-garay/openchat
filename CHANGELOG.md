@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Large chat threads no longer freeze the UI: the message list uses a lazy stack (with last-bubble scroll materialization), and decoded message images are cached.
 - First launch no longer hangs on an infinite spinner after connecting OpenRouter (or after relaunching before the model catalog has cached). A new chat starts immediately with OpenRouter Auto, and the live catalog loads in the background.
 - Temporary-chat ghost icon outline is even all the way around; the top of the dome no longer clips to a hairline.
 

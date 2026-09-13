@@ -36,7 +36,7 @@ struct ChatView: View {
                         stickToBottom: $stickToBottom
                     )
 
-                    if conversation.sortedMessages.isEmpty {
+                    if conversation.messages.isEmpty {
                         WelcomeOverlay()
                     }
                 }
@@ -334,13 +334,15 @@ private struct ChatMessageListView: View {
     @State private var lastContentHeight: CGFloat = 0
 
     var body: some View {
+        let sortedMessages = conversation.sortedMessages
+        let lastMessageID = sortedMessages.last?.id
+
         ScrollViewReader { proxy in
             ScrollView {
-                // VStack (not LazyVStack): LazyVStack + scrollTo bottom leaves a blank
-                // viewport for tall messages until the user scrolls and forces materialization.
-                VStack(alignment: .leading, spacing: 18) {
-                    let sortedMessages = conversation.sortedMessages
-                    let lastMessageID = sortedMessages.last?.id
+                // LazyVStack keeps large threads responsive. Scroll targets the last
+                // message first so the bottom bubble materializes before the spacer pin
+                // (plain scrollTo-bottom alone can leave a blank viewport).
+                LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(sortedMessages) { message in
                         MessageBubbleView(
                             message: message,
@@ -398,7 +400,7 @@ private struct ChatMessageListView: View {
             .defaultScrollAnchor(.bottom)
             .scrollDismissesKeyboard(.interactively)
             .onPreferenceChange(ChatContentHeightKey.self) { height in
-                handleContentHeightChange(height, proxy: proxy)
+                handleContentHeightChange(height, proxy: proxy, lastMessageID: lastMessageID)
             }
             .modifier(
                 ChatStickToBottomModifier(
@@ -407,12 +409,12 @@ private struct ChatMessageListView: View {
                 )
             )
             .overlay(alignment: .bottomTrailing) {
-                if !stickToBottom && !conversation.sortedMessages.isEmpty {
+                if !stickToBottom && !sortedMessages.isEmpty {
                     jumpToLatestButton {
                         stickToBottom = true
                         isInteractivelyScrolling = false
                         Haptics.light()
-                        scrollToBottom(proxy: proxy, animated: true)
+                        scrollToBottom(proxy: proxy, animated: true, lastMessageID: lastMessageID)
                     }
                     .padding(.trailing, 16)
                     .padding(.bottom, 12)
@@ -421,10 +423,10 @@ private struct ChatMessageListView: View {
                 }
             }
             .onChange(of: conversation.messages.count) {
-                scheduleFollowScroll(proxy: proxy)
+                scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
             }
-            .onChange(of: conversation.sortedMessages.last?.content) {
-                scheduleFollowScroll(proxy: proxy)
+            .onChange(of: conversation.lastMessage?.content) {
+                scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
             }
             .onChange(of: isInteractivelyScrolling) { _, scrolling in
                 if scrolling {
@@ -439,23 +441,27 @@ private struct ChatMessageListView: View {
                 followScrollTask?.cancel()
                 // Yield so the first layout pass can size tall markdown before pinning.
                 await Task.yield()
-                scrollToBottom(proxy: proxy, animated: false)
+                scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
                 for delay in [50, 150, 350] as [UInt64] {
                     try? await Task.sleep(for: .milliseconds(delay))
                     guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
-                    scrollToBottom(proxy: proxy, animated: false)
+                    scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
                 }
             }
         }
     }
 
-    private func handleContentHeightChange(_ height: CGFloat, proxy: ScrollViewProxy) {
+    private func handleContentHeightChange(
+        _ height: CGFloat,
+        proxy: ScrollViewProxy,
+        lastMessageID: UUID?
+    ) {
         guard height > lastContentHeight + 1 else {
             lastContentHeight = max(lastContentHeight, height)
             return
         }
         lastContentHeight = height
-        scheduleFollowScroll(proxy: proxy)
+        scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
     }
 
     private func jumpToLatestButton(action: @escaping () -> Void) -> some View {
@@ -472,18 +478,22 @@ private struct ChatMessageListView: View {
 
     /// Pins to the latest content while following. Coalesces rapid stream tokens
     /// and never animates — animated scrollTo fights the user's pan gesture.
-    private func scheduleFollowScroll(proxy: ScrollViewProxy) {
+    private func scheduleFollowScroll(proxy: ScrollViewProxy, lastMessageID: UUID?) {
         guard stickToBottom, !isInteractivelyScrolling else { return }
         followScrollTask?.cancel()
         followScrollTask = Task { @MainActor in
             await Task.yield()
             guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
-            scrollToBottom(proxy: proxy, animated: false)
+            scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
         }
     }
 
-    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool, lastMessageID: UUID?) {
         let action = {
+            // Force the last bubble into the lazy stack before pinning to the spacer.
+            if let lastMessageID {
+                proxy.scrollTo(lastMessageID, anchor: .bottom)
+            }
             proxy.scrollTo(ChatScrollAnchor.bottom, anchor: .bottom)
         }
         if animated {

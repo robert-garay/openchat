@@ -65,6 +65,11 @@ final class Conversation {
         messages.sorted { $0.createdAt < $1.createdAt }
     }
 
+    /// Newest message by `createdAt` without allocating a full sorted copy.
+    var lastMessage: ChatMessage? {
+        messages.max { $0.createdAt < $1.createdAt }
+    }
+
     var draftAttachments: [ChatImageAttachment] {
         get {
             guard let draftAttachmentsData else { return [] }
@@ -129,13 +134,19 @@ final class Conversation {
     }
 
     var lastMessagePreview: String {
-        guard let last = sortedMessages.last(where: { !$0.content.isEmpty || !$0.imageAttachments.isEmpty }) else {
-            return "No messages yet"
+        var newest: ChatMessage?
+        for message in messages {
+            let hasBody = !message.content.isEmpty || message.attachmentsData != nil
+            guard hasBody else { continue }
+            if let newest, message.createdAt <= newest.createdAt { continue }
+            newest = message
         }
+        guard let last = newest else { return "No messages yet" }
         if !last.content.isEmpty {
             return last.content
         }
-        return last.imageAttachments.count == 1 ? "Photo" : "Photos"
+        let imageCount = last.imageAttachments.count
+        return imageCount == 1 ? "Photo" : "Photos"
     }
 
     /// True when at least one assistant message in this conversation has not been read yet.

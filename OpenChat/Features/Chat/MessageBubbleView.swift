@@ -59,7 +59,7 @@ struct MessageBubbleView: View {
             TextSelectionSheet(text: selectionText)
         }
         .sheet(item: $shareAttachment) { attachment in
-            if let uiImage = UIImage(data: attachment.data) {
+            if let uiImage = DecodedImageCache.image(for: attachment) {
                 ActivityShareSheet(activityItems: [uiImage])
             }
         }
@@ -145,7 +145,8 @@ struct MessageBubbleView: View {
     }
 
     private var assistantContent: some View {
-        HStack(alignment: .top, spacing: 8) {
+        let content = displayContent
+        return HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 8) {
                 if !message.imageAttachments.isEmpty {
                     attachmentGallery(message.imageAttachments, alignment: .leading)
@@ -157,12 +158,12 @@ struct MessageBubbleView: View {
                 if message.content.isEmpty && message.isStreaming && message.imageAttachments.isEmpty {
                     TypingIndicatorView()
                         .padding(.top, 6)
-                } else if !displayContent.isEmpty {
+                } else if !content.isEmpty {
                     AssistantMarkdownMessageView(message: message, displayContent: Self.displayContent)
                 }
 
                 #if canImport(UIKit)
-                if !displayContent.isEmpty {
+                if !content.isEmpty {
                     HStack(spacing: 4) {
                         CopyChip(content: message.content)
                         if isLastMessage && !message.isStreaming {
@@ -224,7 +225,7 @@ struct MessageBubbleView: View {
             from: MemoryActionParser.strippingFences(from: message.content)
         )
         // Hide bare image placeholders for messages that already have rendered image attachments.
-        return message.imageAttachments.isEmpty
+        return message.attachmentsData == nil
             ? stripped
             : GeneratedImageParser.stripImagePlaceholders(from: stripped)
     }
@@ -327,7 +328,7 @@ struct MessageBubbleView: View {
         VStack(alignment: alignment, spacing: 6) {
             ForEach(attachments) { attachment in
                 #if canImport(UIKit)
-                if let uiImage = UIImage(data: attachment.data) {
+                if let uiImage = DecodedImageCache.image(for: attachment) {
                     Button {
                         Haptics.light()
                         previewAttachment = attachment
