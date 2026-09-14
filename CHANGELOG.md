@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Voice Mode in Settings now shows a "Beta" badge, matching Skills.
 - Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).
 
 ### Fixed
@@ -24,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Temporarily hid Voice Mode (Settings entry point and composer mic button) — its realtime WebSocket connection was unreliable behind a VPN for at least one user, with no reliable client-side workaround identified yet. The implementation stays in place to re-enable once that's resolved.
 - Removed Apple Health, Calendar, Contacts, and Reminders agent data sources (HealthKit and EventKit) for the App Store 1.0 submission. Camera, microphone, and photo library access remain.
 
 ### Security
