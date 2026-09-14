@@ -43,13 +43,15 @@ struct SettingsView: View {
                     } label: {
                         Label("Web Search", systemImage: "globe")
                     }
-                    NavigationLink {
-                        VoiceModeSettingsView()
-                    } label: {
-                        HStack {
-                            Label("Voice Mode", systemImage: "waveform")
-                            Spacer()
-                            BetaBadge()
+                    if VoiceModeStore.isFeatureVisible {
+                        NavigationLink {
+                            VoiceModeSettingsView()
+                        } label: {
+                            HStack {
+                                Label("Voice Mode", systemImage: "waveform")
+                                Spacer()
+                                BetaBadge()
+                            }
                         }
                     }
                     NavigationLink {

@@ -31,6 +31,13 @@ enum RealtimeVoiceOption: String, CaseIterable, Identifiable, Sendable {
 @MainActor
 @Observable
 final class VoiceModeStore {
+    /// Temporarily hides voice mode everywhere (Settings entry point, composer
+    /// mic button) without removing the underlying implementation — realtime
+    /// WebSocket connections were unreliable behind a VPN for at least one
+    /// user, and there's no reliable client-side workaround for that. Flip
+    /// back to `true` once that's resolved or better understood.
+    static let isFeatureVisible = false
+
     private let enabledKey = "com.openchat.voiceMode.isEnabled"
     private let modelKey = "com.openchat.voiceMode.model"
     private let voiceKey = "com.openchat.voiceMode.voice"
