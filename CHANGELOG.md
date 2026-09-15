@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- ModelRunner is available as a built-in provider. Paste a key from your ModelRunner account and its chat models are fetched live like any other OpenAI-compatible provider.
+
 ### Changed
 
 - Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).
