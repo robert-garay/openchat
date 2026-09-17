@@ -1,0 +1,111 @@
+# Fastlane lanes for OpenChat App Store Connect workflows.
+#
+# Prerequisites (Mac):
+#   brew install fastlane
+#   cp fastlane/.env.example fastlane/.env   # fill in Team ID, Apple ID, etc.
+#   cp Config/Local.xcconfig.example Config/Local.xcconfig   # DEVELOPMENT_TEAM
+#
+# Upload a Release build to TestFlight:
+#   bundle exec fastlane beta
+#
+# Sync metadata (description, keywords, URLs) to ASC:
+#   bundle exec fastlane sync_metadata
+#
+# See docs/launch/launch-execution-checklist.md and docs/mac-launch-runbook.md.
+
+default_platform(:ios)
+
+platform :ios do
+  SCHEME = "OpenChat"
+  PROJECT = "OpenChat.xcodeproj"
+  BUNDLE_ID = "com.genion.openchat"
+
+  before_all do
+    ensure_git_status_clean unless ENV["FASTLANE_SKIP_GIT_CHECK"]
+  end
+
+  desc "Build Release archive and upload to TestFlight (App Store Connect)"
+  lane :beta do
+    setup_ci if ENV["CI"]
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_KEY_PATH"],
+      duration: 1200,
+      in_house: false
+    ) if ENV["APP_STORE_CONNECT_KEY_ID"]
+
+    increment_build_number(
+      xcodeproj: PROJECT,
+      build_number: ENV["BUILD_NUMBER"]
+    ) if ENV["BUILD_NUMBER"]
+
+    build_app(
+      project: PROJECT,
+      scheme: SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          BUNDLE_ID => ENV["PROVISIONING_PROFILE_APP"] || "match AppStore #{BUNDLE_ID}",
+          "com.genion.openchat.liveactivity" => ENV["PROVISIONING_PROFILE_LIVEACTIVITY"] || "match AppStore com.genion.openchat.liveactivity"
+        }
+      },
+      skip_profile_detection: ENV["FASTLANE_SKIP_PROFILE_DETECTION"] == "1",
+      clean: true,
+      output_directory: "./build",
+      output_name: "OpenChat.ipa"
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: ENV["FASTLANE_SKIP_WAIT"] == "1",
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: ENV["TESTFLIGHT_CHANGELOG"] || "OpenChat beta build"
+    )
+  end
+
+  desc "Upload App Store metadata from fastlane/metadata/ (create from docs/launch/asc-paste-bundle.txt)"
+  lane :sync_metadata do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_KEY_PATH"],
+      duration: 1200,
+      in_house: false
+    ) if ENV["APP_STORE_CONNECT_KEY_ID"]
+
+    deliver(
+      api_key: api_key,
+      app_identifier: BUNDLE_ID,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false,
+      automatic_release: false
+    )
+  end
+
+  desc "Upload screenshots from fastlane/screenshots/ (capture with scripts/capture-screenshots.sh first)"
+  lane :upload_screenshots do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_KEY_PATH"],
+      duration: 1200,
+      in_house: false
+    ) if ENV["APP_STORE_CONNECT_KEY_ID"]
+
+    deliver(
+      api_key: api_key,
+      app_identifier: BUNDLE_ID,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      force: true,
+      submit_for_review: false
+    )
+  end
+end

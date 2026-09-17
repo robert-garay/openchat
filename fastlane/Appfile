@@ -1,0 +1,24 @@
+# Fastlane Appfile for OpenChat
+# Copy fastlane/.env.example → fastlane/.env (gitignored) and fill in values.
+# Never commit Apple credentials or API keys to git.
+
+app_identifier("com.genion.openchat")
+
+# Apple ID email used for App Store Connect
+apple_id(ENV["FASTLANE_APPLE_ID"]) if ENV["FASTLANE_APPLE_ID"]
+
+# 10-character Team ID (Xcode → Settings → Accounts → Team ID)
+team_id(ENV["FASTLANE_TEAM_ID"]) if ENV["FASTLANE_TEAM_ID"]
+
+# App Store Connect team ID (may differ from Developer Portal team ID)
+itc_team_id(ENV["FASTLANE_ITC_TEAM_ID"]) if ENV["FASTLANE_ITC_TEAM_ID"]
+
+# Optional: App Store Connect API key auth (preferred for CI / headless upload)
+# Set these instead of apple_id when using API key authentication:
+# app_store_connect_api_key(
+#   key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+#   issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+#   key_filepath: ENV["APP_STORE_CONNECT_KEY_PATH"],
+#   duration: 1200,
+#   in_house: false
+# )
