@@ -356,6 +356,12 @@ struct MessageComposerView: View {
                 .foregroundStyle(.white, primaryButtonColor)
         }
         .disabled(!isStreaming && !canSend)
+        .accessibilityLabel(isStreaming ? "Stop generating" : "Send message")
+        .accessibilityHint(
+            isStreaming
+                ? "Stops the assistant response"
+                : (canSend ? "Sends your message" : "Enter a message to send")
+        )
         .animation(Theme.springFast, value: canSend)
         .animation(Theme.springFast, value: isStreaming)
     }

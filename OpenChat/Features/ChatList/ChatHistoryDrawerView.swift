@@ -85,6 +85,11 @@ struct ChatHistoryDrawerView: View {
                 }
                 .padding(.horizontal, 16)
                 Spacer(minLength: 24)
+            } else if !searchText.isEmpty && filtered.isEmpty {
+                Spacer(minLength: 24)
+                ContentUnavailableView.search(text: searchText)
+                    .padding(.horizontal, 16)
+                Spacer(minLength: 24)
             } else {
                 List {
                     if !pinned.isEmpty {
@@ -176,6 +181,7 @@ struct ChatHistoryDrawerView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
                 }
             }
             .padding(.horizontal, 12)
