@@ -66,6 +66,7 @@
 		3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E2480EE347BF9E56152366 /* WelcomeView.swift */; };
 		3F2903AAABFD3AF5EB3C901C /* ProviderBalanceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7660E53D7D78D2E9F0582C03 /* ProviderBalanceClientTests.swift */; };
 		3F694008E6DCD7D9FF3E3143 /* ConversationTitleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9D07425A56E94382CA05B8 /* ConversationTitleGenerator.swift */; };
+		3FA5F6BF3C689CC8E1575DA1 /* NetworkConnectivityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAFF976F923B734C25B16BBF /* NetworkConnectivityStore.swift */; };
 		40561DBFFF62BF8BCB1B2649 /* WebSearchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C3A8E2A36B3BE2D0ED99C3 /* WebSearchStore.swift */; };
 		407459942BB263BEEEFB02F6 /* ImagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4B65EB10BF80F18249F7B9 /* ImagePreviewView.swift */; };
 		416AFB5728C29005081F9C6F /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FA0EAC1F37AF183BC9F100 /* Color+Hex.swift */; };
@@ -119,6 +120,7 @@
 		760123A678E2DB9C68409A0B /* BackgroundGenerationService+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F27E27A0371819EF2F94456 /* BackgroundGenerationService+Notifications.swift */; };
 		769CFBBCD9C98B17EDF59F02 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */; };
 		778EF96B0EEF09EC10FA72B2 /* AttachmentComposerBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2483DF5ABAA3CC0FD146BEDB /* AttachmentComposerBox.swift */; };
+		799CE38A925F44112A5DB36F /* OfflineBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AED94E96761B6666926F82 /* OfflineBanner.swift */; };
 		77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F3972663C6A879F3059B3B /* NetworkMonitor.swift */; };
 		7C7541B6CE88FF9C9238B305 /* BackgroundCompatibleDataRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6902553ED78590DA7467051 /* BackgroundCompatibleDataRetryTests.swift */; };
 		7DE154DC090948F0667020EC /* ChatMessageMarkdownSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */; };
@@ -409,6 +411,7 @@
 		D3EAB9F6FED35ED8294CFC48 /* SkillsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsStore.swift; sourceTree = "<group>"; };
 		D480041058C1DB91573B3419 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		D4CA638DF58495014701067D /* RuleItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleItem.swift; sourceTree = "<group>"; };
+		D6AED94E96761B6666926F82 /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		D72DF890CDFC623FD6799B39 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCapability.swift; sourceTree = "<group>"; };
 		D93B47B38205C0072CEF12E3 /* WebSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchServiceTests.swift; sourceTree = "<group>"; };
@@ -422,6 +425,7 @@
 		E5C904D05F8D36ED09294EB2 /* OpenChatLiveActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenChatLiveActivityViews.swift; sourceTree = "<group>"; };
 		E6E70A6762B2E04A0D5DCC8F /* ProviderKeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyEntryView.swift; sourceTree = "<group>"; };
 		E8F3972663C6A879F3059B3B /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		EAFF976F923B734C25B16BBF /* NetworkConnectivityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkConnectivityStore.swift; sourceTree = "<group>"; };
 		EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		EE737EF9E06D71B42607E387 /* AnthropicClient+WireTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnthropicClient+WireTypes.swift"; sourceTree = "<group>"; };
 		EF7B0ACC08265539837490F8 /* MockURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocol.swift; sourceTree = "<group>"; };
@@ -458,6 +462,7 @@
 		0C48CD963025B0023A01101B /* Root */ = {
 			isa = PBXGroup;
 			children = (
+				D6AED94E96761B6666926F82 /* OfflineBanner.swift */,
 				E4EA65A8E67CCE1B461F1C3E /* RootView.swift */,
 			);
 			path = Root;
@@ -590,6 +595,7 @@
 				7C969760EF87A03E4F02C4B6 /* MemoryActionParser.swift */,
 				BED23C79DDF1AE8F50FCB926 /* MemoryStore.swift */,
 				D1D9831D482AEBA043B318B1 /* MultimodalRequestEncoder.swift */,
+				EAFF976F923B734C25B16BBF /* NetworkConnectivityStore.swift */,
 				E8F3972663C6A879F3059B3B /* NetworkMonitor.swift */,
 				356623A66ED090BD88CA63CD /* NetworkRetrier.swift */,
 				D72DF890CDFC623FD6799B39 /* NotificationService.swift */,
@@ -1016,9 +1022,11 @@
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
 				36C0236209953383B0339F44 /* ModelReasoningConfig.swift in Sources */,
 				90D8DC45AE1392FE3829AD44 /* MultimodalRequestEncoder.swift in Sources */,
+				3FA5F6BF3C689CC8E1575DA1 /* NetworkConnectivityStore.swift in Sources */,
 				77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */,
 				AA92CAC9EDE531CD91070A41 /* NetworkRetrier.swift in Sources */,
 				D87241FD376F50840C09E998 /* NotificationService.swift in Sources */,
+				799CE38A925F44112A5DB36F /* OfflineBanner.swift in Sources */,
 				B3971BFBB5789756EB4C07A8 /* OpenAICompatibleClient+WireTypes.swift in Sources */,
 				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
 				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
