@@ -1,0 +1,41 @@
+OpenChat is a bring-your-own-key (BYOK) native iOS chat client. There is no OpenChat login, no OpenChat account, and no OpenChat backend server.
+
+TEST ACCOUNT / API KEYS
+- Reviewers must add their own API key from any supported provider on first launch via "Connect a Provider".
+- Supported providers include OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, and custom OpenAI-compatible endpoints.
+- Alternatively, contact robert@genion.ai to request a pre-release API key for review purposes.
+- Web search is optional and requires a separate search-provider key in Settings > Tools > Web Search.
+
+HOW TO TEST
+1. Launch the app and tap "Connect a Provider".
+2. Select a provider (e.g., OpenAI or OpenRouter) and paste an API key.
+3. Start a new chat and send a message. The assistant reply streams in with Markdown formatting.
+4. Optional: Settings > Tools > Rules to add a global rule; Settings > Tools > Memory to view stored facts.
+5. Optional: Enable web search in a chat after adding a search key in Settings > Tools > Web Search.
+
+NETWORK / APP TRANSPORT SECURITY
+- NSAllowsArbitraryLoads is enabled so users can connect custom OpenAI-compatible base URLs (self-hosted Ollama, LM Studio, corporate gateways). Production traffic goes only to endpoints the user configures in Settings.
+
+GENERATIVE AI
+- The app sends user prompts, conversation context, rules, memory snippets, and attachments directly to third-party LLM APIs selected by the user. OpenChat does not moderate, filter, or store model output on any server.
+
+SKILLS (BETA)
+- Settings > Tools > Skills is labeled Beta. Skills are user-defined prompt shortcuts invoked with "/" in the message composer.
+
+BACKGROUND GENERATION
+- When the user leaves a chat during generation, a Live Activity and optional local notification may appear on-device when the reply completes. No OpenChat server is involved.
+
+VOICE MODE
+- Voice mode is hidden in this App Store 1.0 build (VoiceModeStore.isFeatureVisible = false).
+
+DATA COLLECTION
+- OpenChat does not collect, transmit, or store user data on OpenChat-operated servers. API keys are stored in the iOS Keychain. Chat history is stored locally via SwiftData.
+
+PRIVACY POLICY
+https://robert-garay.github.io/openchat/privacy-policy.html
+
+SUPPORT
+https://github.com/robert-garay/openchat/issues
+
+CONTACT
+robert@genion.ai
