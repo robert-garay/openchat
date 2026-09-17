@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenChat — the native iOS home for every major LLM. Bring your own key. No backend. Your data stays on your device.">
+    <title>OpenChat — Every model. One app. Your device.</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --accent: #6565e9;
+            --accent-hover: #5454d4;
+            --bg: #f5f5f7;
+            --bg-elevated: #ffffff;
+            --text: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --border: rgba(0, 0, 0, 0.08);
+            --hero-glow: rgba(101, 101, 233, 0.12);
+            --pill-bg: rgba(101, 101, 233, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --accent: #7a7afa;
+                --accent-hover: #8f8fff;
+                --bg: #000000;
+                --bg-elevated: #1c1c1e;
+                --text: #f5f5f7;
+                --text-secondary: #a1a1a6;
+                --border: rgba(255, 255, 255, 0.1);
+                --hero-glow: rgba(122, 122, 250, 0.15);
+                --pill-bg: rgba(122, 122, 250, 0.15);
+            }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo:hover { text-decoration: none; }
+
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a { color: var(--text-secondary); }
+        .nav-links a:hover { color: var(--accent); text-decoration: none; }
+
+        .hero {
+            text-align: center;
+            padding: 72px 0 56px;
+            position: relative;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(600px, 90vw);
+            height: 300px;
+            background: radial-gradient(ellipse, var(--hero-glow), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--pill-bg);
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+            letter-spacing: 0.02em;
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 5vw, 3.4rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .tagline {
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto 32px;
+        }
+
+        .cta-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .coming-soon {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        section { padding: 56px 0; }
+
+        .section-label {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: clamp(1.6rem, 3vw, 2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 40px;
+        }
+
+        .pillars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .pillar {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .pillar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--pill-bg);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .pillar h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .pillar p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .providers {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .provider-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .provider-list span::after {
+            content: "·";
+            margin-left: 20px;
+            color: var(--border);
+        }
+
+        .provider-list span:last-child::after { content: ""; }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feature {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .feature h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .feature p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .privacy-block {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .privacy-block h2 { margin-bottom: 16px; }
+
+        .privacy-block p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .privacy-points {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .waitlist {
+            text-align: center;
+            padding: 64px 0;
+        }
+
+        .waitlist p {
+            color: var(--text-secondary);
+            max-width: 480px;
+            margin: 0 auto 24px;
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        footer .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px 24px;
+            margin-bottom: 16px;
+        }
+
+        footer a { color: var(--text-secondary); }
+        footer a:hover { color: var(--accent); }
+
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .hero { padding: 48px 0 40px; }
+            .privacy-block { padding: 28px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="./" class="logo">
+                <div class="logo-mark">OC</div>
+                OpenChat
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#privacy">Privacy</a>
+                <a href="privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/robert-garay/openchat">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <span class="hero-badge">Native iOS · Open Source · MIT</span>
+                <h1>Every model.<br>One app.<br>Your device.</h1>
+                <p class="tagline">The native iOS home for OpenAI, Claude, Gemini, OpenRouter, and every OpenAI-compatible endpoint. Bring your own key — no account, no backend.</p>
+                <div class="cta-group">
+                    <a class="btn btn-primary" href="mailto:robert@genion.ai?subject=OpenChat%20Waitlist">Join the waitlist</a>
+                    <a class="btn btn-secondary" href="https://github.com/robert-garay/openchat">View on GitHub</a>
+                </div>
+                <p class="coming-soon">App Store — Coming soon</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <p class="section-label">Why OpenChat</p>
+                <h2>Built for how you actually use AI</h2>
+                <div class="pillars">
+                    <div class="pillar">
+                        <div class="pillar-icon">1</div>
+                        <h3>One workflow, every provider</h3>
+                        <p>Switch between OpenAI, Anthropic, Google, OpenRouter, Mistral, DeepSeek, and self-hosted endpoints without changing apps.</p>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-icon">2</div>
+                        <h3>Bring your own key</h3>
+                        <p>No OpenChat account. API keys live in your iOS Keychain. The app talks directly to providers you configure.</p>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-icon">3</div>
+                        <h3>Your data stays local</h3>
+                        <p>Chats, rules, memory, and skills are stored on your device with SwiftData. No OpenChat servers. No analytics SDKs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="providers">
+            <div class="container">
+                <p class="section-label">Providers</p>
+                <div class="provider-list">
+                    <span>OpenAI</span>
+                    <span>Anthropic</span>
+                    <span>Google Gemini</span>
+                    <span>OpenRouter</span>
+                    <span>Mistral AI</span>
+                    <span>DeepSeek</span>
+                    <span>Alibaba Cloud</span>
+                    <span>Moonshot AI</span>
+                    <span>Z.ai</span>
+                    <span>01.AI</span>
+                    <span>Custom endpoints</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <p class="section-label">Features</p>
+                <h2>Everything you need in one native app</h2>
+                <div class="features">
+                    <div class="feature">
+                        <h3>Streaming Markdown &amp; code</h3>
+                        <p>Rich assistant replies with tables, syntax highlighting, and selectable text.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Live model catalogs</h3>
+                        <p>Fresh model lists from supported providers and OpenRouter's public catalog.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Web search</h3>
+                        <p>Optional search via Tavily, Exa, Brave, Serper, or SerpAPI — your keys, your choice.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Rules &amp; memory</h3>
+                        <p>Global and per-chat rules. Editable on-device memory across conversations.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Skills (beta)</h3>
+                        <p>Reusable prompt shortcuts invoked with <code>/</code> in the composer.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Background generation</h3>
+                        <p>Replies finish while you're away — Live Activity and local notification on completion.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Vision attachments</h3>
+                        <p>Send photos from your library or camera to vision-capable models.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Light &amp; dark mode</h3>
+                        <p>System, light, or dark appearance — matches iOS native feel.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="privacy">
+            <div class="container">
+                <div class="privacy-block">
+                    <p class="section-label">Privacy</p>
+                    <h2>Private by design</h2>
+                    <p>OpenChat has no backend, no first-party analytics, no ads, and no tracking. When you send a message, data goes directly from your device to the AI or search provider you chose.</p>
+                    <div class="privacy-points">
+                        <span>No OpenChat servers</span>
+                        <span>No analytics SDKs</span>
+                        <span>No cookies on this site</span>
+                        <span>Open source (MIT)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="waitlist">
+            <div class="container">
+                <p class="section-label">Early access</p>
+                <h2>Get notified at launch</h2>
+                <p>OpenChat is coming to the App Store soon. Join the waitlist and we'll email you when it's live. You'll need your own API key from a supported provider to use the app.</p>
+                <a class="btn btn-primary" href="mailto:robert@genion.ai?subject=OpenChat%20Waitlist&amp;body=Hi!%20Please%20add%20me%20to%20the%20OpenChat%20waitlist.%0A%0AEmail%3A%20">Join the waitlist</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/robert-garay/openchat">GitHub</a>
+                <a href="privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/robert-garay/openchat/issues">Support</a>
+                <a href="mailto:robert@genion.ai">Contact</a>
+            </div>
+            <p>© 2026 Robert Garay · OpenChat is open source under the <a href="https://github.com/robert-garay/openchat/blob/main/LICENSE">MIT License</a></p>
+        </div>
+    </footer>
+</body>
+</html>

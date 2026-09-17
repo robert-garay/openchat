@@ -10,6 +10,16 @@ OpenChat also keeps model lists current by pulling live `/models` catalogs from 
 
 No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
 
+## Download
+
+**App Store:** Coming soon.
+
+**Landing page:** [robert-garay.github.io/openchat](https://robert-garay.github.io/openchat/)
+
+OpenChat is **bring-your-own-key (BYOK)** — you need an API key from at least one supported provider (OpenAI, Anthropic, Google, OpenRouter, etc.) to use the app. The app is free; usage is billed by your providers directly.
+
+Join the waitlist: [robert@genion.ai](mailto:robert@genion.ai?subject=OpenChat%20Waitlist)
+
 ## Why OpenChat
 
 - **One app, every model** — compare and switch across providers without changing your workflow.
@@ -53,7 +63,7 @@ Settings → Web Search → add a key for one or more search providers (Tavily, 
 
 ## Privacy
 
-OpenChat has no backend, no analytics SDKs, and no telemetry — your data stays on your device except for requests you send directly to AI and search providers you configure. The app uses a small set of open-source Swift packages (for example [SwiftStreamingMarkdown](https://github.com/microsoft/SwiftStreamingMarkdown) for message rendering); there are no advertising or analytics libraries. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally via SwiftData. See the [privacy policy](docs/privacy-policy.html) for details on third-party APIs, photos, camera, microphone, notifications, and on-device storage.
+OpenChat has no backend, no analytics SDKs, and no telemetry — your data stays on your device except for requests you send directly to AI and search providers you configure. The app uses a small set of open-source Swift packages (for example [SwiftStreamingMarkdown](https://github.com/microsoft/SwiftStreamingMarkdown) for message rendering); there are no advertising or analytics libraries. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally via SwiftData. See the [privacy policy](https://robert-garay.github.io/openchat/privacy-policy.html) for details on third-party APIs, photos, camera, microphone, notifications, and on-device storage.
 
 ## Building from source
 
