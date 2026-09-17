@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- GitHub Pages site now uses official OpenChat logo, app icon, and brand colors (light/dark) matching the native iOS app.
 - Expanded the privacy policy to disclose third-party AI/search API data flows, local notifications, Live Activities, and a support contact email.
 
 - Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).

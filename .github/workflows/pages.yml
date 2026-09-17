@@ -8,6 +8,9 @@ on:
       - website/**
       - docs/privacy-policy.html
       - .github/workflows/pages.yml
+      - OpenChat/Resources/Assets.xcassets/OpenChatLogo.imageset/**
+      - OpenChat/Resources/SharedAssets.xcassets/OpenChatMark.imageset/**
+      - OpenChat/Resources/Assets.xcassets/AppIcon.appiconset/**
   workflow_dispatch:
 
 permissions:
@@ -33,7 +36,9 @@ jobs:
         run: |
           mkdir -p _site
           cp website/index.html _site/index.html
+          cp website/brand.css _site/brand.css
           cp docs/privacy-policy.html _site/privacy-policy.html
+          cp -R website/assets _site/assets
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
