@@ -7,7 +7,7 @@ import Observation
 final class NetworkConnectivityStore {
     var isConnected = true
 
-    private var observer: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) private var observer: NSObjectProtocol?
 
     init() {
         observer = NotificationCenter.default.addObserver(
