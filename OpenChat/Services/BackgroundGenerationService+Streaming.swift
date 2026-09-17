@@ -2,6 +2,77 @@ import Foundation
 import SwiftData
 
 extension BackgroundGenerationService {
+    /// Inputs gathered on the main actor; prompt assembly (including web search)
+    /// runs off the main thread so send/streaming UI stays responsive.
+    private struct BuildTurnsSnapshot: Sendable {
+        let historyTurns: [ChatTurn]
+        let latestUserText: String
+        let middleSections: [String]
+        let searchMode: WebSearchMode?
+        let searchAPIKey: String?
+        let searchClient: (any WebSearchClient)?
+        let searchProviderName: String
+        let globalRulesText: String
+        let chatRulesText: String
+        let skillToolsEnabled: Bool
+    }
+
+    private struct AssembledTurns: Sendable {
+        let turns: [ChatTurn]
+        let tools: [ChatToolDefinition]
+        let webSearchToolPrompt: String?
+    }
+
+    private nonisolated static func assembleTurns(from snapshot: BuildTurnsSnapshot) async -> AssembledTurns {
+        var middleSections = snapshot.middleSections
+        var tools: [ChatToolDefinition] = []
+        var webSearchToolPrompt: String?
+
+        if snapshot.searchMode == .inject,
+           let searchAPIKey = snapshot.searchAPIKey,
+           let searchClient = snapshot.searchClient,
+           !snapshot.latestUserText.isEmpty {
+            do {
+                let injected = try await WebSearchService.makeInjectedContext(
+                    query: snapshot.latestUserText,
+                    apiKey: searchAPIKey,
+                    client: searchClient
+                )
+                middleSections.append(injected)
+            } catch {
+                middleSections.append(
+                    "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
+                )
+            }
+        } else if snapshot.searchMode == .toolCalling,
+                  snapshot.searchAPIKey != nil,
+                  snapshot.searchClient != nil {
+            tools = [WebSearchService.toolDefinition(providerName: snapshot.searchProviderName)]
+            webSearchToolPrompt =
+                "You have a web_search tool powered by \(snapshot.searchProviderName). Use it when the user needs current or factual information from the web."
+        }
+
+        if snapshot.skillToolsEnabled {
+            tools.append(SkillToolService.invokeToolDefinition())
+            tools.append(SkillToolService.createToolDefinition())
+        }
+
+        let systemContent = ChatSystemPromptBuilder.assemble(
+            globalRules: snapshot.globalRulesText,
+            chatRules: snapshot.chatRulesText,
+            middleSections: middleSections,
+            webSearchToolPrompt: webSearchToolPrompt
+        )
+
+        var turns: [ChatTurn] = []
+        if let systemContent {
+            turns.append(ChatTurn(role: .system, content: systemContent))
+        }
+        turns.append(contentsOf: snapshot.historyTurns)
+
+        return AssembledTurns(turns: turns, tools: tools, webSearchToolPrompt: webSearchToolPrompt)
+    }
+
     func buildTurns(
         conversation: Conversation,
         assistantMessage: ChatMessage,
@@ -74,32 +145,6 @@ extension BackgroundGenerationService {
             middleSections.append(skillIndex)
         }
 
-        var tools: [ChatToolDefinition] = []
-        var webSearchToolPrompt: String?
-        if searchMode == .inject, let searchAPIKey, let searchClient, !latestUserText.isEmpty {
-            do {
-                let injected = try await WebSearchService.makeInjectedContext(
-                    query: latestUserText,
-                    apiKey: searchAPIKey,
-                    client: searchClient
-                )
-                middleSections.append(injected)
-            } catch {
-                middleSections.append(
-                    "Web search was enabled but failed: \(error.localizedDescription). Answer without live results."
-                )
-            }
-        } else if searchMode == .toolCalling, searchAPIKey != nil, searchClient != nil {
-            tools = [WebSearchService.toolDefinition(providerName: searchProviderName)]
-            webSearchToolPrompt =
-                "You have a web_search tool powered by \(searchProviderName). Use it when the user needs current or factual information from the web."
-        }
-
-        if skillToolsEnabled {
-            tools.append(SkillToolService.invokeToolDefinition())
-            tools.append(SkillToolService.createToolDefinition())
-        }
-
         rulesStore.migrateLegacyGlobalRulesIfNeeded(modelContext: modelContext)
 
         let globalRulesText: String
@@ -119,18 +164,22 @@ extension BackgroundGenerationService {
             chatRulesText = ""
         }
 
-        let systemContent = ChatSystemPromptBuilder.assemble(
-            globalRules: globalRulesText,
-            chatRules: chatRulesText,
+        let snapshot = BuildTurnsSnapshot(
+            historyTurns: historyTurns,
+            latestUserText: latestUserText,
             middleSections: middleSections,
-            webSearchToolPrompt: webSearchToolPrompt
+            searchMode: searchMode,
+            searchAPIKey: searchAPIKey,
+            searchClient: searchClient,
+            searchProviderName: searchProviderName,
+            globalRulesText: globalRulesText,
+            chatRulesText: chatRulesText,
+            skillToolsEnabled: skillToolsEnabled
         )
 
-        var turns: [ChatTurn] = []
-        if let systemContent {
-            turns.append(ChatTurn(role: .system, content: systemContent))
-        }
-        turns.append(contentsOf: historyTurns)
+        let assembled = await Task.detached(priority: .userInitiated) {
+            await Self.assembleTurns(from: snapshot)
+        }.value
 
         let skillCollector = SkillInvocationCollector()
         let executeTool: @Sendable (ChatToolCall) async throws -> String = { call in
@@ -162,8 +211,8 @@ extension BackgroundGenerationService {
         }
 
         return BuildTurnsResult(
-            turns: turns,
-            tools: tools,
+            turns: assembled.turns,
+            tools: assembled.tools,
             executeTool: executeTool,
             skillCollector: skillCollector,
             skillMatches: skillMatches

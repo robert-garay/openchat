@@ -10,23 +10,27 @@ struct EditMessageView: View {
     let message: ChatMessage
     let supportsVision: Bool
     let modelDisplayName: String?
+    let trailingMessageCount: Int
     let onCancel: () -> Void
     /// Returns `true` when the edit was applied; the screen dismisses only then.
     let onSave: (String, [ChatImageAttachment]) -> Bool
 
     @State private var text: String
     @State private var attachments: [ChatImageAttachment]
+    @State private var showingTruncationConfirmation = false
 
     init(
         message: ChatMessage,
         supportsVision: Bool,
         modelDisplayName: String?,
+        trailingMessageCount: Int = 0,
         onCancel: @escaping () -> Void,
         onSave: @escaping (String, [ChatImageAttachment]) -> Bool
     ) {
         self.message = message
         self.supportsVision = supportsVision
         self.modelDisplayName = modelDisplayName
+        self.trailingMessageCount = trailingMessageCount
         self.onCancel = onCancel
         self.onSave = onSave
         _text = State(initialValue: message.content)
@@ -59,6 +63,20 @@ struct EditMessageView: View {
             .padding(.bottom, 8)
         }
         .background(Color(.systemBackground))
+        .confirmationDialog(
+            "Delete later messages?",
+            isPresented: $showingTruncationConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete \(trailingMessageCount) message\(trailingMessageCount == 1 ? "" : "s")", role: .destructive) {
+                applyEdit()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                "Editing this message will remove \(trailingMessageCount) later message\(trailingMessageCount == 1 ? "" : "s") and regenerate the reply."
+            )
+        }
     }
 
     private var header: some View {
@@ -115,8 +133,10 @@ struct EditMessageView: View {
         Button {
             guard canSend else { return }
             Haptics.light()
-            if onSave(text, attachments) {
-                onCancel()
+            if trailingMessageCount > 0 {
+                showingTruncationConfirmation = true
+            } else {
+                applyEdit()
             }
         } label: {
             Image(systemName: "arrow.up.circle.fill")
@@ -127,5 +147,11 @@ struct EditMessageView: View {
         .disabled(!canSend)
         .animation(Theme.springFast, value: canSend)
         .accessibilityLabel("Save and send")
+    }
+
+    private func applyEdit() {
+        if onSave(text, attachments) {
+            onCancel()
+        }
     }
 }

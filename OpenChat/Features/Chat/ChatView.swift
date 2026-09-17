@@ -124,6 +124,10 @@ struct ChatView: View {
                         }
                         .foregroundStyle(.primary)
                     }
+                    .accessibilityLabel(
+                        "Model: \(viewModel.currentModel?.displayName ?? "Choose Model")"
+                    )
+                    .accessibilityHint("Opens the model picker")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -213,6 +217,7 @@ struct ChatView: View {
                     message: message,
                     supportsVision: viewModel.supportsVision,
                     modelDisplayName: viewModel.currentModel?.displayName,
+                    trailingMessageCount: conversation.messages(after: message).count,
                     onCancel: {
                         viewModel.cancelEditing()
                     },
@@ -333,13 +338,17 @@ private struct ChatMessageListView: View {
     @State private var followScrollTask: Task<Void, Never>?
     /// Last observed content height — used to re-pin after tall markdown lays out.
     @State private var lastContentHeight: CGFloat = 0
+    /// iOS 17 scroll-position tracking for stick-to-bottom re-attach.
+    @State private var viewportHeight: CGFloat = 0
+    @State private var contentBottomY: CGFloat = 0
 
     var body: some View {
         let sortedMessages = conversation.sortedMessages
         let lastMessageID = sortedMessages.last?.id
 
         ScrollViewReader { proxy in
-            ScrollView {
+            GeometryReader { viewportGeo in
+                ScrollView {
                 // LazyVStack keeps large threads responsive. Scroll targets the last
                 // message first so the bottom bubble materializes before the spacer pin
                 // (plain scrollTo-bottom alone can leave a blank viewport).
@@ -391,64 +400,88 @@ private struct ChatMessageListView: View {
                 .padding(.bottom, 8)
                 .background(
                     GeometryReader { geometry in
-                        Color.clear.preference(
-                            key: ChatContentHeightKey.self,
-                            value: geometry.size.height
-                        )
+                        let frame = geometry.frame(in: .named("chatScroll"))
+                        Color.clear
+                            .preference(key: ChatContentHeightKey.self, value: geometry.size.height)
+                            .preference(key: ChatContentBottomKey.self, value: frame.maxY)
                     }
                 )
-            }
-            .defaultScrollAnchor(.bottom)
-            .scrollDismissesKeyboard(.interactively)
-            .onPreferenceChange(ChatContentHeightKey.self) { height in
-                handleContentHeightChange(height, proxy: proxy, lastMessageID: lastMessageID)
-            }
-            .modifier(
-                ChatStickToBottomModifier(
-                    stickToBottom: $stickToBottom,
-                    isInteractivelyScrolling: $isInteractivelyScrolling
-                )
-            )
-            .overlay(alignment: .bottomTrailing) {
-                if !stickToBottom && !sortedMessages.isEmpty {
-                    jumpToLatestButton {
-                        stickToBottom = true
-                        isInteractivelyScrolling = false
-                        Haptics.light()
-                        scrollToBottom(proxy: proxy, animated: true, lastMessageID: lastMessageID)
-                    }
-                    .padding(.trailing, 16)
-                    .padding(.bottom, 12)
-                    .transition(.opacity.combined(with: .scale(scale: 0.92)))
-                    .animation(Theme.springFast, value: stickToBottom)
                 }
-            }
-            .onChange(of: conversation.messages.count) {
-                scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
-            }
-            .onChange(of: conversation.lastMessage?.content) {
-                scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
-            }
-            .onChange(of: isInteractivelyScrolling) { _, scrolling in
-                if scrolling {
+                .coordinateSpace(name: "chatScroll")
+                .defaultScrollAnchor(.bottom)
+                .scrollDismissesKeyboard(.interactively)
+                .onPreferenceChange(ChatContentHeightKey.self) { height in
+                    handleContentHeightChange(height, proxy: proxy, lastMessageID: lastMessageID)
+                }
+                .onPreferenceChange(ChatContentBottomKey.self) { bottomY in
+                    contentBottomY = bottomY
+                    applyLegacyScrollStickiness()
+                }
+                .modifier(
+                    ChatStickToBottomModifier(
+                        stickToBottom: $stickToBottom,
+                        isInteractivelyScrolling: $isInteractivelyScrolling
+                    )
+                )
+                .overlay(alignment: .bottomTrailing) {
+                    if !stickToBottom && !sortedMessages.isEmpty {
+                        jumpToLatestButton {
+                            stickToBottom = true
+                            isInteractivelyScrolling = false
+                            Haptics.light()
+                            scrollToBottom(proxy: proxy, animated: true, lastMessageID: lastMessageID)
+                        }
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 12)
+                        .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                        .animation(Theme.springFast, value: stickToBottom)
+                    }
+                }
+                .onChange(of: conversation.messages.count) {
+                    scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
+                }
+                .onChange(of: conversation.lastMessage?.content) {
+                    scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
+                }
+                .onChange(of: isInteractivelyScrolling) { _, scrolling in
+                    if scrolling {
+                        followScrollTask?.cancel()
+                        followScrollTask = nil
+                    } else {
+                        applyLegacyScrollStickiness()
+                    }
+                }
+                .task(id: conversation.id) {
+                    stickToBottom = true
+                    isInteractivelyScrolling = false
+                    lastContentHeight = 0
                     followScrollTask?.cancel()
-                    followScrollTask = nil
-                }
-            }
-            .task(id: conversation.id) {
-                stickToBottom = true
-                isInteractivelyScrolling = false
-                lastContentHeight = 0
-                followScrollTask?.cancel()
-                // Yield so the first layout pass can size tall markdown before pinning.
-                await Task.yield()
-                scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
-                for delay in [50, 150, 350] as [UInt64] {
-                    try? await Task.sleep(for: .milliseconds(delay))
-                    guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+                    // Yield so the first layout pass can size tall markdown before pinning.
+                    await Task.yield()
                     scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
+                    for delay in [50, 150, 350] as [UInt64] {
+                        try? await Task.sleep(for: .milliseconds(delay))
+                        guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+                        scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
+                    }
+                }
+                .onAppear { viewportHeight = viewportGeo.size.height }
+                .onChange(of: viewportGeo.size.height) { _, height in
+                    viewportHeight = height
                 }
             }
+        }
+    }
+
+    /// Re-attaches follow mode on iOS 17 when the user scrolls back near the bottom.
+    private func applyLegacyScrollStickiness() {
+        if #available(iOS 18.0, *) { return }
+        guard viewportHeight > 0 else { return }
+        let distanceFromBottom = contentBottomY - viewportHeight
+        if distanceFromBottom <= 48 {
+            stickToBottom = true
+        } else if isInteractivelyScrolling, distanceFromBottom > 72 {
+            stickToBottom = false
         }
     }
 
@@ -546,22 +579,25 @@ private struct ChatStickToBottomModifier: ViewModifier {
                     }
                 }
         } else {
-            // Use a larger minimum distance so the long-press gesture for text
-            // selection can start before the drag gesture begins.
+            // iOS 17: track interactive scroll for detach; re-attach is handled via
+            // scroll geometry preferences in `ChatMessageListView`.
             content.simultaneousGesture(
                 DragGesture(minimumDistance: 12)
-                    .onChanged { value in
+                    .onChanged { _ in
                         isInteractivelyScrolling = true
-                        // Finger down → reading older messages → detach follow.
-                        if value.translation.height > 8 {
-                            stickToBottom = false
-                        }
                     }
                     .onEnded { _ in
                         isInteractivelyScrolling = false
                     }
             )
         }
+    }
+}
+
+private struct ChatContentBottomKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

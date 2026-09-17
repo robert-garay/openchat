@@ -124,7 +124,7 @@ enum ConversationTitleGenerator {
 
         let sanitized = sanitize(collected)
         if sanitized == nil {
-            logger.error("title generation produced unusable output, raw=\(collected, privacy: .public)")
+            logger.error("title generation produced unusable output, raw=\(collected, privacy: .private)")
         }
         return sanitized
     }

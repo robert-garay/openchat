@@ -1,4 +1,5 @@
 import Foundation
+import os
 import UserNotifications
 import UIKit
 
@@ -7,6 +8,8 @@ import UIKit
 @MainActor
 final class NotificationService: NSObject {
     static let shared = NotificationService()
+
+    private static let logger = Logger(subsystem: "com.openchat.app", category: "NotificationService")
 
     nonisolated(unsafe) private let center = UNUserNotificationCenter.current()
 
@@ -65,7 +68,9 @@ final class NotificationService: NSObject {
         do {
             try await center.add(request)
         } catch {
-            print("Failed to schedule response notification: \(error.localizedDescription)")
+            Self.logger.error(
+                "Failed to schedule response notification: \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 
