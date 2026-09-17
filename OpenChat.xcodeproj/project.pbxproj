@@ -120,8 +120,8 @@
 		760123A678E2DB9C68409A0B /* BackgroundGenerationService+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F27E27A0371819EF2F94456 /* BackgroundGenerationService+Notifications.swift */; };
 		769CFBBCD9C98B17EDF59F02 /* RulesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9F8E967DE32D5E4AAAD8C6 /* RulesSettingsView.swift */; };
 		778EF96B0EEF09EC10FA72B2 /* AttachmentComposerBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2483DF5ABAA3CC0FD146BEDB /* AttachmentComposerBox.swift */; };
-		799CE38A925F44112A5DB36F /* OfflineBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AED94E96761B6666926F82 /* OfflineBanner.swift */; };
 		77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F3972663C6A879F3059B3B /* NetworkMonitor.swift */; };
+		799CE38A925F44112A5DB36F /* OfflineBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AED94E96761B6666926F82 /* OfflineBanner.swift */; };
 		7C7541B6CE88FF9C9238B305 /* BackgroundCompatibleDataRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6902553ED78590DA7467051 /* BackgroundCompatibleDataRetryTests.swift */; };
 		7DE154DC090948F0667020EC /* ChatMessageMarkdownSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */; };
 		7DF61A34C15F495811360773 /* AgentDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D348B817101C72DCC52C7AC /* AgentDataSource.swift */; };
