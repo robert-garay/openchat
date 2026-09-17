@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Settings → About now includes Privacy Policy and Support links for App Store compliance.
+- Wiki and tutorial guides at `website/wiki/` (deployed via GitHub Pages).
 - Launch landing page at `website/index.html` (deployed via GitHub Pages).
 - Launch copy package in `docs/launch/` (Product Hunt, Hacker News, social, press, TestFlight, App Review notes, screenshot guide).
 - App Store metadata draft in `docs/app-store-metadata.md`.

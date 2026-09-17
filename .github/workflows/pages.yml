@@ -39,6 +39,7 @@ jobs:
           cp website/brand.css _site/brand.css
           cp docs/privacy-policy.html _site/privacy-policy.html
           cp -R website/assets _site/assets
+          cp -R website/wiki _site/wiki
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

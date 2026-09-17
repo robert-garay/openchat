@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenChat reference — privacy, FAQ, troubleshooting, and support.">
+    <title>Reference — OpenChat Wiki</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="stylesheet" href="../brand.css">
+    <link rel="stylesheet" href="wiki.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container site-nav">
+            <a href="../index.html" class="site-logo">
+                <picture>
+                    <source srcset="../assets/openchat-logo-dark.png" media="(prefers-color-scheme: dark)">
+                    <img src="../assets/openchat-logo.png" alt="" width="32" height="32">
+                </picture>
+                OpenChat
+            </a>
+            <nav class="site-nav-links" aria-label="Primary">
+                <a href="../index.html">Home</a>
+                <a href="index.html">Wiki</a>
+                <a href="../privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/robert-garay/openchat">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wiki-layout">
+        <nav class="wiki-sidebar" aria-label="Wiki sections">
+            <h2>Guides</h2>
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="getting-started.html">Getting started</a></li>
+                <li><a href="core-features.html">Core features</a></li>
+                <li><a href="advanced-features.html">Advanced features</a></li>
+                <li><a href="reference.html" class="active">Reference</a></li>
+            </ul>
+        </nav>
+
+        <main class="wiki-content">
+            <h1>Reference</h1>
+            <p class="wiki-lead">Privacy architecture, frequently asked questions, troubleshooting, and support.</p>
+
+            <h2 id="privacy">Privacy architecture</h2>
+            <p>OpenChat has <strong>no backend server</strong>. The app on your iPhone is the entire system — there are no OpenChat-operated servers that receive your data.</p>
+            <h3>What stays on your device</h3>
+            <ul>
+                <li>Chat history, rules, memory, and skills (SwiftData)</li>
+                <li>API keys and search keys (iOS Keychain)</li>
+                <li>Local notifications and Live Activities</li>
+            </ul>
+            <h3>What leaves your device</h3>
+            <p>Only requests you initiate, sent <strong>directly</strong> to providers you configured:</p>
+            <ul>
+                <li>Chat messages and context to your chosen AI provider</li>
+                <li>Search queries to your chosen search provider (when web search is enabled)</li>
+                <li>Images or documents you attach (to vision-capable models)</li>
+            </ul>
+            <p>OpenChat includes no analytics SDKs, advertising libraries, or tracking. The app is open source (MIT) — you can verify this in the <a href="https://github.com/robert-garay/openchat">source code</a>.</p>
+            <p>Read the full <a href="../privacy-policy.html">privacy policy</a> for details on third-party data handling, photos, camera, microphone, and notifications.</p>
+
+            <h2 id="faq">FAQ</h2>
+            <h3>Does OpenChat cost money?</h3>
+            <p>The app is free. You pay your AI and search providers directly for API usage at their standard rates.</p>
+
+            <h3>Do I need an OpenChat account?</h3>
+            <p>No. OpenChat is bring-your-own-key. You only need API keys from the providers you want to use.</p>
+
+            <h3>Which providers are supported?</h3>
+            <p>OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, Cheaper Inference, and any OpenAI-compatible custom endpoint. See <a href="getting-started.html#api-keys">Getting started → API keys</a> for key creation links.</p>
+
+            <h3>Where is my data stored?</h3>
+            <p>On your iPhone. Chats use SwiftData. Keys use the Keychain. Nothing syncs to OpenChat servers.</p>
+
+            <h3>Can I use multiple providers at once?</h3>
+            <p>Yes. Connect as many providers as you want. Each conversation uses one model from one provider, but you can switch models anytime.</p>
+
+            <h3>Does OpenChat train on my chats?</h3>
+            <p>OpenChat does not collect or process your data. Whether a third-party provider retains or trains on API data depends on that provider's policies — check their documentation.</p>
+
+            <h3>Is web search required?</h3>
+            <p>No. Web search is entirely optional and requires a separate search API key.</p>
+
+            <h2 id="troubleshooting">Troubleshooting</h2>
+            <h3>Model list is empty or still loading</h3>
+            <p>OpenChat fetches model catalogs when you save a provider key. If the list is empty, check your internet connection and verify the API key is valid. For custom endpoints, model IDs must be entered manually.</p>
+
+            <h3>API errors or authentication failures</h3>
+            <ul>
+                <li>Confirm the key is correct and has not expired</li>
+                <li>Check the provider's status page for outages</li>
+                <li>For custom endpoints, verify the base URL and that the server is reachable from your device</li>
+                <li>Re-enter the key in <strong>Settings → Providers → [provider]</strong></li>
+            </ul>
+
+            <h3>Images not sending</h3>
+            <p>Only vision-capable models accept images. Switch to a model with the vision capability badge, or remove attachments before sending.</p>
+
+            <h3>Web search button is disabled</h3>
+            <p>Add a search API key in <strong>Settings → Web Search</strong> and enable web search. Then pick a provider from the web search button in the composer.</p>
+
+            <h3>First launch hangs after connecting OpenRouter</h3>
+            <p>OpenChat starts a chat immediately with OpenRouter Auto while the full catalog loads in the background. If you see a delay, wait a few seconds for the catalog to cache, or pick a specific model from the picker.</p>
+
+            <h3>Background reply did not finish</h3>
+            <p>Ensure OpenChat has notification permissions. Very long generations may time out depending on the provider. Return to the chat to check status.</p>
+
+            <h2 id="support">Source code and support</h2>
+            <ul>
+                <li><strong>Source code:</strong> <a href="https://github.com/robert-garay/openchat">github.com/robert-garay/openchat</a></li>
+                <li><strong>Issues and bug reports:</strong> <a href="https://github.com/robert-garay/openchat/issues">github.com/robert-garay/openchat/issues</a></li>
+                <li><strong>Email:</strong> <a href="mailto:robert@genion.ai">robert@genion.ai</a></li>
+                <li><strong>Privacy policy:</strong> <a href="../privacy-policy.html">robert-garay.github.io/openchat/privacy-policy.html</a></li>
+            </ul>
+        </main>
+    </div>
+</body>
+</html>
