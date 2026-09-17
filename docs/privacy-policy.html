@@ -21,29 +21,44 @@
 </head>
 <body>
     <h1>Privacy Policy</h1>
-    <p class="last-updated"><strong>Last updated:</strong> September 11, 2026</p>
+    <p class="last-updated"><strong>Last updated:</strong> September 17, 2026</p>
 
-    <p>OpenChat is built with privacy and user control at its core. This policy explains what data the app accesses, how it is used, and what stays under your control.</p>
+    <p>OpenChat is built with privacy and user control at its core. This policy explains what data the app accesses, how it is used, what is sent to third parties, and what stays under your control.</p>
 
-    <h2>1. Data You Control</h2>
-    <p>OpenChat is a <strong>bring-your-own-key (BYOK)</strong> client. You connect your own API keys from AI providers you choose. Those keys are stored securely in your device’s Keychain and are only used to send requests directly to the providers you select. We never receive, store, or process your API keys or chat messages on our servers.</p>
+    <h2>1. No OpenChat Backend</h2>
+    <p>OpenChat has <strong>no backend server</strong>, no OpenChat account, and no first-party analytics. We do not operate infrastructure that receives, stores, or processes your chats, API keys, or attachments. The app runs on your device and communicates directly with services <strong>you choose</strong>.</p>
 
-    <h2>2. Conversations Stay on Your Device</h2>
-    <p>Your chat history is stored locally on your device using Apple’s SwiftData framework. It is not synced to our servers. Temporary chats are not persisted at all.</p>
+    <h2>2. Bring Your Own Key (BYOK)</h2>
+    <p>OpenChat is a <strong>bring-your-own-key (BYOK)</strong> client. You connect API keys from AI and search providers you select. Those keys are stored securely in your device’s Keychain and are used only to send requests directly to the providers you configure. We never receive, store, or process your API keys on our servers.</p>
 
-    <h2>3. Optional Photos and Camera</h2>
-    <p>OpenChat can access photos you select or images you capture through the camera. These are used locally to let the AI analyze images you choose to share. The app does not upload your photos or camera data to our infrastructure.</p>
+    <h2>3. Data Sent to Third-Party Services You Choose</h2>
+    <p>When you send a message, enable web search, use voice input, or otherwise use a connected feature, OpenChat transmits the content required for that request <strong>directly from your device</strong> to the third-party services you configured. Depending on your settings, this may include:</p>
+    <ul>
+        <li><strong>AI providers</strong> (for example OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Moonshot, Z.ai, 01.AI, or a custom OpenAI-compatible endpoint you add): chat messages, conversation context, rules, memory snippets, skill instructions, model settings, and any images or documents you attach for vision-capable models.</li>
+        <li><strong>Web search providers</strong> (Tavily, Exa, Brave Search, Serper, or SerpAPI, if you add a key): search queries derived from your conversation when you turn web search on for a chat.</li>
+        <li><strong>Speech / realtime providers</strong> (when voice features are enabled): audio or transcript data needed for transcription or realtime conversation, sent to the provider you selected.</li>
+    </ul>
+    <p>Those third parties handle data under their own privacy policies and terms. OpenChat does not control how they process, retain, or use that data. Review each provider’s documentation before connecting a key.</p>
 
-    <h2>4. Optional Microphone</h2>
-    <p>The microphone is used only when you enable voice input for transcription. Audio is processed locally or by the speech provider you choose, not by us.</p>
+    <h2>4. Conversations Stay on Your Device</h2>
+    <p>Your chat history, rules, memory, and skills are stored locally on your device using Apple’s SwiftData framework. They are not synced to OpenChat servers. Temporary chats are not persisted.</p>
 
-    <h2>5. No Third-Party Analytics or Ads</h2>
+    <h2>5. Optional Photos and Camera</h2>
+    <p>OpenChat can access photos you select or images you capture through the camera. These are used locally in the app and, when you send them in a message, are transmitted to the AI provider you chose for that conversation. They are not uploaded to OpenChat infrastructure.</p>
+
+    <h2>6. Optional Microphone</h2>
+    <p>The microphone is used only when you enable voice input or voice mode. Audio is processed by the speech or realtime provider you choose, not by OpenChat servers.</p>
+
+    <h2>7. Local Notifications and Live Activities</h2>
+    <p>When background response generation is enabled, OpenChat may show a <strong>Live Activity</strong> (Dynamic Island / Lock Screen) while an assistant reply is generating in the background, and may send a <strong>local notification</strong> on your device when the reply completes. These are generated and displayed on-device; notification content (such as the conversation title) is not sent to OpenChat servers. Tapping a notification opens the relevant chat in the app.</p>
+
+    <h2>8. No Third-Party Analytics or Ads</h2>
     <p>OpenChat does not include third-party analytics SDKs, advertising SDKs, or tracking. We do not sell your data.</p>
 
-    <h2>6. Open Source</h2>
-    <p>OpenChat is open source. You can inspect the code, build it yourself, and verify how data is handled.</p>
+    <h2>9. Open Source</h2>
+    <p>OpenChat is open source. You can inspect the code, build it yourself, and verify how data is handled at <a href="https://github.com/robert-garay/openchat">github.com/robert-garay/openchat</a>.</p>
 
-    <h2>7. Contact</h2>
-    <p>If you have questions about this privacy policy, contact us at the issue tracker or email listed in the App Store listing.</p>
+    <h2>10. Contact</h2>
+    <p>Questions about this privacy policy: <a href="mailto:robert@genion.ai">robert@genion.ai</a>. You can also open an issue at <a href="https://github.com/robert-garay/openchat/issues">github.com/robert-garay/openchat/issues</a>.</p>
 </body>
 </html>

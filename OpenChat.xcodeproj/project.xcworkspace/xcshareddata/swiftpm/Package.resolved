@@ -58,7 +58,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/microsoft/SwiftStreamingMarkdown",
       "state" : {
-        "branch" : "main",
         "revision" : "b7b82b6a63e33cd3d41366ac76de6216d1bcf1a4"
       }
     },

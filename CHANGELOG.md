@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Settings → About now includes Privacy Policy and Support links for App Store compliance.
+
 ### Changed
+
+- Expanded the privacy policy to disclose third-party AI/search API data flows, local notifications, Live Activities, and a support contact email.
 
 - Model catalogs are fetched as soon as an API key is saved, for every provider (and as soon as a keyless custom endpoint is added).
 

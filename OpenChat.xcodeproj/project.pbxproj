@@ -1458,8 +1458,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/SwiftStreamingMarkdown";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = b7b82b6a63e33cd3d41366ac76de6216d1bcf1a4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

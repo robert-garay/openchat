@@ -96,6 +96,12 @@ struct SettingsView: View {
 
                 Section {
                     LabeledContent("Version", value: appVersion)
+                    Link(destination: URL(string: "https://robert-garay.github.io/openchat/privacy-policy.html")!) {
+                        Label("Privacy Policy", systemImage: "hand.raised")
+                    }
+                    Link(destination: URL(string: "https://github.com/robert-garay/openchat/issues")!) {
+                        Label("Support", systemImage: "lifepreserver")
+                    }
                     Link(destination: URL(string: "https://github.com/robert-garay/openchat")!) {
                         Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
