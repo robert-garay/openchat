@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Get started with OpenChat — BYOK setup, API keys, and your first chat.">
+    <title>Getting started — OpenChat Wiki</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="stylesheet" href="../brand.css">
+    <link rel="stylesheet" href="wiki.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container site-nav">
+            <a href="../index.html" class="site-logo">
+                <picture>
+                    <source srcset="../assets/openchat-logo-dark.png" media="(prefers-color-scheme: dark)">
+                    <img src="../assets/openchat-logo.png" alt="" width="32" height="32">
+                </picture>
+                OpenChat
+            </a>
+            <nav class="site-nav-links" aria-label="Primary">
+                <a href="../index.html">Home</a>
+                <a href="index.html">Wiki</a>
+                <a href="../privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/robert-garay/openchat">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wiki-layout">
+        <nav class="wiki-sidebar" aria-label="Wiki sections">
+            <h2>Guides</h2>
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="getting-started.html" class="active">Getting started</a></li>
+                <li><a href="core-features.html">Core features</a></li>
+                <li><a href="advanced-features.html">Advanced features</a></li>
+                <li><a href="reference.html">Reference</a></li>
+            </ul>
+        </nav>
+
+        <main class="wiki-content">
+            <h1>Getting started</h1>
+            <p class="wiki-lead">Set up OpenChat and start chatting with any supported AI provider using your own API keys.</p>
+
+            <h2 id="what-is-openchat">What is OpenChat?</h2>
+            <p>OpenChat is a native iOS chat app that connects directly to AI providers you configure. It is <strong>bring-your-own-key (BYOK)</strong> — you need an API key from at least one supported provider. There is no OpenChat account, no backend server, and no telemetry.</p>
+            <p>OpenChat supports multiple providers in one app: OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, Cheaper Inference, and any OpenAI-compatible custom endpoint (Ollama, LM Studio, vLLM, internal gateways). Switch models per conversation without changing apps.</p>
+            <p>Chats, rules, memory, and skills are stored locally on your device with SwiftData. API keys are stored in the iOS Keychain.</p>
+
+            <h2 id="download">Download and install</h2>
+            <div class="callout">
+                <strong>App Store — Coming soon</strong>
+                OpenChat is not yet available on the App Store. Join the waitlist at <a href="mailto:robert@genion.ai?subject=OpenChat%20Waitlist">robert@genion.ai</a> to get notified at launch.
+            </div>
+            <p>You can also build from source on macOS with Xcode 16+ — see the <a href="https://github.com/robert-garay/openchat">GitHub repository</a> for instructions.</p>
+
+            <h2 id="api-keys">Creating API keys</h2>
+            <p>OpenChat is free to use; usage is billed directly by your providers. Create a key from the console of whichever provider you want to use first:</p>
+            <table>
+                <thead>
+                    <tr><th>Provider</th><th>Where to get a key</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>OpenAI</td><td><a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a></td></tr>
+                    <tr><td>Anthropic</td><td><a href="https://console.anthropic.com/settings/keys">console.anthropic.com/settings/keys</a></td></tr>
+                    <tr><td>Google</td><td><a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a></td></tr>
+                    <tr><td>OpenRouter</td><td><a href="https://openrouter.ai/keys">openrouter.ai/keys</a></td></tr>
+                    <tr><td>DeepSeek</td><td><a href="https://platform.deepseek.com/api_keys">platform.deepseek.com/api_keys</a></td></tr>
+                    <tr><td>Mistral AI</td><td><a href="https://console.mistral.ai/api-keys/">console.mistral.ai/api-keys</a></td></tr>
+                    <tr><td>Alibaba Cloud (Qwen)</td><td><a href="https://bailian.console.aliyun.com/?apiKey=1">bailian.console.aliyun.com</a></td></tr>
+                    <tr><td>Moonshot AI (Kimi)</td><td><a href="https://platform.moonshot.cn/console/api-keys">platform.moonshot.cn/console/api-keys</a></td></tr>
+                    <tr><td>Z.ai</td><td><a href="https://z.ai/manage-apikey/apikey-list">z.ai/manage-apikey/apikey-list</a></td></tr>
+                    <tr><td>01.AI</td><td><a href="https://platform.lingyiwanwu.com/apikeys">platform.lingyiwanwu.com/apikeys</a></td></tr>
+                    <tr><td>Cheaper Inference</td><td><a href="https://cheaperinference.com/signup">cheaperinference.com/signup</a></td></tr>
+                </tbody>
+            </table>
+            <p>You only need one provider to start. Add more anytime from Settings.</p>
+
+            <h2 id="connect-provider">Connecting your first provider</h2>
+            <ol>
+                <li>On first launch, tap <strong>Connect a Provider</strong> on the welcome screen.</li>
+                <li>Pick a provider from the list (or choose <strong>Custom Endpoint</strong> for self-hosted servers).</li>
+                <li>Paste your API key and save. The key is stored in the iOS Keychain.</li>
+                <li>OpenChat fetches the provider's live model catalog in the background.</li>
+            </ol>
+            <p>To add more providers later, open <strong>Settings</strong> (gear icon in the chat history drawer) → <strong>Add a Provider</strong>.</p>
+            <p>Each connected provider appears in Settings under <strong>Providers</strong>, where you can view details, update keys, or disable the provider.</p>
+
+            <h2 id="first-message">Sending your first message</h2>
+            <ol>
+                <li>After connecting a provider, OpenChat opens a new chat automatically.</li>
+                <li>Tap the model name in the navigation bar to confirm or change the model.</li>
+                <li>Type your message in the composer at the bottom and tap the send button.</li>
+                <li>The assistant reply streams in with full Markdown rendering.</li>
+            </ol>
+            <p>Chats are auto-titled from your first message. You can rename them later from the chat history drawer.</p>
+
+            <h2 id="choosing-models">Choosing and switching models</h2>
+            <p>Each conversation has its own model. Tap the <strong>model name</strong> in the top navigation bar to open the model picker.</p>
+            <ul>
+                <li><strong>Search</strong> — filter models by name across all connected providers.</li>
+                <li><strong>Provider filter</strong> — narrow results to specific providers.</li>
+                <li><strong>Capability filter</strong> — show only models with vision, tools, or other capabilities.</li>
+                <li><strong>Star models</strong> — favorite frequently used models for quick access.</li>
+            </ul>
+            <p>OpenRouter users get access to OpenRouter's full public catalog. Other providers show models fetched from their live <code>/models</code> endpoint.</p>
+            <p>Switching models mid-conversation is supported. If the new model does not support attachments already in the chat, OpenChat will warn you before switching.</p>
+
+            <p><a href="core-features.html">Continue to Core features →</a></p>
+        </main>
+    </div>
+</body>
+</html>

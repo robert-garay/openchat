@@ -5,98 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="OpenChat — the native iOS home for every major LLM. Bring your own key. No backend. Your data stays on your device.">
     <title>OpenChat — Every model. One app. Your device.</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="stylesheet" href="brand.css">
     <style>
         :root {
-            color-scheme: light dark;
-            --accent: #6565e9;
-            --accent-hover: #5454d4;
-            --bg: #f5f5f7;
-            --bg-elevated: #ffffff;
-            --text: #1d1d1f;
-            --text-secondary: #6e6e73;
-            --border: rgba(0, 0, 0, 0.08);
             --hero-glow: rgba(101, 101, 233, 0.12);
-            --pill-bg: rgba(101, 101, 233, 0.1);
+            --pill-bg: var(--accent-muted);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --accent: #7a7afa;
-                --accent-hover: #8f8fff;
-                --bg: #000000;
-                --bg-elevated: #1c1c1e;
-                --text: #f5f5f7;
-                --text-secondary: #a1a1a6;
-                --border: rgba(255, 255, 255, 0.1);
                 --hero-glow: rgba(122, 122, 250, 0.15);
-                --pill-bg: rgba(122, 122, 250, 0.15);
             }
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        * { margin: 0; padding: 0; }
 
         .container {
             max-width: 1080px;
             margin: 0 auto;
             padding: 0 24px;
         }
-
-        header {
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--text);
-            text-decoration: none;
-        }
-
-        .logo:hover { text-decoration: none; }
-
-        .logo-mark {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent), #a78bfa);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            font-size: 0.9rem;
-        }
-
-        .nav-links a { color: var(--text-secondary); }
-        .nav-links a:hover { color: var(--accent); text-decoration: none; }
 
         .hero {
             text-align: center;
@@ -114,6 +44,19 @@
             height: 300px;
             background: radial-gradient(ellipse, var(--hero-glow), transparent 70%);
             pointer-events: none;
+        }
+
+        .hero-logo {
+            display: block;
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 24px;
+        }
+
+        .hero-logo img {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         .hero-badge {
@@ -349,20 +292,23 @@
         footer a:hover { color: var(--accent); }
 
         @media (max-width: 600px) {
-            .nav-links { display: none; }
             .hero { padding: 48px 0 40px; }
             .privacy-block { padding: 28px 20px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container nav">
-            <a href="./" class="logo">
-                <div class="logo-mark">OC</div>
+    <header class="site-header">
+        <div class="container site-nav">
+            <a href="./" class="site-logo">
+                <picture>
+                    <source srcset="assets/openchat-logo-dark.png" media="(prefers-color-scheme: dark)">
+                    <img src="assets/openchat-logo.png" alt="" width="32" height="32">
+                </picture>
                 OpenChat
             </a>
-            <nav class="nav-links">
+            <nav class="site-nav-links" aria-label="Primary">
+                <a href="wiki/index.html">Wiki</a>
                 <a href="#features">Features</a>
                 <a href="#privacy">Privacy</a>
                 <a href="privacy-policy.html">Privacy Policy</a>
@@ -374,6 +320,10 @@
     <main>
         <section class="hero">
             <div class="container">
+                <picture class="hero-logo">
+                    <source srcset="assets/openchat-logo-dark.png" media="(prefers-color-scheme: dark)">
+                    <img src="assets/openchat-logo.png" alt="OpenChat" width="96" height="96">
+                </picture>
                 <span class="hero-badge">Native iOS · Open Source · MIT</span>
                 <h1>Every model.<br>One app.<br>Your device.</h1>
                 <p class="tagline">The native iOS home for OpenAI, Claude, Gemini, OpenRouter, and every OpenAI-compatible endpoint. Bring your own key — no account, no backend.</p>

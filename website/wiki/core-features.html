@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenChat core features — model picker, markdown, attachments, chat history, and more.">
+    <title>Core features — OpenChat Wiki</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="stylesheet" href="../brand.css">
+    <link rel="stylesheet" href="wiki.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container site-nav">
+            <a href="../index.html" class="site-logo">
+                <picture>
+                    <source srcset="../assets/openchat-logo-dark.png" media="(prefers-color-scheme: dark)">
+                    <img src="../assets/openchat-logo.png" alt="" width="32" height="32">
+                </picture>
+                OpenChat
+            </a>
+            <nav class="site-nav-links" aria-label="Primary">
+                <a href="../index.html">Home</a>
+                <a href="index.html">Wiki</a>
+                <a href="../privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/robert-garay/openchat">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wiki-layout">
+        <nav class="wiki-sidebar" aria-label="Wiki sections">
+            <h2>Guides</h2>
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="getting-started.html">Getting started</a></li>
+                <li><a href="core-features.html" class="active">Core features</a></li>
+                <li><a href="advanced-features.html">Advanced features</a></li>
+                <li><a href="reference.html">Reference</a></li>
+            </ul>
+        </nav>
+
+        <main class="wiki-content">
+            <h1>Core features</h1>
+            <p class="wiki-lead">Everyday chat features built into the native iOS experience.</p>
+
+            <h2 id="model-picker">Model picker and per-chat selection</h2>
+            <p>Tap the model name in the chat navigation bar to open the model picker sheet. Each conversation remembers its own provider and model independently.</p>
+            <p>The picker shows provider logos, capability badges (vision, tools, reasoning, etc.), and supports fuzzy search. Star your favorite models to surface them at the top. Recently used models are ranked by usage.</p>
+            <p>Capability icons next to the model name in the toolbar give a quick read on what the current model supports.</p>
+
+            <h2 id="markdown">Streaming Markdown, code blocks, and tables</h2>
+            <p>Assistant replies render as rich Markdown while streaming. Supported formatting includes:</p>
+            <ul>
+                <li>Headings, lists, blockquotes, and inline formatting</li>
+                <li>Syntax-highlighted code blocks</li>
+                <li>Tables</li>
+                <li>Selectable message text (long-press to copy)</li>
+            </ul>
+            <p>Rendering uses <a href="https://github.com/microsoft/SwiftStreamingMarkdown">SwiftStreamingMarkdown</a> for smooth incremental updates as tokens arrive.</p>
+
+            <h2 id="attachments">Image and document attachments</h2>
+            <p>Attach images from your photo library or capture a new photo with the camera. Attachments appear above the composer before you send.</p>
+            <p>For models that support vision, images are sent to the provider with your message. If the current model does not support images, OpenChat shows a warning before sending.</p>
+            <p>Some models also support PDF document attachments. When supported, you can attach PDF files that the model can read as part of your message.</p>
+
+            <h2 id="chat-history">Chat history, search, and pinning</h2>
+            <p>Swipe right from the chat screen (or tap the back chevron) to open the <strong>chat history drawer</strong>. Your conversations are listed by recency, with pinned chats shown in a separate section at the top.</p>
+            <p>Use the <strong>Search chats</strong> field at the bottom of the drawer to filter by title or last message preview.</p>
+            <p>Long-press a conversation (or use the context menu) to:</p>
+            <ul>
+                <li><strong>Pin</strong> or unpin a chat</li>
+                <li><strong>Rename</strong> a chat</li>
+                <li><strong>Delete</strong> a chat</li>
+            </ul>
+            <p>Chats are auto-titled from your first message unless you set a custom title. Tap the compose button in the drawer to start a new chat.</p>
+
+            <h2 id="temporary-chats">Temporary chats</h2>
+            <p>Tap the <strong>ghost icon</strong> in the top-right toolbar to start or exit a temporary chat. Temporary chats:</p>
+            <ul>
+                <li>Are labeled "Temporary Chat" in the navigation bar</li>
+                <li>Do not appear in the chat history drawer</li>
+                <li>Are not persisted when you leave them</li>
+                <li>Do not use memory or allow rule proposals</li>
+            </ul>
+            <p>Use temporary chats when you want a one-off conversation that leaves no trace in your history.</p>
+
+            <h2 id="appearance">Light and dark mode</h2>
+            <p>Open <strong>Settings → Appearance → Theme</strong> and choose:</p>
+            <ul>
+                <li><strong>System</strong> — follow your iOS appearance setting</li>
+                <li><strong>Light</strong> — always light</li>
+                <li><strong>Dark</strong> — always dark</li>
+            </ul>
+            <p>The theme applies across the app including sheets and popovers.</p>
+
+            <p><a href="advanced-features.html">Continue to Advanced features →</a></p>
+        </main>
+    </div>
+</body>
+</html>
