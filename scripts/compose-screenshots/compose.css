@@ -1,0 +1,173 @@
+/* OpenChat App Store screenshot compositor — 6.7" ASC size (1290×2796).
+   Geometry follows docs/launch/screenshot-guide.md overlay guidelines. */
+
+:root {
+  --canvas-w: 1290px;
+  --canvas-h: 2796px;
+  --margin-x: 60px;
+  --headline-size: 52px;
+  --headline-line: 1.08;
+  --subhead-size: 32px;
+  --subhead-line: 1.2;
+  --headline-top: 132px;
+  --subhead-gap: 16px;
+  --mark-size: 96px;
+  --mark-top: 60px;
+  --mark-right: 60px;
+  --text-dark: #1d1d1f;
+  --text-light: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #111;
+}
+
+/* Preview mode: stack plates with spacing. Export mode hides this via ?plate=NN */
+body:not(.export-mode) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+}
+
+body.export-mode {
+  background: transparent;
+}
+
+.plate {
+  position: relative;
+  width: var(--canvas-w);
+  height: var(--canvas-h);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.plate__capture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.plate__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plate--dark .plate__scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.58) 0%,
+    rgba(0, 0, 0, 0.34) 22%,
+    rgba(0, 0, 0, 0) 38%
+  );
+}
+
+.plate--light .plate__scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.72) 20%,
+    rgba(255, 255, 255, 0) 36%
+  );
+}
+
+.plate__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plate__headline {
+  position: absolute;
+  top: var(--headline-top);
+  left: var(--margin-x);
+  right: var(--margin-x);
+  margin: 0;
+  max-width: calc(var(--canvas-w) - (var(--margin-x) * 2));
+  font-size: var(--headline-size);
+  font-weight: 700;
+  line-height: var(--headline-line);
+  letter-spacing: -0.02em;
+}
+
+.plate--dark .plate__headline {
+  color: var(--text-light);
+}
+
+.plate--light .plate__headline {
+  color: var(--text-dark);
+}
+
+.plate__subhead {
+  position: absolute;
+  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line) * 2) + var(--subhead-gap));
+  left: var(--margin-x);
+  right: var(--margin-x);
+  margin: 0;
+  max-width: calc(var(--canvas-w) - (var(--margin-x) * 2) - var(--mark-size) - 24px);
+  font-size: var(--subhead-size);
+  font-weight: 400;
+  line-height: var(--subhead-line);
+  letter-spacing: -0.01em;
+}
+
+.plate--dark .plate__subhead {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.plate--light .plate__subhead {
+  color: rgba(29, 29, 31, 0.78);
+}
+
+/* Plate 01 — single-line headline + subhead: tighten subhead position */
+#plate-01 .plate__subhead {
+  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line)) + var(--subhead-gap));
+}
+
+.plate__mark {
+  position: absolute;
+  top: var(--mark-top);
+  right: var(--mark-right);
+  width: var(--mark-size);
+  height: var(--mark-size);
+  display: block;
+}
+
+/* Plate 02 — two-line headline */
+#plate-02 .plate__headline {
+  max-width: 920px;
+}
+
+/* Plate 04 — headline + subhead */
+#plate-04 .plate__subhead {
+  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line)) + var(--subhead-gap));
+}
+
+/* Export mode: show one plate, exact viewport */
+body.export-mode .plate {
+  display: none;
+}
+
+body.export-mode .plate.is-export-target {
+  display: block;
+}
