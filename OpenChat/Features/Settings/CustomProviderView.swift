@@ -240,8 +240,12 @@ struct CustomProviderView: View {
                 Text("Pick a brand mark if this endpoint is a known host. Otherwise a generic server icon is used.")
             }
         }
-        .navigationTitle("Custom Endpoint")
-        .navigationBarTitleDisplayMode(.inline)
+        .providerToolbarTitle(
+            trimmedName.isEmpty ? "Custom Endpoint" : trimmedName,
+            logoAssetName: CustomEndpointLogoOption.option(for: selectedLogoID)?.logoAssetName,
+            symbolName: "server.rack",
+            tint: Color(hex: "#8E8E93")
+        )
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { save() }

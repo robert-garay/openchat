@@ -58,8 +58,12 @@ struct ProviderDetailView: View {
                 }
             }
         }
-        .navigationTitle(provider.name)
-        .navigationBarTitleDisplayMode(.inline)
+        .providerToolbarTitle(
+            provider.name,
+            logoAssetName: provider.logoAssetName,
+            symbolName: provider.symbolName,
+            tint: Color(hex: provider.tint)
+        )
         .toolbar {
             if provider.requiresAPIKey, storedRedactedAPIKey == nil {
                 ToolbarItem(placement: .confirmationAction) {
