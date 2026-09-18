@@ -1,0 +1,1 @@
+OpenChat is the native iOS home for every major LLM. Connect your own API keys and chat with OpenAI, Anthropic, Gemini, OpenRouter, and custom endpoints from one app. On-device history, rules, memory, web search, and skills — no OpenChat account required.

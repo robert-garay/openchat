@@ -11,7 +11,10 @@
 # Sync metadata (description, keywords, URLs) to ASC:
 #   bundle exec fastlane sync_metadata
 #
-# See docs/launch/launch-execution-checklist.md and docs/mac-launch-runbook.md.
+# Submit for App Review (after build, metadata, and screenshots are ready):
+#   bundle exec fastlane submit_app
+#
+# See fastlane/README.md and docs/launch/launch-execution-checklist.md.
 
 default_platform(:ios)
 
@@ -87,6 +90,39 @@ platform :ios do
       submit_for_review: false,
       automatic_release: false
     )
+  end
+
+  desc "Submit for App Review (metadata + review info from fastlane/metadata/; binary must already be on ASC)"
+  lane :submit_app do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_KEY_PATH"],
+      duration: 1200,
+      in_house: false
+    ) if ENV["APP_STORE_CONNECT_KEY_ID"]
+
+    deliver_params = {
+      api_key: api_key,
+      app_identifier: BUNDLE_ID,
+      skip_binary_upload: true,
+      force: true,
+      submit_for_review: true,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false
+    }
+
+    review_dir = File.join(FastlaneCore::FastlaneFolder.path, "metadata", "review_information")
+    if File.directory?(review_dir)
+      review_info = {}
+      %w[first_name last_name phone_number email_address notes demo_user demo_password].each do |key|
+        path = File.join(review_dir, "#{key}.txt")
+        review_info[key.to_sym] = File.read(path).strip if File.exist?(path)
+      end
+      deliver_params[:app_review_information] = review_info unless review_info.empty?
+    end
+
+    deliver(deliver_params)
   end
 
   desc "Upload screenshots from fastlane/screenshots/ (capture with scripts/capture-screenshots.sh first)"
