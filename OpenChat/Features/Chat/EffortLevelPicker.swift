@@ -77,9 +77,12 @@ struct EffortLevelPicker: View {
                             withAnimation(spring) {
                                 selectedIndex = clamped
                             }
-                            if let level = levels[safe: clamped], level != self.level {
-                                Haptics.light()
-                                onChange(level)
+                            if levels.indices.contains(clamped) {
+                                let level = levels[clamped]
+                                if level != self.level {
+                                    Haptics.light()
+                                    onChange(level)
+                                }
                             }
                             // Intentionally no dismiss(): let the user tap out.
                         }
