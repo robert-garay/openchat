@@ -31,6 +31,54 @@ struct ProviderLogoView: View {
     }
 }
 
+/// Provider logo beside a name — used in settings add/edit navigation titles.
+struct ProviderNameLabel: View {
+    let name: String
+    var logoAssetName: String?
+    var symbolName: String
+    var tint: Color
+    var logoSize: CGFloat = 20
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ProviderLogoView(
+                logoAssetName: logoAssetName,
+                symbolName: symbolName,
+                tint: tint,
+                size: logoSize,
+                cornerRadius: logoSize * 0.25
+            )
+            Text(name)
+                .font(.headline)
+                .lineLimit(1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(name)
+    }
+}
+
+extension View {
+    func providerToolbarTitle(
+        _ name: String,
+        logoAssetName: String?,
+        symbolName: String,
+        tint: Color
+    ) -> some View {
+        navigationTitle(name)
+        navigationBarTitleDisplayMode(.inline)
+        toolbar {
+            ToolbarItem(placement: .principal) {
+                ProviderNameLabel(
+                    name: name,
+                    logoAssetName: logoAssetName,
+                    symbolName: symbolName,
+                    tint: tint
+                )
+            }
+        }
+    }
+}
+
 enum ProviderLogo {
     /// Asset catalog name for a built-in provider id / template id.
     static func assetName(for id: String?) -> String? {

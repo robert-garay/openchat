@@ -11,24 +11,13 @@ struct ProviderKeyEntryView: View {
     var body: some View {
         Form {
             Section {
-                VStack(spacing: 12) {
-                    ProviderLogoView(
-                        logoAssetName: template.logoAssetName,
-                        symbolName: template.symbolName,
-                        tint: Color(hex: template.tint),
-                        size: 56,
-                        cornerRadius: 16
-                    )
-                    Text(template.name)
-                        .font(.title3.weight(.semibold))
-                    Text("Your API key is stored securely in the iOS Keychain and never leaves your device except to call \(template.name) directly.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .listRowBackground(Color.clear)
+                Text("Your API key is stored securely in the iOS Keychain and never leaves your device except to call \(template.name) directly.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .listRowBackground(Color.clear)
             }
 
             Section {
@@ -45,8 +34,12 @@ struct ProviderKeyEntryView: View {
                 }
             }
         }
-        .navigationTitle(template.name)
-        .navigationBarTitleDisplayMode(.inline)
+        .providerToolbarTitle(
+            template.name,
+            logoAssetName: template.logoAssetName,
+            symbolName: template.symbolName,
+            tint: Color(hex: template.tint)
+        )
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { save() }
