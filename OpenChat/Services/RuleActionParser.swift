@@ -1,37 +1,19 @@
 import Foundation
 
 enum RuleActionParser {
-    private static let fence = #"```openchat-rule\s*([\s\S]*?)```"#
-    private static let tag = #"<rule_proposal>([\s\S]*?)</rule_proposal>"#
-    private static let openFence = #"```openchat-rule[\s\S]*$"#
-    private static let openTag = #"<rule_proposal>[\s\S]*$"#
-    private static let fenceRegex = try? NSRegularExpression(pattern: fence)
-    private static let tagRegex = try? NSRegularExpression(pattern: tag)
-    private static let openFenceRegex = try? NSRegularExpression(pattern: openFence)
-    private static let openTagRegex = try? NSRegularExpression(pattern: openTag)
+    private static let patterns = ProposalFenceParsing.Patterns(
+        fence: #"```openchat-rule\s*([\s\S]*?)```"#,
+        tag: #"<rule_proposal>([\s\S]*?)</rule_proposal>"#,
+        openFence: #"```openchat-rule[\s\S]*$"#,
+        openTag: #"<rule_proposal>[\s\S]*$"#
+    )
 
     static func parse(_ markdown: String) -> [RuleProposal] {
-        dedupe(parseBlocks(markdown, fenceRegex) + parseBlocks(markdown, tagRegex))
+        dedupe(patterns.extractBodies(from: markdown).flatMap(decode))
     }
 
     static func strippingFences(from markdown: String) -> String {
-        var r = markdown
-        for rx in [fenceRegex, tagRegex, openFenceRegex, openTagRegex] {
-            guard let rx else { continue }
-            r = rx.stringByReplacingMatches(in: r, range: NSRange(r.startIndex..<r.endIndex, in: r), withTemplate: "")
-        }
-        return r.replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private static func parseBlocks(_ markdown: String, _ rx: NSRegularExpression?) -> [RuleProposal] {
-        guard let rx else { return [] }
-        var out: [RuleProposal] = []
-        rx.enumerateMatches(in: markdown, range: NSRange(markdown.startIndex..<markdown.endIndex, in: markdown)) { m, _, _ in
-            guard let m, let r = Range(m.range(at: 1), in: markdown) else { return }
-            out += decode(String(markdown[r]).trimmingCharacters(in: .whitespacesAndNewlines))
-        }
-        return out
+        patterns.strippingFences(from: markdown)
     }
 
     private struct RuleEntry: Decodable {
