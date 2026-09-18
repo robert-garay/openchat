@@ -64,18 +64,19 @@ extension View {
         symbolName: String,
         tint: Color
     ) -> some View {
-        navigationTitle(name)
-        navigationBarTitleDisplayMode(.inline)
-        toolbar {
-            ToolbarItem(placement: .principal) {
-                ProviderNameLabel(
-                    name: name,
-                    logoAssetName: logoAssetName,
-                    symbolName: symbolName,
-                    tint: tint
-                )
+        self
+            .navigationTitle(name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    ProviderNameLabel(
+                        name: name,
+                        logoAssetName: logoAssetName,
+                        symbolName: symbolName,
+                        tint: tint
+                    )
+                }
             }
-        }
     }
 }
 
