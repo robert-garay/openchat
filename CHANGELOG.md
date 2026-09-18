@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Launch landing page at `website/index.html` (deployed via GitHub Pages).
 - Launch copy package in `docs/launch/` (Product Hunt, Hacker News, social, press, TestFlight, App Review notes, screenshot guide).
 - App Store metadata draft in `docs/app-store-metadata.md`.
+- App Store launch execution kit: ASC paste bundle, launch checklist, Fastlane skeleton, and simulator screenshot script (`docs/launch/`, `fastlane/`, `scripts/capture-screenshots.sh`).
 
 ### Changed
 

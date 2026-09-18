@@ -1,0 +1,188 @@
+# App Store Connect — paste bundle for OpenChat 1.1.0 (build 3)
+# Copy each section in order into App Store Connect.
+# Source: docs/app-store-metadata.md | Privacy: https://robert-garay.github.io/openchat/privacy-policy.html
+# Last updated: 2026-09-17
+
+================================================================================
+STEP 0 — CREATE APP (Apps → + → New App) — one-time
+================================================================================
+
+Platforms:           iOS
+Name:                  OpenChat
+Primary Language:      English (U.S.)
+Bundle ID:             com.genion.openchat
+SKU:                   openchat-ios-2026
+User Access:           Full Access (or limit as needed)
+
+================================================================================
+STEP 1 — APP INFORMATION (App → General → App Information)
+================================================================================
+
+Name:                  OpenChat
+Subtitle (30 chars): Every major LLM, one app
+Bundle ID:             com.genion.openchat
+Primary Category:      Productivity
+Secondary Category:    Utilities
+Content Rights:        Does not contain third-party content
+Age Rating:            Complete questionnaire (see STEP 7)
+Copyright:             © 2026 Robert Garay
+
+================================================================================
+STEP 2 — PRICING AND AVAILABILITY
+================================================================================
+
+Price:                 Free
+In-App Purchases:      None
+Subscriptions:         None
+Availability:          All territories (adjust if desired)
+Pre-order:             No
+
+================================================================================
+STEP 3 — VERSION 1.1.0 — APP STORE (prepare for submission tab)
+================================================================================
+
+What's New in This Version (first release — use description intro or):
+  OpenChat is the native iOS home for every major LLM. Connect your own API keys and chat with OpenAI, Anthropic, Gemini, OpenRouter, and custom endpoints from one app. On-device history, rules, memory, web search, and skills — no OpenChat account required.
+
+Promotional Text (170 chars, editable without new build):
+  Chat with OpenAI, Claude, Gemini, OpenRouter, and your own endpoints from one native iOS app. BYOK, on-device history, web search, rules, memory, and skills.
+
+Description:
+  OpenChat is the native iOS home for every major LLM.
+
+  Connect your own API keys and chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Qwen, Kimi, Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
+
+  Why OpenChat
+  - One workflow across providers — switch models without changing apps
+  - Live model catalogs from supported providers
+  - Bring your own key (BYOK) — no OpenChat account, no backend
+  - Chats, rules, memory, and skills stay on your device
+
+  Features
+  - Multi-provider chat with streaming Markdown, tables, and syntax-highlighted code
+  - Web search via Tavily, Exa, Brave, Serper, or SerpAPI (your keys)
+  - Global and per-chat rules; editable memory; slash-command skills (beta)
+  - Image attachments for vision models; background replies with Live Activity and local notification when complete
+  - Compact context mode and light/dark appearance
+
+  OpenChat does not include ads or analytics SDKs. When you send a message, data goes directly from your device to the AI or search provider you configured, under that provider's terms.
+
+  Questions: open an issue on GitHub or email robert@genion.ai.
+
+Keywords (100 chars, no spaces after commas):
+  openai,claude,gemini,chatgpt,llm,openrouter,byok,ai chat,markdown,ollama
+
+Support URL:
+  https://github.com/robert-garay/openchat/issues
+
+Marketing URL:
+  https://robert-garay.github.io/openchat/
+
+Privacy Policy URL:
+  https://robert-garay.github.io/openchat/privacy-policy.html
+
+Version:               1.1.0
+Build:                 3 (must match uploaded archive CURRENT_PROJECT_VERSION)
+Copyright:             © 2026 Robert Garay
+
+Routing App Coverage File:  N/A (not a routing app)
+
+================================================================================
+STEP 4 — SCREENSHOTS (Version → iPhone 6.7" Display — primary)
+================================================================================
+
+Upload 6–8 PNGs in this order (1290 × 2796 or 1320 × 2868):
+  1. Hero — Connect a Provider (dark)
+  2. Active chat with Markdown/code (dark)
+  3. Model picker (light)
+  4. Settings → Providers / BYOK (light)
+  5. Web search settings (light)
+  6. Rules or memory (dark)
+  7. Skills slash menu (dark)
+  8. Live Activity / background (optional, dark)
+
+Capture: ./scripts/capture-screenshots.sh on Mac
+Overlays: docs/launch/screenshot-guide.md
+
+Also upload iPad 12.9" (2048 × 2732) if shipping universal (TARGETED_DEVICE_FAMILY: 1,2).
+
+================================================================================
+STEP 5 — APP REVIEW INFORMATION
+================================================================================
+
+Sign-in required:      No (BYOK — reviewer adds API key on first launch)
+
+Contact First Name:    Robert
+Contact Last Name:     Garay
+Contact Phone:         [ROBERT: add phone with country code]
+Contact Email:         robert@genion.ai
+
+Notes:                 Paste entire contents of docs/launch/app-review-notes.txt
+                       (choose Option A or Option B before submit)
+
+Attachment:            None required
+
+================================================================================
+STEP 6 — APP PRIVACY (Privacy Nutrition Labels)
+================================================================================
+
+Does your app collect data?     No — OpenChat has no backend; no data collected by developer
+
+Data Linked to You:             None
+Data Not Linked to You:         None
+Data Used to Track You:         None
+
+Third-party processing note (for privacy questionnaire free-text if asked):
+  Users voluntarily send messages, attachments, and search queries directly to AI and search APIs they configure. OpenChat does not operate servers that receive this data.
+
+Privacy Policy URL:
+  https://robert-garay.github.io/openchat/privacy-policy.html
+
+================================================================================
+STEP 7 — AGE RATING QUESTIONNAIRE (suggested answers)
+================================================================================
+
+Made for Kids:                   No
+Unrestricted Web Access:         No (configured API calls only; no general browser)
+User-Generated Content:            Yes (user types prompts; no public social feed)
+Mature/Suggestive Themes:        Infrequent/Mild (generative AI; model-dependent output)
+Gambling:                        None
+Violence:                        None
+Profanity or Crude Humor:        Infrequent/Mild or None per wizard
+Horror/Fear Themes:              None
+Medical/Treatment Information:   None
+Alcohol/Tobacco/Drugs:           None
+
+Generative AI: disclose that output depends on third-party models the user selects.
+
+================================================================================
+STEP 8 — EXPORT COMPLIANCE (on upload + version submission)
+================================================================================
+
+Uses encryption?                  Yes (HTTPS/TLS for API traffic)
+Exempt from export documentation? Yes — standard encryption only (ITSAppUsesNonExemptEncryption = false in Info.plist)
+
+In App Store Connect after upload:
+  "Is your app designed to use cryptography?" → Yes
+  "Does your app qualify for any exemptions?" → Yes — uses only standard encryption
+
+================================================================================
+STEP 9 — VERSION RELEASE
+================================================================================
+
+Release:               Manually release this version (recommended for launch day)
+Phased Release:        Optional — enable after first approval if desired
+
+================================================================================
+STEP 10 — SUBMIT FOR REVIEW CHECKLIST
+================================================================================
+
+[ ] Build 3 processed in TestFlight
+[ ] All metadata pasted (this file)
+[ ] Screenshots uploaded (6.7" minimum; iPad if universal)
+[ ] App Review notes finalized (Option A or B)
+[ ] Age rating complete
+[ ] App Privacy complete
+[ ] Export compliance answered
+[ ] Contact phone filled in App Review Information
+[ ] Select build → Submit for Review

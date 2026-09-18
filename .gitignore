@@ -6,6 +6,10 @@ xcuserdata/
 .swiftpm/
 .build/
 Config/Local.xcconfig
+fastlane/.env
+fastlane/report.xml
+fastlane/test_output/
+screenshots/raw/
 TestResults.xcresult
 coverage-summary.txt
 *.xcresult
