@@ -19,7 +19,7 @@ struct EffortLevelPicker: View {
 
     private var stopCount: Int { max(1, levels.count) }
     private var selectedLevel: EffortLevel {
-        levels[safe: selectedIndex] ?? level
+        levels.indices.contains(selectedIndex) ? levels[selectedIndex] : level
     }
 
     init(level: EffortLevel, levels: [EffortLevel], onChange: @escaping (EffortLevel) -> Void) {
@@ -77,9 +77,12 @@ struct EffortLevelPicker: View {
                             withAnimation(spring) {
                                 selectedIndex = clamped
                             }
-                            if let level = levels[safe: clamped], level != self.level {
-                                Haptics.light()
-                                onChange(level)
+                            if levels.indices.contains(clamped) {
+                                let level = levels[clamped]
+                                if level != self.level {
+                                    Haptics.light()
+                                    onChange(level)
+                                }
                             }
                             // Intentionally no dismiss(): let the user tap out.
                         }
@@ -94,12 +97,6 @@ struct EffortLevelPicker: View {
     }
 
     private var knobRadius: CGFloat { knobDiameter / 2 }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
 }
 
 #Preview {

@@ -63,24 +63,3 @@ struct TavilyClient: WebSearchClient {
         var score: Double?
     }
 }
-
-extension WebSearchClient {
-    static func requireQuery(_ query: String) throws -> String {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw WebSearchClientError.emptyQuery }
-        return trimmed
-    }
-
-    static func requireKey(_ apiKey: String) throws {
-        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw WebSearchClientError.missingAPIKey
-        }
-    }
-
-    static func throwIfNeeded(response: URLResponse, data: Data) throws {
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            let body = String(data: data, encoding: .utf8) ?? ""
-            throw WebSearchClientError.http(status: http.statusCode, body: body)
-        }
-    }
-}

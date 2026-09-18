@@ -136,7 +136,8 @@ struct ChatView: View {
                         Haptics.light()
                         onToggleTemporary?()
                     } label: {
-                        GhostIcon(size: 22, filled: conversation.isTemporary)
+                        Image(systemName: conversation.isTemporary ? "eye.slash.fill" : "eye.slash")
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(conversation.isTemporary ? Color.accentColor : Color.primary)
                     }
                     .buttonStyle(.borderless)
