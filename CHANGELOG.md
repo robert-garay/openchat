@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Ponytail lazy-coding rules for all Cursor Cloud Agent VMs via `.cursor/environment.json` bootstrap install and an `AGENTS.md` section; local IDE sessions use `scripts/install-ponytail.sh` for hooks and skills.
 - Settings → About now includes Privacy Policy and Support links for App Store compliance.
 - Wiki and tutorial guides at `website/wiki/` (deployed via GitHub Pages).
 - Launch landing page at `website/index.html` (deployed via GitHub Pages).
