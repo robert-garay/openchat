@@ -10,6 +10,8 @@ fastlane/.env
 fastlane/report.xml
 fastlane/test_output/
 screenshots/raw/
+screenshots/compose/raw/
+screenshots/final/
 TestResults.xcresult
 coverage-summary.txt
 *.xcresult

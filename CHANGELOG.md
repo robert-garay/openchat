@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Launch copy package in `docs/launch/` (Product Hunt, Hacker News, social, press, TestFlight, App Review notes, screenshot guide).
 - App Store metadata draft in `docs/app-store-metadata.md`.
 - App Store launch execution kit: ASC paste bundle, launch checklist, Fastlane skeleton, and simulator screenshot script (`docs/launch/`, `fastlane/`, `scripts/capture-screenshots.sh`).
+- Deterministic HTML/CSS screenshot compositor (`scripts/compose-screenshots/`) for headline overlays on raw simulator captures; export via `compose.sh` on macOS.
 
 ### Changed
 
