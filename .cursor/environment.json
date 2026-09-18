@@ -1,0 +1,4 @@
+{
+  "name": "OpenChat",
+  "install": "./scripts/install-ponytail.sh"
+}
