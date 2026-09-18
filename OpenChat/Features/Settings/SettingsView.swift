@@ -67,11 +67,7 @@ struct SettingsView: View {
                     NavigationLink {
                         SkillsSettingsView()
                     } label: {
-                        HStack {
-                            Label("Skills", systemImage: "bolt.fill")
-                            Spacer()
-                            BetaBadge()
-                        }
+                        Label("Skills", systemImage: "bolt.fill")
                     }
                     Toggle("Compact Context", isOn: $compactEnabled)
                 }
