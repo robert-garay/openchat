@@ -44,9 +44,10 @@ struct ChatView: View {
                 ChatComposerHost(
                     viewModel: viewModel,
                     skills: skillsStore.isEnabled ? SkillResolver.withBuiltIns(skills.map(SkillMatchable.init(skill:))) : [],
-                    hasChatRules: !conversation.systemPrompt
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                        .isEmpty,
+                    hasChatRules: !conversation.rules.isEmpty
+                        || !conversation.systemPrompt
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty,
                     canUseChatRules: rulesStore.useChatRules,
                     conversation: conversation,
                     isFocused: Binding(

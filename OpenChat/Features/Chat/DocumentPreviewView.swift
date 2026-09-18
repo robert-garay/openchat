@@ -7,12 +7,20 @@ struct DocumentPreviewView: View {
     let attachment: ChatDocumentAttachment
     @Environment(\.dismiss) private var dismiss
     @State private var previewURL: URL?
+    @State private var loadFailed = false
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Color.black.ignoresSafeArea()
             if let previewURL {
                 QuickLookPreview(url: previewURL).ignoresSafeArea()
+            } else if loadFailed {
+                ContentUnavailableView {
+                    Label("Couldn't Open Document", systemImage: "doc.badge.exclamationmark")
+                } description: {
+                    Text("The file may be corrupted or unsupported.")
+                }
+                .foregroundStyle(.white)
             } else {
                 ProgressView()
                     .tint(.white)
@@ -31,7 +39,11 @@ struct DocumentPreviewView: View {
         }
         .statusBarHidden(true)
         .task {
-            previewURL = Self.writeTempFile(for: attachment)
+            if let url = Self.writeTempFile(for: attachment) {
+                previewURL = url
+            } else {
+                loadFailed = true
+            }
         }
         .onDisappear {
             if let previewURL {

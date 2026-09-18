@@ -14,6 +14,9 @@ struct TypingIndicatorView: View {
                     .opacity(phase == index ? 1 : 0.3)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Assistant is typing")
+        .accessibilityAddTraits(.updatesFrequently)
         .onReceive(timer) { _ in
             withAnimation(Theme.springFast) { phase = (phase + 1) % 3 }
         }
