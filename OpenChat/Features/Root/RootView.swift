@@ -10,6 +10,7 @@ struct RootView: View {
     @State private var selectedConversationID: UUID?
     @State private var showingSettings = false
     @State private var showingHistoryDrawer = false
+    @State private var networkConnectivity = NetworkConnectivityStore()
 
     /// Sidebar history: never temporary, never unstarted, and never a placeholder title.
     /// Pinned chats stay above unpinned, each group by recency.
@@ -33,15 +34,24 @@ struct RootView: View {
     }
 
     var body: some View {
-        Group {
-            if providerStore.enabledProviders.isEmpty {
-                WelcomeView()
-            } else {
-                mainContent
+        VStack(spacing: 0) {
+            if !networkConnectivity.isConnected {
+                OfflineBanner()
+            }
+
+            Group {
+                if providerStore.enabledProviders.isEmpty {
+                    WelcomeView()
+                } else {
+                    mainContent
+                }
             }
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+        .task {
+            await networkConnectivity.refresh()
         }
         .onAppear {
             bootstrapMainSession()

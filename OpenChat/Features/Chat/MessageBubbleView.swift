@@ -218,16 +218,10 @@ struct MessageBubbleView: View {
         }
     }
 
-    private var displayContent: String { Self.displayContent(message) }
+    private var displayContent: String { message.displayContentForRendering() }
 
     nonisolated static func displayContent(_ message: ChatMessage) -> String {
-        let stripped = RuleActionParser.strippingFences(
-            from: MemoryActionParser.strippingFences(from: message.content)
-        )
-        // Hide bare image placeholders for messages that already have rendered image attachments.
-        return message.attachmentsData == nil
-            ? stripped
-            : GeneratedImageParser.stripImagePlaceholders(from: stripped)
+        message.displayContentForRendering()
     }
 
     private var responseTimeLabel: String? {

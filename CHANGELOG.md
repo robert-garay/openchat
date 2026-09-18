@@ -28,8 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat rules composer chip now reflects per-chat rules (not only legacy system prompt).
 - Document preview shows an error state instead of an infinite spinner when a file cannot be opened.
 - Chat history search shows a "no results" state when nothing matches the query.
-- Send/stop button and typing indicator are now accessible to VoiceOver.
-
+- Send/stop button, model-picker toolbar controls, and typing indicator now have VoiceOver accessibility labels.
+- Offline banner appears at the top when the device loses network connectivity.
+- Deleting a chat from the history drawer now asks for confirmation before removing it.
+- Editing a message warns before deleting later messages in the thread.
+- On iOS 17, scrolling back to the bottom of a chat re-attaches follow-to-bottom after detaching.
+- Prompt assembly (including web search injection) no longer blocks the main thread before the first streaming token.
+- Image attachment JSON is cached per message so bubbles do not re-decode on every render during streaming.
+- Markdown display content is memoized per message revision to avoid repeated regex work during streaming.
 - Large chat threads no longer freeze the UI: the message list uses a lazy stack (with last-bubble scroll materialization), and decoded message images are cached.
 - First launch no longer hangs on an infinite spinner after connecting OpenRouter (or after relaunching before the model catalog has cached). A new chat starts immediately with OpenRouter Auto, and the live catalog loads in the background.
 - Temporary-chat ghost icon outline is even all the way around; the top of the dome no longer clips to a hairline.

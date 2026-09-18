@@ -50,7 +50,15 @@ actor NetworkMonitor {
     }
 
     private func updateConnected(_ connected: Bool) {
+        let changed = isConnected != connected
         isConnected = connected
+        if changed {
+            NotificationCenter.default.post(
+                name: .networkConnectivityDidChange,
+                object: nil,
+                userInfo: ["isConnected": connected]
+            )
+        }
         guard connected, !waiters.isEmpty else { return }
         let pending = waiters
         waiters.removeAll()
@@ -77,4 +85,8 @@ actor NetworkMonitor {
     private func cancelWaiter(_ id: UUID) {
         waiters.removeValue(forKey: id)?.resume()
     }
+}
+
+extension Notification.Name {
+    static let networkConnectivityDidChange = Notification.Name("com.openchat.networkConnectivityDidChange")
 }

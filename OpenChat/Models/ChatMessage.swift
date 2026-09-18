@@ -40,6 +40,12 @@ final class ChatMessage {
     var originRaw: String = MessageOrigin.text.rawValue
     var conversation: Conversation?
 
+    @Transient private var cachedImageAttachments: [ChatImageAttachment]?
+    @Transient private var cachedImageAttachmentsData: Data?
+    @Transient private var cachedDisplayContent: String?
+    @Transient private var cachedDisplayContentSource: String?
+    @Transient private var cachedDisplayContentHasAttachments: Bool?
+
     var role: MessageRole {
         get { MessageRole(rawValue: roleRaw) ?? .user }
         set { roleRaw = newValue.rawValue }
@@ -58,14 +64,28 @@ final class ChatMessage {
 
     var imageAttachments: [ChatImageAttachment] {
         get {
-            guard let attachmentsData else { return [] }
-            return (try? JSONDecoder().decode([ChatImageAttachment].self, from: attachmentsData)) ?? []
+            guard let attachmentsData else {
+                cachedImageAttachments = nil
+                cachedImageAttachmentsData = nil
+                return []
+            }
+            if cachedImageAttachmentsData == attachmentsData, let cachedImageAttachments {
+                return cachedImageAttachments
+            }
+            let decoded = (try? JSONDecoder().decode([ChatImageAttachment].self, from: attachmentsData)) ?? []
+            cachedImageAttachmentsData = attachmentsData
+            cachedImageAttachments = decoded
+            return decoded
         }
         set {
+            cachedImageAttachments = newValue.isEmpty ? nil : newValue
+            cachedImageAttachmentsData = nil
+            invalidateDisplayContentCache()
             if newValue.isEmpty {
                 attachmentsData = nil
             } else {
                 attachmentsData = try? JSONEncoder().encode(newValue)
+                cachedImageAttachmentsData = attachmentsData
             }
         }
     }
@@ -122,6 +142,32 @@ final class ChatMessage {
 }
 
 extension ChatMessage {
+    /// Post-processed assistant content for display (action fences, image placeholders).
+    func displayContentForRendering() -> String {
+        if cachedDisplayContentSource == content,
+           cachedDisplayContentHasAttachments == (attachmentsData != nil),
+           let cachedDisplayContent {
+            return cachedDisplayContent
+        }
+
+        let stripped = RuleActionParser.strippingFences(
+            from: MemoryActionParser.strippingFences(from: content)
+        )
+        let rendered = attachmentsData == nil
+            ? stripped
+            : GeneratedImageParser.stripImagePlaceholders(from: stripped)
+        cachedDisplayContentSource = content
+        cachedDisplayContentHasAttachments = attachmentsData != nil
+        cachedDisplayContent = rendered
+        return rendered
+    }
+
+    private func invalidateDisplayContentCache() {
+        cachedDisplayContent = nil
+        cachedDisplayContentSource = nil
+        cachedDisplayContentHasAttachments = nil
+    }
+
     /// Extracts inline `<image>` / markdown data URI images from `content` and appends
     /// them to `imageAttachments`, then strips bare `{image}` / `<image>` placeholders
     /// when images are present.

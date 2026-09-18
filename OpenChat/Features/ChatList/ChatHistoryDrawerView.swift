@@ -13,6 +13,7 @@ struct ChatHistoryDrawerView: View {
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
     @State private var conversationPendingRename: Conversation?
+    @State private var conversationPendingDelete: Conversation?
     @State private var renameText = ""
     @State private var activeMenu: Conversation?
     @State private var activeMenuFrame: CGRect?
@@ -61,6 +62,28 @@ struct ChatHistoryDrawerView: View {
             }
         } message: {
             Text("Enter a new name for this chat.")
+        }
+        .confirmationDialog(
+            "Delete chat?",
+            isPresented: Binding(
+                get: { conversationPendingDelete != nil },
+                set: { if !$0 { conversationPendingDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let conversation = conversationPendingDelete {
+                    delete(conversation)
+                }
+                conversationPendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                conversationPendingDelete = nil
+            }
+        } message: {
+            if let conversation = conversationPendingDelete {
+                Text("“\(conversation.title)” will be permanently removed from this device.")
+            }
         }
     }
 
@@ -308,7 +331,7 @@ struct ChatHistoryDrawerView: View {
                         label: "Delete",
                         isDestructive: true,
                         action: {
-                            delete(conversation)
+                            conversationPendingDelete = conversation
                             activeMenu = nil
                         }
                     )
