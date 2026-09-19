@@ -19,18 +19,18 @@ Copy/paste drafts for OpenChat 1.x App Store submission. Update version numbers 
 
 ## Promotional text (170 chars, editable without new build)
 
-Chat with OpenAI, Claude, Gemini, OpenRouter, and your own endpoints from one native iOS app. BYOK, on-device history, web search, rules, memory, and skills.
+Chat with OpenRouter, DeepSeek, Qwen, Mistral, and your endpoints from one iOS app. Pay for performance, not a logo. BYOK, on-device history, rules, memory, and skills.
 
 ## Description
 
 OpenChat is the native iOS home for every major LLM.
 
-Connect your own API keys and chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Qwen, Kimi, Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
+Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, Llama, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface. Direct OpenAI, Anthropic, and Gemini keys work too when you need them.
 
 **Why OpenChat**
-- One workflow across providers — switch models without changing apps
+- Pay for performance, not a logo: route cheap, capable models through OpenRouter
 - Live model catalogs from supported providers
-- Bring your own key (BYOK) — no OpenChat account, no backend
+- Bring your own key (BYOK): no OpenChat account, no backend
 - Chats, rules, memory, and skills stay on your device
 
 **Features**
@@ -66,16 +66,16 @@ Apple may classify generative-AI apps with additional questions; disclose that o
 
 | Question | Answer |
 |---|---|
-| Uses encryption? | **Yes** — HTTPS for all API traffic |
-| Exempt from export compliance documentation? | **Yes** — app uses only standard HTTPS/TLS (no proprietary encryption) |
+| Uses encryption? | **Yes**: HTTPS for all API traffic |
+| Exempt from export compliance documentation? | **Yes**: app uses only standard HTTPS/TLS (no proprietary encryption) |
 | Select in App Store Connect | "Your app uses encryption" → "Yes" → exempt (standard encryption only) |
 
 ## Content rights
 
 | Question | Answer |
 |---|---|
-| Third-party content in app? | **No** — app does not bundle third-party content; all chat content is user-generated via third-party APIs |
-| Rights to all content? | **Yes** — app UI, icons, and code are original or MIT-licensed open source |
+| Third-party content in app? | **No**: app does not bundle third-party content; all chat content is user-generated via third-party APIs |
+| Rights to all content? | **Yes**: app UI, icons, and code are original or MIT-licensed open source |
 | Made for Kids | **No** |
 
 ## Pricing and availability
@@ -96,7 +96,7 @@ Apple may classify generative-AI apps with additional questions; disclose that o
 
 **Data used to track you:** None.
 
-**Developer data collection:** Select **No, we do not collect data from this app** if the questionnaire allows — OpenChat does not transmit data to OpenChat-operated servers.
+**Developer data collection:** Select **No, we do not collect data from this app** if the questionnaire allows, OpenChat does not transmit data to OpenChat-operated servers.
 
 **Third-party data:** Users voluntarily send messages, attachments, and search queries to AI/search APIs they configure. That processing is between the user and those providers, not OpenChat infrastructure. Document this in the privacy policy (done) and App Review notes (below).
 
@@ -124,23 +124,23 @@ NETWORK / ATS
 GENERATIVE AI
 - User prompts and attachments go directly to third-party LLM APIs selected by the user. No server-side moderation.
 
-SKILLS (BETA) — Settings > Tools > Skills; invoked with "/" in composer.
-BACKGROUND GENERATION — Live Activity + local notification on completion; no OpenChat server.
-VOICE MODE — Hidden in App Store 1.0 build.
+SKILLS (BETA): Settings > Tools > Skills; invoked with "/" in composer.
+BACKGROUND GENERATION: Live Activity + local notification on completion; no OpenChat server.
+VOICE MODE: Hidden in App Store 1.0 build.
 
-PRIVACY POLICY — https://robert-garay.github.io/openchat/privacy-policy.html
-SUPPORT — https://github.com/robert-garay/openchat/issues
-CONTACT — robert@genion.ai
+PRIVACY POLICY: https://robert-garay.github.io/openchat/privacy-policy.html
+SUPPORT: https://github.com/robert-garay/openchat/issues
+CONTACT: robert@genion.ai
 ```
 
 ## Reviewer API key guidance (for Robert to fill)
 
 > **Action required before submit:** Decide whether to provide Apple reviewers a test API key or instruct them to use their own.
 
-**Option A — Reviewer uses own key (default in notes above):**
+**Option A: Reviewer uses own key (default in notes above):**
 No setup needed. Apple reviewers add any supported provider key on first launch.
 
-**Option B — Provide a pre-release key:**
+**Option B: Provide a pre-release key:**
 1. Create a dedicated API key with a spending cap (e.g., OpenRouter or OpenAI key limited to $5).
 2. Paste the key into App Review notes: `Test API key: sk-...`
 3. Note which provider it is configured for and any usage limits.
@@ -165,8 +165,8 @@ See [`docs/launch/screenshot-guide.md`](../launch/screenshot-guide.md) for exact
 |---|---|---|
 | Landing page | https://robert-garay.github.io/openchat/ | `website/index.html` |
 | Privacy policy | https://robert-garay.github.io/openchat/privacy-policy.html | `docs/privacy-policy.html` |
-| GitHub repo | https://github.com/robert-garay/openchat | — |
-| Support | https://github.com/robert-garay/openchat/issues | — |
+| GitHub repo | https://github.com/robert-garay/openchat | N/A |
+| Support | https://github.com/robert-garay/openchat/issues | N/A |
 
 - **GitHub Pages:** workflow `.github/workflows/pages.yml` deploys on push to `main`.
 - **One-time setup in GitHub:** Settings → Pages → Source = **GitHub Actions**.

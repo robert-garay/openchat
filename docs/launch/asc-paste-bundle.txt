@@ -1,10 +1,10 @@
-# App Store Connect — paste bundle for OpenChat 1.1.0 (build 3)
+# App Store Connect: paste bundle for OpenChat 1.1.0 (build 3)
 # Copy each section in order into App Store Connect.
 # Source: docs/app-store-metadata.md | Privacy: https://robert-garay.github.io/openchat/privacy-policy.html
 # Last updated: 2026-09-17
 
 ================================================================================
-STEP 0 — CREATE APP (Apps → + → New App) — one-time
+STEP 0: CREATE APP (Apps → + → New App): one-time
 ================================================================================
 
 Platforms:           iOS
@@ -15,7 +15,7 @@ SKU:                   openchat-ios-2026
 User Access:           Full Access (or limit as needed)
 
 ================================================================================
-STEP 1 — APP INFORMATION (App → General → App Information)
+STEP 1: APP INFORMATION (App → General → App Information)
 ================================================================================
 
 Name:                  OpenChat
@@ -28,7 +28,7 @@ Age Rating:            Complete questionnaire (see STEP 7)
 Copyright:             © 2026 Robert Garay
 
 ================================================================================
-STEP 2 — PRICING AND AVAILABILITY
+STEP 2: PRICING AND AVAILABILITY
 ================================================================================
 
 Price:                 Free
@@ -38,24 +38,24 @@ Availability:          All territories (adjust if desired)
 Pre-order:             No
 
 ================================================================================
-STEP 3 — VERSION 1.1.0 — APP STORE (prepare for submission tab)
+STEP 3: VERSION 1.1.0, APP STORE (prepare for submission tab)
 ================================================================================
 
-What's New in This Version (first release — use description intro or):
-  OpenChat is the native iOS home for every major LLM. Connect your own API keys and chat with OpenAI, Anthropic, Gemini, OpenRouter, and custom endpoints from one app. On-device history, rules, memory, web search, and skills — no OpenChat account required.
+What's New in This Version (first release; use description intro or similar):
+  OpenChat is the native iOS home for cost-aware model routing. Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, Llama, and custom endpoints from one app. On-device history, rules, memory, web search, and skills. No OpenChat account required.
 
 Promotional Text (170 chars, editable without new build):
-  Chat with OpenAI, Claude, Gemini, OpenRouter, and your own endpoints from one native iOS app. BYOK, on-device history, web search, rules, memory, and skills.
+  Chat with OpenRouter, DeepSeek, Qwen, Mistral, and your endpoints from one iOS app. Pay for performance, not a logo. BYOK, on-device history, rules, memory, and skills.
 
 Description:
   OpenChat is the native iOS home for every major LLM.
 
-  Connect your own API keys and chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Qwen, Kimi, Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
+  Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, Llama, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface. Direct OpenAI, Anthropic, and Gemini keys work too when you need them.
 
   Why OpenChat
-  - One workflow across providers — switch models without changing apps
+  - Pay for performance, not a logo: route cheap, capable models through OpenRouter
   - Live model catalogs from supported providers
-  - Bring your own key (BYOK) — no OpenChat account, no backend
+  - Bring your own key (BYOK): no OpenChat account, no backend
   - Chats, rules, memory, and skills stay on your device
 
   Features
@@ -88,11 +88,11 @@ Copyright:             © 2026 Robert Garay
 Routing App Coverage File:  N/A (not a routing app)
 
 ================================================================================
-STEP 4 — SCREENSHOTS (Version → iPhone 6.7" Display — primary)
+STEP 4: SCREENSHOTS (Version → iPhone 6.7" Display: primary)
 ================================================================================
 
 Upload 6–8 PNGs in this order (1290 × 2796 or 1320 × 2868):
-  1. Hero — Connect a Provider (dark)
+  1. Hero: Connect a Provider (dark)
   2. Active chat with Markdown/code (dark)
   3. Model picker (light)
   4. Settings → Providers / BYOK (light)
@@ -107,10 +107,10 @@ Overlays: docs/launch/screenshot-guide.md
 Also upload iPad 12.9" (2048 × 2732) if shipping universal (TARGETED_DEVICE_FAMILY: 1,2).
 
 ================================================================================
-STEP 5 — APP REVIEW INFORMATION
+STEP 5: APP REVIEW INFORMATION
 ================================================================================
 
-Sign-in required:      No (BYOK — reviewer adds API key on first launch)
+Sign-in required:      No (BYOK: reviewer adds API key on first launch)
 
 Contact First Name:    Robert
 Contact Last Name:     Garay
@@ -123,10 +123,10 @@ Notes:                 Paste entire contents of docs/launch/app-review-notes.txt
 Attachment:            None required
 
 ================================================================================
-STEP 6 — APP PRIVACY (Privacy Nutrition Labels)
+STEP 6: APP PRIVACY (Privacy Nutrition Labels)
 ================================================================================
 
-Does your app collect data?     No — OpenChat has no backend; no data collected by developer
+Does your app collect data?     No: OpenChat has no backend; no data collected by developer
 
 Data Linked to You:             None
 Data Not Linked to You:         None
@@ -139,7 +139,7 @@ Privacy Policy URL:
   https://robert-garay.github.io/openchat/privacy-policy.html
 
 ================================================================================
-STEP 7 — AGE RATING QUESTIONNAIRE (suggested answers)
+STEP 7: AGE RATING QUESTIONNAIRE (suggested answers)
 ================================================================================
 
 Made for Kids:                   No
@@ -156,25 +156,25 @@ Alcohol/Tobacco/Drugs:           None
 Generative AI: disclose that output depends on third-party models the user selects.
 
 ================================================================================
-STEP 8 — EXPORT COMPLIANCE (on upload + version submission)
+STEP 8: EXPORT COMPLIANCE (on upload + version submission)
 ================================================================================
 
 Uses encryption?                  Yes (HTTPS/TLS for API traffic)
-Exempt from export documentation? Yes — standard encryption only (ITSAppUsesNonExemptEncryption = false in Info.plist)
+Exempt from export documentation? Yes: standard encryption only (ITSAppUsesNonExemptEncryption = false in Info.plist)
 
 In App Store Connect after upload:
   "Is your app designed to use cryptography?" → Yes
-  "Does your app qualify for any exemptions?" → Yes — uses only standard encryption
+  "Does your app qualify for any exemptions?" → Yes: uses only standard encryption
 
 ================================================================================
-STEP 9 — VERSION RELEASE
+STEP 9: VERSION RELEASE
 ================================================================================
 
 Release:               Manually release this version (recommended for launch day)
-Phased Release:        Optional — enable after first approval if desired
+Phased Release:        Optional: enable after first approval if desired
 
 ================================================================================
-STEP 10 — SUBMIT FOR REVIEW CHECKLIST
+STEP 10: SUBMIT FOR REVIEW CHECKLIST
 ================================================================================
 
 [ ] Build 3 processed in TestFlight

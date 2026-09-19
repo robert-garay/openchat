@@ -1,10 +1,10 @@
 OpenChat is a bring-your-own-key (BYOK) native iOS chat client. There is no OpenChat login, no OpenChat account, and no OpenChat backend server.
 
 ================================================================================
-REVIEWER API KEY — CHOOSE ONE OPTION BEFORE SUBMIT
+REVIEWER API KEY: CHOOSE ONE OPTION BEFORE SUBMIT
 ================================================================================
 
-OPTION A — REVIEWER USES OWN KEY (DEFAULT — no setup required)
+OPTION A: REVIEWER USES OWN KEY (DEFAULT: no setup required)
 --------------------------------------------------------------------------------
 Reviewers add any supported provider API key on first launch via "Connect a Provider".
 Supported providers: OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek,
@@ -12,10 +12,10 @@ Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, and custom OpenAI-compati
 Web search is optional and requires a separate search-provider key in Settings > Tools > Web Search.
 Contact robert@genion.ai if reviewers need assistance obtaining a key.
 
-OPTION B — PRE-RELEASE TEST KEY (Robert fills before submit — reduces reviewer friction)
+OPTION B: PRE-RELEASE TEST KEY (Robert fills before submit: reduces reviewer friction)
 --------------------------------------------------------------------------------
 Test provider: [ROBERT: OpenRouter / OpenAI / other]
-Test API key:  [ROBERT: PASTE KEY HERE — e.g. sk-or-v1-... or sk-...]
+Test API key:  [ROBERT: PASTE KEY HERE, e.g. sk-or-v1-... or sk-...]
 Spending cap:  [ROBERT: e.g. $5]
 Key expires:   [ROBERT: e.g. 2026-10-17]
 Instructions:  On first launch tap "Connect a Provider" → select the provider above → paste this key.

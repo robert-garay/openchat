@@ -5,7 +5,7 @@
 | Display | Size (pixels) | Device reference | Required? |
 |---|---|---|---|
 | 6.9" iPhone | 1320 × 2868 | iPhone 16 Pro Max | Yes (if available in ASC) |
-| 6.7" iPhone | 1290 × 2796 | iPhone 15 Pro Max / 14 Pro Max | **Yes — primary** |
+| 6.7" iPhone | 1290 × 2796 | iPhone 15 Pro Max / 14 Pro Max | **Yes: primary** |
 | 6.5" iPhone | 1284 × 2778 | iPhone 11 Pro Max / XS Max | Yes |
 | 6.3" iPhone | 1206 × 2622 | iPhone 16 Pro | If targeting |
 | 6.1" iPhone | 1179 × 2556 | iPhone 15 Pro / 14 Pro | If targeting |
@@ -21,20 +21,20 @@
 
 | Shot | Recommended mode | Rationale |
 |---|---|---|
-| 1 — Hero / welcome | Dark | Brand-forward; matches marketing landing page |
-| 2 — Active chat | Dark | Code blocks and Markdown look best on dark |
-| 3 — Model picker | Light | Provider logos and color tints pop on light |
-| 4 — Settings / BYOK | Light | Clean, trustworthy for "your keys" message |
-| 5 — Web search | Light | Settings UI clarity |
-| 6 — Rules or memory | Dark | Feature depth; matches chat aesthetic |
-| 7 — Skills (beta) | Dark | Composer slash menu visibility |
-| 8 — Background / Live Activity (optional) | Dark | Lock screen / Dynamic Island contrast |
+| 1: Hero / welcome | Dark | Brand-forward; matches marketing landing page |
+| 2: Active chat | Dark | Code blocks and Markdown look best on dark |
+| 3: Model picker | Light | Provider logos and color tints pop on light |
+| 4: Settings / BYOK | Light | Clean, trustworthy for "your keys" message |
+| 5: Web search | Light | Settings UI clarity |
+| 6: Rules or memory | Dark | Feature depth; matches chat aesthetic |
+| 7: Skills (beta) | Dark | Composer slash menu visibility |
+| 8: Background / Live Activity (optional) | Dark | Lock screen / Dynamic Island contrast |
 
 Aim for **5–6 dark** and **2–3 light** for visual variety. Do not mix modes within a single screenshot.
 
 ## Shot-by-shot guide
 
-### Shot 1 — Hero
+### Shot 1: Hero
 
 - **Screen:** Welcome / Connect a Provider (first launch or empty state)
 - **Headline overlay:** "Every model. One app."
@@ -42,48 +42,49 @@ Aim for **5–6 dark** and **2–3 light** for visual variety. Do not mix modes 
 - **Sample prompt:** N/A (no chat visible)
 - **Setup:** Fresh install or delete all providers. Dark mode.
 
-### Shot 2 — Active chat
+### Shot 2: Active chat
 
 - **Screen:** Chat view with streaming or completed assistant reply
 - **Headline overlay:** "Native chat with Markdown & code"
 - **Sample prompt (user message):** "Write a Swift function that debounces a search field using Combine."
 - **Assistant reply:** Include a code block with syntax highlighting and a brief explanation. Use a real model response (not lorem ipsum).
-- **Setup:** Dark mode. Hide any real API key balances. Use a generic model name like "GPT-4o" or "Claude Sonnet".
+- **Setup:** Dark mode. Hide any real API key balances. Show a cost-efficient OpenRouter model in the chat header (e.g. `deepseek/deepseek-chat` or `qwen/qwen-2.5-coder-32b-instruct`).
 
-### Shot 3 — Model picker
+### Shot 3: Model picker
 
 - **Screen:** Model selection sheet open, showing multiple providers
-- **Headline overlay:** "Switch providers without switching apps"
+- **Headline overlay:** "Pay for performance, not a logo"
+- **Subhead (optional):** "DeepSeek, Qwen, Mistral, Llama via OpenRouter"
 - **Sample prompt:** N/A
-- **Setup:** Connect 2–3 providers beforehand. Light mode. Ensure provider names are visible.
+- **Setup:** Connect OpenRouter, DeepSeek, and Mistral beforehand. Light mode. Ensure provider names are visible; put OpenRouter first in the list.
 
-### Shot 4 — Settings / Providers
+### Shot 4: Settings / Providers
 
 - **Screen:** Settings → Providers list with 2–3 connected providers
 - **Headline overlay:** "Your keys, your providers"
-- **Subhead (optional):** "Bring your own key"
-- **Setup:** Light mode. Blur or omit balance amounts if shown.
+- **Subhead (optional):** "OpenRouter, DeepSeek, Mistral"
+- **Setup:** Light mode. Show OpenRouter, DeepSeek, and Mistral connected. Blur or omit balance amounts if shown.
 
-### Shot 5 — Web search
+### Shot 5: Web search
 
 - **Screen:** Settings → Tools → Web Search with one provider configured
 - **Headline overlay:** "Optional web search, your keys"
 - **Setup:** Light mode. Show provider name (e.g., Tavily) without exposing API key.
 
-### Shot 6 — Rules or memory
+### Shot 6: Rules or memory
 
 - **Screen:** Settings → Tools → Rules (global rules list) OR Memory settings
 - **Headline overlay:** "Steer behavior with rules & memory"
 - **Sample rule text:** "Always respond concisely. Prefer code examples in Swift."
 - **Setup:** Dark mode. Use realistic but non-sensitive rule content.
 
-### Shot 7 — Skills (beta)
+### Shot 7: Skills (beta)
 
 - **Screen:** Skills list + composer with "/" slash menu visible
 - **Headline overlay:** "Reusable prompts with / commands"
 - **Setup:** Create 2–3 sample skills (e.g., "Summarize", "Explain like I'm 5", "Review code"). Dark mode.
 
-### Shot 8 — Background generation (optional)
+### Shot 8: Background generation (optional)
 
 - **Screen:** Lock screen with Live Activity OR notification banner
 - **Headline overlay:** "Replies finish in the background"

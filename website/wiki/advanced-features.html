@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="OpenChat advanced features — rules, memory, skills, web search, custom endpoints, and more.">
-    <title>Advanced features — OpenChat Wiki</title>
+    <meta name="description" content="OpenChat advanced features: rules, memory, skills, web search, custom endpoints, and more.">
+    <title>Advanced features: OpenChat Wiki</title>
     <link rel="icon" type="image/png" href="../assets/favicon.png" sizes="120x120">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="stylesheet" href="../brand.css">
@@ -48,23 +48,23 @@
             <h2 id="rules">Rules (global and per-chat)</h2>
             <p>Rules are instructions that steer how the assistant behaves. OpenChat supports two scopes:</p>
             <ul>
-                <li><strong>Global rules</strong> — apply to every chat when enabled. Manage them in <strong>Settings → Rules</strong>.</li>
-                <li><strong>Chat rules</strong> — per-conversation instructions edited from the rules button in the chat composer.</li>
+                <li><strong>Global rules</strong>: apply to every chat when enabled. Manage them in <strong>Settings → Rules</strong>.</li>
+                <li><strong>Chat rules</strong>: per-conversation instructions edited from the rules button in the chat composer.</li>
             </ul>
             <p>In <strong>Settings → Rules</strong>, configure:</p>
             <ul>
-                <li><strong>Use global rules in chats</strong> — off by default</li>
-                <li><strong>Use chat rules</strong> — off by default</li>
-                <li><strong>Allow assistant to propose rules</strong> — the model can suggest new rules during a conversation</li>
-                <li><strong>Require confirmation</strong> — review proposals before they are saved</li>
+                <li><strong>Use global rules in chats</strong>, off by default</li>
+                <li><strong>Use chat rules</strong>, off by default</li>
+                <li><strong>Allow assistant to propose rules</strong>, the model can suggest new rules during a conversation</li>
+                <li><strong>Require confirmation</strong>, review proposals before they are saved</li>
             </ul>
             <p>Tap the rules chip in the composer to edit chat-specific rules. The chip highlights when the conversation has a non-empty system prompt.</p>
 
             <h2 id="memory">Memory</h2>
             <p>Memory lets OpenChat remember facts across conversations. Manage stored memories in <strong>Settings → Memory</strong>.</p>
             <ul>
-                <li><strong>Use memory in chats</strong> — injects relevant memories into conversations (off by default)</li>
-                <li><strong>Require confirmation</strong> — review memory proposals before saving</li>
+                <li><strong>Use memory in chats</strong>, injects relevant memories into conversations (off by default)</li>
+                <li><strong>Require confirmation</strong>, review memory proposals before saving</li>
             </ul>
             <p>Tap any memory to edit it. Swipe to delete. The assistant can propose new memories during chats when memory is enabled. Do not store passwords, API keys, or other secrets.</p>
             <p>Memory is disabled in temporary chats.</p>
@@ -76,8 +76,8 @@
             </div>
             <p>Skills are reusable prompt shortcuts. Define them in <strong>Settings → Skills</strong> with a name, description, and slash command (e.g. <code>/summarize</code>).</p>
             <ul>
-                <li><strong>Use skills in chats</strong> — enable skill invocation (off by default)</li>
-                <li><strong>Require confirmation</strong> — review skill proposals before saving</li>
+                <li><strong>Use skills in chats</strong>, enable skill invocation (off by default)</li>
+                <li><strong>Require confirmation</strong>, review skill proposals before saving</li>
             </ul>
             <p>While composing, type <code>/</code> followed by a skill name to see matching skills in a dropdown. Select one to insert its prompt. Skills can also be invoked automatically when relevant.</p>
 
@@ -116,11 +116,11 @@
             </ol>
             <p>Common setups:</p>
             <ul>
-                <li><strong>Ollama</strong> — e.g. <code>http://your-mac.local:11434/v1</code></li>
-                <li><strong>LM Studio</strong> — enable the local server and use its OpenAI-compatible URL</li>
-                <li><strong>vLLM</strong> — point to your deployment's <code>/v1</code> endpoint</li>
+                <li><strong>Ollama</strong>, e.g. <code>http://your-mac.local:11434/v1</code></li>
+                <li><strong>LM Studio</strong>, enable the local server and use its OpenAI-compatible URL</li>
+                <li><strong>vLLM</strong>, point to your deployment's <code>/v1</code> endpoint</li>
             </ul>
-            <p>Custom endpoints do not fetch a live model catalog — you specify model IDs manually. Capabilities are inferred from model names where possible.</p>
+            <p>Custom endpoints do not fetch a live model catalog: you specify model IDs manually. Capabilities are inferred from model names where possible.</p>
 
             <h2 id="background-generation">Background generation and Live Activity</h2>
             <p>When you send a message and switch away from OpenChat, the assistant can continue generating in the background.</p>
@@ -129,13 +129,13 @@
                 <li>A <strong>local notification</strong> fires when the reply completes</li>
                 <li>Tapping the notification opens the relevant chat</li>
             </ul>
-            <p>Background generation works for both regular and temporary chats. Notification content stays on-device — nothing is sent to OpenChat servers.</p>
+            <p>Background generation works for both regular and temporary chats. Notification content stays on-device. Nothing is sent to OpenChat servers.</p>
 
             <h2 id="reasoning">Reasoning and effort controls</h2>
             <p>Some models support extended reasoning (thinking). When the current model supports it, the composer shows reasoning controls:</p>
             <ul>
-                <li><strong>Thinking toggle</strong> — on models with a separate thinking parameter, turn extended reasoning on or off</li>
-                <li><strong>Effort gauge</strong> — on models that support effort levels, pick how much reasoning effort to apply</li>
+                <li><strong>Thinking toggle</strong>, on models with a separate thinking parameter, turn extended reasoning on or off</li>
+                <li><strong>Effort gauge</strong>, on models that support effort levels, pick how much reasoning effort to apply</li>
             </ul>
             <p>Available controls depend on the model. Models with mandatory reasoning always use it. The effort picker only shows levels supported by the current model.</p>
 

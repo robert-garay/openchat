@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Rewrote launch, website, and README marketing copy: removed em dashes, tightened phrasing, and lead with OpenRouter plus cost-efficient models (DeepSeek, Qwen, Mistral, Llama).
 - App Store build targets iPhone only (`TARGETED_DEVICE_FAMILY: 1`) for OpenChat and OpenChatLiveActivity.
 - Settings no longer shows a beta badge on the Skills row.
 - Settings provider add and edit screens now show the provider logo beside the provider name in the navigation bar.
