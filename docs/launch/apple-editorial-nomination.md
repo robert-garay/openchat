@@ -14,7 +14,7 @@ What makes it stand out:
 
 **Privacy first.** No backend, no account, no analytics SDKs, no ads. You bring your own API keys (Keychain). Chats, rules, memory, and skills stay on the device. Messages go straight from your phone to the provider you picked.
 
-**OpenRouter-first routing.** Connect OpenRouter, DeepSeek, Qwen, Mistral, Llama, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs pick up new models as providers release them. Direct OpenAI, Anthropic, and Gemini keys work when you need a flagship.
+**Empowering choice without lock-in.** Connect OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Anthropic, Google Gemini, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs pick up new models as providers release them.
 
 **Open source (MIT).** The code is on GitHub if you want to see how it works.
 
@@ -23,7 +23,7 @@ OpenChat is for daily AI users who want one native, private app on iPhone withou
 ## What makes this app unique?
 
 - Multi-provider BYOK chat in a single native iOS app (not a web wrapper)
-- On-device storage for chats, rules, memory, and skills, no cloud sync required
+- On-device storage for chats, rules, memory, and skills: no cloud sync required
 - Live model catalog fetching from supported providers
 - Optional web search integration with five search providers
 - Support for custom OpenAI-compatible endpoints including self-hosted models
@@ -39,7 +39,7 @@ OpenChat is for daily AI users who want one native, private app on iPhone withou
 
 ## Key features to highlight
 
-1. One app for OpenRouter, DeepSeek, Qwen, Mistral, Llama, and custom endpoints
+1. One app for OpenRouter, DeepSeek, Qwen, Mistral, Astra, Fable, Gemini, and custom endpoints
 2. Bring your own key: no OpenChat account
 3. Chats and settings stay on your device
 4. Streaming Markdown with code blocks and tables

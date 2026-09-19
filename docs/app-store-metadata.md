@@ -19,16 +19,16 @@ Copy/paste drafts for OpenChat 1.x App Store submission. Update version numbers 
 
 ## Promotional text (170 chars, editable without new build)
 
-Chat with OpenRouter, DeepSeek, Qwen, Mistral, and your endpoints from one iOS app. Pay for performance, not a logo. BYOK, on-device history, rules, memory, and skills.
+Chat with OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Claude, Gemini, and your own endpoints from one native iOS app. BYOK, on-device history, web search, rules, memory, and skills.
 
 ## Description
 
 OpenChat is the native iOS home for every major LLM.
 
-Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, Llama, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface. Direct OpenAI, Anthropic, and Gemini keys work too when you need them.
+Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Anthropic, Google Gemini, Moonshot AI (Kimi), Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
 
 **Why OpenChat**
-- Pay for performance, not a logo: route cheap, capable models through OpenRouter
+- One workflow across providers: switch models without changing apps
 - Live model catalogs from supported providers
 - Bring your own key (BYOK): no OpenChat account, no backend
 - Chats, rules, memory, and skills stay on your device
