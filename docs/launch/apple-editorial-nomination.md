@@ -6,19 +6,19 @@ OpenChat
 
 ## Why should we feature this app?
 
-OpenChat solves a real problem for power users of generative AI: the best model changes constantly, but every provider has its own app with a different interface and fragmented history. OpenChat is the native iOS home for every major LLM: one clean SwiftUI interface, one on-device chat history, and the freedom to switch providers per conversation.
+OpenChat is for people who use more than one AI provider. The best model changes all the time, but every provider ships its own app with a different UI and a separate chat history. OpenChat puts them in one native iOS app: one SwiftUI interface, one on-device history, and a different provider per conversation when you want it.
 
 What makes it stand out:
 
-**Native iOS craftsmanship.** Built with SwiftUI and SwiftData, OpenChat feels like it belongs on iPhone. Streaming Markdown with syntax-highlighted code, system light/dark mode, Live Activities for background generation, and local notifications: all using Apple's latest frameworks (Swift 6, iOS 17+).
+**Built for iPhone.** SwiftUI and SwiftData. Streaming Markdown with syntax-highlighted code, light/dark mode, Live Activities for background generation, and local notifications. Swift 6, iOS 17+.
 
-**Privacy as a product feature, not an afterthought.** OpenChat has no backend, no account system, no analytics SDKs, and no ads. Users bring their own API keys (stored in Keychain). Chats, rules, memory, and skills stay on the device. Data goes directly from the phone to whichever AI provider the user configured.
+**Privacy first.** No backend, no account, no analytics SDKs, no ads. You bring your own API keys (Keychain). Chats, rules, memory, and skills stay on the device. Messages go straight from your phone to the provider you picked.
 
-**Empowering choice without lock-in.** Users connect OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Anthropic, Google Gemini, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs keep new models available as providers release them.
+**Empowering choice without lock-in.** Connect OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Anthropic, Google Gemini, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs pick up new models as providers release them.
 
-**Open source transparency.** MIT licensed on GitHub. Users can inspect exactly how their data is handled.
+**Open source (MIT).** The code is on GitHub if you want to see how it works.
 
-OpenChat is for the growing audience of people who use AI daily across multiple providers and want a native, private, provider-agnostic workflow on iPhone.
+OpenChat is for daily AI users who want one native, private app on iPhone without locking into a single provider.
 
 ## What makes this app unique?
 
