@@ -6,13 +6,13 @@ Every model. One app. Your device.
 
 ## One-liner (260 chars max)
 
-OpenChat is the native iOS home for every major LLM. Connect your own API keys and chat with OpenAI, Claude, Gemini, OpenRouter, and self-hosted endpoints from one clean app, no account, no backend, your data stays on your device.
+OpenChat is the native iOS home for every major LLM. Connect your own API keys and chat with GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and self-hosted endpoints from one clean app, no account, no backend, your data stays on your device.
 
 ## Description
 
 OpenChat puts every major LLM into one native iOS app.
 
-**The problem:** The best model changes by task, by week, and by provider. Juggling separate apps for OpenAI, Claude, Gemini, and OpenRouter means fragmented history, different UIs, and constant context-switching.
+**The problem:** The best model changes by task, by week, and by provider. Juggling separate apps for Astra, Fable, Gemini, and OpenRouter means fragmented history, different UIs, and constant context-switching.
 
 **The solution:** OpenChat is a bring-your-own-key (BYOK) native iOS client. Connect API keys from providers you already use, pick the right model per conversation, and keep one workflow across all of them.
 
@@ -36,7 +36,7 @@ OpenChat puts every major LLM into one native iOS app.
 
 Hey Product Hunt! I'm Robert, the maker of OpenChat.
 
-I built this because I was tired of switching between five different AI apps every time the "best model" changed. I wanted one native iOS interface where I could use OpenAI for some tasks, Claude for others, Gemini for vision, and my self-hosted Ollama endpoint for experiments, without giving up my chat history or privacy.
+I built this because I was tired of switching between five different AI apps every time the "best model" changed. I wanted one native iOS interface where I could use GPT-6 Astra for some tasks, Claude Fable 5.1 for others, and my self-hosted Ollama endpoint for experiments, without giving up my chat history or privacy.
 
 OpenChat is **bring-your-own-key**: you connect API keys from providers you already have, and the app talks directly to them. There's no OpenChat backend, no account, and no analytics. Your chats, rules, memory, and skills stay on your device.
 

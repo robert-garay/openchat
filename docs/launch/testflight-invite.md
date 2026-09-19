@@ -4,7 +4,7 @@
 
 OpenChat is in TestFlight: a native iOS app for every major LLM.
 
-Connect your own API keys (OpenAI, Claude, Gemini, OpenRouter, Ollama, etc.) and chat from one app. No backend, no account, chats stay on your device.
+Connect your own API keys (GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, Ollama, etc.) and chat from one app. No backend, no account, chats stay on your device.
 
 Looking for beta testers who:
 - Already have API keys from at least one supported provider
@@ -21,7 +21,7 @@ Or email robert@genion.ai with subject "OpenChat Beta"
 
 **Help beta-test OpenChat for iOS**
 
-I'm looking for beta testers for OpenChat: a native iOS app that lets you chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, and any OpenAI-compatible endpoint (including self-hosted Ollama) from one interface.
+I'm looking for beta testers for OpenChat: a native iOS app that lets you chat with GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral, DeepSeek, and any OpenAI-compatible endpoint (including self-hosted Ollama) from one interface.
 
 **What you'll need:**
 - An iPhone running iOS 17+

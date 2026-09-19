@@ -3,7 +3,7 @@
 ## Subject line options
 
 - OpenChat: native iOS app for every major LLM (BYOK, open source)
-- Introducing OpenChat: one iOS app for OpenAI, Claude, Gemini, and more
+- Introducing OpenChat: one iOS app for GPT-6 Astra, Claude Fable 5.1, Gemini, and more
 - [Personalized] Thought you'd be interested in OpenChat for iOS
 
 ## Email body
@@ -12,7 +12,7 @@ Hi [Name],
 
 I'm reaching out because [personalized reason, e.g., "you've covered multi-model AI workflows" / "your audience cares about privacy-first tools" / "you reviewed [similar app]"].
 
-I'm launching **OpenChat**, a native iOS app that lets you chat with every major LLM from one interface: OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
+I'm launching **OpenChat**, a native iOS app that lets you chat with every major LLM from one interface: GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral, DeepSeek, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
 
 **What makes it different:**
 - **Bring your own key**: no OpenChat account; API keys stored in iOS Keychain

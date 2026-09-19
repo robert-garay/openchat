@@ -48,12 +48,12 @@ Aim for **5–6 dark** and **2–3 light** for visual variety. Do not mix modes 
 - **Headline overlay:** "Native chat with Markdown & code"
 - **Sample prompt (user message):** "Write a Swift function that debounces a search field using Combine."
 - **Assistant reply:** Include a code block with syntax highlighting and a brief explanation. Use a real model response (not lorem ipsum).
-- **Setup:** Dark mode. Hide any real API key balances. Use a generic model name like "GPT-4o" or "Claude Sonnet".
+- **Setup:** Dark mode. Hide any real API key balances. Show `gpt-6-astra` or `Claude Fable 5.1` in the chat header.
 
 ### Shot 3: Model picker
 
 - **Screen:** Model selection sheet open, showing multiple providers
-- **Headline overlay:** "Switch providers without switching apps"
+- **Headline overlay:** "Switch between Astra and Fable without switching apps"
 - **Sample prompt:** N/A
 - **Setup:** Connect 2–3 providers beforehand. Light mode. Ensure provider names are visible.
 

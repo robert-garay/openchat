@@ -7,7 +7,7 @@ OpenChat is live on the App Store.
 
 Every model. One app. Your device.
 
-Native iOS home for OpenAI, Claude, Gemini, OpenRouter, and every OpenAI-compatible endpoint.
+Native iOS home for GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and every OpenAI-compatible endpoint.
 
 BYOK. No backend. No analytics. Open source.
 
@@ -15,9 +15,9 @@ BYOK. No backend. No analytics. Open source.
 https://robert-garay.github.io/openchat/
 
 **Tweet 2 (problem/solution)**
-The best model changes by task and by week. Switching between five AI apps means fragmented history and different UIs.
+The best model changes by task and by week. Switching between the Astra app and the Claude app means fragmented history and different UIs.
 
-OpenChat gives you one native workflow across every provider you already use.
+OpenChat lets you switch between Astra and Fable without switching apps.
 
 **Tweet 3 (privacy)**
 Your API keys → iOS Keychain.
@@ -47,13 +47,13 @@ Questions? Reply here or open an issue.
 
 I built OpenChat, a native iOS app for anyone who uses more than one AI provider.
 
-The idea is simple: the best LLM changes by task, by week, and by provider. But juggling separate apps for OpenAI, Claude, Gemini, and OpenRouter fragments your workflow and your history.
+The idea is simple: the best LLM changes by task, by week, and by provider. But juggling separate apps for Astra and Fable fragments your workflow and your history.
 
 OpenChat is a bring-your-own-key (BYOK) client. You connect API keys from providers you already have, pick the right model per conversation, and keep everything in one native iOS interface.
 
 What matters to me:
 - **Privacy by design**: no OpenChat backend, no analytics SDKs, chats stay on your device
-- **No lock-in**: switch models and providers without changing apps
+- **No lock-in**: switch between Astra and Fable without changing apps
 - **Open source**: MIT licensed at github.com/robert-garay/openchat
 
 Features include streaming Markdown, live model catalogs, optional web search, rules & memory, and support for self-hosted endpoints.

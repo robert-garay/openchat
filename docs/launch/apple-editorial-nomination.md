@@ -14,7 +14,7 @@ What makes it stand out:
 
 **Privacy first.** No backend, no account, no analytics SDKs, no ads. You bring your own API keys (Keychain). Chats, rules, memory, and skills stay on the device. Messages go straight from your phone to the provider you picked.
 
-**Your provider, your choice.** Connect OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs pick up new models as providers release them.
+**Your provider, your choice.** Connect GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral, DeepSeek, and self-hosted endpoints (Ollama, LM Studio, vLLM) from one app. Live model catalogs pick up new models as providers release them.
 
 **Open source (MIT).** The code is on GitHub if you want to see how it works.
 
@@ -39,7 +39,7 @@ OpenChat is for daily AI users who want one native, private app on iPhone withou
 
 ## Key features to highlight
 
-1. One app for OpenAI, Claude, Gemini, OpenRouter, and custom endpoints
+1. One app for GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and custom endpoints
 2. Bring your own key: no OpenChat account
 3. Chats and settings stay on your device
 4. Streaming Markdown with code blocks and tables

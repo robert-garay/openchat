@@ -6,7 +6,7 @@ Show HN: OpenChat – native iOS app for every major LLM (BYOK, no backend, open
 
 ## Post body
 
-I built OpenChat because I kept switching between separate apps every time a different model was best for the task. I wanted one native iOS client where I could use OpenAI, Claude, Gemini, OpenRouter, and my self-hosted Ollama endpoint without fragmenting my workflow.
+I built OpenChat because I kept switching between separate apps every time a different model was best for the task. I wanted one native iOS client where I could use GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and my self-hosted Ollama endpoint without fragmenting my workflow.
 
 **What it is:** A native SwiftUI iOS app (Swift 6, SwiftData) that lets you connect your own API keys and chat with multiple LLM providers from one interface.
 
