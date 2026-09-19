@@ -105,6 +105,7 @@ platform :ios do
       skip_binary_upload: true,
       skip_metadata: true,
       force: true,
+      overwrite_screenshots: true,
       submit_for_review: false
     )
   end
