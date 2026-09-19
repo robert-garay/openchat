@@ -2,7 +2,7 @@
 
 The native iOS home for every major LLM.
 
-OpenChat puts GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) into one clean app.
+OpenChat puts OpenRouter, DeepSeek, Qwen, Mistral, Llama, and every OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) into one clean app. OpenAI, Anthropic, Google Gemini, Moonshot AI (Kimi), Z.ai, and 01.AI are supported too when you need them.
 
 Provider-specific chat apps are good at one thing: their own model. OpenChat is built for the reality that the best model changes by task, by week, and by provider. You get one workflow, one interface, and no lock-in.
 
@@ -22,14 +22,14 @@ Join the waitlist: [robert@genion.ai](mailto:robert@genion.ai?subject=OpenChat%2
 
 ## Why OpenChat
 
-- **One app, every model**: switch between Astra and Fable without changing apps.
+- **Pay for performance, not a logo**: route DeepSeek, Qwen, Mistral, and Llama through OpenRouter without switching apps.
 - **Always current**: live provider catalogs keep new models available as soon as the upstream provider exposes them.
 - **No lock-in**: your chats and setup stay in OpenChat, while the model behind each conversation can change at any time.
 - **Private by design**: API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
 
 ## Features
 
-- **Any provider, one app**: switch between GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
+- **Any provider, one app**: start with OpenRouter, DeepSeek, Qwen, or Mistral, then add direct providers or a self-hosted endpoint from the same chat UI.
 - **Built for model choice**: use the best model for the job, keep the same interface, and move between providers without losing your workflow.
 - **Web search**: attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
 - **Rules**: steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.

@@ -48,21 +48,22 @@ Aim for **5–6 dark** and **2–3 light** for visual variety. Do not mix modes 
 - **Headline overlay:** "Native chat with Markdown & code"
 - **Sample prompt (user message):** "Write a Swift function that debounces a search field using Combine."
 - **Assistant reply:** Include a code block with syntax highlighting and a brief explanation. Use a real model response (not lorem ipsum).
-- **Setup:** Dark mode. Hide any real API key balances. Show `gpt-6-astra` or `Claude Fable 5.1` in the chat header.
+- **Setup:** Dark mode. Hide any real API key balances. Show a cost-efficient OpenRouter model in the chat header (e.g. `deepseek/deepseek-chat` or `qwen/qwen-2.5-coder-32b-instruct`).
 
 ### Shot 3: Model picker
 
 - **Screen:** Model selection sheet open, showing multiple providers
-- **Headline overlay:** "Switch between Astra and Fable without switching apps"
+- **Headline overlay:** "Pay for performance, not a logo"
+- **Subhead (optional):** "DeepSeek, Qwen, Mistral, Llama via OpenRouter"
 - **Sample prompt:** N/A
-- **Setup:** Connect 2–3 providers beforehand. Light mode. Ensure provider names are visible.
+- **Setup:** Connect OpenRouter, DeepSeek, and Mistral beforehand. Light mode. Ensure provider names are visible; put OpenRouter first in the list.
 
 ### Shot 4: Settings / Providers
 
 - **Screen:** Settings → Providers list with 2–3 connected providers
 - **Headline overlay:** "Your keys, your providers"
-- **Subhead (optional):** "Bring your own key"
-- **Setup:** Light mode. Blur or omit balance amounts if shown.
+- **Subhead (optional):** "OpenRouter, DeepSeek, Mistral"
+- **Setup:** Light mode. Show OpenRouter, DeepSeek, and Mistral connected. Blur or omit balance amounts if shown.
 
 ### Shot 5: Web search
 

@@ -19,16 +19,16 @@ Copy/paste drafts for OpenChat 1.x App Store submission. Update version numbers 
 
 ## Promotional text (170 chars, editable without new build)
 
-Chat with GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and your own endpoints from one native iOS app. BYOK, on-device history, web search, rules, memory, and skills.
+Chat with OpenRouter, DeepSeek, Qwen, Mistral, and your endpoints from one iOS app. Pay for performance, not a logo. BYOK, on-device history, rules, memory, and skills.
 
 ## Description
 
 OpenChat is the native iOS home for every major LLM.
 
-Connect your own API keys and chat with GPT-6 Astra, Claude Fable 5.1, Google Gemini, OpenRouter, Mistral, DeepSeek, Qwen, Kimi, Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
+Connect your own API keys and chat with OpenRouter, DeepSeek, Qwen, Mistral, Llama, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface. Direct OpenAI, Anthropic, and Gemini keys work too when you need them.
 
 **Why OpenChat**
-- Switch between Astra and Fable without changing apps
+- Pay for performance, not a logo: route cheap, capable models through OpenRouter
 - Live model catalogs from supported providers
 - Bring your own key (BYOK): no OpenChat account, no backend
 - Chats, rules, memory, and skills stay on your device
