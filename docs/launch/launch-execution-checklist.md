@@ -1,12 +1,12 @@
-# OpenChat App Store Launch — Execution Checklist
+# OpenChat App Store Launch: Execution Checklist
 
-Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with a connected self-hosted worker. Do **not** run `scripts/release.sh` unless cutting a version bump — current version is **1.1.0 (build 3)** per `project.yml`.
+Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with a connected self-hosted worker. Do **not** run `scripts/release.sh` unless cutting a version bump, current version is **1.1.0 (build 3)** per `project.yml`.
 
 **Reference docs:** [`docs/app-store-metadata.md`](../app-store-metadata.md) · [`asc-paste-bundle.txt`](asc-paste-bundle.txt) · [`app-review-notes.txt`](app-review-notes.txt) · [`screenshot-guide.md`](screenshot-guide.md) · Mac runbook in Project store `docs/mac-launch-runbook.md`
 
 ---
 
-## Phase A — Cloud-ready (complete in repo)
+## Phase A: Cloud-ready (complete in repo)
 
 - [x] Landing page live: https://robert-garay.github.io/openchat/
 - [x] Privacy policy live: https://robert-garay.github.io/openchat/privacy-policy.html
@@ -20,7 +20,7 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 ---
 
-## Phase B — Mac setup (Robert or self-hosted worker)
+## Phase B: Mac setup (Robert or self-hosted worker)
 
 ### B1. Signing & credentials
 
@@ -34,12 +34,12 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 - [ ] `xcodegen generate` (if needed after pull)
 - [ ] Open `OpenChat.xcodeproj` → select **Any iOS Device (arm64)**
-- [ ] Product → Build (Release) — confirm zero errors
-- [ ] `./scripts/ci-test.sh` — unit tests pass
+- [ ] Product → Build (Release): confirm zero errors
+- [ ] `./scripts/ci-test.sh`, unit tests pass
 
 ---
 
-## Phase C — Archive & upload
+## Phase C: Archive & upload
 
 - [ ] Product → **Archive** (Release, not Simulator)
 - [ ] Organizer → **Distribute App** → App Store Connect → Upload
@@ -49,7 +49,7 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 ---
 
-## Phase D — App Store Connect record
+## Phase D: App Store Connect record
 
 ### D1. Create app (one-time)
 
@@ -82,7 +82,7 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 ---
 
-## Phase E — Screenshots
+## Phase E: Screenshots
 
 - [ ] Run `./scripts/capture-screenshots.sh` on Mac
 - [ ] Capture shots 1–7 (optional 8) per on-screen guide
@@ -93,17 +93,17 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 ---
 
-## Phase F — TestFlight
+## Phase F: TestFlight
 
 - [ ] ASC → TestFlight → select processed build 3
 - [ ] **Internal testing:** add yourself, install via TestFlight app, smoke test
 - [ ] Fix any blockers → new archive if needed (increment build in `project.yml` or via release script)
 - [ ] **External testing** (optional): add beta group, short "What to Test" blurb from `testflight-invite.md`
-- [ ] External review (if external group) — usually quick for BYOK apps
+- [ ] External review (if external group): usually quick for BYOK apps
 
 ---
 
-## Phase G — Submit for review
+## Phase G: Submit for review
 
 - [ ] All metadata, screenshots, privacy, age rating complete
 - [ ] Build 3 attached to version 1.1.0
@@ -114,10 +114,10 @@ Step-by-step checklist for Robert (Mac + Apple Developer) or a cloud agent with 
 
 ---
 
-## Phase H — Post-approval launch (same day or scheduled)
+## Phase H: Post-approval launch (same day or scheduled)
 
 - [ ] Release manually when ready (or set availability date)
-- [ ] Post launch copy from `docs/launch/` (PH, HN, social — per Robert's schedule)
+- [ ] Post launch copy from `docs/launch/` (PH, HN, social, per Robert's schedule)
 - [ ] Revoke Option B test API key if used
 - [ ] Optional: submit `apple-editorial-nomination.md`
 

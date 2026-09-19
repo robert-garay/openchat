@@ -8,7 +8,7 @@ Provider-specific chat apps are good at one thing: their own model. OpenChat is 
 
 OpenChat also keeps model lists current by pulling live `/models` catalogs from supported providers and OpenRouter's public catalog.
 
-No backend server, no account, no telemetry: the app talks directly to whichever provider you configure, and everything — API keys, chat history, memory, rules, skills — stays on your device.
+No backend server, no account, no telemetry. The app talks directly to whichever provider you configure. API keys, chat history, memory, rules, and skills stay on your device.
 
 ## Download
 
@@ -16,26 +16,26 @@ No backend server, no account, no telemetry: the app talks directly to whichever
 
 **Landing page:** [robert-garay.github.io/openchat](https://robert-garay.github.io/openchat/)
 
-OpenChat is **bring-your-own-key (BYOK)** — you need an API key from at least one supported provider (OpenAI, Anthropic, Google, OpenRouter, etc.) to use the app. The app is free; usage is billed by your providers directly.
+OpenChat is **bring-your-own-key (BYOK)**: you need an API key from at least one supported provider (OpenAI, Anthropic, Google, OpenRouter, etc.) to use the app. The app is free; usage is billed by your providers directly.
 
 Join the waitlist: [robert@genion.ai](mailto:robert@genion.ai?subject=OpenChat%20Waitlist)
 
 ## Why OpenChat
 
-- **One app, every model** — compare and switch across providers without changing your workflow.
-- **Always current** — live provider catalogs keep new models available as soon as the upstream provider exposes them.
-- **No lock-in** — your chats and setup stay in OpenChat, while the model behind each conversation can change at any time.
-- **Private by design** — API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
+- **One app, every model**: compare and switch across providers without changing your workflow.
+- **Always current**: live provider catalogs keep new models available as soon as the upstream provider exposes them.
+- **No lock-in**: your chats and setup stay in OpenChat, while the model behind each conversation can change at any time.
+- **Private by design**: API keys live in the iOS Keychain, chats are stored locally via SwiftData, and nothing is sent anywhere except the LLM provider you chose for that message.
 
 ## Features
 
-- **Any provider, one app** — switch between OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
-- **Built for model choice** — use the best model for the job, keep the same interface, and move between providers without losing your workflow.
-- **Web search** — attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
-- **Rules** — steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.
-- **Memory** — the app can remember facts across chats; review, edit, pin, or delete anything it's stored at any time.
-- **Skills** — define reusable prompts and invoke them instantly with a `/` slash command while composing a message.
-- **Rich chat rendering** — Markdown, tables, syntax-highlighted code blocks, selectable message text, and image attachments (camera or photo library, for vision-capable models).
+- **Any provider, one app**: switch between OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral AI, DeepSeek, Alibaba Cloud (Qwen), Moonshot AI (Kimi), Z.ai, 01.AI, or a self-hosted/custom OpenAI-compatible endpoint from the same chat UI.
+- **Built for model choice**: use the best model for the job, keep the same interface, and move between providers without losing your workflow.
+- **Web search**: attach a search provider (Tavily, Exa, Brave, Serper, SerpAPI) and let tool-capable models call it natively, or fall back to prompt injection for models without tool support.
+- **Rules**: steer model behavior with global rules that apply everywhere, or per-chat rules scoped to a single conversation.
+- **Memory**: the app can remember facts across chats; review, edit, pin, or delete anything it's stored at any time.
+- **Skills**: define reusable prompts and invoke them instantly with a `/` slash command while composing a message.
+- **Rich chat rendering**: Markdown, tables, syntax-highlighted code blocks, selectable message text, and image attachments (camera or photo library, for vision-capable models).
 
 ## Connecting a provider
 
@@ -63,7 +63,7 @@ Settings → Web Search → add a key for one or more search providers (Tavily, 
 
 ## Privacy
 
-OpenChat has no backend, no analytics SDKs, and no telemetry — your data stays on your device except for requests you send directly to AI and search providers you configure. The app uses a small set of open-source Swift packages (for example [SwiftStreamingMarkdown](https://github.com/microsoft/SwiftStreamingMarkdown) for message rendering); there are no advertising or analytics libraries. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally via SwiftData. See the [privacy policy](https://robert-garay.github.io/openchat/privacy-policy.html) for details on third-party APIs, photos, camera, microphone, notifications, and on-device storage.
+OpenChat has no backend, no analytics SDKs, and no telemetry. Your data stays on your device except for requests you send directly to AI and search providers you configure. The app uses a small set of open-source Swift packages (for example [SwiftStreamingMarkdown](https://github.com/microsoft/SwiftStreamingMarkdown) for message rendering); there are no advertising or analytics libraries. API keys and search keys are stored in the iOS Keychain; chats, rules, memory, and skills are stored locally via SwiftData. See the [privacy policy](https://robert-garay.github.io/openchat/privacy-policy.html) for details on third-party APIs, photos, camera, microphone, notifications, and on-device storage.
 
 ## Building from source
 

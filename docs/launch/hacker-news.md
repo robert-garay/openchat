@@ -1,4 +1,4 @@
-# Hacker News — Show HN
+# Hacker News: Show HN
 
 ## Title
 
@@ -24,10 +24,10 @@ I built OpenChat because I kept switching between separate apps every time a dif
 
 **Tech:** Swift 6, SwiftUI, SwiftData, Keychain, no third-party analytics SDKs. One dependency for Markdown rendering (SwiftStreamingMarkdown).
 
-**Open source:** MIT — https://github.com/robert-garay/openchat
+**Open source:** MIT: https://github.com/robert-garay/openchat
 
 **App Store:** Coming soon. Landing page: https://robert-garay.github.io/openchat/
 
-**Requirements:** BYOK — you need your own API key from a supported provider. The app is free; you pay providers directly.
+**Requirements:** BYOK: you need your own API key from a supported provider. The app is free; you pay providers directly.
 
 Happy to answer questions about the architecture, privacy model, or why I chose native iOS over a web wrapper.
