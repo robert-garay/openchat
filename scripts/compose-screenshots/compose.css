@@ -1,21 +1,23 @@
-/* OpenChat App Store screenshot compositor — 6.7" ASC size (1290×2796).
-   Geometry follows docs/launch/screenshot-guide.md overlay guidelines. */
+/* OpenChat App Store screenshot compositor — ChatGPT/Grok style.
+   Canvas 1290×2796 (6.7" ASC). Real captures on branded gradient backgrounds. */
 
 :root {
   --canvas-w: 1290px;
   --canvas-h: 2796px;
-  --margin-x: 60px;
-  --headline-size: 52px;
-  --headline-line: 1.08;
-  --subhead-size: 32px;
-  --subhead-line: 1.2;
-  --headline-top: 132px;
-  --subhead-gap: 16px;
-  --mark-size: 96px;
-  --mark-top: 60px;
-  --mark-right: 60px;
+  --brand-primary: #6565e9;
+  --brand-secondary: #7a7afa;
   --text-dark: #1d1d1f;
   --text-light: #ffffff;
+  --copy-top: 120px;
+  --copy-pad-x: 72px;
+  --headline-size: 72px;
+  --headline-line: 1.06;
+  --subhead-size: 36px;
+  --subhead-gap: 20px;
+  --device-width: 940px;
+  --device-radius: 44px;
+  --device-bottom: 72px;
+  --copy-zone-h: 33%;
 }
 
 *,
@@ -33,23 +35,22 @@ body {
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #111;
+  background: #0f0f14;
 }
 
-/* Preview mode: stack plates with spacing. Export mode hides this via ?plate=NN */
 body:not(.export-mode) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 24px 0;
+  gap: 32px;
+  padding: 32px 0;
 }
 
 body.export-mode {
   background: transparent;
 }
 
-.plate {
+.shot {
   position: relative;
   width: var(--canvas-w);
   height: var(--canvas-h);
@@ -57,117 +58,112 @@ body.export-mode {
   flex-shrink: 0;
 }
 
-.plate__capture {
+.shot__bg {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
 }
 
-.plate__scrim {
+.shot--dark .shot__bg {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(122, 122, 250, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, #12121c 0%, #2a2a52 38%, var(--brand-primary) 72%, #4f4fd4 100%);
+}
+
+.shot--light .shot__bg {
+  background:
+    radial-gradient(ellipse 110% 70% at 50% 0%, rgba(122, 122, 250, 0.22) 0%, transparent 50%),
+    linear-gradient(180deg, #fafaff 0%, #ececff 42%, #d8d8fc 100%);
+}
+
+.shot__copy {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--copy-zone-h);
+  padding: var(--copy-top) var(--copy-pad-x) 0;
+  text-align: center;
+  z-index: 2;
 }
 
-.plate--dark .plate__scrim {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.58) 0%,
-    rgba(0, 0, 0, 0.34) 22%,
-    rgba(0, 0, 0, 0) 38%
-  );
-}
-
-.plate--light .plate__scrim {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.94) 0%,
-    rgba(255, 255, 255, 0.72) 20%,
-    rgba(255, 255, 255, 0) 36%
-  );
-}
-
-.plate__overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.plate__headline {
-  position: absolute;
-  top: var(--headline-top);
-  left: var(--margin-x);
-  right: var(--margin-x);
+.shot__headline {
   margin: 0;
-  max-width: calc(var(--canvas-w) - (var(--margin-x) * 2));
   font-size: var(--headline-size);
   font-weight: 700;
   line-height: var(--headline-line);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
-.plate--dark .plate__headline {
+.shot--dark .shot__headline {
   color: var(--text-light);
 }
 
-.plate--light .plate__headline {
+.shot--light .shot__headline {
   color: var(--text-dark);
 }
 
-.plate__subhead {
-  position: absolute;
-  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line) * 2) + var(--subhead-gap));
-  left: var(--margin-x);
-  right: var(--margin-x);
-  margin: 0;
-  max-width: calc(var(--canvas-w) - (var(--margin-x) * 2) - var(--mark-size) - 24px);
+.shot__subhead {
+  margin: var(--subhead-gap) 0 0;
   font-size: var(--subhead-size);
-  font-weight: 400;
-  line-height: var(--subhead-line);
-  letter-spacing: -0.01em;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
-.plate--dark .plate__subhead {
-  color: rgba(255, 255, 255, 0.88);
+.shot--dark .shot__subhead {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.plate--light .plate__subhead {
-  color: rgba(29, 29, 31, 0.78);
+.shot--light .shot__subhead {
+  color: rgba(29, 29, 31, 0.72);
 }
 
-/* Plate 01 — single-line headline + subhead: tighten subhead position */
-#plate-01 .plate__subhead {
-  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line)) + var(--subhead-gap));
-}
-
-.plate__mark {
+.shot__device {
   position: absolute;
-  top: var(--mark-top);
-  right: var(--mark-right);
-  width: var(--mark-size);
-  height: var(--mark-size);
+  left: 50%;
+  bottom: var(--device-bottom);
+  transform: translateX(-50%);
+  width: var(--device-width);
+  z-index: 1;
+}
+
+.shot__device-frame {
+  border-radius: var(--device-radius);
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: #000;
+}
+
+.shot--light .shot__device-frame {
+  box-shadow:
+    0 28px 72px rgba(42, 42, 82, 0.28),
+    0 0 0 1px rgba(101, 101, 233, 0.12);
+}
+
+.shot__capture {
   display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: top;
 }
 
-/* Plate 02 — two-line headline */
-#plate-02 .plate__headline {
-  max-width: 920px;
+/* Shot-specific copy tweaks */
+#shot-02 .shot__headline,
+#shot-03 .shot__headline {
+  font-size: 64px;
 }
 
-/* Plate 04 — headline + subhead */
-#plate-04 .plate__subhead {
-  top: calc(var(--headline-top) + (var(--headline-size) * var(--headline-line)) + var(--subhead-gap));
+#shot-03 .shot__headline {
+  max-width: 980px;
+  margin-inline: auto;
 }
 
-/* Export mode: show one plate, exact viewport */
-body.export-mode .plate {
+body.export-mode .shot {
   display: none;
 }
 
-body.export-mode .plate.is-export-target {
+body.export-mode .shot.is-export-target {
   display: block;
 }

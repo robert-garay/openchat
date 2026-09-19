@@ -1,32 +1,53 @@
-# Screenshot compositor
+# Screenshot compositor (ChatGPT/Grok style)
 
-Deterministic HTML/CSS compositor for App Store screenshots. Layers **real** simulator captures and **real** OpenChat branding — no drawn UI chrome.
+Deterministic HTML/CSS compositor for App Store screenshots. Layers **real** simulator captures on **branded gradient backgrounds** with bold headline copy — no fake AI UI, no orbit-arc plate overlays.
+
+## Layout
+
+| Zone | Share of canvas | Content |
+|---|---|---|
+| Copy | Top ~33% | Centered headline + optional subhead |
+| Device | Lower ~67% | Real capture in rounded phone frame (940 px wide) |
+| Background | Full bleed | Dark violet gradient (`#6565E9` / `#7A7AFA`) or soft brand wash (light shots) |
+
+Canvas: **1290 × 2796** (6.7" ASC primary). Brand tagline: *Every model. One app. Your device.*
 
 ## Prerequisites
 
 | Requirement | Notes |
 |---|---|
 | **macOS** | Export script is Mac-only (`compose.sh`) |
-| Raw captures | `screenshots/compose/raw/shot-01.png` … `shot-07.png` |
-| Brand assets | `website/assets/openchat-mark.png`, `openchat-logo-dark.png` (committed) |
+| Raw captures | `shot-01.png` … `shot-07.png` in `screenshots/compose/raw/`, `screenshots/raw/`, or `screenshots/final/` |
 | Headless browser | Google Chrome (preferred) or Playwright (`npx playwright install chromium`) |
 
-Raw captures are produced on Mac with `./scripts/capture-screenshots.sh` (writes to `screenshots/raw/` by default). Copy or symlink into `screenshots/compose/raw/` before composing:
+Raw captures are produced on Mac with `./scripts/capture-screenshots.sh` (writes to `screenshots/raw/` by default). Copy or symlink into `screenshots/compose/raw/` if needed:
 
 ```bash
 mkdir -p screenshots/compose/raw
 cp screenshots/raw/shot-*.png screenshots/compose/raw/
 ```
 
-Simulator captures are often **1320×2868** (iPhone 16 Pro Max). The compositor scales them into the **1290×2796** ASC 6.7" frame via `object-fit: cover`.
+Simulator captures are often **1320×2868** (iPhone 16 Pro Max). The compositor scales them inside the device frame at export width.
+
+### Capture content requirements
+
+| Shot | Raw screen | Capture notes |
+|---|---|---|
+| 01 | Welcome / Connect a Provider | Dark mode |
+| 02 | Active chat + code | Dark mode; show **GPT-6 Astra** or **Claude Fable** in chat header |
+| 03 | Model picker | Light mode; multiple providers visible |
+| 04 | Settings → Providers | Light mode; **OpenRouter listed first**, then other providers |
+| 05 | Web search settings | Light mode |
+| 06 | Rules or memory | Dark mode |
+| 07 | Skills + `/` menu | Dark mode |
 
 ## Usage
 
 ### Preview (any OS)
 
-Open `scripts/compose-screenshots/index.html` in a browser. All seven plates stack vertically.
+Open `scripts/compose-screenshots/index.html` in a browser. All seven shots stack vertically.
 
-Single-plate export preview: append `?plate=01` (… `07`) to hide other plates.
+Single-shot export preview: append `?shot=01` (… `07`).
 
 ### Export (macOS only)
 
@@ -37,44 +58,37 @@ Single-plate export preview: append `?plate=01` (… `07`) to hide other plates.
 Options:
 
 ```bash
-./scripts/compose-screenshots/compose.sh --plate 03   # one plate
+./scripts/compose-screenshots/compose.sh --shot 03
+./scripts/compose-screenshots/compose.sh --raw-dir screenshots/raw
 OUT_DIR=/tmp/asc ./scripts/compose-screenshots/compose.sh
 ```
 
-Output: `screenshots/final/shot-NN.png` (gitignored).
+Output: `screenshots/final/chatgpt-style/shot-NN.png` (gitignored).
 
-## Plates
+`--plate` is accepted as an alias for `--shot`.
 
-| Plate | Raw | Mode | Headline | Subhead | Mark |
-|---|---|---|---|---|---|
-| 01 | shot-01 | dark | Every model. One app. | Your device. Your keys. | 96×96 top-right (`openchat-mark.png`) |
-| 02 | shot-02 | dark | Native chat with Markdown & code | — | — |
-| 03 | shot-03 | light | Switch providers without switching apps | — | — |
-| 04 | shot-04 | light | Your keys, your providers | Bring your own key | — |
-| 05 | shot-05 | light | Optional web search, your keys | — | — |
-| 06 | shot-06 | dark | Steer behavior with rules & memory | — | — |
-| 07 | shot-07 | dark | Reusable prompts with / commands | — | — |
+## Shots
 
-Copy matches `docs/launch/screenshot-guide.md` exactly.
+| Shot | Mode | Headline | Subhead |
+|---|---|---|---|
+| 01 | dark | Every model. One app. | Your device. Your keys. (+ brand tagline) |
+| 02 | dark | Native chat with Markdown & code | — |
+| 03 | light | Switch providers without switching apps | — |
+| 04 | light | Your keys, your providers | Bring your own key |
+| 05 | light | Optional web search, your keys | — |
+| 06 | dark | Steer behavior with rules & memory | — |
+| 07 | dark | Reusable prompts with / commands | — |
 
-## Geometry (1290×2796)
-
-Derived from `screenshot-guide.md` overlay guidelines:
-
-- Canvas: 1290 × 2796 px
-- Headline: SF Pro Display bold, 52 px, left margin 60 px, top 132 px
-- Subhead: SF Pro Display regular, 32 px, 16 px below headline
-- Dark plates: white text + top gradient scrim
-- Light plates: `#1d1d1f` text + light gradient scrim
-- Plate 01 mark: 96 × 96 px, 60 px from top and right
+Copy matches `docs/launch/screenshot-guide.md`.
 
 ## Verification checklist
 
-- [ ] All seven raw PNGs exist under `screenshots/compose/raw/`
+- [ ] All seven raw PNGs exist (compose/raw, raw, or final)
 - [ ] `compose.sh` exits 0 on Mac
-- [ ] Each `screenshots/final/shot-NN.png` is **1290×2796**
+- [ ] Each output PNG is **1290×2796**
 - [ ] Headlines match `screenshot-guide.md` verbatim
-- [ ] Plate 01 shows `openchat-mark.png` at 96×96 top-right
+- [ ] Shot 02 header shows GPT-6 Astra or Claude Fable
+- [ ] Shot 04 lists OpenRouter first
 - [ ] No API keys, balances, or personal data visible in raw captures
 - [ ] Upload order: 01 → 07 per ASC paste bundle
 
@@ -82,6 +96,6 @@ Derived from `screenshot-guide.md` overlay guidelines:
 
 | File | Purpose |
 |---|---|
-| `index.html` | Seven `<section>` plates; `?plate=NN` for export |
-| `compose.css` | Fixed canvas + plate-specific layout |
-| `compose.sh` | Mac headless export to `screenshots/final/` |
+| `index.html` | Seven `<section>` shots; `?shot=NN` for export |
+| `compose.css` | Branded gradient + device frame geometry |
+| `compose.sh` | Mac headless export to `screenshots/final/chatgpt-style/` |
