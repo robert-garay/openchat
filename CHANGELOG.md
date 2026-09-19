@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- App Store build targets iPhone only (`TARGETED_DEVICE_FAMILY: 1`) for OpenChat and OpenChatLiveActivity.
 - Settings no longer shows a beta badge on the Skills row.
 - Settings provider add and edit screens now show the provider logo beside the provider name in the navigation bar.
 - Temporary-chat toolbar button now uses the system eye-slash symbol instead of a custom ghost icon.
