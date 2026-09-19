@@ -3,16 +3,16 @@
 ## Subject line options
 
 - OpenChat: native iOS app for every major LLM (BYOK, open source)
-- Introducing OpenChat: one iOS app for OpenRouter, DeepSeek, Qwen, and open models
+- Introducing OpenChat: one iOS app for OpenAI, Claude, Gemini, and more
 - [Personalized] Thought you'd be interested in OpenChat for iOS
 
 ## Email body
 
 Hi [Name],
 
-I'm reaching out because [personalized reason, e.g., "you've covered multi-model AI workflows" / "your audience cares about privacy-first tools" / "you reviewed [similar app]"].
+I'm reaching out because [personalized reason: e.g., "you've covered multi-model AI workflows" / "your audience cares about privacy-first tools" / "you reviewed [similar app]"].
 
-I'm launching **OpenChat**, a native iOS app that lets you chat with every major LLM from one interface: OpenRouter, DeepSeek, Qwen, Mistral, Llama, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM). Direct OpenAI, Anthropic, and Gemini keys work too when you need a flagship.
+I'm launching **OpenChat**, a native iOS app that lets you chat with every major LLM from one interface: OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Anthropic, Google Gemini, and any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM).
 
 **What makes it different:**
 - **Bring your own key**: no OpenChat account; API keys stored in iOS Keychain
@@ -20,7 +20,7 @@ I'm launching **OpenChat**, a native iOS app that lets you chat with every major
 - **Open source** (MIT): github.com/robert-garay/openchat
 - **No analytics or ads**: requests go directly to providers you configure
 
-OpenChat is built for people who route by price and quality. Pay for performance, not a logo. One native workflow instead of five separate apps.
+OpenChat is built for people who use multiple AI providers and want one native workflow instead of five separate apps.
 
 **Links:**
 - Landing page: https://robert-garay.github.io/openchat/
