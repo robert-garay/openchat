@@ -1,0 +1,20 @@
+OpenChat is the native iOS home for every major LLM.
+
+Connect your own API keys and chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Mistral, DeepSeek, Qwen, Kimi, Z.ai, 01.AI, or any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, internal gateways) from one clean interface.
+
+Why OpenChat
+- One workflow across providers — switch models without changing apps
+- Live model catalogs from supported providers
+- Bring your own key (BYOK) — no OpenChat account, no backend
+- Chats, rules, memory, and skills stay on your device
+
+Features
+- Multi-provider chat with streaming Markdown, tables, and syntax-highlighted code
+- Web search via Tavily, Exa, Brave, Serper, or SerpAPI (your keys)
+- Global and per-chat rules; editable memory; slash-command skills (beta)
+- Image attachments for vision models; background replies with Live Activity and local notification when complete
+- Compact context mode and light/dark appearance
+
+OpenChat does not include ads or analytics SDKs. When you send a message, data goes directly from your device to the AI or search provider you configured, under that provider's terms.
+
+Questions: open an issue on GitHub or email robert@genion.ai.

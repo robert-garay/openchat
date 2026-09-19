@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - App Store metadata draft in `docs/app-store-metadata.md`.
 - App Store launch execution kit: ASC paste bundle, launch checklist, Fastlane skeleton, and simulator screenshot script (`docs/launch/`, `fastlane/`, `scripts/capture-screenshots.sh`).
 - Deterministic HTML/CSS screenshot compositor (`scripts/compose-screenshots/`) for headline overlays on raw simulator captures; export via `compose.sh` on macOS.
+- Fastlane `submit_app` lane and `fastlane/metadata/en-US/` deliver files for App Store submission after build, metadata, and screenshots are ready.
 
 ### Changed
 
