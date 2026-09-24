@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WelcomeView: View {
     @State private var showingAddProvider = false
+    @State private var showingLocalModels = false
 
     private let highlights: [(icon: String, title: String, subtitle: String)] = [
         ("square.stack.3d.up.fill", "Any Model, Any Provider", "Connect OpenAI, Claude, Gemini, OpenRouter, open models, or your own endpoint — switch anytime."),
@@ -52,22 +53,39 @@ struct WelcomeView: View {
 
             Spacer(minLength: 24)
 
-            Button {
-                Haptics.light()
-                showingAddProvider = true
-            } label: {
-                Text("Connect a Provider")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+            VStack(spacing: 12) {
+                Button {
+                    Haptics.light()
+                    showingAddProvider = true
+                } label: {
+                    Text("Connect a Provider")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+
+                Button {
+                    Haptics.light()
+                    showingLocalModels = true
+                } label: {
+                    Text("Run Models on This Device")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
             .padding(.horizontal, 28)
             .padding(.bottom, 24)
         }
         .sheet(isPresented: $showingAddProvider) {
             AddProviderView()
+        }
+        .sheet(isPresented: $showingLocalModels) {
+            LocalModelsOnboardingView()
         }
     }
 }

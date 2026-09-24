@@ -64,6 +64,7 @@
 		3DEC186E77E53B5546B37AA5 /* MemoryActionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBFA78292C34C4CA8FBAF53 /* MemoryActionParserTests.swift */; };
 		3ED841FADCE12AE77AB278CB /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89F6F50E4A9F7EA537552BC /* ChatMessage.swift */; };
 		3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E2480EE347BF9E56152366 /* WelcomeView.swift */; };
+		E5B9A3D20F4C5B6E9A7F8D01 /* LocalModelsOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A8F2C19E3B4A5D8F6E7C90 /* LocalModelsOnboardingView.swift */; };
 		3F2903AAABFD3AF5EB3C901C /* ProviderBalanceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7660E53D7D78D2E9F0582C03 /* ProviderBalanceClientTests.swift */; };
 		3F694008E6DCD7D9FF3E3143 /* ConversationTitleGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9D07425A56E94382CA05B8 /* ConversationTitleGenerator.swift */; };
 		3FA5F6BF3C689CC8E1575DA1 /* NetworkConnectivityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAFF976F923B734C25B16BBF /* NetworkConnectivityStore.swift */; };
@@ -251,6 +252,7 @@
 		12CDF1813E984EAC421E082F /* ChatTurn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTurn.swift; sourceTree = "<group>"; };
 		1692A75A2DCFA5BCF9779CC5 /* DataSourcesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourcesSettingsView.swift; sourceTree = "<group>"; };
 		16E2480EE347BF9E56152366 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		D4A8F2C19E3B4A5D8F6E7C90 /* LocalModelsOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelsOnboardingView.swift; sourceTree = "<group>"; };
 		16F332162541FC9583006859 /* ProviderTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderTemplate.swift; sourceTree = "<group>"; };
 		171BE7CFCD7882F664507EAB /* ChatSystemPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSystemPromptBuilder.swift; sourceTree = "<group>"; };
 		1745956DAC025A4C06B5C09B /* VoiceConversationControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceConversationControllerTests.swift; sourceTree = "<group>"; };
@@ -808,6 +810,7 @@
 		FBFEFC9B6A4B7A62908F81C7 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				D4A8F2C19E3B4A5D8F6E7C90 /* LocalModelsOnboardingView.swift */,
 				16E2480EE347BF9E56152366 /* WelcomeView.swift */,
 			);
 			path = Onboarding;
@@ -1076,6 +1079,7 @@
 				4C4EEDE88A878C8665424ED4 /* WebSearchService.swift in Sources */,
 				47284C1919392B64A9139F82 /* WebSearchSettingsView.swift in Sources */,
 				40561DBFFF62BF8BCB1B2649 /* WebSearchStore.swift in Sources */,
+				E5B9A3D20F4C5B6E9A7F8D01 /* LocalModelsOnboardingView.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
