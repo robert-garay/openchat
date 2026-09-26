@@ -26,7 +26,7 @@ I built OpenChat because I kept switching between separate apps every time a dif
 
 **Open source:** MIT: https://github.com/robert-garay/openchat
 
-**App Store:** Coming soon. Landing page: https://robert-garay.github.io/openchat/
+**App Store:** https://apps.apple.com/us/app/openchat-connect/id6798106079 · Landing page: https://robert-garay.github.io/openchat/
 
 **Requirements:** BYOK: you need your own API key from a supported provider. The app is free; you pay providers directly.
 
