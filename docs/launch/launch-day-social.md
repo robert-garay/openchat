@@ -11,7 +11,7 @@ Native iOS home for OpenRouter, DeepSeek, Qwen, Mistral, OpenAI, Claude, Gemini,
 
 BYOK. No backend. No analytics. Open source.
 
-[App Store link]
+https://apps.apple.com/us/app/openchat-connect/id6798106079
 https://robert-garay.github.io/openchat/
 
 **Tweet 2 (problem/solution)**
@@ -58,7 +58,7 @@ What matters to me:
 
 Features include streaming Markdown, live model catalogs, optional web search, rules & memory, and support for self-hosted endpoints.
 
-[App Store link when live]
+https://apps.apple.com/us/app/openchat-connect/id6798106079
 Landing page: https://robert-garay.github.io/openchat/
 
 If you try it, I'd love your feedback.
@@ -87,7 +87,7 @@ I built OpenChat, a native iOS chat app for multiple LLM providers. Thought this
 
 **Open source:** https://github.com/robert-garay/openchat (MIT)
 
-**App Store:** [link when live]
+**App Store:** https://apps.apple.com/us/app/openchat-connect/id6798106079
 
 Happy to discuss implementation details: concurrency model, SwiftData schema, provider client architecture, etc.
 
@@ -114,6 +114,6 @@ Built a native iOS app for multi-provider LLM chat, including full support for c
 
 **Open source:** https://github.com/robert-garay/openchat
 
-**App Store:** [link when live] | Landing: https://robert-garay.github.io/openchat/
+**App Store:** https://apps.apple.com/us/app/openchat-connect/id6798106079 | Landing: https://robert-garay.github.io/openchat/
 
 Would love feedback from folks running local models: especially around endpoint configuration and model discovery.

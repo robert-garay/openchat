@@ -90,3 +90,25 @@ a:hover { text-decoration: underline; }
 @media (max-width: 600px) {
     .site-nav-links { display: none; }
 }
+
+.app-store-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--accent);
+    color: #fff;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.app-store-cta:hover {
+    background: var(--accent-hover);
+    color: #fff;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
