@@ -218,7 +218,6 @@ struct ChatView: View {
                     message: message,
                     supportsVision: viewModel.supportsVision,
                     modelDisplayName: viewModel.currentModel?.displayName,
-                    trailingMessageCount: conversation.messages(after: message).count,
                     onCancel: {
                         viewModel.cancelEditing()
                     },
