@@ -1110,7 +1110,6 @@
 				02BD71BC2BED311684CCA6AC /* ConversationUnreadTests.swift in Sources */,
 				71E0EA719984C7C5E98AC3BD /* DocumentAttachmentTests.swift in Sources */,
 				5E332FDFB6FDC2DE4D79DA0C /* EffortLevelTests.swift in Sources */,
-				5E3F9C0A2978FBD3ED6C56EA /* LocalModelRecommendationTests.swift in Sources */,
 				73A09DDE5E5D71927B9AF1FE /* FakeRealtimeVoiceTransport.swift in Sources */,
 				B175A9A3ED82D3C52E30FCE8 /* FakeVoiceAudioEngine.swift in Sources */,
 				84990B5D4C2B7EAB1FD4D710 /* FuzzyMatcherTests.swift in Sources */,
