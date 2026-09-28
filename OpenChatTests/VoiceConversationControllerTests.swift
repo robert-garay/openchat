@@ -3,6 +3,7 @@ import SwiftData
 import Testing
 @testable import OpenChat
 
+@Suite(.serialized)
 @MainActor
 @Suite(.serialized)
 struct VoiceConversationControllerTests {
