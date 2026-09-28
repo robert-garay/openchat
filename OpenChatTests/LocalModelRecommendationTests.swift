@@ -3,10 +3,11 @@ import XCTest
 
 final class LocalModelRecommendationTests: XCTestCase {
     func testDeviceTierFromPhysicalMemory() {
-        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: 4_000_000_000), .legacy4GB)
-        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: 6_000_000_000), .standard6GB)
-        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: 8_000_000_000), .performance8GB)
-        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: 12_000_000_000), .high12GB)
+        let gib = 1_073_741_824
+        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: UInt64(4 * gib)), .legacy4GB)
+        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: UInt64(6 * gib)), .standard6GB)
+        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: UInt64(8 * gib)), .performance8GB)
+        XCTAssertEqual(DeviceTier.from(physicalMemoryBytes: UInt64(12 * gib)), .high12GB)
     }
 
     func testStandard6EverydayPrefersQwen15B() {
