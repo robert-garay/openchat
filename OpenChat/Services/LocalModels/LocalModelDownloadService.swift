@@ -79,7 +79,12 @@ enum LocalModelDownloadService {
                 throw LocalModelsError.checksumMismatch(path: file.path)
             }
 
-            let bytesForFile = file.bytes ?? (try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+            let bytesForFile: Int
+            if let knownBytes = file.bytes {
+                bytesForFile = knownBytes
+            } else {
+                bytesForFile = try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+            }
             received += bytesForFile
             let fraction = totalBytes > 0 ? Double(received) / Double(totalBytes) : 1
             progress(
