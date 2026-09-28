@@ -4,7 +4,6 @@ import Testing
 @testable import OpenChat
 
 @MainActor
-@Suite(.serialized)
 struct VoiceConversationControllerTests {
     private struct Environment {
         let controller: VoiceConversationController
