@@ -23,6 +23,9 @@ packages:
   SwiftStreamingMarkdown:
     url: https://github.com/microsoft/SwiftStreamingMarkdown
     revision: b7b82b6a63e33cd3d41366ac76de6216d1bcf1a4
+  mlx-swift:
+    url: https://github.com/ml-explore/mlx-swift
+    version: 0.31.4
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm
     revision: 3.31.4
@@ -49,6 +52,8 @@ targets:
     dependencies:
       - sdk: AppIntents.framework
       - package: SwiftStreamingMarkdown
+      - package: mlx-swift
+        product: MLX
       - package: mlx-swift-lm
         product: MLXLLM
       - package: mlx-swift-lm
