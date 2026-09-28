@@ -202,6 +202,23 @@ final class ProviderStore {
         persist()
     }
 
+    /// Injects or removes the synthetic on-device provider when local MLX models are ready.
+    func syncOnDeviceProvider(models: [AIModel]) {
+        let id = OnDeviceProvider.providerID
+        if models.isEmpty {
+            providers.removeAll { $0.id == id }
+            persist()
+            return
+        }
+        let provider = OnDeviceProvider.configuredProvider(models: models)
+        if let index = providers.firstIndex(where: { $0.id == id }) {
+            providers[index] = provider
+        } else {
+            providers.append(provider)
+        }
+        persist()
+    }
+
     @discardableResult
     func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool, logoID: String? = nil) -> ConfiguredProvider? {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)

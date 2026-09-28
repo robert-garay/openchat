@@ -87,9 +87,9 @@ extension BackgroundGenerationService {
         effectiveEffortLevel: EffortLevel?,
         effectiveReasoningEnabled: Bool?
     ) async throws -> BuildTurnsResult {
-        let supportsTools = model.supportsTools
-        let supportsVision = model.supportsVision
-        let supportsFiles = model.supportsFiles
+        let supportsTools = model.supportsTools && !provider.usesLocalInference
+        let supportsVision = model.supportsVision && !provider.usesLocalInference
+        let supportsFiles = model.supportsFiles && !provider.usesLocalInference
         let skillToolsEnabled = skillsStore.isEnabled && supportsTools
         let skillMatches = fetchSkillMatches(using: skillsStore, modelContext: modelContext)
         let skillIndex = skillToolsEnabled ? SkillResolver.index(from: skillMatches) : nil
@@ -110,10 +110,12 @@ extension BackgroundGenerationService {
         let searchAPIKey = webSearchStore.activeAPIKey()
         let searchProviderName = webSearchStore.activeProviderDisplayName
         let searchClient = webSearchStore.makeActiveClient()
-        let searchMode = WebSearchService.preferredMode(
-            supportsTools: supportsTools,
-            isActive: webSearchStore.isActive && !latestUserText.isEmpty
-        )
+        let searchMode: WebSearchMode? = provider.usesLocalInference
+            ? nil
+            : WebSearchService.preferredMode(
+                supportsTools: supportsTools,
+                isActive: webSearchStore.isActive && !latestUserText.isEmpty
+            )
 
         var middleSections: [String] = []
 

@@ -239,6 +239,7 @@ final class ChatViewModel {
     /// provider/model, same as web search or skills being available everywhere
     /// once turned on. Gated on the feature being enabled and an OpenAI key existing.
     var canUseVoiceMode: Bool {
+        guard currentProvider?.usesLocalInference != true else { return false }
         guard VoiceModeStore.isFeatureVisible,
               voiceModeStore.isEnabled,
               !voiceModeStore.modelID.isEmpty,
@@ -347,7 +348,7 @@ final class ChatViewModel {
         }
 
         isCompacting = true
-        let client = ChatService.client(for: provider.apiFormat)
+        let client = ChatService.client(for: provider)
         let baseURL = provider.baseURL
         let modelID = model.id
         let existingSummary = conversation.compactedSummary
@@ -487,7 +488,7 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
-        let client = ChatService.client(for: provider.apiFormat)
+        let client = ChatService.client(for: provider)
         let baseURL = provider.baseURL
         let modelID = model.id
         let conversationID = conversation.id

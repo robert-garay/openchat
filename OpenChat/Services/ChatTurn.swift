@@ -45,6 +45,7 @@ enum ChatServiceError: LocalizedError {
     case modelLacksFiles
     case serviceNotConfigured
     case providerOrModelNotFound
+    case localInferenceUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -81,6 +82,8 @@ enum ChatServiceError: LocalizedError {
             return "This model can't process images. Choose a vision-capable model."
         case .modelLacksFiles:
             return "This model can't process documents. Choose a model marked with a doc icon."
+        case .localInferenceUnavailable:
+            return "On-device inference requires a physical iPhone with a downloaded MLX model."
         }
     }
 
