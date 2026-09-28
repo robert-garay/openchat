@@ -20,9 +20,9 @@ actor LocalMLXRuntime {
         #endif
     }
 
-    func unloadIfLoaded(modelID: String) async {
+    func unloadIfLoaded(modelID: String) {
         if loadedModelID == modelID {
-            await unload()
+            unload()
         }
     }
 

@@ -8,7 +8,7 @@ final class LocalModelInstallStore: Sendable {
 
     init(directory: URL? = nil) {
         let base = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let root = base.appendingPathComponent("LocalModels", isDirectory: true)
+        var root = base.appendingPathComponent("LocalModels", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         fileURL = root.appendingPathComponent("install-state.json")
         var values = URLResourceValues()

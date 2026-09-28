@@ -10,18 +10,21 @@ struct LocalModelDownloadProgress: Sendable {
 
 enum LocalModelDownloadService {
     static func isOnWiFi() -> Bool {
+        final class WiFiResult: @unchecked Sendable {
+            var isWiFi = false
+        }
+        let result = WiFiResult()
         let monitor = NWPathMonitor()
         let semaphore = DispatchSemaphore(value: 0)
-        var wifi = false
         monitor.pathUpdateHandler = { path in
-            wifi = path.status == .satisfied && path.usesInterfaceType(.wifi)
+            result.isWiFi = path.status == .satisfied && path.usesInterfaceType(.wifi)
             semaphore.signal()
         }
         let queue = DispatchQueue(label: "com.openchat.local-models.wifi-check")
         monitor.start(queue: queue)
         _ = semaphore.wait(timeout: .now() + 2)
         monitor.cancel()
-        return wifi
+        return result.isWiFi
     }
 
     static func download(
@@ -76,7 +79,8 @@ enum LocalModelDownloadService {
                 throw LocalModelsError.checksumMismatch(path: file.path)
             }
 
-            received += file.bytes ?? (try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+            let bytesForFile = file.bytes ?? (try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+            received += bytesForFile
             let fraction = totalBytes > 0 ? Double(received) / Double(totalBytes) : 1
             progress(
                 LocalModelDownloadProgress(
@@ -97,9 +101,10 @@ enum LocalModelDownloadService {
             throw LocalModelsError.bundleChecksumMismatch
         }
 
+        var excludedFromBackup = modelDir
         var values = URLResourceValues()
         values.isExcludedFromBackup = true
-        try? modelDir.setResourceValues(values)
+        try? excludedFromBackup.setResourceValues(values)
         _ = manifestVersion
     }
 }
