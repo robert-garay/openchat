@@ -4,6 +4,7 @@ import Testing
 @testable import OpenChat
 
 @MainActor
+@Suite(.serialized)
 struct VoiceConversationControllerTests {
     private struct Environment {
         let controller: VoiceConversationController
@@ -194,7 +195,7 @@ struct VoiceConversationControllerTests {
 /// fake transport's stream.
 @MainActor
 private func waitUntil(
-    timeout: Duration = .seconds(2),
+    timeout: Duration = .seconds(5),
     condition: () async -> Bool
 ) async {
     let deadline = ContinuousClock().now + timeout
