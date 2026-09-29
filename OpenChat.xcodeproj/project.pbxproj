@@ -42,8 +42,8 @@
 		2064978DB258A64E30FC3280 /* DeviceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19603119EFF8FED48654E902 /* DeviceContext.swift */; };
 		20E6A96BC77CE2F67D90B820 /* WebSearchProviderKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3E2F8F364E8D6943DA0E8D /* WebSearchProviderKind.swift */; };
 		230922FDF937DD44BFCB0C9F /* LocalModelsOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD3DD3AA29ACCD163A1BF53F /* LocalModelsOnboardingView.swift */; };
-		E7F8A9B0C1D2E3F4A5B6C7D9 /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7F8A9B0C1D2E3F4A5B6C7D8 /* FirstLaunchOnboardingView.swift */; };
-		F1E2D3C4B5A6978877665545 /* OnboardingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6978877665544 /* OnboardingSetup.swift */; };
+		25EF8161BC2EF4AF2218DB4A /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */; };
+		895C954C776580B7DF742331 /* OnboardingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139A5FCEF955999974465154 /* OnboardingSetup.swift */; };
 		232FB9503B65345B6BD13F89 /* RuleProposal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55994F4010C2D8C62F43A7D0 /* RuleProposal.swift */; };
 		24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E408E0B42EFBC919C5DA55F9 /* ModelRecommendation.swift */; };
 		27E0A1595D96E5C6BD27BD28 /* LocalModelsManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC706943FBFF75720A0FA4B /* LocalModelsManifest.swift */; };
@@ -481,8 +481,8 @@
 		FBD704F8BFB7D0CBAA94EB16 /* LocalModelInstallStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelInstallStore.swift; sourceTree = "<group>"; };
 		FCDA60F07EBC0A7BA930CCE6 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		FD3DD3AA29ACCD163A1BF53F /* LocalModelsOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelsOnboardingView.swift; sourceTree = "<group>"; };
-		E7F8A9B0C1D2E3F4A5B6C7D8 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A6978877665544 /* OnboardingSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSetup.swift; sourceTree = "<group>"; };
+		A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
+		139A5FCEF955999974465154 /* OnboardingSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSetup.swift; sourceTree = "<group>"; };
 		FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageMarkdownSourceTests.swift; sourceTree = "<group>"; };
 		FF89C8826C60DB61095BBC67 /* VoiceModeStoreRealtimeModelFetchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceModeStoreRealtimeModelFetchTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -898,10 +898,10 @@
 		FBFEFC9B6A4B7A62908F81C7 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
-				E7F8A9B0C1D2E3F4A5B6C7D8 /* FirstLaunchOnboardingView.swift */,
+				A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */,
 				4243118137ADD5484227FE6A /* IntelligencePreference+UI.swift */,
 				FD3DD3AA29ACCD163A1BF53F /* LocalModelsOnboardingView.swift */,
-				F1E2D3C4B5A6978877665544 /* OnboardingSetup.swift */,
+				139A5FCEF955999974465154 /* OnboardingSetup.swift */,
 				16E2480EE347BF9E56152366 /* WelcomeView.swift */,
 			);
 			path = Onboarding;
@@ -1100,6 +1100,7 @@
 				57D3AE2B503528502E84742F /* EffortLevel.swift in Sources */,
 				145D54C59CDC58A2738412E8 /* EffortLevelPicker.swift in Sources */,
 				892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */,
+				25EF8161BC2EF4AF2218DB4A /* FirstLaunchOnboardingView.swift in Sources */,
 				BD1770BB13C4C00FDB3F807C /* FuzzyMatcher.swift in Sources */,
 				55E2C2A686CC5507F008196B /* GeneratedImageDeduper.swift in Sources */,
 				48FA6F4340BCF3C68631D685 /* Haptics.swift in Sources */,
@@ -1141,6 +1142,7 @@
 				D87241FD376F50840C09E998 /* NotificationService.swift in Sources */,
 				799CE38A925F44112A5DB36F /* OfflineBanner.swift in Sources */,
 				690C3CFC5945C944E4430AFA /* OnDeviceProvider.swift in Sources */,
+				895C954C776580B7DF742331 /* OnboardingSetup.swift in Sources */,
 				B3971BFBB5789756EB4C07A8 /* OpenAICompatibleClient+WireTypes.swift in Sources */,
 				2F6256E09BD17C411E6D1EC0 /* OpenAICompatibleClient.swift in Sources */,
 				1A119AC1DE51E2759BC49060 /* OpenChatApp.swift in Sources */,
@@ -1195,8 +1197,6 @@
 				47284C1919392B64A9139F82 /* WebSearchSettingsView.swift in Sources */,
 				40561DBFFF62BF8BCB1B2649 /* WebSearchStore.swift in Sources */,
 				3EE51EEF1BE0F271229CFBF9 /* WelcomeView.swift in Sources */,
-				E7F8A9B0C1D2E3F4A5B6C7D9 /* FirstLaunchOnboardingView.swift in Sources */,
-				F1E2D3C4B5A6978877665545 /* OnboardingSetup.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
