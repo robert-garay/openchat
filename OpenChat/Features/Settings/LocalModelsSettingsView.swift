@@ -4,6 +4,7 @@ struct LocalModelsSettingsView: View {
     @Environment(LocalModelStore.self) private var localModelStore
     @Environment(ProviderStore.self) private var providerStore
     @State private var showingOnboarding = false
+    @State private var showRecommendationWhy = false
 
     var body: some View {
         List {
@@ -14,10 +15,31 @@ struct LocalModelsSettingsView: View {
                 }
             }
 
-            Section {
-                Text("Optimized for \(localModelStore.deviceTier.displayLabel). On-device models keep chat private after download; they are not a substitute for large cloud models.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            if let result = localModelStore.recommendationResult() {
+                Section {
+                    Text(result.deviceSummary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    if let primary = result.primary {
+                        LabeledContent("Suggested model", value: primary.entry.displayName)
+                        Text(primary.pickLabel.title)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    DisclosureGroup("Why this suggestion?", isExpanded: $showRecommendationWhy) {
+                        ForEach(result.reasons) { reason in
+                            Text(reason.message)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } else {
+                Section {
+                    Text("Optimized for \(localModelStore.deviceTier.displayLabel). On-device models keep chat private after download; they are not a substitute for large cloud models.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("Installed") {
