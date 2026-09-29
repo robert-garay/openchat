@@ -323,6 +323,84 @@
           "bytes": 7308
         }
       ]
+    },
+    {
+      "displayName": "Phi-3.5 mini (4-bit)",
+      "tier": "performance8",
+      "intelligenceLevel": "everyday",
+      "minRAMGB": 8,
+      "recommendedDevices": [
+        "iPhone 15 Pro+ (8 GB)"
+      ],
+      "chatTemplate": "phi3",
+      "defaultForTier": false,
+      "id": "mlx-community/Phi-3.5-mini-instruct-4bit",
+      "mlxModelID": "mlx-community/Phi-3.5-mini-instruct-4bit",
+      "bytes": 2152172155,
+      "sha256": "282e853a13630a52519f5372a9eb7c5f110017019d7c4fe8d1a1b6468fd660d5",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/config.json",
+          "sha256": "6db0d08266c26038265c3a523917ff89214c4fd5893adbbb2cbca3128b9fa1d0",
+          "bytes": 4149
+        },
+        {
+          "path": "configuration_phi3.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/configuration_phi3.py",
+          "sha256": "d25f57c0823fcb9753880a25e79ab562b039d6187102ac13e4ff26dd11e9a81c",
+          "bytes": 11153
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "37e64496aa28fa5d5e4f29561f435defcbf6f7c8387f360c0aed45d37b93dfd7",
+          "bytes": 2149696133
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "4ef199a5c6c29fa54d84d3710bfad4b5424b75bbd68872f9e1e12234bd3fd9c3",
+          "bytes": 32695
+        },
+        {
+          "path": "modeling_phi3.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/modeling_phi3.py",
+          "sha256": "e737b46584be3ee907165eab54d8b18a18214acca4392a3ac9cbf37dbf9d3302",
+          "bytes": 73814
+        },
+        {
+          "path": "sample_finetune.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/sample_finetune.py",
+          "sha256": "efb628083228e5248b7dff300e038964ea98b5c170c7544befa63b2675ae8491",
+          "bytes": 6131
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "474d699677e264edd3851559548cbbb61801ad8da6b249c81455007602313c34",
+          "bytes": 569
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "d0f067e1e15cd0a36ebef3668024882cb67a80b86fb4b7b4b128481f0d474db7",
+          "bytes": 1844436
+        },
+        {
+          "path": "tokenizer.model",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer.model",
+          "sha256": "9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347",
+          "bytes": 499723
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "cf1de23ab67807aed30e5145164c405c8c92890ca546112dd010de510fac3d1f",
+          "bytes": 3352
+        }
+      ]
     }
   ]
 }

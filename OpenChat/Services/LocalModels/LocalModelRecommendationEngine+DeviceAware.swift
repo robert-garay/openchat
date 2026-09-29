@@ -8,11 +8,15 @@ extension LocalModelRecommendationEngine {
         let tier = context.deviceTier
         let catalogOrder = recommendedModels(
             deviceTier: tier,
-            preference: context.intelligencePreference
+            preference: context.intelligencePreference,
+            manifest: manifest
         ).map(\.mlxModelID)
 
+        let allowedRankIDs = allCatalogModelIDs()
         let downloadable = manifest.models.filter { entry in
-            entry.isDownloadable && entry.minRAMGB <= tier.minRAMGB
+            entry.isDownloadable
+                && entry.minRAMGB <= tier.minRAMGB
+                && allowedRankIDs.contains(entry.mlxModelID)
         }
 
         var scored: [(entry: LocalModelManifestEntry, score: Int)] = []

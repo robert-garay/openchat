@@ -5,7 +5,7 @@ final class LocalModelsManifestTests: XCTestCase {
     func testBundledManifestParsesAndValidates() throws {
         let manifest = try LocalModelsManifestLoader.loadBundled()
         XCTAssertEqual(manifest.version, 2)
-        XCTAssertGreaterThanOrEqual(manifest.models.count, 6)
+        XCTAssertGreaterThanOrEqual(manifest.models.count, 7)
         let llama = try XCTUnwrap(manifest.models.first { $0.mlxModelID.contains("Llama-3.2-1B") })
         XCTAssertFalse(llama.files.isEmpty)
         XCTAssertTrue(llama.isDownloadable)

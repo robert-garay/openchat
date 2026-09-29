@@ -26,14 +26,26 @@ final class LocalModelRecommendationTests: XCTestCase {
         XCTAssertFalse(models.contains { $0.mlxModelID.contains("3B") })
     }
 
-    func testPerformance8BestIncludes3BAnd4B() {
+    func testPerformance8BestIncludesPinned3BModels() {
         let models = LocalModelRecommendationEngine.recommendedModels(
             deviceTier: .performance8GB,
             preference: .bestOnDevice
         )
         let ids = Set(models.map(\.mlxModelID))
         XCTAssertTrue(ids.contains("mlx-community/Qwen2.5-3B-Instruct-4bit"))
-        XCTAssertTrue(ids.contains("mlx-community/Qwen3-4B-Instruct-2507-4bit"))
+        XCTAssertTrue(ids.contains("mlx-community/Llama-3.2-3B-Instruct-4bit"))
+        XCTAssertFalse(ids.contains("mlx-community/Qwen3-4B-Instruct-2507-4bit"))
+    }
+
+    func testEveryCatalogIDIsDownloadableInBundledManifest() throws {
+        let manifest = try LocalModelsManifestLoader.loadBundled()
+        let downloadable = Set(manifest.models.filter(\.isDownloadable).map(\.mlxModelID))
+        for modelID in LocalModelRecommendationEngine.allCatalogModelIDs() {
+            XCTAssertTrue(
+                downloadable.contains(modelID),
+                "Catalog references \(modelID) but it is not a downloadable bundled manifest entry"
+            )
+        }
     }
 
     func testLegacy4BestCapsAt06B() {
