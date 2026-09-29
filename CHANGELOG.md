@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - On-device MLX chat (Phase 1–2): curated manifest download with SHA-256 verification, Welcome/Settings onboarding, synthetic **On This Device** provider (`openchat-ondevice`), and `LocalMLXClient` streaming via mlx-swift-lm (device-only; tools/voice disabled for local path in v1).
 - On-device MLX model recommendations (`docs/local-models-manifest-spec.md`) and `LocalModelRecommendation` selection logic for RAM tier + intelligence preference.
+- Device-aware local model picks: RAM, storage headroom, chip class, and intelligence preference with expandable “why” explanations in onboarding and Settings.
+- First-launch onboarding: download a recommended on-device model (Fast / Balanced / Strongest) or skip, then optionally add cloud API keys—local-only start needs no key.
+- Expanded on-device catalog (Meta Llama 3.2, Qwen 2.5 / Qwen 3, Phi-3.5 mini, manifest v2); rank table and UI only reference downloadable pinned models.
 - Ponytail lazy-coding rules for all Cursor Cloud Agent VMs via `.cursor/environment.json` bootstrap install and an `AGENTS.md` section; local IDE sessions use `scripts/install-ponytail.sh` for hooks and skills.
 - Settings → About now includes Privacy Policy and Support links for App Store compliance.
 - Wiki and tutorial guides at `website/wiki/` (deployed via GitHub Pages).

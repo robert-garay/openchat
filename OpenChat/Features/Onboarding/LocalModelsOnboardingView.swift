@@ -1,6 +1,14 @@
 import SwiftUI
 
+enum LocalModelsOnboardingFlow {
+    case settingsSheet
+    case firstLaunch
+}
+
 struct LocalModelsOnboardingView: View {
+    var flow: LocalModelsOnboardingFlow = .settingsSheet
+    var onFirstLaunchAdvance: (() -> Void)?
+
     @Environment(\.dismiss) private var dismiss
     @Environment(LocalModelStore.self) private var localModelStore
     @Environment(ProviderStore.self) private var providerStore
@@ -9,6 +17,14 @@ struct LocalModelsOnboardingView: View {
     @State private var selectedPreference: IntelligencePreference = .everydayChat
     @State private var selectedEntryID: String?
     @State private var showAllModels = false
+
+    init(
+        flow: LocalModelsOnboardingFlow = .settingsSheet,
+        onFirstLaunchAdvance: (() -> Void)? = nil
+    ) {
+        self.flow = flow
+        self.onFirstLaunchAdvance = onFirstLaunchAdvance
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,11 +38,17 @@ struct LocalModelsOnboardingView: View {
                     downloadStep
                 }
             }
-            .navigationTitle("On-Device Models")
+            .navigationTitle(flow == .firstLaunch ? "Chat on your iPhone" : "On-Device Models")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                if flow == .settingsSheet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close") { dismiss() }
+                    }
+                } else {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Skip") { skipLocalAndAdvance() }
+                    }
                 }
             }
         }
@@ -41,21 +63,23 @@ struct LocalModelsOnboardingView: View {
     private var privacyStep: some View {
         List {
             Section {
-                Text("After download, chat runs entirely on your iPhone. No API key and no inference traffic to OpenChat.")
+                Text("Download a private model that runs on your iPhone—no API key required. Or skip and use cloud providers instead.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            Section("Before you download") {
-                Label("Models use 1–4 GB of storage; keep free space for updates.", systemImage: "externaldrive")
-                Label("Apple Silicon with 6 GB RAM or more is recommended for the default model.", systemImage: "memorychip")
-                Label("Downloads use your network; Wi‑Fi is on by default.", systemImage: "wifi")
-                Label("Phone-sized models are great for private drafts—not a GPT‑4 replacement.", systemImage: "exclamationmark.circle")
+            Section("Good to know") {
+                Label("Downloads are about 0.3–4 GB depending on the model.", systemImage: "externaldrive")
+                Label("6 GB RAM or more works best for balanced models.", systemImage: "memorychip")
+                Label("Wi‑Fi only is on by default.", systemImage: "wifi")
+                Label("Great for private drafts—not a replacement for large cloud models.", systemImage: "exclamationmark.circle")
             }
             Section {
-                Button("Continue") {
-                    step = 1
+                Button("Choose a model") { step = 1 }
+                    .font(.headline)
+                if flow == .firstLaunch {
+                    Button("Skip — use cloud instead") { skipLocalAndAdvance() }
+                        .foregroundStyle(.secondary)
                 }
-                .font(.headline)
             }
         }
     }
@@ -63,11 +87,11 @@ struct LocalModelsOnboardingView: View {
     private var intelligenceStep: some View {
         List {
             Section {
-                Text("Optimized for your iPhone (\(localModelStore.deviceTier.displayLabel)).")
+                Text("Picks for your iPhone (\(localModelStore.deviceTier.displayLabel)).")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            Section("Intelligence") {
+            Section("What matters most?") {
                 ForEach(IntelligencePreference.allCases, id: \.self) { preference in
                     if preference != .bestOnDevice || localModelStore.deviceTier >= .standard6GB {
                         Button {
@@ -97,7 +121,7 @@ struct LocalModelsOnboardingView: View {
                 }
             }
             Section {
-                Button("Continue") { step = 2 }
+                Button("See recommendations") { step = 2 }
                     .font(.headline)
             }
         }
@@ -105,23 +129,28 @@ struct LocalModelsOnboardingView: View {
 
     private var downloadStep: some View {
         List {
-            if let entry = selectedEntry {
+            if let result = localModelStore.recommendationResult() {
+                LocalModelRecommendationSection(
+                    result: result,
+                    selectedEntryID: $selectedEntryID
+                )
+            } else if let entry = selectedEntry {
                 Section("Recommended") {
                     modelRow(entry)
                 }
             }
 
             if showAllModels {
-                Section("Compatible models") {
+                Section("All compatible downloads") {
                     ForEach(localModelStore.compatibleDownloadableEntries()) { entry in
                         if entry.id != selectedEntry?.id {
                             modelRow(entry)
                         }
                     }
                 }
-            } else {
+            } else if localModelStore.compatibleDownloadableEntries().count > 1 {
                 Section {
-                    Button("See other compatible models") { showAllModels = true }
+                    Button("See all compatible models") { showAllModels = true }
                 }
             }
 
@@ -146,27 +175,54 @@ struct LocalModelsOnboardingView: View {
                     let state = localModelStore.record(for: entry.id).state
                     switch state {
                     case .ready:
-                        Button("Start chatting") { dismiss() }
+                        Button(finishAfterDownloadTitle) { completeLocalPath() }
                             .font(.headline)
                     case .downloading:
                         Button("Cancel download", role: .destructive) {
                             localModelStore.cancelDownload()
                         }
                     default:
-                        Button("Download \(entry.displayName)") {
+                        if let block = downloadBlockReason(for: entry) {
+                            Text(block)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Button("Download \(friendlyName(for: entry))") {
                             localModelStore.startDownload(entry: entry, providerStore: providerStore)
                         }
                         .font(.headline)
-                        .disabled(entry.minRAMGB > localModelStore.deviceTier.minRAMGB)
+                        .disabled(downloadDisabled(for: entry))
                     }
                 }
             } footer: {
                 if let error = localModelStore.record(for: selectedEntry?.id ?? "").lastError {
                     Text(error)
                 } else {
-                    Text("Verified by the OpenChat model catalog (SHA-256).")
+                    Text("Downloads are verified against the OpenChat catalog (SHA-256).")
                 }
             }
+        }
+    }
+
+    private var finishAfterDownloadTitle: String {
+        flow == .firstLaunch ? "Continue" : "Start chatting"
+    }
+
+    private func skipLocalAndAdvance() {
+        UserDefaults.standard.set(true, forKey: OnboardingSetup.skippedLocalKey)
+        if flow == .firstLaunch {
+            onFirstLaunchAdvance?()
+        } else {
+            dismiss()
+        }
+    }
+
+    private func completeLocalPath() {
+        UserDefaults.standard.set(false, forKey: OnboardingSetup.skippedLocalKey)
+        if flow == .firstLaunch {
+            onFirstLaunchAdvance?()
+        } else {
+            dismiss()
         }
     }
 
@@ -179,13 +235,31 @@ struct LocalModelsOnboardingView: View {
     }
 
     private func primaryEntry(for preference: IntelligencePreference) -> LocalModelManifestEntry? {
-        guard let manifest = localModelStore.manifest else { return nil }
-        let modelID = LocalModelRecommendationEngine.primaryModelID(
-            physicalMemoryBytes: ProcessInfo.processInfo.physicalMemory,
-            preference: preference
-        )
-        guard let modelID else { return nil }
-        return LocalModelsManifestLoader.entry(mlxModelID: modelID, in: manifest)
+        localModelStore.recommendationResult(preference: preference)?.primary?.entry
+            ?? localModelStore.recommendationResult(preference: preference)?
+            .picks.first(where: { !$0.isBlockedForDownload })?.entry
+    }
+
+    private func downloadDisabled(for entry: LocalModelManifestEntry) -> Bool {
+        downloadBlockReason(for: entry) != nil
+    }
+
+    private func downloadBlockReason(for entry: LocalModelManifestEntry) -> String? {
+        if entry.minRAMGB > localModelStore.deviceTier.minRAMGB {
+            return String(localized: "This model needs about \(entry.minRAMGB) GB of device memory.")
+        }
+        if let pick = localModelStore.recommendationResult()?.picks.first(where: { $0.entry.id == entry.id }),
+           pick.isBlockedForDownload {
+            return pick.blockReason
+        }
+        return nil
+    }
+
+    private func friendlyName(for entry: LocalModelManifestEntry) -> String {
+        if let pick = localModelStore.recommendationResult()?.picks.first(where: { $0.entry.id == entry.id }) {
+            return pick.pickLabel.title
+        }
+        return entry.displayName
     }
 
     @ViewBuilder
@@ -211,7 +285,6 @@ struct LocalModelsOnboardingView: View {
     }
 
     private func formattedBytes(_ bytes: Int) -> String {
-        let gb = Double(bytes) / 1_073_741_824.0
-        return String(format: "%.1f GB", gb)
+        String(format: "%.1f GB download", Double(bytes) / 1_073_741_824.0)
     }
 }

@@ -41,7 +41,7 @@ enum DeviceTier: Int, Comparable, Sendable {
     }
 }
 
-/// Maps to onboarding copy: Quick replies / Everyday chat / Best on your phone.
+/// Maps to onboarding copy: Fast / Balanced / Strongest (Meta, Qwen, Phi catalog only).
 enum IntelligencePreference: String, CaseIterable, Sendable {
     case quickReplies = "quick"
     case everydayChat = "everyday"
@@ -54,7 +54,7 @@ struct LocalModelRecommendation: Equatable, Sendable {
 }
 
 enum LocalModelRecommendationEngine {
-    // ponytail: static table until manifest drives catalog in Phase 1.
+    /// Rank order only for IDs present in the bundled downloadable manifest (see unit test).
     private static let catalog: [DeviceTier: [IntelligencePreference: [LocalModelRecommendation]]] = [
         .legacy4GB: [
             .quickReplies: [
@@ -92,8 +92,7 @@ enum LocalModelRecommendationEngine {
             ],
             .bestOnDevice: [
                 LocalModelRecommendation(mlxModelID: "mlx-community/Qwen2.5-3B-Instruct-4bit", minRAMGB: 8),
-                LocalModelRecommendation(mlxModelID: "mlx-community/Llama-3.2-3B-Instruct-4bit", minRAMGB: 8),
-                LocalModelRecommendation(mlxModelID: "mlx-community/Qwen3-4B-Instruct-2507-4bit", minRAMGB: 8)
+                LocalModelRecommendation(mlxModelID: "mlx-community/Llama-3.2-3B-Instruct-4bit", minRAMGB: 8)
             ]
         ],
         .high12GB: [
@@ -105,32 +104,59 @@ enum LocalModelRecommendationEngine {
                 LocalModelRecommendation(mlxModelID: "mlx-community/Phi-3.5-mini-instruct-4bit", minRAMGB: 8)
             ],
             .bestOnDevice: [
-                LocalModelRecommendation(mlxModelID: "mlx-community/Qwen3-4B-Instruct-2507-4bit", minRAMGB: 8),
+                LocalModelRecommendation(mlxModelID: "mlx-community/Llama-3.2-3B-Instruct-4bit", minRAMGB: 8),
                 LocalModelRecommendation(mlxModelID: "mlx-community/Qwen2.5-3B-Instruct-4bit", minRAMGB: 8)
             ]
         ]
     ]
 
+    static func allCatalogModelIDs() -> Set<String> {
+        Set(
+            catalog.values.flatMap { byPreference in
+                byPreference.values.flatMap { $0.map(\.mlxModelID) }
+            }
+        )
+    }
+
     static func recommendedModels(
         deviceTier: DeviceTier,
-        preference: IntelligencePreference
+        preference: IntelligencePreference,
+        manifest: LocalModelsManifest? = nil
     ) -> [LocalModelRecommendation] {
         let candidates = catalog[deviceTier]?[preference] ?? []
-        return candidates.filter { $0.minRAMGB <= deviceTier.minRAMGB }
+        let ramFiltered = candidates.filter { $0.minRAMGB <= deviceTier.minRAMGB }
+        return filterToDownloadableCatalog(ramFiltered, manifest: manifest)
+    }
+
+    private static func filterToDownloadableCatalog(
+        _ candidates: [LocalModelRecommendation],
+        manifest: LocalModelsManifest?
+    ) -> [LocalModelRecommendation] {
+        guard let manifest else { return candidates }
+        let downloadableIDs = Set(
+            manifest.models.filter(\.isDownloadable).map(\.mlxModelID)
+        )
+        return candidates.filter { downloadableIDs.contains($0.mlxModelID) }
     }
 
     static func recommendedModels(
         physicalMemoryBytes: UInt64,
-        preference: IntelligencePreference
+        preference: IntelligencePreference,
+        manifest: LocalModelsManifest? = nil
     ) -> [LocalModelRecommendation] {
         let tier = DeviceTier.from(physicalMemoryBytes: physicalMemoryBytes)
-        return recommendedModels(deviceTier: tier, preference: preference)
+        return recommendedModels(deviceTier: tier, preference: preference, manifest: manifest)
     }
 
     static func primaryModelID(
         physicalMemoryBytes: UInt64,
-        preference: IntelligencePreference
+        preference: IntelligencePreference,
+        manifest: LocalModelsManifest? = nil
     ) -> String? {
-        recommendedModels(physicalMemoryBytes: physicalMemoryBytes, preference: preference).first?.mlxModelID
+        recommendedModels(
+            physicalMemoryBytes: physicalMemoryBytes,
+            preference: preference,
+            manifest: manifest
+        ).first?.mlxModelID
     }
 }

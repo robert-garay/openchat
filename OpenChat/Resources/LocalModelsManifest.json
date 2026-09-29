@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "minAppVersion": "1.2.0",
   "models": [
     {
@@ -9,7 +9,9 @@
       "tier": "standard6",
       "intelligenceLevel": "quick",
       "minRAMGB": 6,
-      "recommendedDevices": ["iPhone 13–15 / 15 Plus (6 GB)"],
+      "recommendedDevices": [
+        "iPhone 13\u201315 / 15 Plus (6 GB)"
+      ],
       "bytes": 712575975,
       "sha256": "835e8730ce3bcbbfe8ffd5d8fcae4dcc65a95288c867012c2c078d3deb07b037",
       "backend": "mlx",
@@ -51,6 +53,352 @@
           "url": "https://huggingface.co/mlx-community/Llama-3.2-1B-Instruct-4bit/resolve/main/tokenizer_config.json",
           "sha256": "022d5ae3df4737998ab97d8f31ac2bcb4c06dd8ebe5a8aba2b4aceef1e5ea7d3",
           "bytes": 54558
+        }
+      ]
+    },
+    {
+      "displayName": "Qwen 2.5 0.5B (4-bit)",
+      "tier": "legacy4",
+      "intelligenceLevel": "quick",
+      "minRAMGB": 4,
+      "recommendedDevices": [
+        "iPhone 12 / 13 mini (4 GB class)"
+      ],
+      "chatTemplate": "qwen2",
+      "defaultForTier": true,
+      "id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "mlxModelID": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "bytes": 285149506,
+      "sha256": "5d57b72d132f9f001ee34323a6e5648d43de7c35cee7dc354ff26bedacb5b081",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/config.json",
+          "sha256": "b045e57ea90b8f1b35f89f954b176a5c1faa02bd0af2c89bcec191239d66cef4",
+          "bytes": 783
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "ddffab9cbc7bf6dde941c6724841eeca8981fcfa81ca20ff8efff1396326d153",
+          "bytes": 278064920
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "54001cb4c11197119c206dde28e7be08e5872aab6c6d271aed339ec77e84f870",
+          "bytes": 44209
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+          "bytes": 613
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf",
+          "bytes": 7031673
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7",
+          "bytes": 7308
+        }
+      ]
+    },
+    {
+      "displayName": "Qwen 3 0.6B (4-bit)",
+      "tier": "legacy4",
+      "intelligenceLevel": "quick",
+      "minRAMGB": 4,
+      "recommendedDevices": [
+        "iPhone 12 / 13 mini (4 GB class)"
+      ],
+      "chatTemplate": "qwen3",
+      "id": "mlx-community/Qwen3-0.6B-4bit",
+      "mlxModelID": "mlx-community/Qwen3-0.6B-4bit",
+      "bytes": 346934225,
+      "sha256": "1cfdce1d7b94dc58dd084a3e938dd77b5ddbb984a897693ffde2cbd3cd50dc44",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/config.json",
+          "sha256": "15d3ac26c043ae477273ed5802ee0f0b33bb14f18c9d3dd70910c02d906e3f1f",
+          "bytes": 937
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/model.safetensors",
+          "sha256": "392e8d466d56100ada00eb82031fb854297fc9e389b7d303eba3af114e87bce2",
+          "bytes": 335450584
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "7b294141456f6904936db03c00bca50fb5f6198f652fe8483f9cd2a1018accfb",
+          "bytes": 49731
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+          "bytes": 613
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/tokenizer.json",
+          "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+          "bytes": 11422654
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen3-0.6B-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "253153d0738ceb4c668d2eff957714dd2bea0b56de772a9fdccd96cbf517e6a0",
+          "bytes": 9706
+        }
+      ]
+    },
+    {
+      "displayName": "Qwen 2.5 1.5B (4-bit)",
+      "tier": "standard6",
+      "intelligenceLevel": "everyday",
+      "minRAMGB": 6,
+      "recommendedDevices": [
+        "iPhone 13\u201315 / 15 Plus (6 GB)"
+      ],
+      "chatTemplate": "qwen2",
+      "defaultForTier": true,
+      "id": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "mlxModelID": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "bytes": 875720506,
+      "sha256": "fe0d6f62f0076059bbd26f115c347cf7598a0fd127b8191688903418bc90e008",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/config.json",
+          "sha256": "636d3e2a15e8914b8cf82b05cc2288a811f9bd93c3bf1afc00cab701a70b47c0",
+          "bytes": 784
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "0979f33d1bc58afcf696d13f57977644e7b11a6f0eec3e631d8e9463d18c0717",
+          "bytes": 868628559
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "6b98634d5044f0e2ad45228a374f8445904e571f1082392d08a6ce54f5d517ca",
+          "bytes": 51569
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+          "bytes": 613
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf",
+          "bytes": 7031673
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7",
+          "bytes": 7308
+        }
+      ]
+    },
+    {
+      "displayName": "Llama 3.2 3B (4-bit)",
+      "tier": "performance8",
+      "intelligenceLevel": "best",
+      "minRAMGB": 8,
+      "recommendedDevices": [
+        "iPhone 15 Pro+ (8 GB)"
+      ],
+      "chatTemplate": "llama3",
+      "id": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+      "mlxModelID": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+      "bytes": 1824807894,
+      "sha256": "dbea73ae459aea036c10bdb76523dd3462dc2b7ac487da2cdc71475bd314bd46",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/config.json",
+          "sha256": "c546925585e48f43890d9dc5150df4fec73dd3780d92961c5ace451934cc4cd6",
+          "bytes": 1122
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "d75e1ee0ea653cc5b76191ec934c7c0d568e94d4e47846619f1f4bc715b7b265",
+          "bytes": 1807496278
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "2ef31fa0b9dcda01f87835851d5e1d5a39ab6258ae618af6ea864c3747e556e4",
+          "bytes": 45720
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "6f38c73729248f6c127296386e3cdde96e254636cc58b4169d3fd32328d9a8ec",
+          "bytes": 296
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b",
+          "bytes": 17209920
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "022d5ae3df4737998ab97d8f31ac2bcb4c06dd8ebe5a8aba2b4aceef1e5ea7d3",
+          "bytes": 54558
+        }
+      ]
+    },
+    {
+      "displayName": "Qwen 2.5 3B (4-bit)",
+      "tier": "performance8",
+      "intelligenceLevel": "best",
+      "minRAMGB": 8,
+      "recommendedDevices": [
+        "iPhone 15 Pro+ (8 GB)"
+      ],
+      "chatTemplate": "qwen2",
+      "defaultForTier": true,
+      "id": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+      "mlxModelID": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+      "bytes": 1743399759,
+      "sha256": "d7ea1a5c768b5112c5029e188409b4cc991ed77477258953dcffe9d1e358358e",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/config.json",
+          "sha256": "ceb97c46fe17f523ac42c0f0254fd18d9589f8725f0bbbe0bef541f8ef84547a",
+          "bytes": 785
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "f212cf6fb9923281a09c135e05d43a052ee5ef7121f5b1dc0b0fb2de80f97cfd",
+          "bytes": 1736293090
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "7edb73f1af3c860b1344ece4abe04b258246afdfeba4cb39d3b84a0459890bee",
+          "bytes": 66290
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+          "bytes": 613
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf",
+          "bytes": 7031673
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Qwen2.5-3B-Instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7",
+          "bytes": 7308
+        }
+      ]
+    },
+    {
+      "displayName": "Phi-3.5 mini (4-bit)",
+      "tier": "performance8",
+      "intelligenceLevel": "everyday",
+      "minRAMGB": 8,
+      "recommendedDevices": [
+        "iPhone 15 Pro+ (8 GB)"
+      ],
+      "chatTemplate": "phi3",
+      "defaultForTier": false,
+      "id": "mlx-community/Phi-3.5-mini-instruct-4bit",
+      "mlxModelID": "mlx-community/Phi-3.5-mini-instruct-4bit",
+      "bytes": 2152172155,
+      "sha256": "282e853a13630a52519f5372a9eb7c5f110017019d7c4fe8d1a1b6468fd660d5",
+      "backend": "mlx",
+      "files": [
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/config.json",
+          "sha256": "6db0d08266c26038265c3a523917ff89214c4fd5893adbbb2cbca3128b9fa1d0",
+          "bytes": 4149
+        },
+        {
+          "path": "configuration_phi3.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/configuration_phi3.py",
+          "sha256": "d25f57c0823fcb9753880a25e79ab562b039d6187102ac13e4ff26dd11e9a81c",
+          "bytes": 11153
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/model.safetensors",
+          "sha256": "37e64496aa28fa5d5e4f29561f435defcbf6f7c8387f360c0aed45d37b93dfd7",
+          "bytes": 2149696133
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/model.safetensors.index.json",
+          "sha256": "4ef199a5c6c29fa54d84d3710bfad4b5424b75bbd68872f9e1e12234bd3fd9c3",
+          "bytes": 32695
+        },
+        {
+          "path": "modeling_phi3.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/modeling_phi3.py",
+          "sha256": "e737b46584be3ee907165eab54d8b18a18214acca4392a3ac9cbf37dbf9d3302",
+          "bytes": 73814
+        },
+        {
+          "path": "sample_finetune.py",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/sample_finetune.py",
+          "sha256": "efb628083228e5248b7dff300e038964ea98b5c170c7544befa63b2675ae8491",
+          "bytes": 6131
+        },
+        {
+          "path": "special_tokens_map.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/special_tokens_map.json",
+          "sha256": "474d699677e264edd3851559548cbbb61801ad8da6b249c81455007602313c34",
+          "bytes": 569
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer.json",
+          "sha256": "d0f067e1e15cd0a36ebef3668024882cb67a80b86fb4b7b4b128481f0d474db7",
+          "bytes": 1844436
+        },
+        {
+          "path": "tokenizer.model",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer.model",
+          "sha256": "9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347",
+          "bytes": 499723
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/mlx-community/Phi-3.5-mini-instruct-4bit/resolve/main/tokenizer_config.json",
+          "sha256": "cf1de23ab67807aed30e5145164c405c8c92890ca546112dd010de510fac3d1f",
+          "bytes": 3352
         }
       ]
     }

@@ -66,14 +66,31 @@ final class LocalModelStore {
         }
     }
 
-    func recommendedPrimaryEntry() -> LocalModelManifestEntry? {
-        guard let manifest else { return nil }
-        let modelID = LocalModelRecommendationEngine.primaryModelID(
-            physicalMemoryBytes: ProcessInfo.processInfo.physicalMemory,
-            preference: intelligencePreference
+    func deviceContext(isOnWiFi: Bool? = nil) -> DeviceContext {
+        DeviceContext.live(
+            preference: intelligencePreference,
+            wifiOnlyDownloads: wifiOnlyDownloads,
+            isOnWiFi: isOnWiFi
         )
-        guard let modelID else { return nil }
-        return LocalModelsManifestLoader.entry(mlxModelID: modelID, in: manifest)
+    }
+
+    func recommendationResult(
+        preference: IntelligencePreference? = nil,
+        isOnWiFi: Bool? = nil
+    ) -> ModelRecommendationResult? {
+        guard let manifest else { return nil }
+        var context = deviceContext(isOnWiFi: isOnWiFi)
+        if let preference {
+            context = context.withPreference(preference)
+        }
+        return LocalModelRecommendationEngine.recommend(manifest: manifest, context: context)
+    }
+
+    func recommendedPrimaryEntry() -> LocalModelManifestEntry? {
+        guard let pick = recommendationResult()?.primary, !pick.isBlockedForDownload else {
+            return recommendationResult()?.picks.first(where: { !$0.isBlockedForDownload })?.entry
+        }
+        return pick.entry
     }
 
     func compatibleDownloadableEntries() -> [LocalModelManifestEntry] {
@@ -93,6 +110,19 @@ final class LocalModelStore {
         guard let manifest else { return }
         let existing = record(for: entry.id)
         guard LocalModelInstallStateMachine.canStartDownload(from: existing.state) else { return }
+
+        let context = deviceContext()
+        switch context.storageAssessment(forModelBytes: entry.bytes) {
+        case .insufficient(let available, let required):
+            let message = String(
+                localized: "Not enough free storage (\(Self.formatGB(available)) available, ~\(Self.formatGB(required)) required)."
+            )
+            records[entry.id] = LocalModelInstallStateMachine.markFailed(existing, error: message)
+            persistRecords()
+            return
+        default:
+            break
+        }
 
         downloadTask?.cancel()
         records[entry.id] = LocalModelInstallStateMachine.markDownloading(existing)
@@ -162,6 +192,10 @@ final class LocalModelStore {
 
     private func persistRecords() {
         try? installStore.save(records)
+    }
+
+    private static func formatGB(_ bytes: Int64) -> String {
+        String(format: "%.1f GB", Double(bytes) / 1_073_741_824.0)
     }
 
     private func directorySize(_ url: URL) -> Int {
