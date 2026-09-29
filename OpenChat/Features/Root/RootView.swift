@@ -11,6 +11,7 @@ struct RootView: View {
     @State private var showingSettings = false
     @State private var showingHistoryDrawer = false
     @State private var networkConnectivity = NetworkConnectivityStore()
+    @AppStorage(OnboardingSetup.completedKey) private var setupOnboardingCompleted = false
 
     /// Sidebar history: never temporary, never unstarted, and never a placeholder title.
     /// Pinned chats stay above unpinned, each group by recency.
@@ -40,7 +41,9 @@ struct RootView: View {
             }
 
             Group {
-                if providerStore.enabledProviders.isEmpty {
+                if !setupOnboardingCompleted {
+                    FirstLaunchOnboardingView()
+                } else if providerStore.enabledProviders.isEmpty {
                     WelcomeView()
                 } else {
                     mainContent
@@ -70,6 +73,11 @@ struct RootView: View {
             BackgroundGenerationService.shared.setVisibleConversationID(
                 phase == .active ? selectedConversationID : nil
             )
+        }
+        .onChange(of: setupOnboardingCompleted) { _, completed in
+            if completed {
+                bootstrapMainSession()
+            }
         }
         .onChange(of: providerStore.enabledProviders.isEmpty) { _, isEmpty in
             if isEmpty {

@@ -43,4 +43,25 @@ final class LocalModelRecommendationTests: XCTestCase {
         )
         XCTAssertEqual(primary, "mlx-community/Qwen3-0.6B-4bit")
     }
+
+    func testBundledManifestRecommendationsAreDownloadable() throws {
+        let manifest = try LocalModelsManifestLoader.loadBundled()
+        let context = DeviceContext(
+            physicalMemoryBytes: 8 * 1_073_741_824,
+            availableImportantDiskBytes: 20_000_000_000,
+            machineIdentifier: "iPhone16,1",
+            chipPerformanceClass: .premium,
+            intelligencePreference: .everydayChat,
+            isOnWiFi: true,
+            wifiOnlyDownloads: true,
+            thermalState: .nominal,
+            isLowPowerModeEnabled: false
+        )
+        let result = LocalModelRecommendationEngine.recommend(manifest: manifest, context: context)
+        XCTAssertFalse(result.picks.isEmpty)
+        for pick in result.picks {
+            XCTAssertTrue(pick.entry.isDownloadable)
+            XCTAssertTrue(manifest.models.contains(where: { $0.id == pick.entry.id }))
+        }
+    }
 }

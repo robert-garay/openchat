@@ -41,7 +41,7 @@ enum DeviceTier: Int, Comparable, Sendable {
     }
 }
 
-/// Maps to onboarding copy: Quick replies / Everyday chat / Best on your phone.
+/// Maps to onboarding copy: Fast / Balanced / Strongest (Meta, Qwen, Phi catalog only).
 enum IntelligencePreference: String, CaseIterable, Sendable {
     case quickReplies = "quick"
     case everydayChat = "everyday"

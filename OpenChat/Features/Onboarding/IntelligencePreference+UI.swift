@@ -4,22 +4,22 @@ extension IntelligencePreference {
     var title: String {
         switch self {
         case .quickReplies:
-            return String(localized: "Quick replies")
+            return String(localized: "Fast")
         case .everydayChat:
-            return String(localized: "Everyday chat")
+            return String(localized: "Balanced")
         case .bestOnDevice:
-            return String(localized: "Best on your phone")
+            return String(localized: "Strongest")
         }
     }
 
     var subtitle: String {
         switch self {
         case .quickReplies:
-            return String(localized: "Fastest drafts and short answers. Lower quality than cloud models.")
+            return String(localized: "Smallest download, quickest replies. Best for short messages.")
         case .everydayChat:
-            return String(localized: "Balanced daily chat on your device. Still not a cloud flagship.")
+            return String(localized: "Recommended mix of speed and quality for daily chat.")
         case .bestOnDevice:
-            return String(localized: "Largest model that fits your phone RAM. Slower and warmer.")
+            return String(localized: "Largest model that fits your RAM. Slower and uses more battery.")
         }
     }
 }

@@ -4,6 +4,9 @@ import SwiftUI
 /// OpenAI-compatible endpoint (a self-hosted Ollama server, LM Studio, a
 /// company-internal gateway, or a brand-new model that isn't in the list yet).
 struct AddProviderView: View {
+    /// When false (first-launch onboarding), saving a key keeps the sheet open until the user dismisses it.
+    var dismissesOnSave: Bool = true
+
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
 
@@ -19,7 +22,9 @@ struct AddProviderView: View {
                 Section {
                     ForEach(availableTemplates) { template in
                         NavigationLink {
-                            ProviderKeyEntryView(template: template) { dismiss() }
+                            ProviderKeyEntryView(template: template) {
+                                if dismissesOnSave { dismiss() }
+                            }
                         } label: {
                             ProviderTemplateRow(template: template)
                         }
@@ -30,7 +35,9 @@ struct AddProviderView: View {
 
                 Section {
                     NavigationLink {
-                        CustomProviderView { dismiss() }
+                        CustomProviderView {
+                            if dismissesOnSave { dismiss() }
+                        }
                     } label: {
                         Label {
                             Text("Custom Endpoint")
