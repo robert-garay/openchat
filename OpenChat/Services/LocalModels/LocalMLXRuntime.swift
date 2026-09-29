@@ -1,8 +1,10 @@
 import Foundation
 
 #if canImport(MLXLMCommon) && canImport(MLXLLM) && !targetEnvironment(simulator)
+import MLXHuggingFace
 import MLXLLM
 import MLXLMCommon
+import Tokenizers
 #endif
 
 actor LocalMLXRuntime {
@@ -31,8 +33,10 @@ actor LocalMLXRuntime {
         if loadedModelID == modelID, let container {
             return container
         }
-        let configuration = ModelConfiguration(directory: directory)
-        let loaded = try await loadModelContainer(configuration: configuration)
+        let loaded = try await loadModelContainer(
+            from: directory,
+            using: #huggingFaceTokenizerLoader()
+        )
         container = loaded
         loadedModelID = modelID
         return loaded
