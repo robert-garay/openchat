@@ -689,14 +689,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		B91A084BE21F75CCB2054D47 /* LocalModels */ = {
-			isa = PBXGroup;
-			children = (
-				47E0202AEC87B3BFD05AC28E /* LocalModelRecommendationSection.swift */,
-			);
-			path = LocalModels;
-			sourceTree = "<group>";
-		};
 		AA4A72871AB53FEB97C847FD /* LocalModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -712,6 +704,14 @@
 				24E91A800F085BF74DFD9581 /* LocalModelStore.swift */,
 				E408E0B42EFBC919C5DA55F9 /* ModelRecommendation.swift */,
 				BEC7BD36FB03160048569242 /* OnDeviceProvider.swift */,
+			);
+			path = LocalModels;
+			sourceTree = "<group>";
+		};
+		B91A084BE21F75CCB2054D47 /* LocalModels */ = {
+			isa = PBXGroup;
+			children = (
+				47E0202AEC87B3BFD05AC28E /* LocalModelRecommendationSection.swift */,
 			);
 			path = LocalModels;
 			sourceTree = "<group>";
@@ -1110,8 +1110,8 @@
 				F066D74A84166CC6D0B92D15 /* LocalModelDownloadService.swift in Sources */,
 				A54A02A2F2FB4C9FDC8CF6A2 /* LocalModelInstallRecord.swift in Sources */,
 				6B626402FF0196F632FFBBB4 /* LocalModelInstallStore.swift in Sources */,
-				2B7BB20EC1B6571EFBB63602 /* LocalModelRecommendationEngine+DeviceAware.swift in Sources */,
 				937C4E6FDC1C58FB109DFD4B /* LocalModelRecommendation.swift in Sources */,
+				2B7BB20EC1B6571EFBB63602 /* LocalModelRecommendationEngine+DeviceAware.swift in Sources */,
 				B138D94A0EEEF4E01A4D854B /* LocalModelRecommendationSection.swift in Sources */,
 				4DE507E1D93EEF2EBAA8D6C6 /* LocalModelStore.swift in Sources */,
 				27E0A1595D96E5C6BD27BD28 /* LocalModelsManifest.swift in Sources */,
@@ -1123,11 +1123,11 @@
 				0567563958B93427B534AE05 /* MemoryStore.swift in Sources */,
 				30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */,
 				3133335079619130518EF11E /* MessageComposerView.swift in Sources */,
-				24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */,
 				F7C64618CB964660D07C0191 /* ModelCapability.swift in Sources */,
 				6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */,
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
 				36C0236209953383B0339F44 /* ModelReasoningConfig.swift in Sources */,
+				24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */,
 				90D8DC45AE1392FE3829AD44 /* MultimodalRequestEncoder.swift in Sources */,
 				3FA5F6BF3C689CC8E1575DA1 /* NetworkConnectivityStore.swift in Sources */,
 				77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */,
