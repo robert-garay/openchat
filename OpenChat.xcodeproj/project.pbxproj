@@ -42,8 +42,6 @@
 		2064978DB258A64E30FC3280 /* DeviceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19603119EFF8FED48654E902 /* DeviceContext.swift */; };
 		20E6A96BC77CE2F67D90B820 /* WebSearchProviderKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3E2F8F364E8D6943DA0E8D /* WebSearchProviderKind.swift */; };
 		230922FDF937DD44BFCB0C9F /* LocalModelsOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD3DD3AA29ACCD163A1BF53F /* LocalModelsOnboardingView.swift */; };
-		25EF8161BC2EF4AF2218DB4A /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */; };
-		895C954C776580B7DF742331 /* OnboardingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139A5FCEF955999974465154 /* OnboardingSetup.swift */; };
 		232FB9503B65345B6BD13F89 /* RuleProposal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55994F4010C2D8C62F43A7D0 /* RuleProposal.swift */; };
 		24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E408E0B42EFBC919C5DA55F9 /* ModelRecommendation.swift */; };
 		27E0A1595D96E5C6BD27BD28 /* LocalModelsManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC706943FBFF75720A0FA4B /* LocalModelsManifest.swift */; };
@@ -117,6 +115,7 @@
 		67FDD5C2DE8870264E8B55A3 /* RulesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A14605EAD30408A540304F /* RulesStore.swift */; };
 		686A8C4C4C1A67ED52429A4A /* NetworkRetrierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8122D8833D27FBD578598522 /* NetworkRetrierTests.swift */; };
 		690C3CFC5945C944E4430AFA /* OnDeviceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEC7BD36FB03160048569242 /* OnDeviceProvider.swift */; };
+		895C954C776580B7DF742331 /* OnboardingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139A5FCEF955999974465154 /* OnboardingSetup.swift */; };
 		695BB5AE181BC04E36C135D4 /* ChatHistoryDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152329A233CE865AB1083AB /* ChatHistoryDrawerView.swift */; };
 		6B26347062ADF89FDA13017A /* EffortGaugeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3436B71AE5018DC293AC3E14 /* EffortGaugeIcon.swift */; };
 		6B626402FF0196F632FFBBB4 /* LocalModelInstallStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD704F8BFB7D0CBAA94EB16 /* LocalModelInstallStore.swift */; };
@@ -151,6 +150,7 @@
 		8822D62B3D79D336F0ADE848 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4EA65A8E67CCE1B461F1C3E /* RootView.swift */; };
 		88CC98964F9B5A0B563F8D7D /* ChatViewModel+Proposals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41FB223D2F537647DDEFC334 /* ChatViewModel+Proposals.swift */; };
 		892C7188DCCEA2AF928FC8D6 /* ExaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEE1C80223D627AF9EA03F /* ExaClient.swift */; };
+		25EF8161BC2EF4AF2218DB4A /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */; };
 		8ACD0231E3C592F28526FD2F /* VoiceModeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96912E77AC2E75C62EDB1D46 /* VoiceModeStoreTests.swift */; };
 		8C156C339E5DB9E61090FD40 /* ChatSystemPromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D741ACF3D3896C2351AB40 /* ChatSystemPromptBuilderTests.swift */; };
 		8CB55A549A80607161145DEA /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252086F29486A487B17F9DA6 /* Skill.swift */; };
@@ -481,8 +481,8 @@
 		FBD704F8BFB7D0CBAA94EB16 /* LocalModelInstallStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelInstallStore.swift; sourceTree = "<group>"; };
 		FCDA60F07EBC0A7BA930CCE6 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		FD3DD3AA29ACCD163A1BF53F /* LocalModelsOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelsOnboardingView.swift; sourceTree = "<group>"; };
-		A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
 		139A5FCEF955999974465154 /* OnboardingSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSetup.swift; sourceTree = "<group>"; };
+		A300D44970D57E615BA13653 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
 		FDEBD92C9F08DC30D52FE58C /* ChatMessageMarkdownSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageMarkdownSourceTests.swift; sourceTree = "<group>"; };
 		FF89C8826C60DB61095BBC67 /* VoiceModeStoreRealtimeModelFetchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceModeStoreRealtimeModelFetchTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -693,14 +693,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		B91A084BE21F75CCB2054D47 /* LocalModels */ = {
-			isa = PBXGroup;
-			children = (
-				47E0202AEC87B3BFD05AC28E /* LocalModelRecommendationSection.swift */,
-			);
-			path = LocalModels;
-			sourceTree = "<group>";
-		};
 		AA4A72871AB53FEB97C847FD /* LocalModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -716,6 +708,14 @@
 				24E91A800F085BF74DFD9581 /* LocalModelStore.swift */,
 				E408E0B42EFBC919C5DA55F9 /* ModelRecommendation.swift */,
 				BEC7BD36FB03160048569242 /* OnDeviceProvider.swift */,
+			);
+			path = LocalModels;
+			sourceTree = "<group>";
+		};
+		B91A084BE21F75CCB2054D47 /* LocalModels */ = {
+			isa = PBXGroup;
+			children = (
+				47E0202AEC87B3BFD05AC28E /* LocalModelRecommendationSection.swift */,
 			);
 			path = LocalModels;
 			sourceTree = "<group>";
@@ -1117,8 +1117,8 @@
 				F066D74A84166CC6D0B92D15 /* LocalModelDownloadService.swift in Sources */,
 				A54A02A2F2FB4C9FDC8CF6A2 /* LocalModelInstallRecord.swift in Sources */,
 				6B626402FF0196F632FFBBB4 /* LocalModelInstallStore.swift in Sources */,
-				2B7BB20EC1B6571EFBB63602 /* LocalModelRecommendationEngine+DeviceAware.swift in Sources */,
 				937C4E6FDC1C58FB109DFD4B /* LocalModelRecommendation.swift in Sources */,
+				2B7BB20EC1B6571EFBB63602 /* LocalModelRecommendationEngine+DeviceAware.swift in Sources */,
 				B138D94A0EEEF4E01A4D854B /* LocalModelRecommendationSection.swift in Sources */,
 				4DE507E1D93EEF2EBAA8D6C6 /* LocalModelStore.swift in Sources */,
 				27E0A1595D96E5C6BD27BD28 /* LocalModelsManifest.swift in Sources */,
@@ -1130,11 +1130,11 @@
 				0567563958B93427B534AE05 /* MemoryStore.swift in Sources */,
 				30E572106EB2AA7C9CD5DB84 /* MessageBubbleView.swift in Sources */,
 				3133335079619130518EF11E /* MessageComposerView.swift in Sources */,
-				24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */,
 				F7C64618CB964660D07C0191 /* ModelCapability.swift in Sources */,
 				6C1DBD9709EAB41FCD37DECD /* ModelCapabilitySign.swift in Sources */,
 				55B643A8FFBCE7D2B032EBF1 /* ModelPickerSheet.swift in Sources */,
 				36C0236209953383B0339F44 /* ModelReasoningConfig.swift in Sources */,
+				24C937D68F38700B1E1B3F6C /* ModelRecommendation.swift in Sources */,
 				90D8DC45AE1392FE3829AD44 /* MultimodalRequestEncoder.swift in Sources */,
 				3FA5F6BF3C689CC8E1575DA1 /* NetworkConnectivityStore.swift in Sources */,
 				77B020E9AFF77F12D1A8C6C1 /* NetworkMonitor.swift in Sources */,
