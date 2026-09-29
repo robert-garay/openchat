@@ -105,7 +105,12 @@ struct LocalModelsOnboardingView: View {
 
     private var downloadStep: some View {
         List {
-            if let entry = selectedEntry {
+            if let result = localModelStore.recommendationResult() {
+                LocalModelRecommendationSection(
+                    result: result,
+                    selectedEntryID: $selectedEntryID
+                )
+            } else if let entry = selectedEntry {
                 Section("Recommended") {
                     modelRow(entry)
                 }
@@ -157,7 +162,7 @@ struct LocalModelsOnboardingView: View {
                             localModelStore.startDownload(entry: entry, providerStore: providerStore)
                         }
                         .font(.headline)
-                        .disabled(entry.minRAMGB > localModelStore.deviceTier.minRAMGB)
+                        .disabled(downloadDisabled(for: entry))
                     }
                 }
             } footer: {
@@ -179,13 +184,15 @@ struct LocalModelsOnboardingView: View {
     }
 
     private func primaryEntry(for preference: IntelligencePreference) -> LocalModelManifestEntry? {
-        guard let manifest = localModelStore.manifest else { return nil }
-        let modelID = LocalModelRecommendationEngine.primaryModelID(
-            physicalMemoryBytes: ProcessInfo.processInfo.physicalMemory,
-            preference: preference
-        )
-        guard let modelID else { return nil }
-        return LocalModelsManifestLoader.entry(mlxModelID: modelID, in: manifest)
+        localModelStore.recommendationResult(preference: preference)?.primary?.entry
+    }
+
+    private func downloadDisabled(for entry: LocalModelManifestEntry) -> Bool {
+        if entry.minRAMGB > localModelStore.deviceTier.minRAMGB { return true }
+        if let pick = localModelStore.recommendationResult()?.picks.first(where: { $0.entry.id == entry.id }) {
+            return pick.isBlockedForDownload
+        }
+        return false
     }
 
     @ViewBuilder
