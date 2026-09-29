@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 import UserNotifications
 
 /// Early-launch delegate that wires up notification handling before the app finishes launching.
@@ -39,6 +40,7 @@ struct OpenChatApp: App {
     @State private var memoryStore = MemoryStore()
     @State private var skillsStore = SkillsStore()
     @State private var voiceModeStore = VoiceModeStore()
+    @State private var localModelStore = LocalModelStore()
     @AppStorage("com.openchat.appearance") private var appearance: AppAppearance = .system
 
     init() {
@@ -65,8 +67,16 @@ struct OpenChatApp: App {
                 .environment(memoryStore)
                 .environment(skillsStore)
                 .environment(voiceModeStore)
+                .environment(localModelStore)
                 .preferredColorScheme(appearance.colorScheme)
-                .onAppear { appearance.applyToAllWindows() }
+                .onAppear {
+                    appearance.applyToAllWindows()
+                    localModelStore.bootstrap()
+                    localModelStore.syncProvider(into: providerStore)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                    Task { await LocalMLXRuntime.shared.unload() }
+                }
                 .onChange(of: appearance) { _, newValue in
                     newValue.applyToAllWindows()
                 }

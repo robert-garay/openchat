@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- On-device MLX chat (Phase 1–2): curated manifest download with SHA-256 verification, Welcome/Settings onboarding, synthetic **On This Device** provider (`openchat-ondevice`), and `LocalMLXClient` streaming via mlx-swift-lm (device-only; tools/voice disabled for local path in v1).
 - On-device MLX model recommendations (`docs/local-models-manifest-spec.md`) and `LocalModelRecommendation` selection logic for RAM tier + intelligence preference.
 - Ponytail lazy-coding rules for all Cursor Cloud Agent VMs via `.cursor/environment.json` bootstrap install and an `AGENTS.md` section; local IDE sessions use `scripts/install-ponytail.sh` for hooks and skills.
 - Settings → About now includes Privacy Policy and Support links for App Store compliance.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pin mlx-swift to 0.31.4 so CI (Xcode 16.4) can resolve on-device MLX dependencies without Swift 6.3-only package versions.
 - Chat rules composer chip now reflects per-chat rules (not only legacy system prompt).
 - Document preview shows an error state instead of an infinite spinner when a file cannot be opened.
 - Chat history search shows a "no results" state when nothing matches the query.

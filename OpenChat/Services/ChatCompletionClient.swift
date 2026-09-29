@@ -68,4 +68,11 @@ enum ChatService {
             return AnthropicClient(session: urlSession)
         }
     }
+
+    static func client(for provider: ConfiguredProvider) -> ChatCompletionClient {
+        if provider.usesLocalInference {
+            return LocalMLXClient.shared
+        }
+        return client(for: provider.apiFormat)
+    }
 }

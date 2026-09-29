@@ -23,6 +23,12 @@ packages:
   SwiftStreamingMarkdown:
     url: https://github.com/microsoft/SwiftStreamingMarkdown
     revision: b7b82b6a63e33cd3d41366ac76de6216d1bcf1a4
+  mlx-swift:
+    url: https://github.com/ml-explore/mlx-swift
+    version: 0.31.4
+  mlx-swift-lm:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    revision: 3.31.4
 
 settings:
   base:
@@ -32,8 +38,8 @@ settings:
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     ENABLE_PREVIEWS: YES
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "1.1.0"
-    CURRENT_PROJECT_VERSION: "3"
+    MARKETING_VERSION: "1.2.0"
+    CURRENT_PROJECT_VERSION: "4"
 
 targets:
   OpenChat:
@@ -46,6 +52,12 @@ targets:
     dependencies:
       - sdk: AppIntents.framework
       - package: SwiftStreamingMarkdown
+      - package: mlx-swift
+        product: MLX
+      - package: mlx-swift-lm
+        product: MLXLLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
       - target: OpenChatLiveActivity
     info:
       path: OpenChat/Resources/Info.plist
