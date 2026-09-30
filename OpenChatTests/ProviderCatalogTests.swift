@@ -8,6 +8,15 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(Set(ids).count, ids.count)
     }
 
+    func testOpenRouterIsFirstInProviderCatalog() {
+        XCTAssertEqual(ProviderTemplate.all.first?.id, "openrouter")
+    }
+
+    func testSortedByCatalogKeepsOpenRouterFirstWhenShuffled() {
+        let shuffled = [ProviderTemplate.template(for: "openai")!, ProviderTemplate.template(for: "openrouter")!]
+        XCTAssertEqual(ProviderTemplate.sortedByCatalog(shuffled).first?.id, "openrouter")
+    }
+
     func testChineseOpenModelProvidersArePresent() {
         let ids = Set(ProviderTemplate.all.map(\.id))
         XCTAssertTrue(ids.isSuperset(of: ["deepseek", "qwen", "moonshot", "zhipu"]))

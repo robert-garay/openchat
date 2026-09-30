@@ -135,4 +135,35 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     static func template(for id: String) -> ProviderTemplate? {
         all.first { $0.id == id }
     }
+
+    /// Stable catalog rank for built-in providers; unknown ids sort last.
+    static func catalogRank(for providerID: String) -> Int {
+        catalogRankByID[providerID] ?? Int.max
+    }
+
+    static func sortedByCatalog(_ templates: [ProviderTemplate]) -> [ProviderTemplate] {
+        templates.enumerated()
+            .sorted { lhs, rhs in
+                let leftRank = catalogRank(for: lhs.element.id)
+                let rightRank = catalogRank(for: rhs.element.id)
+                if leftRank != rightRank { return leftRank < rightRank }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
+    }
+
+    static func sortedConfiguredProviders(_ providers: [ConfiguredProvider]) -> [ConfiguredProvider] {
+        providers.enumerated()
+            .sorted { lhs, rhs in
+                let leftRank = catalogRank(for: lhs.element.id)
+                let rightRank = catalogRank(for: rhs.element.id)
+                if leftRank != rightRank { return leftRank < rightRank }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
+    }
+
+    private static let catalogRankByID: [String: Int] = Dictionary(
+        uniqueKeysWithValues: all.enumerated().map { ($1.id, $0) }
+    )
 }

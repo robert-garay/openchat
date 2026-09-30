@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Cloud/API provider lists (Settings, onboarding add-provider, model picker filters) always show OpenRouter first, using the canonical catalog order from `ProviderTemplate`.
 - On-device setup is a single scrollable page: provider logos with expandable model lists, Fast / Balanced / Strongest tier badges, iPhone properties disclosure, live download progress, and concurrent model downloads. Existing users see it once after update via a versioned setup flag; new installs use the same flow before adding cloud keys.
 
 ### Added

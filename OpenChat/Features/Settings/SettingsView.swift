@@ -15,7 +15,7 @@ struct SettingsView: View {
                         Text("No providers connected yet.")
                             .foregroundStyle(.secondary)
                     }
-                    ForEach(providerStore.providers) { provider in
+                    ForEach(providerStore.providersInCatalogOrder) { provider in
                         NavigationLink {
                             ProviderDetailView(provider: provider)
                         } label: {
