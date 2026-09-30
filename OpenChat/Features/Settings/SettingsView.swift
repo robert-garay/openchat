@@ -39,7 +39,7 @@ struct SettingsView: View {
 
                 Section("On-Device") {
                     NavigationLink {
-                        LocalModelsSettingsView()
+                        LocalModelsOnboardingView(flow: .settings)
                     } label: {
                         Label("On-Device Models", systemImage: "iphone.gen3")
                     }
