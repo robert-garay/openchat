@@ -78,11 +78,6 @@ struct LocalModelsOnboardingView: View {
 
     private var deviceSection: some View {
         Section {
-            if let result = localModelStore.recommendationResult(preference: localModelStore.intelligencePreference) {
-                Text(result.deviceSummary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
             LocalModelDevicePropertiesDisclosure(context: deviceContext)
         }
     }
