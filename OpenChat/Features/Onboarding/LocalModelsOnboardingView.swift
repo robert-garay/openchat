@@ -14,7 +14,6 @@ struct LocalModelsOnboardingView: View {
     @Environment(ProviderStore.self) private var providerStore
 
     @State private var expandedVendorID: String?
-    @State private var selectedPreference: IntelligencePreference = .everydayChat
 
     init(
         flow: LocalModelsOnboardingFlow = .settingsSheet,
@@ -29,18 +28,17 @@ struct LocalModelsOnboardingView: View {
     }
 
     private var recommendedModelIDs: Set<String> {
-        Set(localModelStore.recommendationResult(preference: selectedPreference)?.picks.map(\.entry.id) ?? [])
+        Set(localModelStore.recommendationResult(preference: localModelStore.intelligencePreference)?.picks.map(\.entry.id) ?? [])
     }
 
     private var deviceContext: DeviceContext {
-        localModelStore.deviceContext().withPreference(selectedPreference)
+        localModelStore.deviceContext().withPreference(localModelStore.intelligencePreference)
     }
 
     var body: some View {
         List {
             introSection
             deviceSection
-            preferenceSection
             providerSections
             wifiSection
             if flow == .firstLaunch {
@@ -64,19 +62,15 @@ struct LocalModelsOnboardingView: View {
             }
         }
         .onAppear {
-            selectedPreference = localModelStore.intelligencePreference
             if expandedVendorID == nil {
                 expandedVendorID = vendorGroups.first?.vendor.id
             }
-        }
-        .onChange(of: selectedPreference) { _, value in
-            localModelStore.intelligencePreference = value
         }
     }
 
     private var introSection: some View {
         Section {
-            Text("Download a private model that runs on your iPhone—no API key required. Pick a provider, choose a model, and tap Download. You can fetch more than one model at a time.")
+            Text("Download a private model that runs on your iPhone. Pick a provider, choose a model, and tap Download. You can fetch more than one model at a time.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -84,30 +78,12 @@ struct LocalModelsOnboardingView: View {
 
     private var deviceSection: some View {
         Section {
-            if let result = localModelStore.recommendationResult(preference: selectedPreference) {
+            if let result = localModelStore.recommendationResult(preference: localModelStore.intelligencePreference) {
                 Text(result.deviceSummary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             LocalModelDevicePropertiesDisclosure(context: deviceContext)
-        }
-    }
-
-    private var preferenceSection: some View {
-        Section {
-            Picker("Recommendation style", selection: $selectedPreference) {
-                ForEach(availablePreferences, id: \.self) { preference in
-                    Text(preference.title).tag(preference)
-                }
-            }
-            .pickerStyle(.segmented)
-            Text(selectedPreference.subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        } header: {
-            Text("Tier focus")
-        } footer: {
-            Text("Fast, Balanced, and Strongest labels on each model reflect catalog size; suggestions follow your iPhone and this focus.")
         }
     }
 
@@ -185,21 +161,7 @@ struct LocalModelsOnboardingView: View {
         }
     }
 
-    private var availablePreferences: [IntelligencePreference] {
-        IntelligencePreference.allCases.filter { preference in
-            preference != .bestOnDevice || localModelStore.deviceTier >= .standard6GB
-        }
-    }
-
-    private var hasLocalModel: Bool {
-        !localModelStore.readyEntries.isEmpty
-    }
-
-    private var hasCloudProvider: Bool {
-        providerStore.providers.contains { $0.id != OnDeviceProvider.providerID }
-    }
-
-    private var canFinishFirstLaunch: Bool {
+e var canFinishFirstLaunch: Bool {
         hasLocalModel || hasCloudProvider
     }
 
