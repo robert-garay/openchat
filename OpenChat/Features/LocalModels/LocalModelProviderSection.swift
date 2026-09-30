@@ -14,42 +14,41 @@ struct LocalModelProviderSection: View {
     }
 
     var body: some View {
-        Section {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    expandedVendorID = isExpanded ? nil : vendor.id
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    ProviderLogoView(
-                        logoAssetName: vendor.logoAssetName,
-                        symbolName: vendor.symbolName,
-                        tint: vendorTint,
-                        size: 36
-                    )
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(vendor.displayName)
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        Text(modelCountLabel)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                expandedVendorID = isExpanded ? nil : vendor.id
             }
-            .buttonStyle(.plain)
-
-            if isExpanded {
-                ForEach(models) { entry in
-                    LocalModelDownloadRow(
-                        entry: entry,
-                        isRecommended: recommendedModelIDs.contains(entry.id)
-                    )
+        } label: {
+            HStack(spacing: 12) {
+                ProviderLogoView(
+                    logoAssetName: vendor.logoAssetName,
+                    symbolName: vendor.symbolName,
+                    tint: vendorTint,
+                    size: 36
+                )
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(vendor.displayName)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text(modelCountLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                Spacer()
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 2)
+        }
+        .buttonStyle(.plain)
+
+        if isExpanded {
+            ForEach(models) { entry in
+                LocalModelDownloadRow(
+                    entry: entry,
+                    isRecommended: recommendedModelIDs.contains(entry.id)
+                )
             }
         }
     }

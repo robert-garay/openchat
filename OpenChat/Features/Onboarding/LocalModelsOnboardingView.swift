@@ -48,6 +48,7 @@ struct LocalModelsOnboardingView: View {
                 settingsFinishSection
             }
         }
+        .listSectionSpacing(8)
         .navigationTitle(flow == .firstLaunch ? "Chat on your iPhone" : "On-Device Models")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -59,11 +60,6 @@ struct LocalModelsOnboardingView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Skip") { skipFirstLaunch() }
                 }
-            }
-        }
-        .onAppear {
-            if expandedVendorID == nil {
-                expandedVendorID = vendorGroups.first?.vendor.id
             }
         }
     }
@@ -84,13 +80,15 @@ struct LocalModelsOnboardingView: View {
 
     @ViewBuilder
     private var providerSections: some View {
-        ForEach(vendorGroups, id: \.vendor.id) { group in
-            LocalModelProviderSection(
-                vendor: group.vendor,
-                models: group.models,
-                recommendedModelIDs: recommendedModelIDs,
-                expandedVendorID: $expandedVendorID
-            )
+        Section {
+            ForEach(vendorGroups, id: \.vendor.id) { group in
+                LocalModelProviderSection(
+                    vendor: group.vendor,
+                    models: group.models,
+                    recommendedModelIDs: recommendedModelIDs,
+                    expandedVendorID: $expandedVendorID
+                )
+            }
         }
     }
 
