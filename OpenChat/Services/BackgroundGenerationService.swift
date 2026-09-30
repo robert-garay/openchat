@@ -337,7 +337,8 @@ final class BackgroundGenerationService {
                 memoryStore: memoryStore,
                 rulesStore: rulesStore,
                 modelContext: modelContext,
-                conversationID: conversationID
+                conversationID: conversationID,
+                usesLocalInference: provider.usesLocalInference
             )
         } catch is CancellationError {
             finalActivityStatus = .failed
@@ -415,15 +416,28 @@ final class BackgroundGenerationService {
         memoryStore: MemoryStore,
         rulesStore: RulesStore,
         modelContext: ModelContext,
-        conversationID: UUID
+        conversationID: UUID,
+        usesLocalInference: Bool
     ) async {
         assistantMessage.extractInlineImages()
         assistantMessage.isStreaming = false
         assistantMessage.completedAt = .now
         assistantMessage.isUnread = visibleConversationID != conversation.id
 
-        captureMemoryProposals(from: assistantMessage, memoryStore: memoryStore, modelContext: modelContext, conversation: conversation)
-        captureRuleProposals(from: assistantMessage, rulesStore: rulesStore, modelContext: modelContext, conversation: conversation)
+        captureMemoryProposals(
+            from: assistantMessage,
+            memoryStore: memoryStore,
+            modelContext: modelContext,
+            conversation: conversation,
+            usesLocalInference: usesLocalInference
+        )
+        captureRuleProposals(
+            from: assistantMessage,
+            rulesStore: rulesStore,
+            modelContext: modelContext,
+            conversation: conversation,
+            usesLocalInference: usesLocalInference
+        )
 
         let invokedSkills = await skillCollector.invokedSkills
         for skill in invokedSkills {
