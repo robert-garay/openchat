@@ -3,7 +3,6 @@ import SwiftUI
 struct LocalModelProviderSection: View {
     let vendor: LocalModelVendor
     let models: [LocalModelManifestEntry]
-    let recommendedModelIDs: Set<String>
     @Binding var expandedVendorID: String?
 
     @Environment(LocalModelStore.self) private var localModelStore
@@ -45,10 +44,7 @@ struct LocalModelProviderSection: View {
 
         if isExpanded {
             ForEach(models) { entry in
-                LocalModelDownloadRow(
-                    entry: entry,
-                    isRecommended: recommendedModelIDs.contains(entry.id)
-                )
+                LocalModelDownloadRow(entry: entry)
             }
         }
     }
@@ -75,7 +71,6 @@ struct LocalModelProviderSection: View {
 
 struct LocalModelDownloadRow: View {
     let entry: LocalModelManifestEntry
-    let isRecommended: Bool
 
     @Environment(LocalModelStore.self) private var localModelStore
     @Environment(ProviderStore.self) private var providerStore
@@ -84,14 +79,7 @@ struct LocalModelDownloadRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        LocalModelTierBadge(label: entry.performanceTierLabel, compact: true)
-                        if isRecommended {
-                            Text("Suggested")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(Color.accentColor)
-                        }
-                    }
+                    LocalModelTierBadge(label: entry.performanceTierLabel, compact: true)
                     Text(entry.displayName)
                         .font(.body.weight(.medium))
                     Text(formattedBytes(entry.bytes))

@@ -27,9 +27,6 @@ struct LocalModelsOnboardingView: View {
         LocalModelVendor.groupedDownloadableEntries(from: localModelStore.compatibleDownloadableEntries())
     }
 
-    private var recommendedModelIDs: Set<String> {
-        Set(localModelStore.recommendationResult(preference: localModelStore.intelligencePreference)?.picks.map(\.entry.id) ?? [])
-    }
 
     private var deviceContext: DeviceContext {
         localModelStore.deviceContext().withPreference(localModelStore.intelligencePreference)
@@ -85,8 +82,7 @@ struct LocalModelsOnboardingView: View {
                 LocalModelProviderSection(
                     vendor: group.vendor,
                     models: group.models,
-                    recommendedModelIDs: recommendedModelIDs,
-                    expandedVendorID: $expandedVendorID
+                        expandedVendorID: $expandedVendorID
                 )
             }
         }
