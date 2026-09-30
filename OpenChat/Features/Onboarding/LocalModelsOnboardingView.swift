@@ -11,8 +11,6 @@ struct LocalModelsOnboardingView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(LocalModelStore.self) private var localModelStore
-    @Environment(ProviderStore.self) private var providerStore
-
     @State private var expandedVendorID: String?
 
     init(
@@ -27,9 +25,12 @@ struct LocalModelsOnboardingView: View {
         LocalModelVendor.groupedDownloadableEntries(from: localModelStore.compatibleDownloadableEntries())
     }
 
-
     private var deviceContext: DeviceContext {
         localModelStore.deviceContext().withPreference(localModelStore.intelligencePreference)
+    }
+
+    private var hasLocalModel: Bool {
+        !localModelStore.readyEntries.isEmpty
     }
 
     var body: some View {
@@ -39,7 +40,6 @@ struct LocalModelsOnboardingView: View {
             providerSections
             wifiSection
             if flow == .firstLaunch {
-                firstLaunchCloudSection
                 firstLaunchFinishSection
             } else {
                 settingsFinishSection
@@ -82,7 +82,7 @@ struct LocalModelsOnboardingView: View {
                 LocalModelProviderSection(
                     vendor: group.vendor,
                     models: group.models,
-                        expandedVendorID: $expandedVendorID
+                    expandedVendorID: $expandedVendorID
                 )
             }
         }
@@ -99,44 +99,21 @@ struct LocalModelsOnboardingView: View {
         }
     }
 
-    private var firstLaunchCloudSection: some View {
-        Section {
-            if hasLocalModel {
-                Label("On-device model ready — no API key needed to start chatting.", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-            } else {
-                Text("Optional: add an API key for OpenAI, Claude, Gemini, OpenRouter, or a custom endpoint.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            NavigationLink {
-                AddProviderView(dismissesOnSave: false)
-            } label: {
-                Label("Add a cloud provider", systemImage: "key.fill")
-            }
-            if hasCloudProvider {
-                Label("Provider connected", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            }
-        } header: {
-            Text("Cloud providers")
-        }
-    }
-
     private var firstLaunchFinishSection: some View {
         Section {
             Button {
-                completeFirstLaunch()
+                completeFirstLaunch(skippedLocal: !hasLocalModel)
             } label: {
-                Text(finishButtonTitle)
+                Text("Continue")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
             }
-            .disabled(!canFinishFirstLaunch)
+            .disabled(!hasLocalModel)
         } footer: {
-            if !canFinishFirstLaunch {
-                Text("Install an on-device model or connect a cloud provider to continue.")
+            if !hasLocalModel {
+                Text("Download a model, or tap Skip to set up a cloud provider next.")
+            } else {
+                Text("Next: connect a cloud provider if you want — optional when a local model is ready.")
             }
         }
     }
@@ -150,24 +127,12 @@ struct LocalModelsOnboardingView: View {
         }
     }
 
-e var canFinishFirstLaunch: Bool {
-        hasLocalModel || hasCloudProvider
-    }
-
-    private var finishButtonTitle: String {
-        hasLocalModel ? "Get started" : "Get started with cloud"
-    }
-
     private func skipFirstLaunch() {
-        UserDefaults.standard.set(true, forKey: OnboardingSetup.skippedLocalKey)
-        if canFinishFirstLaunch {
-            completeFirstLaunch()
-        }
+        completeFirstLaunch(skippedLocal: true)
     }
 
-    private func completeFirstLaunch() {
-        guard canFinishFirstLaunch else { return }
-        UserDefaults.standard.set(!hasLocalModel, forKey: OnboardingSetup.skippedLocalKey)
+    private func completeFirstLaunch(skippedLocal: Bool) {
+        UserDefaults.standard.set(skippedLocal, forKey: OnboardingSetup.skippedLocalKey)
         OnboardingSetup.markLocalModelsSetupExperienceSeen()
         Haptics.light()
         onFirstLaunchContinue?()
