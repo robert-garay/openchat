@@ -12,11 +12,11 @@ enum LocalModelUserSettings {
 final class LocalModelStore {
     private(set) var manifest: LocalModelsManifest?
     private(set) var records: [String: LocalModelInstallRecord] = [:]
-    private(set) var downloadProgress: LocalModelDownloadProgress?
+    private(set) var downloadProgressByModelID: [String: LocalModelDownloadProgress] = [:]
     private(set) var loadError: String?
 
     private let installStore = LocalModelInstallStore()
-    private var downloadTask: Task<Void, Never>?
+    private var downloadTasks: [String: Task<Void, Never>] = [:]
 
     var intelligencePreference: IntelligencePreference {
         get {
@@ -59,6 +59,10 @@ final class LocalModelStore {
         records[modelID] ?? LocalModelInstallRecord(modelID: modelID, state: .notInstalled)
     }
 
+    func downloadProgress(for modelID: String) -> LocalModelDownloadProgress? {
+        downloadProgressByModelID[modelID]
+    }
+
     var readyEntries: [LocalModelManifestEntry] {
         guard let manifest else { return [] }
         return manifest.models.filter { entry in
@@ -96,8 +100,11 @@ final class LocalModelStore {
     func compatibleDownloadableEntries() -> [LocalModelManifestEntry] {
         guard let manifest else { return [] }
         let ramGB = deviceTier.minRAMGB
+        let allowed = LocalModelRecommendationEngine.allCatalogModelIDs()
         return manifest.models.filter { entry in
-            entry.isDownloadable && entry.minRAMGB <= ramGB
+            entry.isDownloadable
+                && entry.minRAMGB <= ramGB
+                && allowed.contains(entry.mlxModelID)
         }
     }
 
@@ -124,11 +131,11 @@ final class LocalModelStore {
             break
         }
 
-        downloadTask?.cancel()
         records[entry.id] = LocalModelInstallStateMachine.markDownloading(existing)
         persistRecords()
 
-        downloadTask = Task {
+        downloadTasks[entry.id]?.cancel()
+        downloadTasks[entry.id] = Task {
             do {
                 try await LocalModelDownloadService.download(
                     entry: entry,
@@ -137,7 +144,7 @@ final class LocalModelStore {
                     wifiOnly: wifiOnlyDownloads
                 ) { [weak self] progress in
                     Task { @MainActor in
-                        self?.downloadProgress = progress
+                        self?.downloadProgressByModelID[entry.id] = progress
                         if var record = self?.records[entry.id] {
                             record.downloadedBytes = progress.receivedBytes
                             self?.records[entry.id] = record
@@ -152,31 +159,40 @@ final class LocalModelStore {
                     bytesOnDisk: bytes,
                     manifestVersion: manifest.version
                 )
-                downloadProgress = nil
+                downloadProgressByModelID.removeValue(forKey: entry.id)
+                downloadTasks.removeValue(forKey: entry.id)
                 persistRecords()
                 syncProvider(into: providerStore)
             } catch is CancellationError {
                 records[entry.id] = LocalModelInstallStateMachine.markFailed(existing, error: "Cancelled")
-                downloadProgress = nil
+                downloadProgressByModelID.removeValue(forKey: entry.id)
+                downloadTasks.removeValue(forKey: entry.id)
                 persistRecords()
             } catch {
                 records[entry.id] = LocalModelInstallStateMachine.markFailed(
                     existing,
                     error: error.localizedDescription
                 )
-                downloadProgress = nil
+                downloadProgressByModelID.removeValue(forKey: entry.id)
+                downloadTasks.removeValue(forKey: entry.id)
                 persistRecords()
             }
         }
     }
 
-    func cancelDownload() {
-        downloadTask?.cancel()
-        downloadTask = nil
-        downloadProgress = nil
+    func cancelDownload(modelID: String) {
+        downloadTasks[modelID]?.cancel()
+        downloadTasks.removeValue(forKey: modelID)
+        downloadProgressByModelID.removeValue(forKey: modelID)
+        let existing = record(for: modelID)
+        if existing.state == .downloading {
+            records[modelID] = LocalModelInstallStateMachine.markFailed(existing, error: "Cancelled")
+            persistRecords()
+        }
     }
 
     func deleteModel(modelID: String, providerStore: ProviderStore) {
+        cancelDownload(modelID: modelID)
         let dir = installStore.modelDirectory(for: modelID)
         try? FileManager.default.removeItem(at: dir)
         records[modelID] = LocalModelInstallRecord(modelID: modelID, state: .notInstalled)
