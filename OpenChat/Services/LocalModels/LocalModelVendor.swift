@@ -21,10 +21,12 @@ enum LocalModelVendor: String, CaseIterable, Identifiable, Sendable {
 
     var logoAssetName: String? {
         switch self {
+        case .meta:
+            return "ProviderLogoMeta"
         case .qwen:
             return "ProviderLogoAlibabaCloud"
-        case .meta, .microsoft:
-            return nil
+        case .microsoft:
+            return "ProviderLogoMicrosoft"
         }
     }
 

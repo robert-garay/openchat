@@ -19,6 +19,12 @@ final class LocalModelVendorTests: XCTestCase {
         XCTAssertEqual(makeEntry(id: "c", level: "best").performanceTierLabel, .strongest)
     }
 
+    func testLogoAssetNamesMatchProviderCatalogConvention() {
+        XCTAssertEqual(LocalModelVendor.meta.logoAssetName, "ProviderLogoMeta")
+        XCTAssertEqual(LocalModelVendor.qwen.logoAssetName, "ProviderLogoAlibabaCloud")
+        XCTAssertEqual(LocalModelVendor.microsoft.logoAssetName, "ProviderLogoMicrosoft")
+    }
+
     func testGroupedEntriesPreservesVendorOrder() {
         let entries = [
             makeEntry(id: "mlx-community/Phi-3.5-mini-instruct-4bit", level: "best"),
