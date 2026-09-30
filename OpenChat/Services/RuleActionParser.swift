@@ -13,7 +13,15 @@ enum RuleActionParser {
     }
 
     static func strippingFences(from markdown: String) -> String {
-        patterns.strippingFences(from: markdown)
+        var result = patterns.strippingFences(from: markdown)
+        result = result.replacingOccurrences(
+            of: #"(?m)^\s*`{0,3}\s*openchat-rule\s*`{0,3}\s*$"#,
+            with: "",
+            options: .regularExpression
+        )
+        return result
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private struct RuleEntry: Decodable {

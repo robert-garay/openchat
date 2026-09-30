@@ -23,8 +23,10 @@ extension BackgroundGenerationService {
         from message: ChatMessage,
         memoryStore: MemoryStore,
         modelContext: ModelContext,
-        conversation: Conversation
+        conversation: Conversation,
+        usesLocalInference: Bool
     ) {
+        guard ChatProposalPolicy.allowsModelProposals(usesLocalInference: usesLocalInference) else { return }
         guard MemoryStore.shouldUseMemory(
             isTemporary: conversation.isTemporary,
             useInChats: memoryStore.useInChats
@@ -70,8 +72,10 @@ extension BackgroundGenerationService {
         from message: ChatMessage,
         rulesStore: RulesStore,
         modelContext: ModelContext,
-        conversation: Conversation
+        conversation: Conversation,
+        usesLocalInference: Bool
     ) {
+        guard ChatProposalPolicy.allowsModelProposals(usesLocalInference: usesLocalInference) else { return }
         guard RulesStore.shouldAllowRuleProposals(
             isTemporary: conversation.isTemporary,
             allowProposalsFromChat: rulesStore.allowProposalsFromChat

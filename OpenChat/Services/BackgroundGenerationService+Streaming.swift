@@ -129,7 +129,9 @@ extension BackgroundGenerationService {
             if let memorySection = MemoryStore.contextSection(for: injectionItems) {
                 middleSections.append(memorySection)
             }
-            middleSections.append(MemoryStore.modelInstruction())
+            if ChatProposalPolicy.allowsModelProposals(usesLocalInference: provider.usesLocalInference) {
+                middleSections.append(MemoryStore.modelInstruction())
+            }
         }
 
         if RulesStore.shouldAllowRuleProposals(isTemporary: conversation.isTemporary, allowProposalsFromChat: rulesStore.allowProposalsFromChat) {
@@ -140,7 +142,9 @@ extension BackgroundGenerationService {
             if let rulesSection = RulesStore.contextSection(for: existingRuleItems) {
                 middleSections.append(rulesSection)
             }
-            middleSections.append(RulesStore.modelInstruction())
+            if ChatProposalPolicy.allowsModelProposals(usesLocalInference: provider.usesLocalInference) {
+                middleSections.append(RulesStore.modelInstruction())
+            }
         }
 
         if let skillIndex, !skillIndex.isEmpty {

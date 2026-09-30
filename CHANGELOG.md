@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- On-device MLX chat no longer injects memory/rule proposal protocols or surfaces Save-to-memory cards when small local models echo `openchat-memory` fences.
 - Lock `swift-collections` to 1.6.0 in `Package.resolved` so GitHub Actions (Xcode 16.4 / Swift 6.1) can resolve SPM after the mlx-swift-lm 3.x archive fix.
 - Pin mlx-swift to 0.31.4 so CI (Xcode 16.4) can resolve on-device MLX dependencies without Swift 6.3-only package versions.
 - Chat rules composer chip now reflects per-chat rules (not only legacy system prompt).

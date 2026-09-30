@@ -222,6 +222,10 @@ final class ChatViewModel {
         return providerStore.provider(withID: id)
     }
 
+    func usesLocalInference(for message: ChatMessage) -> Bool {
+        provider(for: message)?.usesLocalInference ?? currentProvider?.usesLocalInference ?? false
+    }
+
     var supportsVision: Bool {
         currentModel?.supportsVision ?? false
     }

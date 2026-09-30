@@ -57,6 +57,7 @@ extension ChatViewModel {
     // MARK: - Capture / save helpers
 
     func captureMemoryProposals(from message: ChatMessage) {
+        guard ChatProposalPolicy.allowsModelProposals(usesLocalInference: usesLocalInference(for: message)) else { return }
         guard shouldUseMemory else { return }
         let proposals = MemoryActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }
@@ -84,6 +85,7 @@ extension ChatViewModel {
     }
 
     func captureRuleProposals(from message: ChatMessage) {
+        guard ChatProposalPolicy.allowsModelProposals(usesLocalInference: usesLocalInference(for: message)) else { return }
         guard shouldAllowRuleProposals else { return }
         let proposals = RuleActionParser.parse(message.content)
         guard !proposals.isEmpty else { return }

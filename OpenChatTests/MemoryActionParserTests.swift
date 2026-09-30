@@ -7,6 +7,10 @@ final class MemoryActionParserTests: XCTestCase {
     }
     func testStrips() { XCTAssertFalse(MemoryActionParser.strippingFences(from: "```openchat-memory\nx\n```").contains("openchat-memory")) }
 
+    func testStripsBareProtocolToken() {
+        XCTAssertEqual(MemoryActionParser.strippingFences(from: "openchat-memory"), "")
+    }
+
     func testStrippingFencesHidesUnclosedFenceMidStream() {
         let markdown = """
         Before
