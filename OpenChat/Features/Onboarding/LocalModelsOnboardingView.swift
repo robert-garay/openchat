@@ -1,7 +1,10 @@
 import SwiftUI
 
 enum LocalModelsOnboardingFlow {
+    /// Presented in a sheet (e.g. Welcome) with Close / Done.
     case settingsSheet
+    /// Pushed from Settings — same content, standard navigation back.
+    case settings
     case firstLaunch
 }
 
@@ -41,7 +44,7 @@ struct LocalModelsOnboardingView: View {
             wifiSection
             if flow == .firstLaunch {
                 firstLaunchFinishSection
-            } else {
+            } else if flow == .settingsSheet {
                 settingsFinishSection
             }
         }
@@ -53,7 +56,7 @@ struct LocalModelsOnboardingView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
-            } else {
+            } else if flow == .firstLaunch {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Skip") { skipFirstLaunch() }
                 }

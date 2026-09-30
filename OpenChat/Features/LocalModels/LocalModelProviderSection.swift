@@ -82,9 +82,16 @@ struct LocalModelDownloadRow: View {
                     LocalModelTierBadge(label: entry.performanceTierLabel, compact: true)
                     Text(entry.displayName)
                         .font(.body.weight(.medium))
-                    Text(formattedBytes(entry.bytes))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if let diskBytes = localModelStore.record(for: entry.id).bytesOnDisk,
+                       localModelStore.record(for: entry.id).state == .ready {
+                        Text(storageLabel(diskBytes))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(formattedBytes(entry.bytes))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
                 stateControl
@@ -112,9 +119,15 @@ struct LocalModelDownloadRow: View {
         let state = localModelStore.record(for: entry.id).state
         switch state {
         case .ready:
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-                .font(.title3)
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .font(.title3)
+                Button("Delete", role: .destructive) {
+                    localModelStore.deleteModel(modelID: entry.id, providerStore: providerStore)
+                }
+                .font(.caption)
+            }
         case .downloading:
             Button("Cancel", role: .destructive) {
                 localModelStore.cancelDownload(modelID: entry.id)
@@ -147,6 +160,10 @@ struct LocalModelDownloadRow: View {
 
     private func formattedBytes(_ bytes: Int) -> String {
         String(format: "%.1f GB download", Double(bytes) / 1_073_741_824.0)
+    }
+
+    private func storageLabel(_ bytes: Int) -> String {
+        String(format: "%.1f GB on disk", Double(bytes) / 1_073_741_824.0)
     }
 
     private func progressLabel(_ progress: LocalModelDownloadProgress) -> String {
