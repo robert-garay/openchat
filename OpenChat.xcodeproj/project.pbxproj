@@ -375,7 +375,6 @@
 		7415602CE5D47D71F672CB31 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		741F0AEA5B5732461B588481 /* CustomEndpointLogoOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEndpointLogoOption.swift; sourceTree = "<group>"; };
 		7660E53D7D78D2E9F0582C03 /* ProviderBalanceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderBalanceClientTests.swift; sourceTree = "<group>"; };
-		7A9A4FFD588457AA4B9FFB91 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 		7AA31B3544CF0EA1AA0EDE74 /* AgentContextProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentContextProviderTests.swift; sourceTree = "<group>"; };
 		7B05B6BB2DA9570AB3E45ED5 /* LocalModelInstallRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelInstallRecord.swift; sourceTree = "<group>"; };
 		7B43513FAD22D47E418C48BD /* ProposalSaveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalSaveCoordinator.swift; sourceTree = "<group>"; };
@@ -600,7 +599,6 @@
 		779134D1B6592D1559BCEDCF /* Config */ = {
 			isa = PBXGroup;
 			children = (
-				7A9A4FFD588457AA4B9FFB91 /* Local.xcconfig */,
 				2C4BE3A4BF4F8A1B63A1B087 /* Local.xcconfig.example */,
 				FCDA60F07EBC0A7BA930CCE6 /* Signing.xcconfig */,
 				7277147830AD3F2ECC4C396D /* SigningTests.xcconfig */,
