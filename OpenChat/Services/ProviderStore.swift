@@ -82,8 +82,15 @@ final class ProviderStore {
         loadStarredModels()
     }
 
+    /// Configured cloud/API providers in canonical catalog order (OpenRouter first).
+    var providersInCatalogOrder: [ConfiguredProvider] {
+        ProviderTemplate.sortedConfiguredProviders(providers)
+    }
+
     var enabledProviders: [ConfiguredProvider] {
-        providers.filter { $0.isEnabled && hasUsableCredentials($0) }
+        ProviderTemplate.sortedConfiguredProviders(
+            providers.filter { $0.isEnabled && hasUsableCredentials($0) }
+        )
     }
 
     var isLoadingModels: Bool {

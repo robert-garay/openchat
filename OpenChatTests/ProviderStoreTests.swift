@@ -73,6 +73,18 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertEqual(store.enabledProviders.first?.id, "deepseek")
     }
 
+    func testEnabledProvidersSortByCatalogWithOpenRouterFirst() throws {
+        let deepseek = try XCTUnwrap(ProviderTemplate.template(for: "deepseek"))
+        let openrouter = try XCTUnwrap(ProviderTemplate.template(for: "openrouter"))
+        store.addFromTemplate(deepseek)
+        store.addFromTemplate(openrouter)
+        store.setAPIKey("sk-deepseek", for: try XCTUnwrap(store.provider(withID: "deepseek")))
+        store.setAPIKey("sk-or-test", for: try XCTUnwrap(store.provider(withID: "openrouter")))
+
+        XCTAssertEqual(store.enabledProviders.map(\.id), ["openrouter", "deepseek"])
+        XCTAssertEqual(store.providersInCatalogOrder.map(\.id), ["openrouter", "deepseek"])
+    }
+
     func testCustomEndpointWithoutKeyRequirementIsImmediatelyUsable() {
         store.addCustom(name: "Local Ollama", baseURL: "http://localhost:11434/v1", models: [AIModel(id: "llama3.1", displayName: "llama3.1")], requiresAPIKey: false)
         let provider = store.providers.first!
