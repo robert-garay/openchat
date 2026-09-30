@@ -8,17 +8,15 @@ Provider-specific chat apps are good at one thing: their own model. OpenChat is 
 
 OpenChat also keeps model lists current by pulling live `/models` catalogs from supported providers and OpenRouter's public catalog.
 
-No backend server, no account, no telemetry. The app talks directly to whichever provider you configure. API keys, chat history, memory, rules, and skills stay on your device.
+No backend server, no account, no telemetry. Download a curated on-device model for local chat, or connect cloud providers with your own keys. Chat history, memory, rules, and skills stay on your device.
 
 ## Download
 
-**App Store:** Coming soon.
+**App Store:** [OpenChat Connect](https://apps.apple.com/us/app/openchat-connect/id6798106079)
 
 **Landing page:** [robert-garay.github.io/openchat](https://robert-garay.github.io/openchat/)
 
-OpenChat is **bring-your-own-key (BYOK)**: you need an API key from at least one supported provider (OpenAI, Anthropic, Google, OpenRouter, etc.) to use the app. The app is free; usage is billed by your providers directly.
-
-Join the waitlist: [robert@genion.ai](mailto:robert@genion.ai?subject=OpenChat%20Waitlist)
+The app is free. On-device models need no API key. Cloud models are **bring-your-own-key (BYOK)**: usage is billed by your providers, not OpenChat.
 
 ## Why OpenChat
 
