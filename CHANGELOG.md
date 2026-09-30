@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - On-device local model vendor rows for Meta and Microsoft now use official brand logo assets (with dark-mode Meta mark), matching the shared `ProviderLogoView` pipeline used for Qwen and other providers.
 
+- ModelRunner is available as a built-in provider. Paste a key from your ModelRunner account and its chat models are fetched live like any other OpenAI-compatible provider.
+
 ### Changed
 
 - On-device setup is a single scrollable page: provider logos with expandable model lists, Fast / Balanced / Strongest tier badges, iPhone properties disclosure, live download progress, and concurrent model downloads. Existing users see it once after update via a versioned setup flag; new installs use the same flow before adding cloud keys.
