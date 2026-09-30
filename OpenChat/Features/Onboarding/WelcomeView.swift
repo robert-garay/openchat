@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    var showsOnDeviceEntry: Bool = true
+    var onSkipOrContinueWithLocal: (() -> Void)?
+
     @State private var showingAddProvider = false
     @State private var showingLocalModels = false
 
@@ -66,17 +69,33 @@ struct WelcomeView: View {
                 .buttonStyle(.borderedProminent)
                 .buttonBorderShape(.capsule)
 
-                Button {
-                    Haptics.light()
-                    showingLocalModels = true
-                } label: {
-                    Text("Run Models on This Device")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
+                if showsOnDeviceEntry {
+                    Button {
+                        Haptics.light()
+                        showingLocalModels = true
+                    } label: {
+                        Text("Run Models on This Device")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
                 }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.capsule)
+
+                if let onSkipOrContinueWithLocal {
+                    Button {
+                        Haptics.light()
+                        onSkipOrContinueWithLocal()
+                    } label: {
+                        Text("Skip for now")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                }
             }
             .padding(.horizontal, 28)
             .padding(.bottom, 24)

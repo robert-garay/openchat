@@ -51,9 +51,19 @@ enum LocalModelDownloadService {
         try FileManager.default.createDirectory(at: modelDir, withIntermediateDirectories: true)
 
         let totalBytes = entry.files.reduce(0) { $0 + ($1.bytes ?? 0) }
-        var received = 0
+        var receivedBeforeCurrentFile = 0
+
+        progress(
+            LocalModelDownloadProgress(
+                modelID: entry.id,
+                fractionCompleted: 0,
+                receivedBytes: 0,
+                totalBytes: totalBytes
+            )
+        )
 
         for file in entry.files {
+            try Task.checkCancellation()
             guard let remoteURL = URL(string: file.url) else {
                 throw LocalModelsError.invalidURL(file.url)
             }
@@ -63,11 +73,16 @@ enum LocalModelDownloadService {
                 withIntermediateDirectories: true
             )
 
-            let (tempURL, response) = try await URLSession.shared.download(from: remoteURL)
+            let tempURL = try await downloadFile(
+                from: remoteURL,
+                fileBytesHint: file.bytes,
+                modelID: entry.id,
+                receivedBeforeCurrentFile: receivedBeforeCurrentFile,
+                totalBytes: totalBytes,
+                progress: progress
+            )
             defer { try? FileManager.default.removeItem(at: tempURL) }
-            if let http = response as? HTTPURLResponse, !(200 ... 299).contains(http.statusCode) {
-                throw LocalModelsError.downloadFailed("HTTP \(http.statusCode) for \(file.path)")
-            }
+
             if FileManager.default.fileExists(atPath: destination.path) {
                 try FileManager.default.removeItem(at: destination)
             }
@@ -85,13 +100,13 @@ enum LocalModelDownloadService {
             } else {
                 bytesForFile = try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
             }
-            received += bytesForFile
-            let fraction = totalBytes > 0 ? Double(received) / Double(totalBytes) : 1
+            receivedBeforeCurrentFile += bytesForFile
+            let fraction = totalBytes > 0 ? Double(receivedBeforeCurrentFile) / Double(totalBytes) : 1
             progress(
                 LocalModelDownloadProgress(
                     modelID: entry.id,
                     fractionCompleted: min(1, fraction),
-                    receivedBytes: received,
+                    receivedBytes: receivedBeforeCurrentFile,
                     totalBytes: totalBytes
                 )
             )
@@ -111,5 +126,136 @@ enum LocalModelDownloadService {
         values.isExcludedFromBackup = true
         try? excludedFromBackup.setResourceValues(values)
         _ = manifestVersion
+    }
+
+    private static func downloadFile(
+        from remoteURL: URL,
+        fileBytesHint: Int?,
+        modelID: String,
+        receivedBeforeCurrentFile: Int,
+        totalBytes: Int,
+        progress: @escaping @Sendable (LocalModelDownloadProgress) -> Void
+    ) async throws -> URL {
+        try await withCheckedThrowingContinuation { continuation in
+            let handler = DownloadHandler(
+                remoteURL: remoteURL,
+                fileBytesHint: fileBytesHint,
+                modelID: modelID,
+                receivedBeforeCurrentFile: receivedBeforeCurrentFile,
+                totalBytes: totalBytes,
+                progress: progress,
+                continuation: continuation
+            )
+            handler.start()
+        }
+    }
+}
+
+// ponytail: one small delegate box; upgrade path is injectable URLSession for tests.
+private final class DownloadHandler: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    private let remoteURL: URL
+    private let fileBytesHint: Int?
+    private let modelID: String
+    private let receivedBeforeCurrentFile: Int
+    private let totalBytes: Int
+    private let progress: @Sendable (LocalModelDownloadProgress) -> Void
+    private var continuation: CheckedContinuation<URL, Error>?
+    private var session: URLSession!
+    private var expectedFileBytes: Int64 = 0
+
+    init(
+        remoteURL: URL,
+        fileBytesHint: Int?,
+        modelID: String,
+        receivedBeforeCurrentFile: Int,
+        totalBytes: Int,
+        progress: @escaping @Sendable (LocalModelDownloadProgress) -> Void,
+        continuation: CheckedContinuation<URL, Error>
+    ) {
+        self.remoteURL = remoteURL
+        self.fileBytesHint = fileBytesHint
+        self.modelID = modelID
+        self.receivedBeforeCurrentFile = receivedBeforeCurrentFile
+        self.totalBytes = totalBytes
+        self.progress = progress
+        self.continuation = continuation
+        super.init()
+        let config = URLSessionConfiguration.ephemeral
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+    }
+
+    func start() {
+        session.downloadTask(with: remoteURL).resume()
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData bytesWritten: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
+        if totalBytesExpectedToWrite > 0 {
+            expectedFileBytes = totalBytesExpectedToWrite
+        } else if expectedFileBytes == 0, let hint = fileBytesHint {
+            expectedFileBytes = Int64(hint)
+        }
+
+        let fileReceived = Int(totalBytesWritten)
+        let aggregateReceived = receivedBeforeCurrentFile + fileReceived
+        let fraction: Double
+        if totalBytes > 0 {
+            fraction = min(1, Double(aggregateReceived) / Double(totalBytes))
+        } else if expectedFileBytes > 0 {
+            fraction = min(1, Double(totalBytesWritten) / Double(expectedFileBytes))
+        } else {
+            fraction = 0
+        }
+
+        progress(
+            LocalModelDownloadProgress(
+                modelID: modelID,
+                fractionCompleted: fraction,
+                receivedBytes: aggregateReceived,
+                totalBytes: totalBytes
+            )
+        )
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        guard let http = downloadTask.response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {
+            let code = (downloadTask.response as? HTTPURLResponse)?.statusCode ?? -1
+            finish(.failure(LocalModelsError.downloadFailed("HTTP \(code) for \(remoteURL.absoluteString)")))
+            return
+        }
+        let tempCopy = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        do {
+            if FileManager.default.fileExists(atPath: tempCopy.path) {
+                try FileManager.default.removeItem(at: tempCopy)
+            }
+            try FileManager.default.copyItem(at: location, to: tempCopy)
+            finish(.success(tempCopy))
+        } catch {
+            finish(.failure(error))
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error {
+            finish(.failure(error))
+        }
+    }
+
+    private func finish(_ result: Result<URL, Error>) {
+        guard continuation != nil else { return }
+        session.invalidateAndCancel()
+        switch result {
+        case .success(let url):
+            continuation?.resume(returning: url)
+        case .failure(let error):
+            continuation?.resume(throwing: error)
+        }
+        continuation = nil
     }
 }

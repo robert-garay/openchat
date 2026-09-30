@@ -41,7 +41,7 @@ struct RootView: View {
             }
 
             Group {
-                if !setupOnboardingCompleted {
+                if OnboardingSetup.shouldPresentSetup(setupCompleted: setupOnboardingCompleted) {
                     FirstLaunchOnboardingView()
                 } else if providerStore.enabledProviders.isEmpty {
                     WelcomeView()
