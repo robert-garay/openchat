@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="OpenChat: chat with GPT-6 Astra, Claude Fable 5.1, and every major LLM from one native iOS app. BYOK. No backend. Your data stays on your device.">
-    <title>OpenChat: Every model. One app. Your device.</title>
+    <meta name="description" content="OpenChat for iOS: download a curated on-device model for private local chat, or bring your own key for OpenAI, Claude, Gemini, OpenRouter, and more. Free app. No OpenChat account. No lock-in.">
+    <title>OpenChat: On-device models and your keys. One native iOS app.</title>
     <link rel="icon" type="image/png" href="assets/favicon.png" sizes="120x120">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="stylesheet" href="brand.css">
@@ -82,8 +82,9 @@
         .tagline {
             font-size: clamp(1.1rem, 2.5vw, 1.35rem);
             color: var(--text-secondary);
-            max-width: 520px;
+            max-width: 640px;
             margin: 0 auto 32px;
+            line-height: 1.5;
         }
 
         .cta-group {
@@ -256,15 +257,16 @@
             font-weight: 500;
         }
 
-        .waitlist {
+        .download-section {
             text-align: center;
             padding: 64px 0;
         }
 
-        .waitlist p {
+        .download-section p {
             color: var(--text-secondary);
-            max-width: 480px;
+            max-width: 560px;
             margin: 0 auto 24px;
+            line-height: 1.5;
         }
 
         footer {
@@ -303,12 +305,12 @@
                 OpenChat
             </a>
             <nav class="site-nav-links" aria-label="Primary">
+                <a href="https://apps.apple.com/us/app/openchat-connect/id6798106079">Download</a>
                 <a href="wiki/index.html">Wiki</a>
                 <a href="#features">Features</a>
                 <a href="#privacy">Privacy</a>
                 <a href="privacy-policy.html">Privacy Policy</a>
                 <a href="https://github.com/robert-garay/openchat">GitHub</a>
-                <a href="https://apps.apple.com/us/app/openchat-connect/id6798106079">Download</a>
             </nav>
         </div>
     </header>
@@ -321,8 +323,8 @@
                     <img src="assets/openchat-logo.png" alt="OpenChat" width="96" height="96">
                 </picture>
                 <span class="hero-badge">Native iOS · Open Source · MIT</span>
-                <h1>Every model.<br>One app.<br>Your device.</h1>
-                <p class="tagline">The native iOS home for GPT-6 Astra, Claude Fable 5.1, Gemini, OpenRouter, and every OpenAI-compatible endpoint. Bring your own key. No account, no backend.</p>
+                <h1>On your iPhone.<br>Or any model you bring.</h1>
+                <p class="tagline">Download a curated model and chat on the device, or bring your own key for OpenAI, Claude, Gemini, OpenRouter, or a custom endpoint. Free native iOS app. No OpenChat account. No lock-in.</p>
                 <div class="cta-group">
                     <a class="btn btn-primary" href="https://apps.apple.com/us/app/openchat-connect/id6798106079">Download on the App Store</a>
                     <a class="btn btn-secondary" href="https://github.com/robert-garay/openchat">View on GitHub</a>
@@ -337,18 +339,18 @@
                 <div class="pillars">
                     <div class="pillar">
                         <div class="pillar-icon">1</div>
-                        <h3>One workflow, every provider</h3>
-                        <p>Switch between Astra and Fable without changing apps. Same for Gemini, OpenRouter, Mistral, DeepSeek, and self-hosted endpoints.</p>
+                        <h3>On this device</h3>
+                        <p>New in 1.2.0. Download a curated MLX model from Meta, Qwen, or Phi. Choose Fast, Balanced, or Strongest. The On This Device provider runs that chat on the iPhone, with no API key.</p>
                     </div>
                     <div class="pillar">
                         <div class="pillar-icon">2</div>
-                        <h3>Bring your own key</h3>
-                        <p>No OpenChat account. API keys live in your iOS Keychain. The app talks directly to providers you configure.</p>
+                        <h3>Your key, any model</h3>
+                        <p>Paste a key and use OpenAI, Claude, Gemini, OpenRouter, or a custom endpoint. Switch models when a better one shows up. You are not locked to one provider, and you do not need an OpenChat account to do it.</p>
                     </div>
                     <div class="pillar">
                         <div class="pillar-icon">3</div>
-                        <h3>Your data stays local</h3>
-                        <p>Chats, rules, memory, and skills are stored on your device with SwiftData. No OpenChat servers. No analytics SDKs.</p>
+                        <h3>Same app, honest split</h3>
+                        <p>History, rules, memory, and skills are stored on the device. Web search is optional and uses your own search key. On-device chats are not sent to a cloud model. A keyed chat goes straight to the provider you picked. OpenChat has no backend and no analytics.</p>
                     </div>
                 </div>
             </div>
@@ -430,11 +432,11 @@
             </div>
         </section>
 
-        <section class="waitlist">
+        <section class="download-section" id="download">
             <div class="container">
                 <p class="section-label">Get the app</p>
                 <h2>Download OpenChat</h2>
-                <p>OpenChat is free on the App Store. You'll need your own API key from a supported provider to chat; usage is billed by your providers, not OpenChat.</p>
+                <p>OpenChat is free on the App Store. You can chat with a downloaded on-device model without an API key. Cloud models use your own keys, and that usage is billed by those providers, not by OpenChat.</p>
                 <a class="btn btn-primary" href="https://apps.apple.com/us/app/openchat-connect/id6798106079">Download on the App Store</a>
             </div>
         </section>
