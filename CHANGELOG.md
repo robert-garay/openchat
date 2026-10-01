@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Editing a user message no longer asks to delete later messages; saving truncates the thread and regenerates immediately.
 - GitHub Pages landing page and wiki now link to the live App Store listing.
 - Restored multi-provider launch messaging (tagline "Every model. One app. Your device.") while keeping em-dash cleanup and listing OpenRouter, DeepSeek, Qwen, and Mistral before OpenAI, Anthropic, and Gemini.
 - App Store build targets iPhone only (`TARGETED_DEVICE_FAMILY: 1`) for OpenChat and OpenChatLiveActivity.
