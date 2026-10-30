@@ -105,6 +105,21 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertNil(KeychainStore.get(provider.id))
     }
 
+    func testCustomHeadersPersistForTemplateProvider() {
+        let template = ProviderTemplate.template(for: "opencode-go")!
+        let provider = store.addFromTemplate(
+            template,
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+        XCTAssertEqual(provider?.customHeaders["x-opencode-session"], "session-123")
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(
+            reloaded.provider(withID: "opencode-go")?.customHeaders["x-opencode-session"],
+            "session-123"
+        )
+    }
+
     func testPersistsAcrossInstancesUsingSameDefaults() {
         store.addFromTemplate(ProviderTemplate.template(for: "qwen")!)
         let reloaded = ProviderStore(defaults: defaults)

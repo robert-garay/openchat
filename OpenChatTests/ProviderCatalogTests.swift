@@ -35,6 +35,26 @@ final class ProviderCatalogTests: XCTestCase {
         }
     }
 
+    func testConfiguredProviderDecodesWithoutCustomHeaders() throws {
+        let json = Data("""
+        {
+          "id": "deepseek",
+          "templateID": "deepseek",
+          "name": "DeepSeek",
+          "symbolName": "sparkles",
+          "tint": "#4D6BFE",
+          "baseURL": "https://api.deepseek.com/v1",
+          "apiFormat": "openAI",
+          "models": [],
+          "requiresAPIKey": true,
+          "isEnabled": true
+        }
+        """.utf8)
+
+        let provider = try JSONDecoder().decode(ConfiguredProvider.self, from: json)
+        XCTAssertTrue(provider.customHeaders.isEmpty)
+    }
+
     func testProviderLogosMapToCompanyAssets() {
         XCTAssertEqual(ProviderLogo.assetName(for: "qwen"), "ProviderLogoAlibabaCloud")
         XCTAssertEqual(ProviderLogo.assetName(for: "moonshot"), "ProviderLogoMoonshot")

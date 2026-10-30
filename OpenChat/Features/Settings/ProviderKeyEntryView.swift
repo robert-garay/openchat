@@ -6,7 +6,14 @@ struct ProviderKeyEntryView: View {
 
     @Environment(ProviderStore.self) private var providerStore
     @State private var apiKey: String = ""
+    @State private var headerEntries: [CustomHeaderEntry]
     @FocusState private var fieldFocused: Bool
+
+    init(template: ProviderTemplate, onSaved: @escaping () -> Void) {
+        self.template = template
+        self.onSaved = onSaved
+        _headerEntries = State(initialValue: CustomHeaderEntry.list(from: template.defaultHeaders))
+    }
 
     var body: some View {
         Form {
@@ -33,6 +40,8 @@ struct ProviderKeyEntryView: View {
                     Link("Get an API key from \(template.name) →", destination: url)
                 }
             }
+
+            CustomHeadersEditor(headers: $headerEntries)
         }
         .providerToolbarTitle(
             template.name,
@@ -53,8 +62,10 @@ struct ProviderKeyEntryView: View {
     private func save() {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let provider = ConfiguredProvider.fromTemplate(template)
-        providerStore.addFromTemplate(template)
+        guard let provider = providerStore.addFromTemplate(
+            template,
+            customHeaders: headerEntries.headerDictionary
+        ) else { return }
         providerStore.setAPIKey(trimmed, for: provider)
         Haptics.success()
         onSaved()

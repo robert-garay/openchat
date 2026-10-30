@@ -200,10 +200,19 @@ final class ProviderStore {
         loadingBalanceProviderIDs.remove(provider.id)
     }
 
-    func addFromTemplate(_ template: ProviderTemplate) {
-        guard !providers.contains(where: { $0.id == template.id }) else { return }
-        providers.append(.fromTemplate(template))
+    @discardableResult
+    func addFromTemplate(
+        _ template: ProviderTemplate,
+        customHeaders: [String: String]? = nil
+    ) -> ConfiguredProvider? {
+        guard !providers.contains(where: { $0.id == template.id }) else { return nil }
+        var provider = ConfiguredProvider.fromTemplate(template)
+        if let customHeaders {
+            provider.customHeaders = customHeaders
+        }
+        providers.append(provider)
         persist()
+        return provider
     }
 
     /// Injects or removes the synthetic on-device provider when local MLX models are ready.
@@ -224,7 +233,14 @@ final class ProviderStore {
     }
 
     @discardableResult
-    func addCustom(name: String, baseURL: String, models: [AIModel], requiresAPIKey: Bool, logoID: String? = nil) -> ConfiguredProvider? {
+    func addCustom(
+        name: String,
+        baseURL: String,
+        models: [AIModel],
+        requiresAPIKey: Bool,
+        logoID: String? = nil,
+        customHeaders: [String: String] = [:]
+    ) -> ConfiguredProvider? {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         var normalizedURL = baseURL.trimmingCharacters(in: .whitespaces)
         while normalizedURL.hasSuffix("/") {
@@ -247,7 +263,8 @@ final class ProviderStore {
             baseURL: normalizedURL,
             models: models,
             requiresAPIKey: requiresAPIKey,
-            logoID: logoID
+            logoID: logoID,
+            customHeaders: customHeaders
         )
         providers.append(provider)
         persist()

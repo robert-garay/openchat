@@ -13,6 +13,8 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var apiFormat: APIFormat
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
+    /// Headers applied when the provider is added. Users can edit them later.
+    var defaultHeaders: [String: String] = [:]
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -20,6 +22,34 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     }
 
     static let all: [ProviderTemplate] = [
+        ProviderTemplate(
+            id: "opencode",
+            name: "OpenCode Zen",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#111827",
+            baseURL: "https://opencode.ai/zen/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://opencode.ai/auth"),
+            apiKeyPlaceholder: "sk-...",
+            defaultHeaders: [
+                "x-opencode-session": "openchat-\(UUID().uuidString)",
+                "x-opencode-client": "openchat",
+            ]
+        ),
+        ProviderTemplate(
+            id: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://opencode.ai/zen/go/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://opencode.ai/auth"),
+            apiKeyPlaceholder: "sk-...",
+            defaultHeaders: [
+                "x-opencode-session": "openchat-\(UUID().uuidString)",
+                "x-opencode-client": "openchat",
+            ]
+        ),
         ProviderTemplate(
             id: "openrouter",
             name: "OpenRouter",

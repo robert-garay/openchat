@@ -73,6 +73,11 @@ enum ChatService {
         if provider.usesLocalInference {
             return LocalMLXClient.shared
         }
-        return client(for: provider.apiFormat)
+        switch provider.apiFormat {
+        case .openAI:
+            return OpenAICompatibleClient(session: urlSession, customHeaders: provider.customHeaders)
+        case .anthropic:
+            return AnthropicClient(session: urlSession, customHeaders: provider.customHeaders)
+        }
     }
 }
