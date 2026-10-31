@@ -6,6 +6,7 @@ struct ProviderDetailView: View {
     @Environment(ProviderStore.self) private var providerStore
     @Environment(\.dismiss) private var dismiss
     @State private var apiKey: String = ""
+    @State private var headerEntries: [CustomHeaderEntry] = []
     @State private var showingAddNewKeyDialog = false
     @State private var showingRemoveKeyConfirmation = false
     @State private var showingDeleteConfirmation = false
@@ -35,6 +36,13 @@ struct ProviderDetailView: View {
                     onRequestRemove: {
                         showingRemoveKeyConfirmation = true
                     }
+                )
+            }
+
+            if !provider.usesLocalInference {
+                CustomHeadersEditor(
+                    headers: $headerEntries,
+                    startsExpanded: !provider.customHeaders.isEmpty
                 )
             }
 
@@ -121,7 +129,14 @@ struct ProviderDetailView: View {
         .animation(Theme.springFast, value: showingRemoveKeyConfirmation)
         .animation(Theme.springFast, value: showingDeleteConfirmation)
         .onAppear {
+            headerEntries = CustomHeaderEntry.list(from: provider.customHeaders)
             providerStore.refreshBalanceIfNeeded(for: provider)
+        }
+        .onChange(of: headerEntries) { _, newValue in
+            let headers = newValue.headerDictionary
+            guard provider.customHeaders != headers else { return }
+            provider.customHeaders = headers
+            providerStore.update(provider)
         }
     }
 

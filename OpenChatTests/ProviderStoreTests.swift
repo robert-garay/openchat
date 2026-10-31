@@ -105,6 +105,28 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertNil(KeychainStore.get(provider.id))
     }
 
+    func testCustomHeadersPersistForTemplateProvider() {
+        let template = ProviderTemplate.template(for: "opencode-go")!
+        let provider = store.addFromTemplate(
+            template,
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+        XCTAssertEqual(provider?.customHeaders["x-opencode-session"], "session-123")
+        XCTAssertEqual(
+            ProviderHTTPHeaders.loadFromKeychain(providerID: "opencode-go")["x-opencode-session"],
+            "session-123"
+        )
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(
+            reloaded.provider(withID: "opencode-go")?.customHeaders["x-opencode-session"],
+            "session-123"
+        )
+        let persisted = defaults.data(forKey: "com.openchat.configuredProviders")!
+        let json = String(data: persisted, encoding: .utf8)!
+        XCTAssertFalse(json.contains("session-123"), "header values must not live in UserDefaults JSON")
+    }
+
     func testPersistsAcrossInstancesUsingSameDefaults() {
         store.addFromTemplate(ProviderTemplate.template(for: "qwen")!)
         let reloaded = ProviderStore(defaults: defaults)

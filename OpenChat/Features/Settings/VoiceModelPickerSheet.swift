@@ -86,6 +86,12 @@ struct VoiceModelPickerSheet: View {
         voiceModeStore.refreshRealtimeModelsIfNeeded(
             baseURL: provider.baseURL,
             apiKey: providerStore.apiKey(for: provider),
+            customHeaders: ProviderHTTPHeaders.effectiveHeaders(
+                stored: provider.customHeaders,
+                template: provider.template,
+                providerID: provider.id,
+                conversationID: nil
+            ),
             force: force
         )
     }

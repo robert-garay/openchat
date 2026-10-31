@@ -3,6 +3,10 @@ import UIKit
 @testable import OpenChat
 
 final class ProviderCatalogTests: XCTestCase {
+    func testOpenRouterIsFirstProviderTemplate() {
+        XCTAssertEqual(ProviderTemplate.all.first?.id, "openrouter")
+    }
+
     func testAllTemplatesHaveUniqueIDs() {
         let ids = ProviderTemplate.all.map(\.id)
         XCTAssertEqual(Set(ids).count, ids.count)
@@ -33,6 +37,26 @@ final class ProviderCatalogTests: XCTestCase {
             XCTAssertNotNil(template.logoAssetName, "\(template.name) is missing a logo asset mapping")
             XCTAssertEqual(template.logoAssetName, ProviderLogo.assetName(for: template.id))
         }
+    }
+
+    func testConfiguredProviderDecodesWithoutCustomHeaders() throws {
+        let json = Data("""
+        {
+          "id": "deepseek",
+          "templateID": "deepseek",
+          "name": "DeepSeek",
+          "symbolName": "sparkles",
+          "tint": "#4D6BFE",
+          "baseURL": "https://api.deepseek.com/v1",
+          "apiFormat": "openAI",
+          "models": [],
+          "requiresAPIKey": true,
+          "isEnabled": true
+        }
+        """.utf8)
+
+        let provider = try JSONDecoder().decode(ConfiguredProvider.self, from: json)
+        XCTAssertTrue(provider.customHeaders.isEmpty)
     }
 
     func testProviderLogosMapToCompanyAssets() {

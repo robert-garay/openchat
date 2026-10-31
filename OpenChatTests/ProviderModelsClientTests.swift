@@ -2,6 +2,22 @@ import XCTest
 @testable import OpenChat
 
 final class ProviderModelsClientTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        MockURLProtocol.reset()
+    }
+
+    override func tearDown() {
+        MockURLProtocol.reset()
+        super.tearDown()
+    }
+
+    private func makeSession() -> URLSession {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        return URLSession(configuration: configuration)
+    }
+
     func testDecodeOpenAIModelsFiltersNonChat() throws {
         let json = Data("""
         {
@@ -148,5 +164,107 @@ final class ProviderModelsClientTests: XCTestCase {
         let models = try ProviderModelsClient.decodeRealtimeVoiceModels(from: json)
         XCTAssertEqual(models.map(\.id), ["gpt-4o-mini-realtime-preview", "gpt-4o-realtime-preview"])
         XCTAssertEqual(models[0].displayName, "gpt-4o-mini-realtime-preview")
+    }
+
+    func testOpenCodeDecodeKeepsOnlyChatCompletionsModels() throws {
+        let json = Data("""
+        {
+          "data": [
+            { "id": "deepseek-v4.1-flash", "api": { "chat-completions": {} } },
+            { "id": "gpt-5.6-luna", "api": { "responses": {} } },
+            { "id": "claude-sonnet-4-6", "api": { "messages": {} } },
+            { "id": "gemini-4-argon", "api": { "generate-content": {} } }
+          ]
+        }
+        """.utf8)
+
+        let all = try ProviderModelsClient.decodeOpenAIModels(from: json)
+        XCTAssertEqual(all.map(\.id).count, 4)
+
+        let chatOnly = try ProviderModelsClient.decodeOpenAIModels(
+            from: json,
+            requiresChatCompletionsAPI: true
+        )
+        XCTAssertEqual(chatOnly.map(\.id), ["deepseek-v4.1-flash"])
+    }
+
+    func testFetchModelsSendsCustomHeaders() async throws {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-v4.1-flash"}]}"#)
+
+        let provider = ConfiguredProvider(
+            id: "opencode-go",
+            templateID: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://example.com/v1",
+            apiFormat: .openAI,
+            models: [],
+            requiresAPIKey: true,
+            isEnabled: true,
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+
+        let client = ProviderModelsClient(session: makeSession())
+        let models = try await client.fetchModels(for: provider, apiKey: "sk-test")
+
+        XCTAssertEqual(models.map(\.id), ["deepseek-v4.1-flash"])
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
+            "session-123"
+        )
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"),
+            "Bearer sk-test"
+        )
+    }
+
+    func testOpenCodeTemplatesUseChatCompletionsFilterFlag() {
+        for id in ["opencode", "opencode-go"] {
+            let template = ProviderTemplate.template(for: id)
+            XCTAssertNotNil(template, "\(id) template is missing")
+            XCTAssertEqual(template?.apiFormat, .openAI)
+            XCTAssertTrue(template?.baseURL.contains("opencode.ai") == true)
+            XCTAssertTrue(template?.requiresChatCompletionsModelFilter == true)
+            XCTAssertTrue(template?.injectsOpenCodeSession == true)
+            XCTAssertEqual(template?.defaultHeaders["x-opencode-client"], "openchat")
+        }
+    }
+
+    func testFetchOpenCodeProviderInjectsCatalogSessionHeader() async throws {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-v4.1-flash","api":{"chat-completions":{}}}]}"#)
+
+        let provider = ConfiguredProvider(
+            id: "opencode-go",
+            templateID: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://example.com/v1",
+            apiFormat: .openAI,
+            models: [],
+            requiresAPIKey: true,
+            isEnabled: true
+        )
+
+        _ = try await ProviderModelsClient(session: makeSession()).fetchModels(for: provider, apiKey: "sk-test")
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
+            "openchat-catalog-opencode-go"
+        )
+    }
+
+    func testDecodeOpenAIModelsIgnoresMalformedAPIField() throws {
+        let json = Data("""
+        {
+          "data": [
+            { "id": "model-a", "api": "not-an-object" },
+            { "id": "model-b" }
+          ]
+        }
+        """.utf8)
+
+        let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
+        XCTAssertEqual(models.map(\.id), ["model-a", "model-b"])
     }
 }

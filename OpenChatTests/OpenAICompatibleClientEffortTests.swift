@@ -18,6 +18,31 @@ final class OpenAICompatibleClientEffortTests: XCTestCase {
         return URLSession(configuration: configuration)
     }
 
+    func testCustomHeadersIncludedInRequest() async throws {
+        MockURLProtocol.enqueue(sse: """
+        data: {"choices":[{"delta":{"content":"Hi"}}]}
+
+        data: [DONE]
+
+        """)
+
+        let client = OpenAICompatibleClient(
+            session: makeSession(),
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+        for try await _ in client.streamReply(
+            turns: [ChatTurn(role: .user, content: "hello")],
+            model: "deepseek-v4.1-flash",
+            baseURL: "https://example.com/v1",
+            apiKey: "k"
+        ) {}
+
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
+            "session-123"
+        )
+    }
+
     func testReasoningEffortIncludedInRequestBody() async throws {
         MockURLProtocol.enqueue(sse: """
         data: {"choices":[{"delta":{"content":"Hi"}}]}

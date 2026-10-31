@@ -243,7 +243,7 @@ final class BackgroundGenerationService {
             activityID = liveActivityID
         }
 
-        let client = ChatService.client(for: provider)
+        let client = ChatService.client(for: provider, conversationID: conversation.id)
         let baseURL = provider.baseURL
         let modelID = model.id
         let supportsImageGen = model.supportsImageGen
