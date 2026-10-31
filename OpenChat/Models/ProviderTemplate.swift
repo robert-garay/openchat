@@ -15,6 +15,12 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var apiKeyPlaceholder: String
     /// Headers applied when the provider is added. Users can edit them later.
     var defaultHeaders: [String: String] = [:]
+    /// When true, model discovery filters to OpenCode-style `chat-completions` entries.
+    var requiresChatCompletionsModelFilter: Bool = false
+    /// When true, `x-opencode-session` is injected per chat (or catalog fetch).
+    var injectsOpenCodeSession: Bool = false
+    /// When true, sends `x-opencode-client: openchat` unless the user overrides it.
+    var sendsOpenCodeClientHeader: Bool = false
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -22,6 +28,16 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     }
 
     static let all: [ProviderTemplate] = [
+        ProviderTemplate(
+            id: "openrouter",
+            name: "OpenRouter",
+            symbolName: "point.3.connected.trianglepath.dotted",
+            tint: "#6467F2",
+            baseURL: "https://openrouter.ai/api/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://openrouter.ai/keys"),
+            apiKeyPlaceholder: "sk-or-..."
+        ),
         ProviderTemplate(
             id: "opencode",
             name: "OpenCode Zen",
@@ -32,9 +48,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://opencode.ai/auth"),
             apiKeyPlaceholder: "sk-...",
             defaultHeaders: [
-                "x-opencode-session": "openchat-\(UUID().uuidString)",
                 "x-opencode-client": "openchat",
-            ]
+            ],
+            requiresChatCompletionsModelFilter: true,
+            injectsOpenCodeSession: true,
+            sendsOpenCodeClientHeader: true
         ),
         ProviderTemplate(
             id: "opencode-go",
@@ -46,19 +64,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://opencode.ai/auth"),
             apiKeyPlaceholder: "sk-...",
             defaultHeaders: [
-                "x-opencode-session": "openchat-\(UUID().uuidString)",
                 "x-opencode-client": "openchat",
-            ]
-        ),
-        ProviderTemplate(
-            id: "openrouter",
-            name: "OpenRouter",
-            symbolName: "point.3.connected.trianglepath.dotted",
-            tint: "#6467F2",
-            baseURL: "https://openrouter.ai/api/v1",
-            apiFormat: .openAI,
-            keyHelpURL: URL(string: "https://openrouter.ai/keys"),
-            apiKeyPlaceholder: "sk-or-..."
+            ],
+            requiresChatCompletionsModelFilter: true,
+            injectsOpenCodeSession: true,
+            sendsOpenCodeClientHeader: true
         ),
         ProviderTemplate(
             id: "deepseek",

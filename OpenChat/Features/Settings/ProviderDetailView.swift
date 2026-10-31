@@ -47,7 +47,12 @@ struct ProviderDetailView: View {
                 Text("Models")
             }
 
-            CustomHeadersEditor(headers: $headerEntries)
+            if !provider.usesLocalInference {
+                CustomHeadersEditor(
+                    headers: $headerEntries,
+                    startsExpanded: !provider.customHeaders.isEmpty
+                )
+            }
 
             if providerStore.supportsBalance(for: provider) {
                 balanceSection

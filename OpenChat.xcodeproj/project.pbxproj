@@ -189,6 +189,7 @@
 		AF8150BD814C20492594B884 /* VoiceModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE033D542EC4DE282A986073 /* VoiceModeView.swift */; };
 		B059A9B45E294DF428B1B54F /* ConversationCompactionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F0BE52570BA623F7B861EF /* ConversationCompactionService.swift */; };
 		B0B2B4B612077335EDB35393 /* HTTPHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29908813974184E85BF11CA0 /* HTTPHeaders.swift */; };
+		A7F9E3010000000000000002 /* HTTPHeadersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F9E3010000000000000001 /* HTTPHeadersTests.swift */; };
 		B138D94A0EEEF4E01A4D854B /* LocalModelRecommendationSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47E0202AEC87B3BFD05AC28E /* LocalModelRecommendationSection.swift */; };
 		B175A9A3ED82D3C52E30FCE8 /* FakeVoiceAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B12ADFEFCD57864D01CE15 /* FakeVoiceAudioEngine.swift */; };
 		B1B32B824DB1B0D276DC50B6 /* OpenChatLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE39E5FE1932B11E6E4ABE57 /* OpenChatLiveActivityAttributes.swift */; };
@@ -313,6 +314,7 @@
 		26950C0C2D7B04D4495A70CF /* SkillPickerDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPickerDropdown.swift; sourceTree = "<group>"; };
 		270DCBEC4C6AA93FD591DB7A /* ChatDocumentAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDocumentAttachment.swift; sourceTree = "<group>"; };
 		29908813974184E85BF11CA0 /* HTTPHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPHeaders.swift; sourceTree = "<group>"; };
+		A7F9E3010000000000000001 /* HTTPHeadersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPHeadersTests.swift; sourceTree = "<group>"; };
 		2C4BE3A4BF4F8A1B63A1B087 /* Local.xcconfig.example */ = {isa = PBXFileReference; path = Local.xcconfig.example; sourceTree = "<group>"; };
 		2D348B817101C72DCC52C7AC /* AgentDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDataSource.swift; sourceTree = "<group>"; };
 		3022C85CF36B100C7663857D /* AddProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddProviderView.swift; sourceTree = "<group>"; };
@@ -893,6 +895,7 @@
 				99BA588DEFC44B3FF011184B /* ModelCapabilityTests.swift */,
 				625207D9421CDC2E865C48AC /* MultimodalAttachmentTests.swift */,
 				07EA80D9C4E7F9D21770D43E /* NetworkMonitorTests.swift */,
+				A7F9E3010000000000000001 /* HTTPHeadersTests.swift */,
 				8122D8833D27FBD578598522 /* NetworkRetrierTests.swift */,
 				5D108FFE452E0C8924C7A6B4 /* NotificationServiceTests.swift */,
 				033D84D5D4DED4B9FCFFCD41 /* OnboardingSetupTests.swift */,
@@ -1284,6 +1287,7 @@
 				42BF265CE3F9CA656D200940 /* ModelCapabilityTests.swift in Sources */,
 				459793214E976CAF826C72A5 /* MultimodalAttachmentTests.swift in Sources */,
 				8646F08D0491BBBF04533CE7 /* NetworkMonitorTests.swift in Sources */,
+				A7F9E3010000000000000002 /* HTTPHeadersTests.swift in Sources */,
 				686A8C4C4C1A67ED52429A4A /* NetworkRetrierTests.swift in Sources */,
 				2D98DCAA8FB6A472D19F2013 /* NotificationServiceTests.swift in Sources */,
 				123BF15E881E2D2FF51B4B0A /* OnboardingSetupTests.swift in Sources */,

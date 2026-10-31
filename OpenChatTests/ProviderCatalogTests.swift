@@ -3,6 +3,10 @@ import UIKit
 @testable import OpenChat
 
 final class ProviderCatalogTests: XCTestCase {
+    func testOpenRouterIsFirstProviderTemplate() {
+        XCTAssertEqual(ProviderTemplate.all.first?.id, "openrouter")
+    }
+
     func testAllTemplatesHaveUniqueIDs() {
         let ids = ProviderTemplate.all.map(\.id)
         XCTAssertEqual(Set(ids).count, ids.count)

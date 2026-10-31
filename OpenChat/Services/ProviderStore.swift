@@ -19,7 +19,7 @@ enum APIKeyRedaction {
 
 /// Owns the list of providers the user has configured and their API keys.
 /// Non-secret provider metadata is persisted as JSON in `UserDefaults`;
-/// API keys live in the Keychain via `KeychainStore`.
+/// API keys and custom header values live in the Keychain via `KeychainStore`.
 @MainActor
 @Observable
 final class ProviderStore {
@@ -208,8 +208,9 @@ final class ProviderStore {
         guard !providers.contains(where: { $0.id == template.id }) else { return nil }
         var provider = ConfiguredProvider.fromTemplate(template)
         if let customHeaders {
-            provider.customHeaders = customHeaders
+            provider.customHeaders = ProviderHTTPHeaders.sanitizeCustomHeaders(customHeaders)
         }
+        ProviderHTTPHeaders.saveToKeychain(provider.customHeaders, providerID: provider.id)
         providers.append(provider)
         persist()
         return provider
@@ -258,7 +259,7 @@ final class ProviderStore {
             return existing.localizedCaseInsensitiveCompare(normalizedURL) == .orderedSame
         }
         guard !nameExists, !urlExists else { return nil }
-        let provider = ConfiguredProvider.customEndpoint(
+        var provider = ConfiguredProvider.customEndpoint(
             name: trimmedName,
             baseURL: normalizedURL,
             models: models,
@@ -266,6 +267,8 @@ final class ProviderStore {
             logoID: logoID,
             customHeaders: customHeaders
         )
+        provider.customHeaders = ProviderHTTPHeaders.sanitizeCustomHeaders(customHeaders)
+        ProviderHTTPHeaders.saveToKeychain(provider.customHeaders, providerID: provider.id)
         providers.append(provider)
         persist()
         if !requiresAPIKey {
@@ -276,13 +279,17 @@ final class ProviderStore {
 
     func update(_ provider: ConfiguredProvider) {
         guard let index = providers.firstIndex(where: { $0.id == provider.id }) else { return }
-        providers[index] = provider
+        var updated = provider
+        updated.customHeaders = ProviderHTTPHeaders.sanitizeCustomHeaders(provider.customHeaders)
+        ProviderHTTPHeaders.saveToKeychain(updated.customHeaders, providerID: provider.id)
+        providers[index] = updated
         persist()
     }
 
     func remove(_ provider: ConfiguredProvider) {
         providers.removeAll { $0.id == provider.id }
         removeAPIKey(for: provider)
+        ProviderHTTPHeaders.removeFromKeychain(providerID: provider.id)
         liveModelsByProviderID[provider.id] = nil
         liveModelErrors[provider.id] = nil
         loadingModelProviderIDs.remove(provider.id)
@@ -626,11 +633,28 @@ final class ProviderStore {
               let decoded = try? JSONDecoder().decode([ConfiguredProvider].self, from: data) else {
             return
         }
-        providers = decoded
+        var migratedAnyHeaders = false
+        providers = decoded.map { provider in
+            var copy = provider
+            if !copy.customHeaders.isEmpty {
+                ProviderHTTPHeaders.saveToKeychain(copy.customHeaders, providerID: copy.id)
+                migratedAnyHeaders = true
+            }
+            copy.customHeaders = ProviderHTTPHeaders.loadFromKeychain(providerID: copy.id)
+            return copy
+        }
+        if migratedAnyHeaders {
+            persist()
+        }
     }
 
     private func persist() {
-        guard let data = try? JSONEncoder().encode(providers) else { return }
+        let stripped = providers.map { provider -> ConfiguredProvider in
+            var copy = provider
+            copy.customHeaders = [:]
+            return copy
+        }
+        guard let data = try? JSONEncoder().encode(stripped) else { return }
         defaults.set(data, forKey: defaultsKey)
     }
 

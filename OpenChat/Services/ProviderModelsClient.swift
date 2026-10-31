@@ -14,19 +14,25 @@ struct ProviderModelsClient: Sendable {
         for provider: ConfiguredProvider,
         apiKey: String?
     ) async throws -> [AIModel] {
+        let headers = ProviderHTTPHeaders.effectiveHeaders(
+            stored: provider.customHeaders,
+            template: provider.template,
+            providerID: provider.id,
+            conversationID: nil
+        )
         switch provider.apiFormat {
         case .openAI:
             return try await fetchOpenAICompatible(
                 baseURL: provider.baseURL,
                 apiKey: apiKey,
-                customHeaders: provider.customHeaders,
-                requiresChatCompletionsAPI: provider.templateID == "opencode" || provider.templateID == "opencode-go"
+                customHeaders: headers,
+                requiresChatCompletionsAPI: provider.template?.requiresChatCompletionsModelFilter == true
             )
         case .anthropic:
             return try await fetchAnthropic(
                 baseURL: provider.baseURL,
                 apiKey: apiKey,
-                customHeaders: provider.customHeaders
+                customHeaders: headers
             )
         }
     }
@@ -247,6 +253,8 @@ struct ProviderModelsClient: Sendable {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
+        request.applyCustomHeaders(customHeaders)
+
         switch format {
         case .openAI:
             if let apiKey, !apiKey.isEmpty {
@@ -259,7 +267,7 @@ struct ProviderModelsClient: Sendable {
             }
         }
 
-        request.applyCustomHeaders(customHeaders)
+        request.applyOpenChatUserAgent()
         return request
     }
 
@@ -323,6 +331,19 @@ private struct OpenAIRemoteModel: Decodable {
     var reasoning: ModelReasoningConfig?
     /// OpenCode-style protocol map, e.g. `{ "chat-completions": {...} }`.
     var api: [String: AnyCodableJSON]?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, architecture, supported_parameters, reasoning, api
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        architecture = try container.decodeIfPresent(OpenAIRemoteArchitecture.self, forKey: .architecture)
+        supported_parameters = try container.decodeIfPresent([String].self, forKey: .supported_parameters)
+        reasoning = try container.decodeIfPresent(ModelReasoningConfig.self, forKey: .reasoning)
+        api = try? container.decodeIfPresent([String: AnyCodableJSON].self, forKey: .api)
+    }
 }
 
 private struct OpenAIRemoteArchitecture: Decodable {

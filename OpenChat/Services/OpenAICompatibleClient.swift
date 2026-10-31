@@ -387,10 +387,11 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         request.httpMethod = "POST"
         request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.applyCustomHeaders(customHeaders)
         if let apiKey, !apiKey.isEmpty {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
-        request.applyCustomHeaders(customHeaders)
+        request.applyOpenChatUserAgent()
         return request
     }
 

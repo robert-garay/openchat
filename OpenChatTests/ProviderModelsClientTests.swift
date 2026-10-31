@@ -221,16 +221,52 @@ final class ProviderModelsClientTests: XCTestCase {
         )
     }
 
-    func testOpenCodeTemplatesProvideSessionHeader() {
+    func testOpenCodeTemplatesUseChatCompletionsFilterFlag() {
         for id in ["opencode", "opencode-go"] {
             let template = ProviderTemplate.template(for: id)
             XCTAssertNotNil(template, "\(id) template is missing")
             XCTAssertEqual(template?.apiFormat, .openAI)
             XCTAssertTrue(template?.baseURL.contains("opencode.ai") == true)
-            XCTAssertFalse(
-                template?.defaultHeaders["x-opencode-session"]?.isEmpty ?? true,
-                "\(id) should prefill x-opencode-session"
-            )
+            XCTAssertTrue(template?.requiresChatCompletionsModelFilter == true)
+            XCTAssertTrue(template?.injectsOpenCodeSession == true)
+            XCTAssertEqual(template?.defaultHeaders["x-opencode-client"], "openchat")
         }
+    }
+
+    func testFetchOpenCodeProviderInjectsCatalogSessionHeader() async throws {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-v4.1-flash","api":{"chat-completions":{}}}]}"#)
+
+        let provider = ConfiguredProvider(
+            id: "opencode-go",
+            templateID: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://example.com/v1",
+            apiFormat: .openAI,
+            models: [],
+            requiresAPIKey: true,
+            isEnabled: true
+        )
+
+        _ = try await ProviderModelsClient(session: makeSession()).fetchModels(for: provider, apiKey: "sk-test")
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
+            "openchat-catalog-opencode-go"
+        )
+    }
+
+    func testDecodeOpenAIModelsIgnoresMalformedAPIField() throws {
+        let json = Data("""
+        {
+          "data": [
+            { "id": "model-a", "api": "not-an-object" },
+            { "id": "model-b" }
+          ]
+        }
+        """.utf8)
+
+        let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
+        XCTAssertEqual(models.map(\.id), ["model-a", "model-b"])
     }
 }

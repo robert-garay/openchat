@@ -306,11 +306,12 @@ struct AnthropicClient: ChatCompletionClient {
         request.httpMethod = "POST"
         request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.applyCustomHeaders(customHeaders)
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         if let apiKey, !apiKey.isEmpty {
             request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         }
-        request.applyCustomHeaders(customHeaders)
+        request.applyOpenChatUserAgent()
         return request
     }
 

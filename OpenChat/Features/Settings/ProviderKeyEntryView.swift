@@ -41,7 +41,10 @@ struct ProviderKeyEntryView: View {
                 }
             }
 
-            CustomHeadersEditor(headers: $headerEntries)
+            CustomHeadersEditor(
+                headers: $headerEntries,
+                startsExpanded: !template.defaultHeaders.isEmpty
+            )
         }
         .providerToolbarTitle(
             template.name,
