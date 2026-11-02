@@ -71,8 +71,7 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             keyHelpURL: URL(string: "https://opencode.ai/auth"),
             apiKeyPlaceholder: "sk-...",
             modelsBaseURL: "https://opencode.ai/inference/go/v1",
-            usageNote: "OpenCode Go is a coding-agent plan. General chat use may fall outside "
-                + "its terms; check OpenCode's usage policy before relying on it for everyday conversations.",
+            usageNote: "OpenCode Go is a coding-agent plan; general chat may fall outside its terms.",
             defaultHeaders: [
                 "x-opencode-client": "openchat",
             ],
