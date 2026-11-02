@@ -47,6 +47,16 @@ struct ProviderDetailView: View {
                 Text("Models")
             }
 
+            if let usageNote = provider.template?.usageNote {
+                Section {
+                    Text(usageNote)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                }
+            }
+            }
+
             if !provider.usesLocalInference {
                 CustomHeadersEditor(
                     headers: $headerEntries,
@@ -144,7 +154,13 @@ struct ProviderDetailView: View {
             let headers = newValue.headerDictionary
             guard provider.customHeaders != headers else { return }
             provider.customHeaders = headers
-            providerStore.update(provider)
+            // Read the latest copy so a live edit cannot clobber other fields.
+            if var latest = providerStore.provider(withID: provider.id) {
+                latest.customHeaders = headers
+                providerStore.update(latest)
+            } else {
+                providerStore.update(provider)
+            }
         }
     }
 

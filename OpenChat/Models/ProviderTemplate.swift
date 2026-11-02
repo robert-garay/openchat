@@ -13,6 +13,12 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var apiFormat: APIFormat
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
+    /// Optional catalog endpoint when model discovery lives on a different base
+    /// URL than the chat endpoint (OpenCode serves models from `/inference/v1`
+    /// but chat from `/inference/openai/v1`).
+    var modelsBaseURL: String? = nil
+    /// Short terms/usage note shown while adding or editing the provider.
+    var usageNote: String? = nil
     /// Headers applied when the provider is added. Users can edit them later.
     var defaultHeaders: [String: String] = [:]
     /// When true, model discovery filters to OpenCode-style `chat-completions` entries.
@@ -43,10 +49,11 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             name: "OpenCode Zen",
             symbolName: "chevron.left.forwardslash.chevron.right",
             tint: "#111827",
-            baseURL: "https://opencode.ai/zen/v1",
+            baseURL: "https://opencode.ai/inference/openai/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://opencode.ai/auth"),
             apiKeyPlaceholder: "sk-...",
+            modelsBaseURL: "https://opencode.ai/inference/v1",
             defaultHeaders: [
                 "x-opencode-client": "openchat",
             ],
@@ -59,10 +66,13 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             name: "OpenCode Go",
             symbolName: "chevron.left.forwardslash.chevron.right",
             tint: "#2563EB",
-            baseURL: "https://opencode.ai/zen/go/v1",
+            baseURL: "https://opencode.ai/inference/go/openai/v1",
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://opencode.ai/auth"),
             apiKeyPlaceholder: "sk-...",
+            modelsBaseURL: "https://opencode.ai/inference/go/v1",
+            usageNote: "OpenCode Go is a coding-agent plan. General chat use may fall outside "
+                + "its terms; check OpenCode's usage policy before relying on it for everyday conversations.",
             defaultHeaders: [
                 "x-opencode-client": "openchat",
             ],

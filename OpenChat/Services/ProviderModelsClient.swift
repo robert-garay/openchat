@@ -20,17 +20,18 @@ struct ProviderModelsClient: Sendable {
             providerID: provider.id,
             conversationID: nil
         )
+        let modelsBaseURL = provider.template?.modelsBaseURL ?? provider.baseURL
         switch provider.apiFormat {
         case .openAI:
             return try await fetchOpenAICompatible(
-                baseURL: provider.baseURL,
+                baseURL: modelsBaseURL,
                 apiKey: apiKey,
                 customHeaders: headers,
                 requiresChatCompletionsAPI: provider.template?.requiresChatCompletionsModelFilter == true
             )
         case .anthropic:
             return try await fetchAnthropic(
-                baseURL: provider.baseURL,
+                baseURL: modelsBaseURL,
                 apiKey: apiKey,
                 customHeaders: headers
             )

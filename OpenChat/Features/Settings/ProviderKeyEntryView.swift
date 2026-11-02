@@ -41,6 +41,15 @@ struct ProviderKeyEntryView: View {
                 }
             }
 
+            if let usageNote = template.usageNote {
+                Section {
+                    Text(usageNote)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                }
+            }
+
             CustomHeadersEditor(
                 headers: $headerEntries,
                 startsExpanded: !template.defaultHeaders.isEmpty

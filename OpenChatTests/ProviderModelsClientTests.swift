@@ -256,6 +256,19 @@ final class ProviderModelsClientTests: XCTestCase {
         )
     }
 
+    func testFetchModelsUsesTemplateCatalogBaseURL() async throws {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-v4.1-flash","api":{"chat-completions":{}}}]}"#)
+
+        let template = try XCTUnwrap(ProviderTemplate.template(for: "opencode-go"))
+        let provider = ConfiguredProvider.fromTemplate(template)
+
+        _ = try await ProviderModelsClient(session: makeSession()).fetchModels(for: provider, apiKey: "sk-test")
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.url?.absoluteString,
+            "https://opencode.ai/inference/go/v1/models"
+        )
+    }
+
     func testDecodeOpenAIModelsIgnoresMalformedAPIField() throws {
         let json = Data("""
         {

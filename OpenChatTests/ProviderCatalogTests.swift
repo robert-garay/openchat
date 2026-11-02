@@ -7,6 +7,22 @@ final class ProviderCatalogTests: XCTestCase {
         XCTAssertEqual(ProviderTemplate.all.first?.id, "openrouter")
     }
 
+    func testOpenCodeTemplatesUseInferenceEndpoints() {
+        let zen = ProviderTemplate.template(for: "opencode")
+        XCTAssertEqual(zen?.baseURL, "https://opencode.ai/inference/openai/v1")
+        XCTAssertEqual(zen?.modelsBaseURL, "https://opencode.ai/inference/v1")
+
+        let go = ProviderTemplate.template(for: "opencode-go")
+        XCTAssertEqual(go?.baseURL, "https://opencode.ai/inference/go/openai/v1")
+        XCTAssertEqual(go?.modelsBaseURL, "https://opencode.ai/inference/go/v1")
+        XCTAssertFalse(go?.usageNote?.isEmpty ?? true, "Go should explain its coding-agent terms")
+    }
+
+    func testTemplatesWithoutSplitCatalogFallBackToChatBaseURL() {
+        XCTAssertNil(ProviderTemplate.template(for: "openrouter")?.modelsBaseURL)
+        XCTAssertNil(ProviderTemplate.template(for: "deepseek")?.modelsBaseURL)
+    }
+
     func testAllTemplatesHaveUniqueIDs() {
         let ids = ProviderTemplate.all.map(\.id)
         XCTAssertEqual(Set(ids).count, ids.count)
