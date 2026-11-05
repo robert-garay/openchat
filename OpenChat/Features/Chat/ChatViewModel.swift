@@ -352,7 +352,7 @@ final class ChatViewModel {
         }
 
         isCompacting = true
-        let client = ChatService.client(for: provider)
+        let client = ChatService.client(for: provider, conversationID: conversation.id)
         let baseURL = provider.baseURL
         let modelID = model.id
         let existingSummary = conversation.compactedSummary
@@ -492,7 +492,7 @@ final class ChatViewModel {
         let apiKey = providerStore.apiKey(for: provider)
         guard !provider.requiresAPIKey || apiKey != nil else { return }
 
-        let client = ChatService.client(for: provider)
+        let client = ChatService.client(for: provider, conversationID: conversation.id)
         let baseURL = provider.baseURL
         let modelID = model.id
         let conversationID = conversation.id

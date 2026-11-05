@@ -105,6 +105,62 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertNil(KeychainStore.get(provider.id))
     }
 
+    func testCustomHeadersPersistForTemplateProvider() {
+        let template = ProviderTemplate.template(for: "opencode-go")!
+        let provider = store.addFromTemplate(
+            template,
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+        XCTAssertEqual(provider?.customHeaders["x-opencode-session"], "session-123")
+        XCTAssertEqual(
+            ProviderHTTPHeaders.loadFromKeychain(providerID: "opencode-go")["x-opencode-session"],
+            "session-123"
+        )
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertEqual(
+            reloaded.provider(withID: "opencode-go")?.customHeaders["x-opencode-session"],
+            "session-123"
+        )
+        let persisted = defaults.data(forKey: "com.openchat.configuredProviders")!
+        let json = String(data: persisted, encoding: .utf8)!
+        XCTAssertFalse(json.contains("session-123"), "header values must not live in UserDefaults JSON")
+    }
+
+    func testMigratesLegacyHeaderValuesFromUserDefaultsToKeychain() throws {
+        let legacy = ConfiguredProvider(
+            id: "opencode-go",
+            templateID: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://opencode.ai/inference/go/openai/v1",
+            apiFormat: .openAI,
+            models: [],
+            requiresAPIKey: true,
+            isEnabled: true,
+            customHeaders: ["x-gateway-token": "legacy-secret"]
+        )
+        defaults.set(
+            try JSONEncoder().encode([legacy]),
+            forKey: "com.openchat.configuredProviders"
+        )
+
+        let migrated = makeStore(defaults: defaults)
+
+        XCTAssertEqual(
+            migrated.provider(withID: "opencode-go")?.customHeaders["x-gateway-token"],
+            "legacy-secret"
+        )
+        XCTAssertEqual(
+            ProviderHTTPHeaders.loadFromKeychain(providerID: "opencode-go")["x-gateway-token"],
+            "legacy-secret"
+        )
+        let persisted = defaults.data(forKey: "com.openchat.configuredProviders")!
+        let json = String(data: persisted, encoding: .utf8)!
+        XCTAssertFalse(json.contains("legacy-secret"), "migration must strip values from UserDefaults")
+    }
+
     func testPersistsAcrossInstancesUsingSameDefaults() {
         store.addFromTemplate(ProviderTemplate.template(for: "qwen")!)
         let reloaded = ProviderStore(defaults: defaults)

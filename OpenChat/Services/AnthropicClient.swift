@@ -3,6 +3,7 @@ import Foundation
 /// Speaks Anthropic's native `/messages` streaming format for Claude models.
 struct AnthropicClient: ChatCompletionClient {
     var session: URLSession = .shared
+    var customHeaders: [String: String] = [:]
 
     func streamReply(
         turns: [ChatTurn],
@@ -20,6 +21,7 @@ struct AnthropicClient: ChatCompletionClient {
         _ = supportsImageGen
         _ = effort
         _ = reasoningEnabled
+        let headers = customHeaders
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -30,6 +32,7 @@ struct AnthropicClient: ChatCompletionClient {
                             baseURL: baseURL,
                             apiKey: apiKey,
                             reasoningEnabled: reasoningEnabled,
+                            customHeaders: headers,
                             session: session,
                             continuation: continuation
                         )
@@ -42,6 +45,7 @@ struct AnthropicClient: ChatCompletionClient {
                             tools: tools,
                             executeTool: executeTool,
                             reasoningEnabled: reasoningEnabled,
+                            customHeaders: headers,
                             session: session,
                             continuation: continuation
                         )
@@ -69,6 +73,7 @@ struct AnthropicClient: ChatCompletionClient {
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -85,6 +90,7 @@ struct AnthropicClient: ChatCompletionClient {
             apiKey: apiKey,
             tools: tools,
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         ) {
@@ -116,6 +122,7 @@ struct AnthropicClient: ChatCompletionClient {
                 apiKey: apiKey,
                 tools: tools,
                 reasoningEnabled: reasoningEnabled,
+                customHeaders: customHeaders,
                 session: session
             )
 
@@ -144,6 +151,7 @@ struct AnthropicClient: ChatCompletionClient {
             baseURL: baseURL,
             apiKey: apiKey,
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         )
@@ -158,9 +166,10 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession
     ) async throws -> ChatCompletionResult {
-        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
+        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey, customHeaders: customHeaders)
         let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools, reasoningEnabled: reasoningEnabled)
         request.httpBody = body
 
@@ -206,6 +215,7 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -216,6 +226,7 @@ struct AnthropicClient: ChatCompletionClient {
             apiKey: apiKey,
             tools: [],
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         )
@@ -230,10 +241,11 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws -> [ChatToolCall]? {
-        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
+        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey, customHeaders: customHeaders)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools, reasoningEnabled: reasoningEnabled)
 
@@ -277,7 +289,11 @@ struct AnthropicClient: ChatCompletionClient {
 
     // MARK: - Encoding
 
-    private static func makeRequest(baseURL: String, apiKey: String?) throws -> URLRequest {
+    private static func makeRequest(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String]
+    ) throws -> URLRequest {
         guard var components = URLComponents(string: baseURL) else {
             throw ChatServiceError.invalidURL
         }
@@ -290,10 +306,12 @@ struct AnthropicClient: ChatCompletionClient {
         request.httpMethod = "POST"
         request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.applyCustomHeaders(customHeaders)
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         if let apiKey, !apiKey.isEmpty {
             request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         }
+        request.applyOpenChatUserAgent()
         return request
     }
 

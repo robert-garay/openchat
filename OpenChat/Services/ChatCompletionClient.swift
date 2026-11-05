@@ -69,10 +69,21 @@ enum ChatService {
         }
     }
 
-    static func client(for provider: ConfiguredProvider) -> ChatCompletionClient {
+    static func client(for provider: ConfiguredProvider, conversationID: UUID? = nil) -> ChatCompletionClient {
         if provider.usesLocalInference {
             return LocalMLXClient.shared
         }
-        return client(for: provider.apiFormat)
+        let headers = ProviderHTTPHeaders.effectiveHeaders(
+            stored: provider.customHeaders,
+            template: provider.template,
+            providerID: provider.id,
+            conversationID: conversationID
+        )
+        switch provider.apiFormat {
+        case .openAI:
+            return OpenAICompatibleClient(session: urlSession, customHeaders: headers)
+        case .anthropic:
+            return AnthropicClient(session: urlSession, customHeaders: headers)
+        }
     }
 }

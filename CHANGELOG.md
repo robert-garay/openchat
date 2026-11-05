@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OpenCode Zen and OpenCode Go provider presets using OpenCode's `/inference` OpenAI-compatible Chat Completions API. Only models published on `chat-completions` are listed; `x-opencode-session` is sent per conversation, custom header values are stored in the Keychain, and OpenCode Go shows its coding-agent usage note.
+- Per-provider custom HTTP headers, editable when adding or editing a provider. Required for gateways such as OpenCode that authenticate transport sessions with headers.
 - On-device MLX chat (Phase 1–2): curated manifest download with SHA-256 verification, Welcome/Settings onboarding, synthetic **On This Device** provider (`openchat-ondevice`), and `LocalMLXClient` streaming via mlx-swift-lm (device-only; tools/voice disabled for local path in v1).
 - On-device MLX model recommendations (`docs/local-models-manifest-spec.md`) and `LocalModelRecommendation` selection logic for RAM tier + intelligence preference.
 - Device-aware local model picks: RAM, storage headroom, chip class, and intelligence preference with expandable “why” explanations in onboarding and Settings.

@@ -22,6 +22,9 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
     var customLogoID: String? = nil
     /// On-device MLX uses `.localMLX`; cloud and LAN endpoints use `.remoteHTTP`.
     var inferenceBackend: InferenceBackend = .remoteHTTP
+    /// Extra HTTP headers sent with every request to this provider. Some
+    /// OpenAI-compatible gateways require headers such as `x-opencode-session`.
+    var customHeaders: [String: String] = [:]
 
     var usesLocalInference: Bool {
         inferenceBackend == .localMLX
@@ -39,7 +42,8 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         requiresAPIKey: Bool,
         isEnabled: Bool,
         customLogoID: String? = nil,
-        inferenceBackend: InferenceBackend = .remoteHTTP
+        inferenceBackend: InferenceBackend = .remoteHTTP,
+        customHeaders: [String: String] = [:]
     ) {
         self.id = id
         self.templateID = templateID
@@ -53,6 +57,7 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         self.isEnabled = isEnabled
         self.customLogoID = customLogoID
         self.inferenceBackend = inferenceBackend
+        self.customHeaders = customHeaders
     }
 
     var template: ProviderTemplate? {
@@ -78,7 +83,8 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
             apiFormat: template.apiFormat,
             models: [],
             requiresAPIKey: true,
-            isEnabled: true
+            isEnabled: true,
+            customHeaders: template.defaultHeaders
         )
     }
 
@@ -87,7 +93,8 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         baseURL: String,
         models: [AIModel],
         requiresAPIKey: Bool,
-        logoID: String? = nil
+        logoID: String? = nil,
+        customHeaders: [String: String] = [:]
     ) -> ConfiguredProvider {
         ConfiguredProvider(
             id: "custom-\(UUID().uuidString.prefix(8))",
@@ -100,13 +107,14 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
             models: models,
             requiresAPIKey: requiresAPIKey,
             isEnabled: true,
-            customLogoID: logoID
+            customLogoID: logoID,
+            customHeaders: customHeaders
         )
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, templateID, name, symbolName, tint, baseURL, apiFormat, models
-        case requiresAPIKey, isEnabled, customLogoID, inferenceBackend
+        case requiresAPIKey, isEnabled, customLogoID, inferenceBackend, customHeaders
     }
 
     init(from decoder: Decoder) throws {
@@ -123,5 +131,6 @@ struct ConfiguredProvider: Codable, Identifiable, Hashable, Sendable {
         isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
         customLogoID = try container.decodeIfPresent(String.self, forKey: .customLogoID)
         inferenceBackend = try container.decodeIfPresent(InferenceBackend.self, forKey: .inferenceBackend) ?? .remoteHTTP
+        customHeaders = try container.decodeIfPresent([String: String].self, forKey: .customHeaders) ?? [:]
     }
 }

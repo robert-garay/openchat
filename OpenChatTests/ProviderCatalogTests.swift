@@ -3,6 +3,26 @@ import UIKit
 @testable import OpenChat
 
 final class ProviderCatalogTests: XCTestCase {
+    func testOpenRouterIsFirstProviderTemplate() {
+        XCTAssertEqual(ProviderTemplate.all.first?.id, "openrouter")
+    }
+
+    func testOpenCodeTemplatesUseInferenceEndpoints() {
+        let zen = ProviderTemplate.template(for: "opencode")
+        XCTAssertEqual(zen?.baseURL, "https://opencode.ai/inference/openai/v1")
+        XCTAssertEqual(zen?.modelsBaseURL, "https://opencode.ai/inference/v1")
+
+        let go = ProviderTemplate.template(for: "opencode-go")
+        XCTAssertEqual(go?.baseURL, "https://opencode.ai/inference/go/openai/v1")
+        XCTAssertEqual(go?.modelsBaseURL, "https://opencode.ai/inference/go/v1")
+        XCTAssertFalse(go?.usageNote?.isEmpty ?? true, "Go should explain its coding-agent terms")
+    }
+
+    func testTemplatesWithoutSplitCatalogFallBackToChatBaseURL() {
+        XCTAssertNil(ProviderTemplate.template(for: "openrouter")?.modelsBaseURL)
+        XCTAssertNil(ProviderTemplate.template(for: "deepseek")?.modelsBaseURL)
+    }
+
     func testAllTemplatesHaveUniqueIDs() {
         let ids = ProviderTemplate.all.map(\.id)
         XCTAssertEqual(Set(ids).count, ids.count)
@@ -33,6 +53,26 @@ final class ProviderCatalogTests: XCTestCase {
             XCTAssertNotNil(template.logoAssetName, "\(template.name) is missing a logo asset mapping")
             XCTAssertEqual(template.logoAssetName, ProviderLogo.assetName(for: template.id))
         }
+    }
+
+    func testConfiguredProviderDecodesWithoutCustomHeaders() throws {
+        let json = Data("""
+        {
+          "id": "deepseek",
+          "templateID": "deepseek",
+          "name": "DeepSeek",
+          "symbolName": "sparkles",
+          "tint": "#4D6BFE",
+          "baseURL": "https://api.deepseek.com/v1",
+          "apiFormat": "openAI",
+          "models": [],
+          "requiresAPIKey": true,
+          "isEnabled": true
+        }
+        """.utf8)
+
+        let provider = try JSONDecoder().decode(ConfiguredProvider.self, from: json)
+        XCTAssertTrue(provider.customHeaders.isEmpty)
     }
 
     func testProviderLogosMapToCompanyAssets() {

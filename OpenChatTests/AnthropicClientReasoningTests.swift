@@ -18,6 +18,34 @@ final class AnthropicClientReasoningTests: XCTestCase {
         return URLSession(configuration: configuration)
     }
 
+    func testCustomHeadersIncludedInRequest() async throws {
+        MockURLProtocol.enqueue(sse: """
+        data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi"}}
+
+        data: {"type":"message_stop"}
+
+        """)
+
+        let client = AnthropicClient(
+            session: makeSession(),
+            customHeaders: ["x-opencode-session": "session-123"]
+        )
+        for try await _ in client.streamReply(
+            turns: [ChatTurn(role: .user, content: "hello")],
+            model: "claude-sonnet-4",
+            baseURL: "https://example.com/v1",
+            apiKey: "k",
+            supportsImageGen: false,
+            effort: nil,
+            reasoningEnabled: nil
+        ) {}
+
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
+            "session-123"
+        )
+    }
+
     func testThinkingEnabledWhenReasoningEnabled() async throws {
         MockURLProtocol.enqueue(sse: """
         data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi"}}
