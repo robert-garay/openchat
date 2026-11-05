@@ -18,7 +18,7 @@ struct CustomHeaderEntry: Identifiable, Equatable {
 extension Array where Element == CustomHeaderEntry {
     /// Trimmed headers sanitized for wire use. Later duplicate names win.
     var headerDictionary: [String: String] {
-        let raw = reduce(into: [:]) { result, entry in
+        let raw: [String: String] = reduce(into: [:]) { result, entry in
             let name = entry.name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { return }
             result[name] = entry.value
@@ -82,11 +82,13 @@ struct CustomHeadersEditor: View {
                             .buttonStyle(.plain)
                             .accessibilityLabel(header.isValueRevealed ? "Hide header value" : "Show header value")
                         }
-                        if ProviderHTTPHeaders.isReservedHeaderName(header.name) {
+                        if !header.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                           ProviderHTTPHeaders.isReservedHeaderName(header.name) {
                             Text("This header name is reserved and will not be sent.")
                                 .font(.caption)
                                 .foregroundStyle(.orange)
-                        } else if !header.name.isEmpty, !ProviderHTTPHeaders.isValidHeaderName(header.name) {
+                        } else if !header.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                                  !ProviderHTTPHeaders.isValidHeaderName(header.name) {
                             Text("Header name contains invalid characters.")
                                 .font(.caption)
                                 .foregroundStyle(.orange)

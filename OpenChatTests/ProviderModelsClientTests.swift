@@ -269,6 +269,20 @@ final class ProviderModelsClientTests: XCTestCase {
         )
     }
 
+    func testFetchModelsUsesCustomBaseURLWhenProviderOverridesTemplate() async throws {
+        MockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-v4.1-flash","api":{"chat-completions":{}}}]}"#)
+
+        let template = try XCTUnwrap(ProviderTemplate.template(for: "opencode-go"))
+        var provider = ConfiguredProvider.fromTemplate(template)
+        provider.baseURL = "https://gateway.example.com/v1"
+
+        _ = try await ProviderModelsClient(session: makeSession()).fetchModels(for: provider, apiKey: "sk-test")
+        XCTAssertEqual(
+            MockURLProtocol.lastRequest?.url?.absoluteString,
+            "https://gateway.example.com/v1/models"
+        )
+    }
+
     func testDecodeOpenAIModelsIgnoresMalformedAPIField() throws {
         let json = Data("""
         {

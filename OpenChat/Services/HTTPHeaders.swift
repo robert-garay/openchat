@@ -16,13 +16,14 @@ enum ProviderHTTPHeaders {
         "transfer-encoding",
     ]
 
-    /// RFC 9110 `token` characters for header field names.
+    /// RFC 9110 `token` characters for header field names. These are ASCII
+    /// only, so non-ASCII lookalikes (for example a Cyrillic "Аuthorization")
+    /// cannot slip past the reserved-name check.
     private static let tokenCharacterSet: CharacterSet = {
-        var set = CharacterSet()
-        for scalar in "!#$%&'*+-.^_`|~".unicodeScalars {
-            set.insert(scalar)
-        }
-        set.formUnion(.alphanumerics)
+        var set = CharacterSet(charactersIn: "!#$%&'*+-.^_`|~")
+        set.insert(charactersIn: "abcdefghijklmnopqrstuvwxyz")
+        set.insert(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        set.insert(charactersIn: "0123456789")
         return set
     }()
 

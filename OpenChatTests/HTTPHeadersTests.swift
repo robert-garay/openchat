@@ -36,6 +36,20 @@ final class HTTPHeadersTests: XCTestCase {
         XCTAssertEqual(sanitized["good-name"], "value")
     }
 
+    func testNonASCIIHeaderNamesAreDropped() {
+        // RFC 9110 token characters are ASCII only. `x-café` and a Cyrillic
+        // lookalike of `Authorization` must not pass validation.
+        XCTAssertFalse(ProviderHTTPHeaders.isValidHeaderName("x-café"))
+        XCTAssertFalse(ProviderHTTPHeaders.isValidHeaderName("Аuthorization"))
+        XCTAssertTrue(ProviderHTTPHeaders.isValidHeaderName("x-custom_1"))
+
+        let sanitized = ProviderHTTPHeaders.sanitizeCustomHeaders([
+            "x-café": "value",
+            "Аuthorization": "value",
+        ])
+        XCTAssertTrue(sanitized.isEmpty)
+    }
+
     func testAuthHeaderCannotBeOverriddenByCustomHeaders() {
         var request = URLRequest(url: URL(string: "https://example.com/v1/chat/completions")!)
         request.applyCustomHeaders(["Authorization": "Bearer evil"])

@@ -20,7 +20,15 @@ struct ProviderModelsClient: Sendable {
             providerID: provider.id,
             conversationID: nil
         )
-        let modelsBaseURL = provider.template?.modelsBaseURL ?? provider.baseURL
+        let modelsBaseURL: String
+        if let template = provider.template,
+           let templateCatalogURL = template.modelsBaseURL,
+           provider.baseURL == template.baseURL {
+            modelsBaseURL = templateCatalogURL
+        } else {
+            // A user-customized base URL must not send the key to the template host.
+            modelsBaseURL = provider.baseURL
+        }
         switch provider.apiFormat {
         case .openAI:
             return try await fetchOpenAICompatible(
