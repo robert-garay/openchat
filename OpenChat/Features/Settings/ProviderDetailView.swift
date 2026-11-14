@@ -55,7 +55,6 @@ struct ProviderDetailView: View {
                         .listRowBackground(Color.clear)
                 }
             }
-            }
 
             if !provider.usesLocalInference {
                 CustomHeadersEditor(

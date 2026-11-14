@@ -204,7 +204,7 @@ final class ProviderModelsClientTests: XCTestCase {
             models: [],
             requiresAPIKey: true,
             isEnabled: true,
-            customHeaders: ["x-opencode-session": "session-123"]
+            customHeaders: ["x-gateway-id": "gw-1"]
         )
 
         let client = ProviderModelsClient(session: makeSession())
@@ -212,8 +212,12 @@ final class ProviderModelsClientTests: XCTestCase {
 
         XCTAssertEqual(models.map(\.id), ["deepseek-v4.1-flash"])
         XCTAssertEqual(
+            MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-gateway-id"),
+            "gw-1"
+        )
+        XCTAssertEqual(
             MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-opencode-session"),
-            "session-123"
+            "openchat-catalog-opencode-go"
         )
         XCTAssertEqual(
             MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Authorization"),
