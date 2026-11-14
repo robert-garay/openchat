@@ -157,7 +157,8 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
             "gemini",
             "-vl", "vl-", "vision", "llava", "pixtral",
             "glm-4v", "llama-4", "maverick", "scout",
-            "qwen2.5-vl", "qwen2-vl", "qwen-vl", "qwen3-vl"
+            "qwen2.5-vl", "qwen2-vl", "qwen-vl", "qwen3-vl",
+            "deepseek-flash", "deepseek-v4-flash-vision"
         ]
         return markers.contains { haystack.contains($0) }
     }

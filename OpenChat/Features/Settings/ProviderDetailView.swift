@@ -38,6 +38,14 @@ struct ProviderDetailView: View {
                 )
             }
 
+            Section {
+                Text("Long-press a model in the chat model picker to override whether it can read images when catalog metadata is wrong.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Models")
+            }
+
             if providerStore.supportsBalance(for: provider) {
                 balanceSection
             }

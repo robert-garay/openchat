@@ -45,6 +45,7 @@ final class ProviderStore {
     private let modelUsageSeededKey = "com.openchat.modelUsageSeeded"
     private let lastSelectedModelKey = "com.openchat.lastSelectedModel"
     private let starredModelsKey = "com.openchat.starredModels"
+    private let visionOverridesKey = "com.openchat.modelVisionOverrides"
     private let modelsCacheTTL: TimeInterval = 60 * 60
     private let defaults: UserDefaults
     private let openRouterClient: OpenRouterModelsClient
@@ -61,6 +62,8 @@ final class ProviderStore {
     private(set) var lastSelectedModelUsageKey: String?
     /// Starred models keyed by `providerID/modelID`; pinned near the top of the unfiltered picker.
     private(set) var starredModelKeys: Set<String> = []
+    /// Per-model vision overrides keyed by `providerID/modelID`; `true` forces image input on, `false` off.
+    private(set) var visionOverrides: [String: Bool] = [:]
 
     private let balanceClient: ProviderBalanceClient
 
@@ -80,6 +83,7 @@ final class ProviderStore {
         loadModelUsageCounts()
         loadLastSelectedModel()
         loadStarredModels()
+        loadVisionOverrides()
     }
 
     var enabledProviders: [ConfiguredProvider] {
@@ -276,7 +280,8 @@ final class ProviderStore {
         providers.first { $0.id == id }
     }
 
-    func model(providerID: String, modelID: String) -> AIModel? {
+    /// Catalog-reported capabilities before any user override.
+    func baseModel(providerID: String, modelID: String) -> AIModel? {
         if let saved = provider(withID: providerID)?.models.first(where: { $0.id == modelID }) {
             return saved
         }
@@ -291,13 +296,46 @@ final class ProviderStore {
         return liveModelsByProviderID[providerID]?.first(where: { $0.id == modelID })
     }
 
+    func model(providerID: String, modelID: String) -> AIModel? {
+        guard let base = baseModel(providerID: providerID, modelID: modelID) else { return nil }
+        return applyingVisionOverride(to: base, providerID: providerID)
+    }
+
+    func visionOverride(providerID: String, modelID: String) -> Bool? {
+        visionOverrides[Self.modelUsageKey(providerID: providerID, modelID: modelID)]
+    }
+
+    /// Sets a per-model vision override. Pass `nil` to clear and use detected capabilities.
+    func setVisionOverride(providerID: String, modelID: String, enabled: Bool?) {
+        let key = Self.modelUsageKey(providerID: providerID, modelID: modelID)
+        if let enabled {
+            visionOverrides[key] = enabled
+        } else {
+            visionOverrides.removeValue(forKey: key)
+        }
+        persistVisionOverrides()
+    }
+
+    /// Effective vision when overrides and catalog metadata disagree.
+    func supportsVision(providerID: String, modelID: String) -> Bool {
+        model(providerID: providerID, modelID: modelID)?.supportsVision ?? false
+    }
+
     /// Models shown in the picker for a non-OpenRouter provider.
     /// Prefers the live catalog, falling back to saved/default models.
     func pickerModels(for provider: ConfiguredProvider) -> [AIModel] {
+        let models: [AIModel]
         if let live = liveModelsByProviderID[provider.id], !live.isEmpty {
-            return live
+            models = live
+        } else {
+            models = provider.models
         }
-        return provider.models
+        return models.map { applyingVisionOverride(to: $0, providerID: provider.id) }
+    }
+
+    private func applyingVisionOverride(to model: AIModel, providerID: String) -> AIModel {
+        guard let override = visionOverride(providerID: providerID, modelID: model.id) else { return model }
+        return model.applyingVisionOverride(enabled: override)
     }
 
     /// Keeps selections usable after the picker closes by persisting the chosen model.
@@ -644,5 +682,17 @@ final class ProviderStore {
 
     private func persistStarredModels() {
         defaults.set(Array(starredModelKeys).sorted(), forKey: starredModelsKey)
+    }
+
+    private func loadVisionOverrides() {
+        guard let stored = defaults.dictionary(forKey: visionOverridesKey) as? [String: Bool] else {
+            visionOverrides = [:]
+            return
+        }
+        visionOverrides = stored
+    }
+
+    private func persistVisionOverrides() {
+        defaults.set(visionOverrides, forKey: visionOverridesKey)
     }
 }

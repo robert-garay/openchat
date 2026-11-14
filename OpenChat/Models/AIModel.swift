@@ -16,6 +16,23 @@ struct AIModel: Codable, Identifiable, Hashable, Sendable {
         capabilities.contains(.vision)
     }
 
+    /// Returns a copy with vision capability forced on or off (other capabilities unchanged).
+    func applyingVisionOverride(enabled: Bool) -> AIModel {
+        var caps = Set(capabilities)
+        if enabled {
+            caps.insert(.vision)
+        } else {
+            caps.remove(.vision)
+        }
+        return AIModel(
+            id: id,
+            displayName: displayName,
+            subtitle: subtitle,
+            capabilities: ModelCapability.sorted(caps),
+            reasoningConfig: reasoningConfig
+        )
+    }
+
     var supportsImageGen: Bool {
         capabilities.contains(.imageGen)
     }

@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Per-model **Reads images** override in the model picker (long-press) and provider detail help text, plus a quick **Allow images for this model** action when sending is blocked by capability detection.
+
 ### Fixed
 
+- DeepSeek `deepseek-flash` (and legacy `deepseek-v4-flash-vision-exp`) are detected as vision-capable when provider `/models` responses omit image modalities, so image attachments work with the official DeepSeek API.
 - On-device local model vendor rows for Meta and Microsoft now use official brand logo assets (with dark-mode Meta mark), matching the shared `ProviderLogoView` pipeline used for Qwen and other providers.
 
 ### Changed

@@ -230,6 +230,21 @@ final class ChatViewModel {
         currentModel?.supportsVision ?? false
     }
 
+    /// True when image input is blocked and the user can opt in via a per-model override.
+    var canOfferVisionOverride: Bool {
+        !supportsVision && currentModel != nil
+    }
+
+    func enableVisionForCurrentModel() {
+        providerStore.setVisionOverride(
+            providerID: conversation.providerID,
+            modelID: conversation.modelID,
+            enabled: true
+        )
+        dismissCapabilityWarning()
+        Haptics.light()
+    }
+
     var supportsFiles: Bool {
         currentModel?.supportsFiles ?? false
     }

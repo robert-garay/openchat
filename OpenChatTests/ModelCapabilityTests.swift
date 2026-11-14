@@ -60,6 +60,22 @@ final class ModelCapabilityTests: XCTestCase {
             modelName: "deepseek-chat"
         )
         XCTAssertEqual(deepseekChat, [.tools])
+
+        let deepseekFlash = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "deepseek-flash",
+            modelName: "deepseek-flash"
+        )
+        XCTAssertEqual(deepseekFlash, [.vision, .tools])
+
+        let legacyVision = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "deepseek-v4-flash-vision-exp",
+            modelName: "deepseek-v4-flash-vision-exp"
+        )
+        XCTAssertTrue(legacyVision.contains(.vision))
     }
 
     func testDoesNotOverrideExplicitTextOnlyModalitiesWithVisionHeuristic() {
@@ -167,6 +183,13 @@ final class ModelCapabilityTests: XCTestCase {
         let withoutEffort = AIModel(id: "gpt-4o", displayName: "GPT-4o", capabilities: [.tools])
         XCTAssertTrue(withEffort.supportsEffort)
         XCTAssertFalse(withoutEffort.supportsEffort)
+    }
+
+    func testAIModelVisionOverride() {
+        let textOnly = AIModel(id: "custom", displayName: "Custom", capabilities: [.tools])
+        XCTAssertTrue(textOnly.applyingVisionOverride(enabled: true).supportsVision)
+        let vision = AIModel(id: "gpt", displayName: "GPT", capabilities: [.vision, .tools])
+        XCTAssertFalse(vision.applyingVisionOverride(enabled: false).supportsVision)
     }
 
     func testAIModelSupportsImageGenAndModalities() {
