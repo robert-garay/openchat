@@ -144,9 +144,13 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
 
     private static func looksLikeEffortModel(_ haystack: String) -> Bool {
         let markers = [
-            "o1", "o3", "o4", "gpt-5-pro", "gpt-5.pro", "gpt-5.6"
+            "o3", "o4", "gpt-5-pro", "gpt-5.pro", "gpt-5.6"
         ]
-        return markers.contains { haystack.contains($0) }
+        if markers.contains(where: { haystack.contains($0) }) {
+            return true
+        }
+        // `o1-mini` does not support reasoning effort; avoid bare `o1` substring matches.
+        return haystack.contains("o1") && !haystack.contains("o1-mini")
     }
 
     private static func looksLikeVisionModel(_ haystack: String) -> Bool {
@@ -154,7 +158,7 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
             "gpt-4o", "gpt-4.1", "gpt-4.5", "gpt-4-turbo", "gpt-4-vision", "gpt-5",
             "chatgpt-4o", "o3-", "o4-",
             "claude-3", "claude-4", "claude-opus-4", "claude-sonnet-4", "claude-haiku-4",
-            "gemini",
+            "gemini-1.5", "gemini-2.", "gemini-3", "gemini-pro-vision", "gemini-flash", "gemini-exp",
             "-vl", "vl-", "vision", "llava", "pixtral",
             "glm-4v", "llama-4", "maverick", "scout",
             "qwen2.5-vl", "qwen2-vl", "qwen-vl", "qwen3-vl",

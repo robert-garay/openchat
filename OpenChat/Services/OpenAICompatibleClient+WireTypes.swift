@@ -58,13 +58,14 @@ func makeOpenAICompatibleRequestBody(
         let thinking: OpenAIDeepSeekThinkingPayload? = (reasoningEnabled == true)
             ? OpenAIDeepSeekThinkingPayload(type: "enabled")
             : nil
+        let deepSeekEffort = effort?.deepSeekReasoningEffortWireValue
         return OpenAIRequestBody(
             model: model,
             messages: messages,
             stream: stream,
             tools: tools,
             modalities: modalities,
-            reasoningEffort: nil,
+            reasoningEffort: deepSeekEffort,
             reasoning: nil,
             thinking: thinking
         )

@@ -99,4 +99,37 @@ enum EffortLevel: String, Codable, CaseIterable, Identifiable, Hashable, Sendabl
         // Generic fallback for models that only advertise the capability.
         return [.low, .medium, .high]
     }
+
+    /// DeepSeek `reasoning_effort` wire value (`low`, `high`, `max`). See DeepSeek thinking-mode docs.
+    var deepSeekReasoningEffortWireValue: String? {
+        switch self {
+        case .none, .minimal: return nil
+        case .low: return "low"
+        case .medium, .high, .xhigh: return "high"
+        case .max: return "max"
+        }
+    }
+
+    /// Anthropic extended-thinking `budget_tokens` (minimum 1,024).
+    var anthropicThinkingBudgetTokens: Int {
+        switch self {
+        case .none, .minimal: 1_024
+        case .low: 4_096
+        case .medium: 10_000
+        case .high: 16_000
+        case .xhigh: 24_000
+        case .max: 32_000
+        }
+    }
+
+    /// Anthropic Messages API `output_config.effort` value.
+    var anthropicOutputEffortWireValue: String? {
+        switch self {
+        case .none: return nil
+        case .minimal, .low: return "low"
+        case .medium: return "medium"
+        case .high, .xhigh: return "high"
+        case .max: return "max"
+        }
+    }
 }

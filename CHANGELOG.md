@@ -13,8 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- DeepSeek `deepseek-flash` (and legacy `deepseek-v4-flash-vision-exp`) are detected as vision-capable when provider `/models` responses omit image modalities, so image attachments work with the official DeepSeek API.
 - On-device local model vendor rows for Meta and Microsoft now use official brand logo assets (with dark-mode Meta mark), matching the shared `ProviderLogoView` pipeline used for Qwen and other providers.
+
+## [1.2.1] - 2026-11-14
+
+### Fixed
+
+- DeepSeek `deepseek-flash` (and legacy `deepseek-v4-flash-vision-exp`) are detected as vision-capable when provider `/models` responses omit image modalities, so image attachments work with the official DeepSeek API (PR #313).
+- DeepSeek chat requests now send `reasoning_effort` alongside the thinking toggle so effort levels reach the API.
+- Anthropic extended thinking maps the selected effort level to `budget_tokens` and `output_config.effort` instead of a fixed 16k budget.
+- On-device model downloads resume interrupted transfers via HTTP Range and keep partial files until cancel or checksum failure.
+- Tightened vision capability inference: bare `gemini` IDs no longer imply image support, and `o1-mini` no longer gets effort badges.
 
 ### Changed
 

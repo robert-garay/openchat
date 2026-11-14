@@ -57,11 +57,17 @@ struct AnthropicRequestBody: Encodable {
     var stream: Bool
     var tools: [AnthropicToolPayload]?
     var thinking: AnthropicThinkingPayload?
+    var outputConfig: AnthropicOutputConfigPayload?
 
     enum CodingKeys: String, CodingKey {
         case model, system, messages, stream, tools, thinking
         case maxTokens = "max_tokens"
+        case outputConfig = "output_config"
     }
+}
+
+struct AnthropicOutputConfigPayload: Encodable {
+    var effort: String
 }
 
 struct AnthropicThinkingPayload: Encodable {

@@ -24,6 +24,14 @@ final class EffortLevelTests: XCTestCase {
         XCTAssertNil(EffortLevel(index: 7))
     }
 
+    func testProviderWireMappings() {
+        XCTAssertEqual(EffortLevel.max.deepSeekReasoningEffortWireValue, "max")
+        XCTAssertEqual(EffortLevel.medium.deepSeekReasoningEffortWireValue, "high")
+        XCTAssertEqual(EffortLevel.high.anthropicThinkingBudgetTokens, 16_000)
+        XCTAssertEqual(EffortLevel.max.anthropicOutputEffortWireValue, "max")
+        XCTAssertNil(EffortLevel.none.anthropicOutputEffortWireValue)
+    }
+
     func testEffortLevelDisplayNames() {
         XCTAssertEqual(EffortLevel.none.displayName, "None")
         XCTAssertEqual(EffortLevel.minimal.displayName, "Minimal")

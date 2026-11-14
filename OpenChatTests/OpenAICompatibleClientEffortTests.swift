@@ -138,6 +138,31 @@ final class OpenAICompatibleClientEffortTests: XCTestCase {
         XCTAssertNil(json?["reasoning_effort"])
     }
 
+    func testDeepSeekReasoningEffortIncludedWhenEffortSet() async throws {
+        MockURLProtocol.enqueue(sse: """
+        data: {"choices":[{"delta":{"content":"Hi"}}]}
+
+        data: [DONE]
+
+        """)
+
+        let client = OpenAICompatibleClient(session: makeSession())
+        for try await _ in client.streamReply(
+            turns: [ChatTurn(role: .user, content: "hello")],
+            model: "deepseek-flash",
+            baseURL: "https://api.deepseek.com/v1",
+            apiKey: "k",
+            supportsImageGen: false,
+            effort: .max,
+            reasoningEnabled: true
+        ) {}
+
+        let json = try JSONSerialization.jsonObject(with: MockURLProtocol.lastRequestBody!) as? [String: Any]
+        XCTAssertEqual(json?["reasoning_effort"] as? String, "max")
+        let thinking = json?["thinking"] as? [String: Any]
+        XCTAssertEqual(thinking?["type"] as? String, "enabled")
+    }
+
     func testReasoningEnabledOmittedWhenNotSet() async throws {
         MockURLProtocol.enqueue(sse: """
         data: {"choices":[{"delta":{"content":"Hi"}}]}
