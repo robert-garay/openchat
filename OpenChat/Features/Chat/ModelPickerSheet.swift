@@ -34,7 +34,10 @@ struct ModelPickerSheet: View {
                     query: query,
                     capabilities: selectedCapabilities
                 )
-                items.append(contentsOf: models.map { PickerModelItem(provider: provider, catalogModel: $0) })
+                items.append(contentsOf: models.map { catalog in
+                    let effective = providerStore.model(providerID: provider.id, modelID: catalog.id) ?? catalog.asAIModel
+                    PickerModelItem(provider: provider, catalogModel: catalog, capabilities: effective.capabilities)
+                })
             } else {
                 items.append(contentsOf: providerStore.pickerModels(for: provider).compactMap { model in
                     guard matchesFilters(model: model, providerName: provider.name, query: trimmed) else { return nil }
@@ -134,6 +137,7 @@ struct ModelPickerSheet: View {
             }
             .listStyle(.plain)
             .animation(Theme.springFast, value: providerStore.starredModelKeys)
+            .animation(Theme.springFast, value: providerStore.visionOverrides)
             .searchable(text: $searchText, prompt: "Search models")
             .navigationTitle("Choose a Model")
             .navigationBarTitleDisplayMode(.inline)
@@ -219,6 +223,37 @@ struct ModelPickerSheet: View {
             }
             .tint(.orange)
         }
+        .contextMenu {
+            visionOverrideMenu(for: item)
+        }
+    }
+
+    @ViewBuilder
+    private func visionOverrideMenu(for item: PickerModelItem) -> some View {
+        let detected = providerStore.baseModel(providerID: item.providerID, modelID: item.modelID)?.supportsVision ?? false
+        let effective = providerStore.supportsVision(providerID: item.providerID, modelID: item.modelID)
+        let hasOverride = providerStore.visionOverride(providerID: item.providerID, modelID: item.modelID) != nil
+
+        Toggle(isOn: Binding(
+            get: { effective },
+            set: { enabled in
+                if enabled == detected {
+                    providerStore.setVisionOverride(providerID: item.providerID, modelID: item.modelID, enabled: nil)
+                } else {
+                    providerStore.setVisionOverride(providerID: item.providerID, modelID: item.modelID, enabled: enabled)
+                }
+                Haptics.light()
+            }
+        )) {
+            Label("Reads images", systemImage: "eye")
+        }
+
+        if hasOverride {
+            Button("Reset to detected") {
+                providerStore.setVisionOverride(providerID: item.providerID, modelID: item.modelID, enabled: nil)
+                Haptics.light()
+            }
+        }
     }
 
     private func toggleStar(_ item: PickerModelItem) {
@@ -293,7 +328,7 @@ private struct PickerModelItem: Identifiable {
         catalogModel = nil
     }
 
-    init(provider: ConfiguredProvider, catalogModel: OpenRouterCatalogModel) {
+    init(provider: ConfiguredProvider, catalogModel: OpenRouterCatalogModel, capabilities: [ModelCapability]? = nil) {
         id = "\(provider.id)/\(catalogModel.id)"
         providerID = provider.id
         providerName = provider.name
@@ -303,7 +338,7 @@ private struct PickerModelItem: Identifiable {
         modelID = catalogModel.id
         displayName = catalogModel.displayName
         subtitle = catalogModel.subtitle
-        capabilities = catalogModel.capabilities
+        self.capabilities = capabilities ?? catalogModel.capabilities
         self.catalogModel = catalogModel
     }
 }

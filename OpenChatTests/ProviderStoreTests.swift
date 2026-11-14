@@ -407,6 +407,35 @@ final class ProviderStoreTests: XCTestCase {
         store.addCustom(name: "Remote Server", baseURL: "https://api.example.com/v1", models: [AIModel(id: "gpt-4", displayName: "gpt-4")], requiresAPIKey: true)
         XCTAssertEqual(store.providers.count, 2)
     }
+
+    func testVisionOverrideForcesCapabilityAndPersists() {
+        store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
+        let model = AIModel(id: "deepseek-flash", displayName: "DeepSeek Flash", capabilities: [.tools])
+        store.liveModelsByProviderID["deepseek"] = [model]
+
+        XCTAssertFalse(store.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
+
+        store.setVisionOverride(providerID: "deepseek", modelID: "deepseek-flash", enabled: true)
+        XCTAssertTrue(store.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
+        XCTAssertEqual(store.pickerModels(for: store.provider(withID: "deepseek")!).first?.capabilities, [.vision, .tools])
+
+        let reloaded = ProviderStore(defaults: defaults)
+        XCTAssertTrue(reloaded.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
+
+        store.setVisionOverride(providerID: "deepseek", modelID: "deepseek-flash", enabled: nil)
+        XCTAssertFalse(store.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
+    }
+
+    func testDecodeDeepSeekFlashCatalogInfersVision() async {
+        CatalogMockURLProtocol.enqueue(json: #"{"data":[{"id":"deepseek-flash"}]}"#)
+        store.addFromTemplate(ProviderTemplate.template(for: "deepseek")!)
+        store.setAPIKey("sk-test", for: store.provider(withID: "deepseek")!)
+
+        await waitUntil(
+            { self.store.liveModelsByProviderID["deepseek"]?.first?.supportsVision == true },
+            message: "Timed out waiting for DeepSeek Flash vision inference"
+        )
+    }
 }
 
 final class APIKeyRedactionTests: XCTestCase {

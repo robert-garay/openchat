@@ -11,16 +11,18 @@ final class ProviderModelsClientTests: XCTestCase {
             { "id": "whisper-1" },
             { "id": "text-embedding-3-large" },
             { "id": "dall-e-3" },
-            { "id": "deepseek-chat" }
+            { "id": "deepseek-chat" },
+            { "id": "deepseek-flash" }
           ]
         }
         """.utf8)
 
         let models = try ProviderModelsClient.decodeOpenAIModels(from: json)
-        XCTAssertEqual(models.map(\.id), ["gpt-4o", "o4-mini", "deepseek-chat"])
+        XCTAssertEqual(models.map(\.id), ["gpt-4o", "o4-mini", "deepseek-chat", "deepseek-flash"])
         XCTAssertEqual(models[0].capabilities, [.vision, .tools])
         XCTAssertEqual(models[1].capabilities, [.vision, .tools, .reasoning, .effort])
         XCTAssertEqual(models[2].capabilities, [.tools])
+        XCTAssertEqual(models[3].capabilities, [.vision, .tools])
     }
 
     func testDecodeOpenAIModelsUsesArchitectureMetadataWhenPresent() throws {

@@ -173,6 +173,11 @@ struct ChatView: View {
                 set: { if !$0 { viewModel?.dismissCapabilityWarning() } }
             )
         ) {
+            if viewModel?.canOfferVisionOverride == true {
+                Button("Allow images for this model") {
+                    viewModel?.enableVisionForCurrentModel()
+                }
+            }
             Button("OK", role: .cancel) {
                 viewModel?.dismissCapabilityWarning()
             }
