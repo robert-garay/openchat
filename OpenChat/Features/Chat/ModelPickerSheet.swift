@@ -36,7 +36,7 @@ struct ModelPickerSheet: View {
                 )
                 items.append(contentsOf: models.map { catalog in
                     let effective = providerStore.model(providerID: provider.id, modelID: catalog.id) ?? catalog.asAIModel
-                    PickerModelItem(provider: provider, catalogModel: catalog, capabilities: effective.capabilities)
+                    return PickerModelItem(provider: provider, catalogModel: catalog, capabilities: effective.capabilities)
                 })
             } else {
                 items.append(contentsOf: providerStore.pickerModels(for: provider).compactMap { model in
