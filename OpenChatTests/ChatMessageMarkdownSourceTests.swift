@@ -56,6 +56,21 @@ final class ChatMessageMarkdownSourceTests: XCTestCase {
     }
 
     @MainActor
+    func testCoalescesRapidContentUpdates() async {
+        let message = ChatMessage(role: .assistant, content: "a", isStreaming: true)
+        let source = ChatMessageMarkdownSource(message: message)
+        var iterator = source.text.makeAsyncIterator()
+        _ = await iterator.next()
+
+        for suffix in ["b", "c", "d", "e"] {
+            message.content += suffix
+        }
+        await Task.yield()
+        let latest = await iterator.next()
+        XCTAssertEqual(latest, "abcde")
+    }
+
+    @MainActor
     func testCustomSnapshotTransformIsApplied() async {
         let message = ChatMessage(role: .assistant, content: "raw", isStreaming: false)
         let source = ChatMessageMarkdownSource(message: message) { _ in "transformed" }

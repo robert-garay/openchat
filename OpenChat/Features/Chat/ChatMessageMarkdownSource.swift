@@ -11,6 +11,7 @@ final class ChatMessageMarkdownSource: StreamedMarkdownSource {
     let text: AsyncStream<String>
 
     private let continuation: AsyncStream<String>.Continuation
+    private var pendingSnapshotTask: Task<Void, Never>?
 
     /// - Parameter snapshot: Computes the displayed string from the message's current
     ///   state. Defaults to raw `content`; callers that post-process content (stripping
@@ -23,39 +24,45 @@ final class ChatMessageMarkdownSource: StreamedMarkdownSource {
 
         continuation.yield(snapshot(message))
         if message.isStreaming {
-            Self.trackChanges(on: message, snapshot: snapshot, continuation: continuation)
+            trackChanges(on: message, snapshot: snapshot)
         } else {
             continuation.finish()
         }
     }
 
-    private static func trackChanges(
+    private func trackChanges(
         on message: ChatMessage,
-        snapshot: @escaping @Sendable (ChatMessage) -> String,
-        continuation: AsyncStream<String>.Continuation
+        snapshot: @escaping @Sendable (ChatMessage) -> String
     ) {
         // `withObservationTracking`'s `onChange` fires during `willSet` — the mutated
         // property hasn't actually been stored yet at the point this callback runs.
         // Reading `snapshot(message)` synchronously here would capture the *old* value,
         // so the read is deferred to the next main-actor turn (after the mutation lands)
-        // via `Task`. `onChange` is `@Sendable`, but `content`/`isStreaming` are only ever
-        // mutated from `@MainActor`-isolated call sites (ChatViewModel,
-        // BackgroundGenerationService), so it's safe to smuggle the non-Sendable
-        // `ChatMessage` across via an unchecked box.
+        // via `Task`. Rapid token flushes coalesce into one pending task so the main
+        // queue cannot grow an unbounded backlog of markdown reparses.
         let box = UncheckedSendableBox(value: message)
         withObservationTracking {
             _ = message.content
             _ = message.isStreaming
             _ = message.attachmentsData
-        } onChange: {
-            Task { @MainActor in
-                let message = box.value
-                continuation.yield(snapshot(message))
-                if message.isStreaming {
-                    trackChanges(on: message, snapshot: snapshot, continuation: continuation)
-                } else {
-                    continuation.finish()
-                }
+        } onChange: { [weak self] in
+            self?.scheduleSnapshot(for: box.value, snapshot: snapshot)
+        }
+    }
+
+    private func scheduleSnapshot(
+        for message: ChatMessage,
+        snapshot: @escaping @Sendable (ChatMessage) -> String
+    ) {
+        pendingSnapshotTask?.cancel()
+        pendingSnapshotTask = Task { @MainActor [weak self] in
+            await Task.yield()
+            guard let self, !Task.isCancelled else { return }
+            self.continuation.yield(snapshot(message))
+            if message.isStreaming {
+                self.trackChanges(on: message, snapshot: snapshot)
+            } else {
+                self.continuation.finish()
             }
         }
     }

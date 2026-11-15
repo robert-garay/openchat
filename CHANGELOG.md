@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anthropic extended thinking maps the selected effort level to `budget_tokens` and `output_config.effort` instead of a fixed 16k budget.
 - On-device model downloads resume interrupted transfers via HTTP Range and keep partial files until cancel or checksum failure.
 - Tightened vision capability inference: bare `gemini` IDs no longer imply image support, and `o1-mini` no longer gets effort badges.
+- Reduced main-thread stalls when opening long chats and during streaming: defer proposal re-scan on chat open, coalesce streaming markdown snapshots, and stop composer `onChange` handlers from invalidating the full message list.
 - Fixed a build break in `ModelPickerSheet` where the OpenRouter vision-override map closure omitted `return`.
 
 ### Changed

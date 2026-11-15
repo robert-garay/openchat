@@ -56,13 +56,28 @@ struct ChatView: View {
                     ),
                     canUseVoiceMode: viewModel.canUseVoiceMode,
                     onStartVoiceMode: { showingVoiceMode = true },
-                    onSend: {
-                        stickToBottom = true
-                        viewModel.send()
-                    }
-                )
+            onSend: {
+                stickToBottom = true
+                viewModel.send()
             }
+        )
+        .onChange(of: viewModel.composerText) { _, _ in
+            viewModel.persistComposerState()
         }
+        .onChange(of: viewModel.pendingAttachments) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.selectedWebSearchProvider) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.effortLevel) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.isReasoningEnabled) { _, _ in
+            viewModel.persistComposerState()
+        }
+    }
+}
         .fullScreenCover(isPresented: $showingVoiceMode) {
             VoiceModeView(
                 conversation: conversation,
@@ -238,21 +253,6 @@ struct ChatView: View {
         }
         .onDisappear {
             BackgroundGenerationService.shared.clearVisibleConversationID(ifEquals: conversation.id)
-        }
-        .onChange(of: viewModel?.composerText) { _, _ in
-            viewModel?.persistComposerState()
-        }
-        .onChange(of: viewModel?.pendingAttachments) { _, _ in
-            viewModel?.persistComposerState()
-        }
-        .onChange(of: viewModel?.selectedWebSearchProvider) { _, _ in
-            viewModel?.persistComposerState()
-        }
-        .onChange(of: viewModel?.effortLevel) { _, _ in
-            viewModel?.persistComposerState()
-        }
-        .onChange(of: viewModel?.isReasoningEnabled) { _, _ in
-            viewModel?.persistComposerState()
         }
     }
 

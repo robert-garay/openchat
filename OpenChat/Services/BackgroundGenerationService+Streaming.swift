@@ -286,7 +286,8 @@ extension BackgroundGenerationService {
             case .text(let delta):
                 contentBuffer += delta
                 let now = ContinuousClock().now
-                if now >= lastFlush + Self.flushInterval(forContentLength: assistantMessage.content.count) {
+                let pendingLength = assistantMessage.content.count + contentBuffer.count
+                if now >= lastFlush + Self.flushInterval(forContentLength: pendingLength) {
                     assistantMessage.content += contentBuffer
                     contentBuffer = ""
                     lastFlush = now
