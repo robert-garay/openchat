@@ -62,6 +62,22 @@ final class VoiceModeStoreRealtimeModelFetchTests: XCTestCase {
         XCTAssertNotNil(store.realtimeModelsError)
     }
 
+    func testRefreshForwardsCustomHeaders() async throws {
+        MockURLProtocol.enqueue(json: """
+        {"data": [{ "id": "gpt-4o-realtime-preview" }]}
+        """)
+        let store = makeStore()
+
+        store.refreshRealtimeModelsIfNeeded(
+            baseURL: "https://api.openai.com/v1",
+            apiKey: "sk-test",
+            customHeaders: ["x-gateway-id": "gw-1"]
+        )
+        try await waitUntilNotLoading(store)
+
+        XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "x-gateway-id"), "gw-1")
+    }
+
     func testRefreshDoesNotOverwriteAnAlreadyChosenModel() async throws {
         MockURLProtocol.enqueue(json: """
         {"data": [{ "id": "gpt-4o-realtime-preview" }]}

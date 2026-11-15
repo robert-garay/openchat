@@ -7,6 +7,7 @@ import Foundation
 /// local Ollama / LM Studio / vLLM server.
 struct OpenAICompatibleClient: ChatCompletionClient {
     var session: URLSession = .shared
+    var customHeaders: [String: String] = [:]
 
     func streamReply(
         turns: [ChatTurn],
@@ -35,6 +36,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         // there's no way to interleave heartbeat bytes into a single JSON body
         // without corrupting it — so switching to non-streaming here would remove
         // the only viable mitigation for that failure mode.
+        let headers = customHeaders
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -47,6 +49,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             supportsImageGen: supportsImageGen,
                             effort: effort,
                             reasoningEnabled: reasoningEnabled,
+                            customHeaders: headers,
                             session: session,
                             continuation: continuation
                         )
@@ -61,6 +64,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                             supportsImageGen: supportsImageGen,
                             effort: effort,
                             reasoningEnabled: reasoningEnabled,
+                            customHeaders: headers,
                             session: session,
                             continuation: continuation
                         )
@@ -90,6 +94,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         supportsImageGen: Bool,
         effort: EffortLevel?,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -108,6 +113,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             supportsImageGen: supportsImageGen,
             effort: effort,
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         ) {
@@ -141,6 +147,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
                 supportsImageGen: supportsImageGen,
                 effort: effort,
                 reasoningEnabled: reasoningEnabled,
+                customHeaders: customHeaders,
                 session: session
             )
 
@@ -170,6 +177,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             supportsImageGen: supportsImageGen,
             effort: effort,
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         )
@@ -208,9 +216,10 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         supportsImageGen: Bool,
         effort: EffortLevel?,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession
     ) async throws -> ChatCompletionResult {
-        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
+        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey, customHeaders: customHeaders)
         let body = makeOpenAICompatibleRequestBody(
             model: model,
             messages: turns.map(encodeMessage),
@@ -271,6 +280,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         supportsImageGen: Bool,
         effort: EffortLevel?,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws {
@@ -283,6 +293,7 @@ struct OpenAICompatibleClient: ChatCompletionClient {
             supportsImageGen: supportsImageGen,
             effort: effort,
             reasoningEnabled: reasoningEnabled,
+            customHeaders: customHeaders,
             session: session,
             continuation: continuation
         )
@@ -299,10 +310,11 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         supportsImageGen: Bool,
         effort: EffortLevel?,
         reasoningEnabled: Bool?,
+        customHeaders: [String: String],
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws -> [ChatToolCall]? {
-        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
+        var request = try makeRequest(baseURL: baseURL, apiKey: apiKey, customHeaders: customHeaders)
         let body = makeOpenAICompatibleRequestBody(
             model: model,
             messages: turns.map(encodeMessage),
@@ -358,7 +370,11 @@ struct OpenAICompatibleClient: ChatCompletionClient {
 
     // MARK: - Request helpers
 
-    private static func makeRequest(baseURL: String, apiKey: String?) throws -> URLRequest {
+    private static func makeRequest(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String]
+    ) throws -> URLRequest {
         guard var components = URLComponents(string: baseURL) else {
             throw ChatServiceError.invalidURL
         }
@@ -371,9 +387,11 @@ struct OpenAICompatibleClient: ChatCompletionClient {
         request.httpMethod = "POST"
         request.timeoutInterval = ChatService.urlSession.configuration.timeoutIntervalForRequest
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.applyCustomHeaders(customHeaders)
         if let apiKey, !apiKey.isEmpty {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
+        request.applyOpenChatUserAgent()
         return request
     }
 

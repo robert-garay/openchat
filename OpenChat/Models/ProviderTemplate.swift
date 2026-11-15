@@ -13,6 +13,20 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
     var apiFormat: APIFormat
     var keyHelpURL: URL?
     var apiKeyPlaceholder: String
+    /// Optional catalog endpoint when model discovery lives on a different base
+    /// URL than the chat endpoint (OpenCode serves models from `/inference/v1`
+    /// but chat from `/inference/openai/v1`).
+    var modelsBaseURL: String? = nil
+    /// Short terms/usage note shown while adding or editing the provider.
+    var usageNote: String? = nil
+    /// Headers applied when the provider is added. Users can edit them later.
+    var defaultHeaders: [String: String] = [:]
+    /// When true, model discovery filters to OpenCode-style `chat-completions` entries.
+    var requiresChatCompletionsModelFilter: Bool = false
+    /// When true, `x-opencode-session` is injected per chat (or catalog fetch).
+    var injectsOpenCodeSession: Bool = false
+    /// When true, sends `x-opencode-client: openchat` unless the user overrides it.
+    var sendsOpenCodeClientHeader: Bool = false
 
     /// Official brand mark in the asset catalog, when available.
     var logoAssetName: String? {
@@ -29,6 +43,41 @@ struct ProviderTemplate: Identifiable, Hashable, Sendable {
             apiFormat: .openAI,
             keyHelpURL: URL(string: "https://openrouter.ai/keys"),
             apiKeyPlaceholder: "sk-or-..."
+        ),
+        ProviderTemplate(
+            id: "opencode",
+            name: "OpenCode Zen",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#111827",
+            baseURL: "https://opencode.ai/inference/openai/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://opencode.ai/auth"),
+            apiKeyPlaceholder: "sk-...",
+            modelsBaseURL: "https://opencode.ai/inference/v1",
+            defaultHeaders: [
+                "x-opencode-client": "openchat",
+            ],
+            requiresChatCompletionsModelFilter: true,
+            injectsOpenCodeSession: true,
+            sendsOpenCodeClientHeader: true
+        ),
+        ProviderTemplate(
+            id: "opencode-go",
+            name: "OpenCode Go",
+            symbolName: "chevron.left.forwardslash.chevron.right",
+            tint: "#2563EB",
+            baseURL: "https://opencode.ai/inference/go/openai/v1",
+            apiFormat: .openAI,
+            keyHelpURL: URL(string: "https://opencode.ai/auth"),
+            apiKeyPlaceholder: "sk-...",
+            modelsBaseURL: "https://opencode.ai/inference/go/v1",
+            usageNote: "OpenCode Go is a coding-agent plan; general chat may fall outside its terms.",
+            defaultHeaders: [
+                "x-opencode-client": "openchat",
+            ],
+            requiresChatCompletionsModelFilter: true,
+            injectsOpenCodeSession: true,
+            sendsOpenCodeClientHeader: true
         ),
         ProviderTemplate(
             id: "deepseek",

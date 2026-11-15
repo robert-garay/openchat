@@ -101,7 +101,12 @@ final class VoiceModeStore {
 
     /// Fetches OpenAI's live model catalog, filtered for Realtime API models.
     /// Auto-selects the first result when nothing is stored yet.
-    func refreshRealtimeModelsIfNeeded(baseURL: String, apiKey: String?, force: Bool = false) {
+    func refreshRealtimeModelsIfNeeded(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String] = [:],
+        force: Bool = false
+    ) {
         guard !isLoadingRealtimeModels else { return }
         guard force || !hasFetchedRealtimeModels else { return }
         hasFetchedRealtimeModels = true
@@ -112,7 +117,11 @@ final class VoiceModeStore {
         refreshTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let models = try await self.modelsClient.fetchRealtimeVoiceModels(baseURL: baseURL, apiKey: apiKey)
+                let models = try await self.modelsClient.fetchRealtimeVoiceModels(
+                    baseURL: baseURL,
+                    apiKey: apiKey,
+                    customHeaders: customHeaders
+                )
                 guard !Task.isCancelled else { return }
                 self.realtimeModels = models
                 self.isLoadingRealtimeModels = false

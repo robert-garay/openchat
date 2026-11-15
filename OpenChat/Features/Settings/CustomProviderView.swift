@@ -13,6 +13,7 @@ struct CustomProviderView: View {
     @State private var requiresAPIKey = false
     @State private var apiKey = ""
     @State private var selectedLogoID: String?
+    @State private var headerEntries: [CustomHeaderEntry] = []
 
     @State private var isTestingConnection = false
     @State private var connectionStatus: String?
@@ -232,6 +233,8 @@ struct CustomProviderView: View {
                 }
             }
 
+            CustomHeadersEditor(headers: $headerEntries)
+
             Section {
                 logoPicker
             } header: {
@@ -294,7 +297,8 @@ struct CustomProviderView: View {
             name: trimmedName.isEmpty ? "Test" : trimmedName,
             baseURL: normalizedURL,
             models: [],
-            requiresAPIKey: requiresAPIKey
+            requiresAPIKey: requiresAPIKey,
+            customHeaders: headerEntries.headerDictionary
         )
         Task {
             do {
@@ -324,7 +328,8 @@ struct CustomProviderView: View {
             baseURL: normalizedURL,
             models: models,
             requiresAPIKey: requiresAPIKey,
-            logoID: selectedLogoID
+            logoID: selectedLogoID,
+            customHeaders: headerEntries.headerDictionary
         )
         if requiresAPIKey, let added {
             providerStore.setAPIKey(apiKey.trimmingCharacters(in: .whitespaces), for: added)

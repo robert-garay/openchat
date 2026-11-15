@@ -14,11 +14,35 @@ struct ProviderModelsClient: Sendable {
         for provider: ConfiguredProvider,
         apiKey: String?
     ) async throws -> [AIModel] {
+        let headers = ProviderHTTPHeaders.effectiveHeaders(
+            stored: provider.customHeaders,
+            template: provider.template,
+            providerID: provider.id,
+            conversationID: nil
+        )
+        let modelsBaseURL: String
+        if let template = provider.template,
+           let templateCatalogURL = template.modelsBaseURL,
+           provider.baseURL == template.baseURL {
+            modelsBaseURL = templateCatalogURL
+        } else {
+            // A user-customized base URL must not send the key to the template host.
+            modelsBaseURL = provider.baseURL
+        }
         switch provider.apiFormat {
         case .openAI:
-            return try await fetchOpenAICompatible(baseURL: provider.baseURL, apiKey: apiKey)
+            return try await fetchOpenAICompatible(
+                baseURL: modelsBaseURL,
+                apiKey: apiKey,
+                customHeaders: headers,
+                requiresChatCompletionsAPI: provider.template?.requiresChatCompletionsModelFilter == true
+            )
         case .anthropic:
-            return try await fetchAnthropic(baseURL: provider.baseURL, apiKey: apiKey)
+            return try await fetchAnthropic(
+                baseURL: modelsBaseURL,
+                apiKey: apiKey,
+                customHeaders: headers
+            )
         }
     }
 
@@ -26,8 +50,17 @@ struct ProviderModelsClient: Sendable {
     /// mode) models. Voice mode's model picker uses this instead of
     /// `fetchOpenAICompatible`, which deliberately excludes realtime models
     /// from the regular chat-model catalog.
-    func fetchRealtimeVoiceModels(baseURL: String, apiKey: String?) async throws -> [RealtimeModelInfo] {
-        let request = try Self.makeRequest(baseURL: baseURL, apiKey: apiKey, format: .openAI)
+    func fetchRealtimeVoiceModels(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String] = [:]
+    ) async throws -> [RealtimeModelInfo] {
+        let request = try Self.makeRequest(
+            baseURL: baseURL,
+            apiKey: apiKey,
+            format: .openAI,
+            customHeaders: customHeaders
+        )
         let data = try await perform(request)
         return try Self.decodeRealtimeVoiceModels(from: data)
     }
@@ -49,20 +82,38 @@ struct ProviderModelsClient: Sendable {
 
     // MARK: - OpenAI-compatible
 
-    func fetchOpenAICompatible(baseURL: String, apiKey: String?) async throws -> [AIModel] {
+    func fetchOpenAICompatible(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String] = [:],
+        requiresChatCompletionsAPI: Bool = false
+    ) async throws -> [AIModel] {
         let request = try Self.makeRequest(
             baseURL: baseURL,
             apiKey: apiKey,
-            format: .openAI
+            format: .openAI,
+            customHeaders: customHeaders
         )
         let data = try await perform(request)
-        return try Self.decodeOpenAIModels(from: data)
+        return try Self.decodeOpenAIModels(
+            from: data,
+            requiresChatCompletionsAPI: requiresChatCompletionsAPI
+        )
     }
 
-    static func decodeOpenAIModels(from data: Data) throws -> [AIModel] {
+    static func decodeOpenAIModels(
+        from data: Data,
+        requiresChatCompletionsAPI: Bool = false
+    ) throws -> [AIModel] {
         let decoded = try JSONDecoder().decode(OpenAIModelsResponse.self, from: data)
         return decoded.data
             .filter { isLikelyChatModelID($0.id) }
+            .filter { remote in
+                // OpenCode Zen/Go publishes one protocol per model. OpenChat only
+                // speaks Chat Completions, so hide models on Responses/Messages/GenAI.
+                guard requiresChatCompletionsAPI, let api = remote.api, !api.isEmpty else { return true }
+                return api["chat-completions"] != nil
+            }
             .map { remote in
                 // Empty modalities/parameters mean "unknown" so identity heuristics can fill gaps.
                 // Providers that include architecture metadata (e.g. some OpenRouter-compatible
@@ -84,7 +135,11 @@ struct ProviderModelsClient: Sendable {
 
     // MARK: - Anthropic
 
-    func fetchAnthropic(baseURL: String, apiKey: String?) async throws -> [AIModel] {
+    func fetchAnthropic(
+        baseURL: String,
+        apiKey: String?,
+        customHeaders: [String: String] = [:]
+    ) async throws -> [AIModel] {
         var models: [AIModel] = []
         var afterID: String?
 
@@ -92,7 +147,8 @@ struct ProviderModelsClient: Sendable {
             var request = try Self.makeRequest(
                 baseURL: baseURL,
                 apiKey: apiKey,
-                format: .anthropic
+                format: .anthropic,
+                customHeaders: customHeaders
             )
             if var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) {
                 var items = components.queryItems ?? []
@@ -191,7 +247,8 @@ struct ProviderModelsClient: Sendable {
     private static func makeRequest(
         baseURL: String,
         apiKey: String?,
-        format: APIFormat
+        format: APIFormat,
+        customHeaders: [String: String] = [:]
     ) throws -> URLRequest {
         guard var components = URLComponents(string: baseURL) else {
             throw ProviderModelsError.invalidURL
@@ -205,6 +262,8 @@ struct ProviderModelsClient: Sendable {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
+        request.applyCustomHeaders(customHeaders)
+
         switch format {
         case .openAI:
             if let apiKey, !apiKey.isEmpty {
@@ -217,6 +276,7 @@ struct ProviderModelsClient: Sendable {
             }
         }
 
+        request.applyOpenChatUserAgent()
         return request
     }
 
@@ -278,6 +338,21 @@ private struct OpenAIRemoteModel: Decodable {
     var architecture: OpenAIRemoteArchitecture?
     var supported_parameters: [String]?
     var reasoning: ModelReasoningConfig?
+    /// OpenCode-style protocol map, e.g. `{ "chat-completions": {...} }`.
+    var api: [String: AnyCodableJSON]?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, architecture, supported_parameters, reasoning, api
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        architecture = try container.decodeIfPresent(OpenAIRemoteArchitecture.self, forKey: .architecture)
+        supported_parameters = try container.decodeIfPresent([String].self, forKey: .supported_parameters)
+        reasoning = try container.decodeIfPresent(ModelReasoningConfig.self, forKey: .reasoning)
+        api = try? container.decodeIfPresent([String: AnyCodableJSON].self, forKey: .api)
+    }
 }
 
 private struct OpenAIRemoteArchitecture: Decodable {
