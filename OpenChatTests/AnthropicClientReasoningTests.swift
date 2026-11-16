@@ -46,7 +46,33 @@ final class AnthropicClientReasoningTests: XCTestCase {
         let json = try JSONSerialization.jsonObject(with: body!) as? [String: Any]
         let thinking = json?["thinking"] as? [String: Any]
         XCTAssertEqual(thinking?["type"] as? String, "enabled")
-        XCTAssertEqual(thinking?["budget_tokens"] as? Int, 16000)
+        XCTAssertEqual(thinking?["budget_tokens"] as? Int, 10_000)
+    }
+
+    func testThinkingBudgetMapsEffort() async throws {
+        MockURLProtocol.enqueue(sse: """
+        data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi"}}
+
+        data: {"type":"message_stop"}
+
+        """)
+
+        let client = AnthropicClient(session: makeSession())
+        for try await _ in client.streamReply(
+            turns: [ChatTurn(role: .user, content: "hello")],
+            model: "claude-sonnet-4",
+            baseURL: "https://example.com/v1",
+            apiKey: "k",
+            supportsImageGen: false,
+            effort: .max,
+            reasoningEnabled: true
+        ) {}
+
+        let json = try JSONSerialization.jsonObject(with: MockURLProtocol.lastRequestBody!) as? [String: Any]
+        let thinking = json?["thinking"] as? [String: Any]
+        XCTAssertEqual(thinking?["budget_tokens"] as? Int, 32_000)
+        let outputConfig = json?["output_config"] as? [String: Any]
+        XCTAssertEqual(outputConfig?["effort"] as? String, "max")
     }
 
     func testThinkingOmittedWhenReasoningDisabled() async throws {

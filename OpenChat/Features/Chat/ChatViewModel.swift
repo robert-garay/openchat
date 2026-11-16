@@ -99,7 +99,10 @@ final class ChatViewModel {
         restoreComposerState()
         self.isStreaming = BackgroundGenerationService.shared.isGenerating(for: conversation.id)
         setupGenerationObserver()
-        refreshPendingProposals()
+        // Defer so opening a long thread can render before regex-scanning every assistant message.
+        Task { @MainActor [weak self] in
+            self?.refreshPendingProposals()
+        }
     }
 
     deinit {

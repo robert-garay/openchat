@@ -419,8 +419,11 @@ final class ProviderStoreTests: XCTestCase {
         XCTAssertTrue(store.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
         XCTAssertEqual(store.pickerModels(for: store.provider(withID: "deepseek")!).first?.capabilities, [.vision, .tools])
 
+        // Live catalogs are not persisted; reseed after reload and check the override survived.
         let reloaded = ProviderStore(defaults: defaults)
-        XCTAssertTrue(reloaded.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)
+        XCTAssertEqual(reloaded.visionOverride(providerID: "deepseek", modelID: "deepseek-flash"), true)
+        reloaded.liveModelsByProviderID["deepseek"] = [model]
+        XCTAssertEqual(reloaded.model(providerID: "deepseek", modelID: "deepseek-flash")?.supportsVision, true)
 
         store.setVisionOverride(providerID: "deepseek", modelID: "deepseek-flash", enabled: nil)
         XCTAssertFalse(store.model(providerID: "deepseek", modelID: "deepseek-flash")!.supportsVision)

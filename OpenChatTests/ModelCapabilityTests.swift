@@ -217,6 +217,27 @@ final class ModelCapabilityTests: XCTestCase {
         XCTAssertTrue(caps.contains(.vision))
     }
 
+    func testEffortNotInferredForO1Mini() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "openai/o1-mini",
+            modelName: "o1-mini"
+        )
+        XCTAssertFalse(caps.contains(.effort))
+    }
+
+    func testVisionNotInferredForBareGeminiID() {
+        let caps = ModelCapability.inferred(
+            inputModalities: [],
+            outputModalities: [],
+            modelID: "google/gemini",
+            modelName: "Gemini"
+        )
+        XCTAssertFalse(caps.contains(.vision))
+        XCTAssertTrue(caps.contains(.tools))
+    }
+
     func testMatchesRequiresAllSelectedCapabilities() {
         let caps: [ModelCapability] = [.vision, .tools, .reasoning]
         XCTAssertTrue(ModelCapability.matches(caps, filters: []))

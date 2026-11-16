@@ -233,6 +233,7 @@
 		EF25C107AB6151B05FBFD11A /* LocalMLXRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4D6E62C60198B0502A34D7 /* LocalMLXRuntime.swift */; };
 		EF62D1912A3C1D296B195F24 /* OpenRouterModelCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC90259B99463A83B0957D8C /* OpenRouterModelCatalogTests.swift */; };
 		F066D74A84166CC6D0B92D15 /* LocalModelDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB8B6D87F5EB0EC426E72A48 /* LocalModelDownloadService.swift */; };
+		F0A33564D3ACD07E0DD4ACB0 /* LocalModelDownloadServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D42DC755760F338A8BBD20 /* LocalModelDownloadServiceTests.swift */; };
 		F58142D76FF3AF5D39817F42 /* SkillResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34CED8DB3630EECFCAB74F8 /* SkillResolverTests.swift */; };
 		F7C64618CB964660D07C0191 /* ModelCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9332CDBC2E2B9A6E29732ED /* ModelCapability.swift */; };
 		F9084EBC786B9296469BDA83 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2406E6DBAB78A8EF6AB777 /* AppAppearance.swift */; };
@@ -454,6 +455,7 @@
 		C24ED77FC3D25C884244C54F /* SkillInvocationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillInvocationCollector.swift; sourceTree = "<group>"; };
 		C3496CB6C295DA16F02BB7BF /* FakeRealtimeVoiceTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeRealtimeVoiceTransport.swift; sourceTree = "<group>"; };
 		C3C3A8E2A36B3BE2D0ED99C3 /* WebSearchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchStore.swift; sourceTree = "<group>"; };
+		C3D42DC755760F338A8BBD20 /* LocalModelDownloadServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelDownloadServiceTests.swift; sourceTree = "<group>"; };
 		C4716EACCDB0094D1CFA518E /* LiveActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityService.swift; sourceTree = "<group>"; };
 		C4E758A732E2DC9EF25E7770 /* SkillsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsSettingsView.swift; sourceTree = "<group>"; };
 		C56AE078B69665F46B132915 /* BackgroundGenerationService+Streaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundGenerationService+Streaming.swift"; sourceTree = "<group>"; };
@@ -878,6 +880,7 @@
 				C9C9ED3D8659F72074C289F8 /* GeneratedImageDeduperTests.swift */,
 				8B0037690EDB375ACF5D1D6B /* ImageGalleryTests.swift */,
 				EE3AC10A58865D715F4BD26C /* KeychainStoreTests.swift */,
+				C3D42DC755760F338A8BBD20 /* LocalModelDownloadServiceTests.swift */,
 				2007B6749EA4748D94A71CF1 /* LocalModelRecommendationTests.swift */,
 				5F01206823BEA7A783C4424C /* LocalModelsManifestTests.swift */,
 				80ECCE7B1A4DB6EBE4D4CE10 /* LocalModelVendorTests.swift */,
@@ -1267,6 +1270,7 @@
 				4355ED178DB82571219CCA2D /* GeneratedImageDeduperTests.swift in Sources */,
 				CDAAC0835C3F83E7D494D002 /* ImageGalleryTests.swift in Sources */,
 				349C92048899D34175913BC8 /* KeychainStoreTests.swift in Sources */,
+				F0A33564D3ACD07E0DD4ACB0 /* LocalModelDownloadServiceTests.swift in Sources */,
 				5E3F9C0A2978FBD3ED6C56EA /* LocalModelRecommendationTests.swift in Sources */,
 				C7674BE09280D1092728C564 /* LocalModelVendorTests.swift in Sources */,
 				02993EE21F9BFA3AE5FD999B /* LocalModelsManifestTests.swift in Sources */,
@@ -1462,7 +1466,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1482,7 +1486,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1532,7 +1536,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_PREVIEWS = YES;
@@ -1546,7 +1550,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

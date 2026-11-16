@@ -15,11 +15,7 @@ struct AnthropicClient: ChatCompletionClient {
         effort: EffortLevel?,
         reasoningEnabled: Bool?
     ) -> AsyncThrowingStream<ChatStreamEvent, Error> {
-        // Anthropic Messages API does not return generated bitmaps; ignore supportsImageGen.
-        // Anthropic has no equivalent of the OpenAI `reasoning_effort` parameter.
         _ = supportsImageGen
-        _ = effort
-        _ = reasoningEnabled
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -29,6 +25,7 @@ struct AnthropicClient: ChatCompletionClient {
                             model: model,
                             baseURL: baseURL,
                             apiKey: apiKey,
+                            effort: effort,
                             reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
@@ -41,6 +38,7 @@ struct AnthropicClient: ChatCompletionClient {
                             apiKey: apiKey,
                             tools: tools,
                             executeTool: executeTool,
+                            effort: effort,
                             reasoningEnabled: reasoningEnabled,
                             session: session,
                             continuation: continuation
@@ -68,6 +66,7 @@ struct AnthropicClient: ChatCompletionClient {
         apiKey: String?,
         tools: [ChatToolDefinition],
         executeTool: @escaping @Sendable (ChatToolCall) async throws -> String,
+        effort: EffortLevel?,
         reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
@@ -84,6 +83,7 @@ struct AnthropicClient: ChatCompletionClient {
             baseURL: baseURL,
             apiKey: apiKey,
             tools: tools,
+            effort: effort,
             reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
@@ -115,6 +115,7 @@ struct AnthropicClient: ChatCompletionClient {
                 baseURL: baseURL,
                 apiKey: apiKey,
                 tools: tools,
+                effort: effort,
                 reasoningEnabled: reasoningEnabled,
                 session: session
             )
@@ -143,6 +144,7 @@ struct AnthropicClient: ChatCompletionClient {
             model: model,
             baseURL: baseURL,
             apiKey: apiKey,
+            effort: effort,
             reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
@@ -157,11 +159,19 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        effort: EffortLevel?,
         reasoningEnabled: Bool?,
         session: URLSession
     ) async throws -> ChatCompletionResult {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
-        let body = try encodeBody(turns: turns, model: model, stream: false, tools: tools, reasoningEnabled: reasoningEnabled)
+        let body = try encodeBody(
+            turns: turns,
+            model: model,
+            stream: false,
+            tools: tools,
+            effort: effort,
+            reasoningEnabled: reasoningEnabled
+        )
         request.httpBody = body
 
         let (data, response) = try await session.backgroundCompatibleData(for: request, retryPolicy: .costSensitive)
@@ -205,6 +215,7 @@ struct AnthropicClient: ChatCompletionClient {
         model: String,
         baseURL: String,
         apiKey: String?,
+        effort: EffortLevel?,
         reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
@@ -215,6 +226,7 @@ struct AnthropicClient: ChatCompletionClient {
             baseURL: baseURL,
             apiKey: apiKey,
             tools: [],
+            effort: effort,
             reasoningEnabled: reasoningEnabled,
             session: session,
             continuation: continuation
@@ -229,13 +241,21 @@ struct AnthropicClient: ChatCompletionClient {
         baseURL: String,
         apiKey: String?,
         tools: [ChatToolDefinition],
+        effort: EffortLevel?,
         reasoningEnabled: Bool?,
         session: URLSession,
         continuation: AsyncThrowingStream<ChatStreamEvent, Error>.Continuation
     ) async throws -> [ChatToolCall]? {
         var request = try makeRequest(baseURL: baseURL, apiKey: apiKey)
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        request.httpBody = try encodeBody(turns: turns, model: model, stream: true, tools: tools, reasoningEnabled: reasoningEnabled)
+        request.httpBody = try encodeBody(
+            turns: turns,
+            model: model,
+            stream: true,
+            tools: tools,
+            effort: effort,
+            reasoningEnabled: reasoningEnabled
+        )
 
         var accumulator = AnthropicToolCallAccumulator()
 
@@ -302,6 +322,7 @@ struct AnthropicClient: ChatCompletionClient {
         model: String,
         stream: Bool,
         tools: [ChatToolDefinition],
+        effort: EffortLevel?,
         reasoningEnabled: Bool?
     ) throws -> Data {
         let systemPrompt = turns
@@ -313,9 +334,19 @@ struct AnthropicClient: ChatCompletionClient {
         let conversationTurns = turns.filter { $0.role != .system }
         let messages = try encodeMessages(conversationTurns)
         let toolPayloads: [AnthropicToolPayload]? = tools.isEmpty ? nil : try tools.map(encodeTool)
+        let resolvedEffort = effort ?? .medium
         let thinking: AnthropicThinkingPayload? = (reasoningEnabled == true)
-            ? AnthropicThinkingPayload(type: "enabled", budgetTokens: 16000)
+            ? AnthropicThinkingPayload(
+                type: "enabled",
+                budgetTokens: resolvedEffort.anthropicThinkingBudgetTokens
+            )
             : nil
+        let outputConfig: AnthropicOutputConfigPayload?
+        if reasoningEnabled == true, let wireEffort = effort?.anthropicOutputEffortWireValue {
+            outputConfig = AnthropicOutputConfigPayload(effort: wireEffort)
+        } else {
+            outputConfig = nil
+        }
 
         let body = AnthropicRequestBody(
             model: model,
@@ -324,7 +355,8 @@ struct AnthropicClient: ChatCompletionClient {
             messages: messages,
             stream: stream,
             tools: toolPayloads,
-            thinking: thinking
+            thinking: thinking,
+            outputConfig: outputConfig
         )
         return try JSONEncoder().encode(body)
     }

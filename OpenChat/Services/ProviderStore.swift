@@ -28,7 +28,8 @@ final class ProviderStore {
     private(set) var isLoadingOpenRouterModels = false
     private(set) var openRouterModelsError: String?
     /// Live catalogs for non-OpenRouter providers, keyed by provider id.
-    private(set) var liveModelsByProviderID: [String: [AIModel]] = [:]
+    // Internal setter so tests can seed live catalogs via @testable import.
+    internal(set) var liveModelsByProviderID: [String: [AIModel]] = [:]
     private(set) var loadingModelProviderIDs: Set<String> = []
     private(set) var liveModelErrors: [String: String] = [:]
     /// Cached account balances for providers that expose them.

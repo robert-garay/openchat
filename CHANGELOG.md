@@ -13,8 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- DeepSeek `deepseek-flash` (and legacy `deepseek-v4-flash-vision-exp`) are detected as vision-capable when provider `/models` responses omit image modalities, so image attachments work with the official DeepSeek API.
 - On-device local model vendor rows for Meta and Microsoft now use official brand logo assets (with dark-mode Meta mark), matching the shared `ProviderLogoView` pipeline used for Qwen and other providers.
+
+## [1.2.1] - 2026-11-14
+
+### Fixed
+
+- DeepSeek `deepseek-flash` (and legacy `deepseek-v4-flash-vision-exp`) are detected as vision-capable when provider `/models` responses omit image modalities, so image attachments work with the official DeepSeek API (PR #313).
+- DeepSeek chat requests now send `reasoning_effort` alongside the thinking toggle so effort levels reach the API.
+- Anthropic extended thinking maps the selected effort level to `budget_tokens` and `output_config.effort` instead of a fixed 16k budget.
+- On-device model downloads resume interrupted transfers via HTTP Range and keep partial files until cancel or checksum failure.
+- Tightened vision capability inference: bare `gemini` IDs no longer imply image support, and `o1-mini` no longer gets effort badges.
+- Reduced main-thread stalls when opening long chats and during streaming: defer proposal re-scan on chat open, coalesce streaming markdown snapshots, and stop composer `onChange` handlers from invalidating the full message list.
+- Long chats: streaming no longer re-runs the whole message list on every token, typing no longer re-renders the chat, and message sorting reads each timestamp once. Cuts main-thread stalls when opening and streaming in long chats.
+- Long chats: the reply stays on screen after a long answer finishes streaming (it could go blank until you scrolled), and Jump to latest lands on the newest message right away.
+- Fixed a build break in `ModelPickerSheet` where the OpenRouter vision-override map closure omitted `return`.
 
 ### Changed
 
