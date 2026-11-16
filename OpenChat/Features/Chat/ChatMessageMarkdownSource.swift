@@ -46,7 +46,10 @@ final class ChatMessageMarkdownSource: StreamedMarkdownSource {
             _ = message.isStreaming
             _ = message.attachmentsData
         } onChange: { [weak self] in
-            self?.scheduleSnapshot(for: box.value, snapshot: snapshot)
+            // `onChange` is nonisolated; hop to the main actor before touching state.
+            Task { @MainActor [weak self] in
+                self?.scheduleSnapshot(for: box.value, snapshot: snapshot)
+            }
         }
     }
 

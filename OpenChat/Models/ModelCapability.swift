@@ -192,7 +192,7 @@ enum ModelCapability: String, Codable, CaseIterable, Identifiable, Hashable, Sen
             "gpt-3.5", "gpt-4", "gpt-5", "chatgpt",
             "o1-", "o3-", "o4-",
             "claude", "gemini",
-            "deepseek-chat", "deepseek-reasoner", "deepseek-v",
+            "deepseek-chat", "deepseek-reasoner", "deepseek-v", "deepseek-flash",
             "qwen", "glm-4", "glm-5", "kimi", "moonshot",
             "yi-large", "yi-lightning",
             "llama-3", "llama-4", "mistral", "mixtral", "command-r"
