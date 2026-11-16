@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On-device model downloads resume interrupted transfers via HTTP Range and keep partial files until cancel or checksum failure.
 - Tightened vision capability inference: bare `gemini` IDs no longer imply image support, and `o1-mini` no longer gets effort badges.
 - Reduced main-thread stalls when opening long chats and during streaming: defer proposal re-scan on chat open, coalesce streaming markdown snapshots, and stop composer `onChange` handlers from invalidating the full message list.
+- Long chats: streaming no longer re-runs the whole message list on every token, typing no longer re-renders the chat, and message sorting reads each timestamp once. Cuts main-thread stalls when opening and streaming in long chats.
 - Fixed a build break in `ModelPickerSheet` where the OpenRouter vision-override map closure omitted `return`.
 
 ### Changed

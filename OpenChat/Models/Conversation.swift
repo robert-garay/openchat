@@ -62,7 +62,12 @@ final class Conversation {
     }
 
     var sortedMessages: [ChatMessage] {
-        messages.sorted { $0.createdAt < $1.createdAt }
+        // Read each SwiftData-backed `createdAt` once instead of on every comparison;
+        // this runs in the message list body, so it matters for long chats.
+        messages
+            .map { (createdAt: $0.createdAt, message: $0) }
+            .sorted { $0.createdAt < $1.createdAt }
+            .map(\.message)
     }
 
     /// Newest message by `createdAt` without allocating a full sorted copy.

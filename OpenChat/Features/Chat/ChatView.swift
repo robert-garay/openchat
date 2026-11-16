@@ -56,28 +56,13 @@ struct ChatView: View {
                     ),
                     canUseVoiceMode: viewModel.canUseVoiceMode,
                     onStartVoiceMode: { showingVoiceMode = true },
-            onSend: {
-                stickToBottom = true
-                viewModel.send()
+                    onSend: {
+                        stickToBottom = true
+                        viewModel.send()
+                    }
+                )
             }
-        )
-        .onChange(of: viewModel.composerText) { _, _ in
-            viewModel.persistComposerState()
         }
-        .onChange(of: viewModel.pendingAttachments) { _, _ in
-            viewModel.persistComposerState()
-        }
-        .onChange(of: viewModel.selectedWebSearchProvider) { _, _ in
-            viewModel.persistComposerState()
-        }
-        .onChange(of: viewModel.effortLevel) { _, _ in
-            viewModel.persistComposerState()
-        }
-        .onChange(of: viewModel.isReasoningEnabled) { _, _ in
-            viewModel.persistComposerState()
-        }
-    }
-}
         .fullScreenCover(isPresented: $showingVoiceMode) {
             VoiceModeView(
                 conversation: conversation,
@@ -329,6 +314,23 @@ private struct ChatComposerHost: View {
             onStop: viewModel.cancelStreaming
         )
         .disabled(viewModel.editingMessageID != nil)
+        // Observed here, not in `ChatView.body`, so each keystroke only
+        // invalidates the composer instead of the whole chat and message list.
+        .onChange(of: viewModel.composerText) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.pendingAttachments) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.selectedWebSearchProvider) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.effortLevel) { _, _ in
+            viewModel.persistComposerState()
+        }
+        .onChange(of: viewModel.isReasoningEnabled) { _, _ in
+            viewModel.persistComposerState()
+        }
     }
 }
 
@@ -446,8 +448,12 @@ private struct ChatMessageListView: View {
                 .onChange(of: conversation.messages.count) {
                     scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
                 }
-                .onChange(of: conversation.lastMessage?.content) {
-                    scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
+                .background {
+                    // Streamed tokens re-run only this observer, not this whole body
+                    // (sort + ForEach over every message in a long chat).
+                    LastMessageContentObserver(message: sortedMessages.last) {
+                        scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
+                    }
                 }
                 .onChange(of: isInteractivelyScrolling) { _, scrolling in
                     if scrolling {
@@ -543,6 +549,22 @@ private struct ChatMessageListView: View {
             transaction.disablesAnimations = true
             withTransaction(transaction, action)
         }
+    }
+}
+
+/// Watches only the newest message's text so streaming updates do not
+/// invalidate `ChatMessageListView.body`.
+private struct LastMessageContentObserver: View {
+    let message: ChatMessage?
+    let onChange: () -> Void
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .onChange(of: message?.content) {
+                onChange()
+            }
     }
 }
 
