@@ -360,43 +360,24 @@ private struct ChatMessageListView: View {
                 // LazyVStack keeps large threads responsive. Scroll targets the last
                 // message first so the bottom bubble materializes before the spacer pin
                 // (plain scrollTo-bottom alone can leave a blank viewport).
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(sortedMessages) { message in
-                        MessageBubbleView(
-                            message: message,
-                            conversation: conversation,
-                            pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
-                            memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
-                            onConfirmMemoryProposals: {
-                                viewModel.confirmMemoryProposals(for: message.id)
-                            },
-                            onDismissMemoryProposals: {
-                                viewModel.dismissMemoryProposals(for: message.id)
-                            },
-                            pendingSkillProposals: viewModel.pendingSkillProposalsByMessageID[message.id] ?? [],
-                            skillActionStatus: viewModel.skillActionStatusByMessageID[message.id],
-                            onDismissSkillProposals: {
-                                viewModel.dismissSkillProposals(for: message.id)
-                            },
-                            onSkillProposalSaved: {
-                                viewModel.clearSkillProposalAfterReview(for: message.id)
-                            },
-                            pendingRuleProposals: viewModel.pendingRuleProposalsByMessageID[message.id] ?? [],
-                            ruleActionStatus: viewModel.ruleActionStatusByMessageID[message.id],
-                            onDismissRuleProposals: {
-                                viewModel.dismissRuleProposals(for: message.id)
-                            },
-                            onRuleProposalSaved: { proposalID in
-                                viewModel.clearRuleProposalAfterReview(for: message.id, proposalID: proposalID)
-                            },
-                            isLastMessage: message.id == lastMessageID,
-                            onRetry: viewModel.regenerateLastReply,
-                            canEdit: !viewModel.isStreaming,
-                            onBeginEdit: {
-                                viewModel.beginEditing(message)
+                VStack(alignment: .leading, spacing: 18) {
+                    if sortedMessages.count > 1 {
+                        LazyVStack(alignment: .leading, spacing: 18) {
+                            ForEach(sortedMessages.dropLast()) { message in
+                                messageRow(message, lastMessageID: lastMessageID)
+                                    .id(message.id)
                             }
-                        )
-                        .id(message.id)
+                        }
+                    }
+
+                    // The newest message stays outside the LazyVStack. A long streamed reply is
+                    // one very tall row; inside the lazy stack it inflated the estimated height
+                    // of every unmaterialized row (content grew from ~130k to ~2M pt), and pinning
+                    // to the bottom then landed in estimated empty space: a blank viewport after
+                    // the reply finished, and "Jump to latest" stopping short.
+                    if let lastMessage = sortedMessages.last {
+                        messageRow(lastMessage, lastMessageID: lastMessageID)
+                            .id(lastMessage.id)
                     }
 
                     Color.clear
@@ -434,10 +415,7 @@ private struct ChatMessageListView: View {
                 .overlay(alignment: .bottomTrailing) {
                     if !stickToBottom && !sortedMessages.isEmpty {
                         jumpToLatestButton {
-                            stickToBottom = true
-                            isInteractivelyScrolling = false
-                            Haptics.light()
-                            scrollToBottom(proxy: proxy, animated: true, lastMessageID: lastMessageID)
+                            jumpToLatest(proxy: proxy, lastMessageID: lastMessageID)
                         }
                         .padding(.trailing, 16)
                         .padding(.bottom, 12)
@@ -497,17 +475,72 @@ private struct ChatMessageListView: View {
         }
     }
 
+    private func messageRow(_ message: ChatMessage, lastMessageID: UUID?) -> some View {
+        MessageBubbleView(
+            message: message,
+            conversation: conversation,
+            pendingMemoryProposals: viewModel.pendingMemoryProposalsByMessageID[message.id] ?? [],
+            memoryActionStatus: viewModel.memoryActionStatusByMessageID[message.id],
+            onConfirmMemoryProposals: {
+                viewModel.confirmMemoryProposals(for: message.id)
+            },
+            onDismissMemoryProposals: {
+                viewModel.dismissMemoryProposals(for: message.id)
+            },
+            pendingSkillProposals: viewModel.pendingSkillProposalsByMessageID[message.id] ?? [],
+            skillActionStatus: viewModel.skillActionStatusByMessageID[message.id],
+            onDismissSkillProposals: {
+                viewModel.dismissSkillProposals(for: message.id)
+            },
+            onSkillProposalSaved: {
+                viewModel.clearSkillProposalAfterReview(for: message.id)
+            },
+            pendingRuleProposals: viewModel.pendingRuleProposalsByMessageID[message.id] ?? [],
+            ruleActionStatus: viewModel.ruleActionStatusByMessageID[message.id],
+            onDismissRuleProposals: {
+                viewModel.dismissRuleProposals(for: message.id)
+            },
+            onRuleProposalSaved: { proposalID in
+                viewModel.clearRuleProposalAfterReview(for: message.id, proposalID: proposalID)
+            },
+            isLastMessage: message.id == lastMessageID,
+            onRetry: viewModel.regenerateLastReply,
+            canEdit: !viewModel.isStreaming,
+            onBeginEdit: {
+                viewModel.beginEditing(message)
+            }
+        )
+    }
+
     private func handleContentHeightChange(
         _ height: CGFloat,
         proxy: ScrollViewProxy,
         lastMessageID: UUID?
     ) {
-        guard height > lastContentHeight + 1 else {
-            lastContentHeight = max(lastContentHeight, height)
-            return
-        }
+        // Compare with the last observed height, not the tallest ever seen: when a
+        // finished reply swaps renderers the content briefly shrinks, then regrows, and
+        // a high-water mark skipped those regrowth re-pins and left the view above the end.
+        let grew = height > lastContentHeight + 1
         lastContentHeight = height
+        guard grew else { return }
         scheduleFollowScroll(proxy: proxy, lastMessageID: lastMessageID)
+    }
+
+    private func jumpToLatest(proxy: ScrollViewProxy, lastMessageID: UUID?) {
+        stickToBottom = true
+        isInteractivelyScrolling = false
+        Haptics.light()
+        // An animated scrollTo across hundreds of lazy rows targets estimated offsets and
+        // stops short; pin directly, then re-pin once the newly materialized rows lay out.
+        scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
+        followScrollTask?.cancel()
+        followScrollTask = Task { @MainActor in
+            for delay in [50, 150, 350] as [UInt64] {
+                try? await Task.sleep(for: .milliseconds(delay))
+                guard !Task.isCancelled, stickToBottom, !isInteractivelyScrolling else { return }
+                scrollToBottom(proxy: proxy, animated: false, lastMessageID: lastMessageID)
+            }
+        }
     }
 
     private func jumpToLatestButton(action: @escaping () -> Void) -> some View {
